@@ -53,7 +53,7 @@ fn main() {
     let out_format = matches.value_of("output-format").unwrap_or("JPEG");
     println!("Value for out format: {}", out_format);
 
-    // Can be unwrap because is an required argument.
+    // Can be unwrap because these values are required arguments.
     let in_file = matches.value_of("INPUT").unwrap();
     let out_file = matches.value_of("OUTPUT").unwrap();
     println!("Using input file: {}", in_file);
