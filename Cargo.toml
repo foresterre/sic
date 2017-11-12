@@ -5,4 +5,4 @@ authors = ["foresterre <garm@ilumeo.com>"]
 
 [dependencies]
 image = "0.17.0"
-clap = "*"
+clap = "2.27.1"
