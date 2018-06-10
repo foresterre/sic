@@ -1,8 +1,20 @@
 [package]
 name = "sic"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["foresterre <garm@ilumeo.com>"]
 
-[dependencies]
-image = "0.17.0"
-clap = "2.27.1"
+[dependencies.clap]
+version = "2.27.1"
+
+[dependencies.image]
+version = "0.17.0"
+
+[package]
+exclude = [
+    ".idea/*",
+    ".vscode/*",
+    "imgconv.iml",
+]
+description = "`sic` stands for simple image converter and is a partial front-end for the `image` crate. Specifically it only converts images between certain supported image formats."
+license = "MIT"
+repository = "https://github.com/foresterre/sic"
