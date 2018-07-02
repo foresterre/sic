@@ -2,113 +2,73 @@ extern crate image;
 
 use super::*;
 
-// which_image_format
+/// which_image_format
+
+// general
+#[test]
+fn image_format_from_str_from_upper_case() {
+    assert_eq!(Some(image::ImageOutputFormat::GIF), image_format_from_str("GIF"));
+}
+
+#[test]
+fn image_format_from_str_from_mixed_case() {
+    assert_eq!(Some(image::ImageOutputFormat::GIF), image_format_from_str("GiF"));
+}
+
+// BMP
+#[test]
+fn image_format_from_str_bmp() {
+    assert_eq!(Some(image::ImageOutputFormat::BMP), image_format_from_str("bmp"));
+}
 
 // GIF
 #[test]
-fn image_format_from_str_gif_uc() {
-    assert_eq!(Some(image::GIF), image_format_from_str("GIF"));
-}
-
-#[test]
-fn image_format_from_str_gif_lc() {
-    assert_eq!(Some(image::GIF), image_format_from_str("gif"));
-}
-
-#[test]
-fn image_format_from_str_gif_mc() {
-    assert_eq!(Some(image::GIF), image_format_from_str("gIF"));
+fn image_format_from_str_gif() {
+    assert_eq!(Some(image::ImageOutputFormat::GIF), image_format_from_str("gif"));
 }
 
 // ICO
 #[test]
-fn image_format_from_str_ico_uc() {
-    assert_eq!(Some(image::ICO), image_format_from_str("ICO"));
-}
-
-#[test]
-fn image_format_from_str_ico_lc() {
-    assert_eq!(Some(image::ICO), image_format_from_str("ico"));
-}
-
-#[test]
-fn image_format_from_str_ico_mc() {
-    assert_eq!(Some(image::ICO), image_format_from_str("icO"));
+fn image_format_from_str_ico() {
+    assert_eq!(Some(image::ImageOutputFormat::ICO), image_format_from_str("ico"));
 }
 
 // JPG/JPEG
 #[test]
-fn image_format_from_str_jpeg_uc() {
-    assert_eq!(Some(image::JPEG), image_format_from_str("JPEG"));
+fn image_format_from_str_jpeg() {
+    assert_eq!(Some(image::ImageOutputFormat::JPEG(80)), image_format_from_str("jpeg"));
 }
 
 #[test]
-fn image_format_from_str_jpeg_lc() {
-    assert_eq!(Some(image::JPEG), image_format_from_str("jpeg"));
+fn image_format_from_str_jpg() {
+    assert_eq!(Some(image::ImageOutputFormat::JPEG(80)), image_format_from_str("jpg"));
 }
-
-#[test]
-fn image_format_from_str_jpeg_mc() {
-    assert_eq!(Some(image::JPEG), image_format_from_str("jPeG"));
-}
-
-#[test]
-fn image_format_from_str_jpg_uc() {
-    assert_eq!(Some(image::JPEG), image_format_from_str("JPG"));
-}
-
-#[test]
-fn image_format_from_str_jpg_lc() {
-    assert_eq!(Some(image::JPEG), image_format_from_str("jpg"));
-}
-
-#[test]
-fn image_format_from_str_jpg_mc() {
-    assert_eq!(Some(image::JPEG), image_format_from_str("jPG"));
-}
-
 
 // PNG
 #[test]
-fn image_format_from_str_png_uc() {
-    assert_eq!(Some(image::PNG), image_format_from_str("PNG"));
-}
-
-#[test]
-fn image_format_from_str_png_lc() {
-    assert_eq!(Some(image::PNG), image_format_from_str("png"));
-}
-
-#[test]
-fn image_format_from_str_png_mc() {
-    assert_eq!(Some(image::PNG), image_format_from_str("pNg"));
+fn image_format_from_str_png() {
+    assert_eq!(Some(image::ImageOutputFormat::PNG), image_format_from_str("png"));
 }
 
 // PPM
 #[test]
-fn image_format_from_str_ppm_uc() {
-    assert_eq!(Some(image::PPM), image_format_from_str("PPM"));
+fn image_format_from_str_ppm() {
+    assert_eq!(Some(image::ImageOutputFormat::PNM(
+        image::pnm::PNMSubtype::Pixmap(
+            image::pnm::SampleEncoding::Binary
+        )
+    )), image_format_from_str("ppm"));
 }
 
-#[test]
-fn image_format_from_str_ppm_lc() {
-    assert_eq!(Some(image::PPM), image_format_from_str("ppm"));
-}
-
-#[test]
-fn image_format_from_str_ppm_mc() {
-    assert_eq!(Some(image::PPM), image_format_from_str("pPm"));
-}
-
-// determine_format_by_extension
+/// determine_format_by_extension
 #[test]
 fn determine_format_by_extension_ok_path() {
-    assert_eq!(Some(image::PNG), determine_format_by_extension("C:/users/some/path.png"));
+    assert_eq!(Some(image::ImageOutputFormat::PNG), determine_format_by_extension("C:/users/some/path.png"));
 }
 
 #[test]
 fn determine_format_by_extension_test_ok_file() {
-    assert_eq!(Some(image::PNG), determine_format_by_extension("path.png"));
+    assert_eq!(Some(image::ImageOutputFormat::PNG), determine_format_by_extension("path.png"));
 }
 
 #[test]
@@ -121,7 +81,7 @@ fn determine_format_by_extension_test_no_ext_file() {
     assert_eq!(None, determine_format_by_extension("png"));
 }
 
-// get_extension
+/// get_extension
 #[test]
 fn get_extension_ok_path() {
     assert_eq!(Some("png"), get_extension("C:/users/some/path.png"));
