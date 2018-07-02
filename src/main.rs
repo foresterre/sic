@@ -16,10 +16,8 @@ mod tests;
 // TODO{code,test}: accept different versions of supported formats
 // TODO{bug}: if an image can't be encoded, at this moment, an empty file will still be created
 
-
 fn image_format_from_str(format: &str) -> Option<image::ImageOutputFormat> {
-
-    let format_in_lower_case: &str = &* format.to_string().to_lowercase();
+    let format_in_lower_case: &str = &*format.to_string().to_lowercase();
 
     match format_in_lower_case {
         "bmp" => Some(image::ImageOutputFormat::BMP),
@@ -27,26 +25,38 @@ fn image_format_from_str(format: &str) -> Option<image::ImageOutputFormat> {
         "ico" => Some(image::ImageOutputFormat::ICO),
         "jpeg" | "jpg" => Some(image::ImageOutputFormat::JPEG(80)),
         "png" => Some(image::ImageOutputFormat::PNG),
-        "ppm" => Some(image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::Pixmap(image::pnm::SampleEncoding::Binary))),
+        "ppm" => Some(image::ImageOutputFormat::PNM(
+            image::pnm::PNMSubtype::Pixmap(image::pnm::SampleEncoding::Binary),
+        )),
         _ => None,
     }
 }
 
-fn save_file_with_format(img: image::DynamicImage, out: &mut File, out_str: &str, format: image::ImageOutputFormat) {
+fn save_file_with_format(
+    img: image::DynamicImage,
+    out: &mut File,
+    out_str: &str,
+    format: image::ImageOutputFormat,
+) {
     match img.write_to(out, format) {
         Err(reason) => panic!("Unable to save file to: {}, reason: {:?}", out_str, reason),
         Ok(_) => println!("Done!"),
     }
 }
 
-fn create_file_with_format(img: image::DynamicImage, out_str: &str, format: image::ImageOutputFormat) {
+fn create_file_with_format(
+    img: image::DynamicImage,
+    out_str: &str,
+    format: image::ImageOutputFormat,
+) {
     let new_file = &mut File::create(&Path::new(out_str));
 
     match new_file {
-        Err(reason) => panic!("Unable to create a file at: {}, reason: {:?}", out_str, reason),
-        Ok(out) => {
-            save_file_with_format(img, out, out_str, format)
-        },
+        Err(reason) => panic!(
+            "Unable to create a file at: {}, reason: {:?}",
+            out_str, reason
+        ),
+        Ok(out) => save_file_with_format(img, out, out_str, format),
     }
 }
 
@@ -56,7 +66,7 @@ fn convert_image(in_file: &str, out_str: &str, out_format: image::ImageOutputFor
         Ok(img) => {
             println!("Converting to: {:?} and saving to: {}", out_format, out_str);
             create_file_with_format(img, out_str, out_format)
-        },
+        }
     }
 }
 
@@ -68,13 +78,12 @@ fn get_extension(path: &str) -> Option<&str> {
 
     if maybe_format != Some(path) {
         maybe_format
-    }
-    else {
+    } else {
         None
     }
 }
 
-fn determine_format_by_extension(file_path: &str) -> Option<image::ImageOutputFormat>{
+fn determine_format_by_extension(file_path: &str) -> Option<image::ImageOutputFormat> {
     let ext = get_extension(file_path);
 
     match ext {
@@ -83,8 +92,10 @@ fn determine_format_by_extension(file_path: &str) -> Option<image::ImageOutputFo
     }
 }
 
-// TODO: replace with image::save() if not forcing format
-fn determine_format(force_format: Option<&str>, out_file: &str) -> Option<image::ImageOutputFormat> {
+fn determine_format(
+    force_format: Option<&str>,
+    out_file: &str,
+) -> Option<image::ImageOutputFormat> {
     let final_format = match force_format {
         Some(format_str) => image_format_from_str(format_str),
         None => determine_format_by_extension(out_file),
@@ -94,9 +105,6 @@ fn determine_format(force_format: Option<&str>, out_file: &str) -> Option<image:
 }
 
 fn main() {
-
-    // TODO{docs}: supported input formats of the image crate.
-
     let matches = App::new("Simple Image Converter")
         .version("0.3.0")
         .author("foresterre <garm@ilumeo.com>")
