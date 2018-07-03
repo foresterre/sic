@@ -9,99 +9,25 @@ use clap::{App, Arg};
 #[cfg(test)]
 mod tests;
 
-// TODO{code}: improve program flow; especially regarding errors/panics
-// TODO{code}: use image.save() if not forcing an encoding
 // TODO{test}: add tests with images
 // TODO{code,test}: test on constraints of ICO format (256x256) before trying to convert
 // TODO{code,test}: accept different versions of supported formats
 // TODO{bug}: if an image can't be encoded, at this moment, an empty file will still be created
 
-fn image_format_from_str(format: &str) -> Option<image::ImageOutputFormat> {
+fn image_format_from_str(format: &str) -> Result<image::ImageOutputFormat, String> {
     let format_in_lower_case: &str = &*format.to_string().to_lowercase();
 
     match format_in_lower_case {
-        "bmp" => Some(image::ImageOutputFormat::BMP),
-        "gif" => Some(image::ImageOutputFormat::GIF),
-        "ico" => Some(image::ImageOutputFormat::ICO),
-        "jpeg" | "jpg" => Some(image::ImageOutputFormat::JPEG(80)),
-        "png" => Some(image::ImageOutputFormat::PNG),
-        "ppm" => Some(image::ImageOutputFormat::PNM(
+        "bmp" => Ok(image::ImageOutputFormat::BMP),
+        "gif" => Ok(image::ImageOutputFormat::GIF),
+        "ico" => Ok(image::ImageOutputFormat::ICO),
+        "jpeg" | "jpg" => Ok(image::ImageOutputFormat::JPEG(80)),
+        "png" => Ok(image::ImageOutputFormat::PNG),
+        "ppm" => Ok(image::ImageOutputFormat::PNM(
             image::pnm::PNMSubtype::Pixmap(image::pnm::SampleEncoding::Binary),
         )),
-        _ => None,
+        _ => Err("Image format unsupported.".to_string()),
     }
-}
-
-fn save_file_with_format(
-    img: image::DynamicImage,
-    out: &mut File,
-    out_str: &str,
-    format: image::ImageOutputFormat,
-) {
-    match img.write_to(out, format) {
-        Err(reason) => panic!("Unable to save file to: {}, reason: {:?}", out_str, reason),
-        Ok(_) => println!("Done!"),
-    }
-}
-
-fn create_file_with_format(
-    img: image::DynamicImage,
-    out_str: &str,
-    format: image::ImageOutputFormat,
-) {
-    let new_file = &mut File::create(&Path::new(out_str));
-
-    match new_file {
-        Err(reason) => panic!(
-            "Unable to create a file at: {}, reason: {:?}",
-            out_str, reason
-        ),
-        Ok(out) => save_file_with_format(img, out, out_str, format),
-    }
-}
-
-fn convert_image(in_file: &str, out_str: &str, out_format: image::ImageOutputFormat) {
-    match image::open(&Path::new(in_file)) {
-        Err(reason) => panic!("Unable to process input: {}. reason: {:?}", in_file, reason),
-        Ok(img) => {
-            println!("Converting to: {:?} and saving to: {}", out_format, out_str);
-            create_file_with_format(img, out_str, out_format)
-        }
-    }
-}
-
-fn get_extension(path: &str) -> Option<&str> {
-    let split_by_dot: Vec<&str> = path.split('.').collect();
-    let last = split_by_dot.last();
-
-    let maybe_format = last.cloned();
-
-    if maybe_format != Some(path) {
-        maybe_format
-    } else {
-        None
-    }
-}
-
-fn determine_format_by_extension(file_path: &str) -> Option<image::ImageOutputFormat> {
-    let ext = get_extension(file_path);
-
-    match ext {
-        Some(name) => image_format_from_str(name),
-        None => None,
-    }
-}
-
-fn determine_format(
-    force_format: Option<&str>,
-    out_file: &str,
-) -> Option<image::ImageOutputFormat> {
-    let final_format = match force_format {
-        Some(format_str) => image_format_from_str(format_str),
-        None => determine_format_by_extension(out_file),
-    };
-
-    final_format
 }
 
 fn main() {
@@ -132,22 +58,54 @@ fn main() {
         .get_matches();
 
     // Can be unwrap because these values are required arguments.
-    let in_file = matches.value_of("INPUT_FILE").unwrap();
-    let out_file = matches.value_of("OUTPUT_FILE").unwrap();
-    println!("Provided input file: {}", in_file);
-    println!("Provided output file: {}", out_file);
+    let in_file_path = matches.value_of("INPUT_FILE").unwrap();
+    let out_file_path = matches.value_of("OUTPUT_FILE").unwrap();
+    println!("Provided input file: {}", in_file_path);
+    println!("Provided output file: {}", out_file_path);
 
     let forced_format = matches.value_of("FORCED_OUTPUT_FORMAT");
 
-    // if the forced format is set, try to use that if available, if not available, panic!
-    // if forced format is not set (i.e. None)
-    // - check if the file has an extension which is available if so use that, if not panic!
-    //   the above removes support for a default format; so if no format is provided
-    //   by means of either `-f` or as output file extension, the program panics.
+    if forced_format.is_some() {
+        let image = image::open(&Path::new(in_file_path)).expect("Unable to open input image.");
+        let requested_image_format: &str = forced_format.expect("Unable to access requested image output format");
+        let image_format = image_format_from_str(requested_image_format).expect("Requested image output format not supported.");
 
-    let final_format: Option<image::ImageOutputFormat> = determine_format(forced_format, out_file);
+        let output_file = &mut File::create(&Path::new(out_file_path)).expect("Unable to save image result.");
 
-    if let Some(format) = final_format {
-        convert_image(in_file, out_file, format)
+        let _ = image.write_to(output_file, image_format);
+    }
+    else {
+        match convert_image_unforced(in_file_path, out_file_path) {
+            Ok(_) => println!("Complete."),
+            Err(err) => println!("Error: {}", err),
+        }
     }
 }
+
+// todo: how to deal with mutable borrows and closures
+// todo: combine forced and unforced
+// fn convert_image_forced(input: &str, output: &str, format: &str) -> Result<(), String> {
+//     image_format_from_str(format)
+//         .map_err(|err| err.to_string())
+//         .and_then(|image_format| {
+//             image::open(&Path::new(input))
+//                 .map_err(|err| err.to_string())
+//                 .map(|image| (image, image_format) )
+//         })
+//         .and_then(|(image, image_format)| {
+//             let out = &mut File::create(&Path::new(output))
+//                 .map_err(|err| err.to_string())
+//                 .map(|fout| image.write_to(&mut fout, image_format))
+//                     .map_err(|err| err.to_string());
+
+//             out.map(|_| ())
+//         })
+// }
+
+fn convert_image_unforced(input: &str, output: &str) -> Result<(), String> {
+    image::open(&Path::new(input))
+        .map_err(|err| err.to_string())
+        .and_then(|image| image.save(output)
+            .map_err(|err| err.to_string()))
+}
+
