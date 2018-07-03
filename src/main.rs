@@ -16,7 +16,7 @@ mod tests;
 // TODO{code}: improve error handling by defining an Error type. Possibly use the 'failure' crate.
 fn main() {
     let matches = App::new("Simple Image Converter")
-        .version("0.3.0")
+        .version("0.4.0")
         .author("foresterre <garm@ilumeo.com>")
         .about("Converts an image from one format to another.\n\n\
                 Supported input formats are described BMP, GIF, ICO, JPEG, PNG, PPM (limitations may apply). \n\n\
