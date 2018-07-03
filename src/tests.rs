@@ -8,7 +8,7 @@ use super::*;
 #[test]
 fn image_format_from_str_from_upper_case() {
     assert_eq!(
-        Some(image::ImageOutputFormat::GIF),
+        Ok(image::ImageOutputFormat::GIF),
         image_format_from_str("GIF")
     );
 }
@@ -16,8 +16,16 @@ fn image_format_from_str_from_upper_case() {
 #[test]
 fn image_format_from_str_from_mixed_case() {
     assert_eq!(
-        Some(image::ImageOutputFormat::GIF),
+        Ok(image::ImageOutputFormat::GIF),
         image_format_from_str("GiF")
+    );
+}
+
+#[test]
+fn image_format_from_str_none() {
+    assert_eq!(
+        Err("Image format unsupported.".to_string()),
+        image_format_from_str("boop")
     );
 }
 
@@ -25,7 +33,7 @@ fn image_format_from_str_from_mixed_case() {
 #[test]
 fn image_format_from_str_bmp() {
     assert_eq!(
-        Some(image::ImageOutputFormat::BMP),
+        Ok(image::ImageOutputFormat::BMP),
         image_format_from_str("bmp")
     );
 }
@@ -34,7 +42,7 @@ fn image_format_from_str_bmp() {
 #[test]
 fn image_format_from_str_gif() {
     assert_eq!(
-        Some(image::ImageOutputFormat::GIF),
+        Ok(image::ImageOutputFormat::GIF),
         image_format_from_str("gif")
     );
 }
@@ -43,7 +51,7 @@ fn image_format_from_str_gif() {
 #[test]
 fn image_format_from_str_ico() {
     assert_eq!(
-        Some(image::ImageOutputFormat::ICO),
+        Ok(image::ImageOutputFormat::ICO),
         image_format_from_str("ico")
     );
 }
@@ -52,7 +60,7 @@ fn image_format_from_str_ico() {
 #[test]
 fn image_format_from_str_jpeg() {
     assert_eq!(
-        Some(image::ImageOutputFormat::JPEG(80)),
+        Ok(image::ImageOutputFormat::JPEG(80)),
         image_format_from_str("jpeg")
     );
 }
@@ -60,7 +68,7 @@ fn image_format_from_str_jpeg() {
 #[test]
 fn image_format_from_str_jpg() {
     assert_eq!(
-        Some(image::ImageOutputFormat::JPEG(80)),
+        Ok(image::ImageOutputFormat::JPEG(80)),
         image_format_from_str("jpg")
     );
 }
@@ -69,7 +77,7 @@ fn image_format_from_str_jpg() {
 #[test]
 fn image_format_from_str_png() {
     assert_eq!(
-        Some(image::ImageOutputFormat::PNG),
+        Ok(image::ImageOutputFormat::PNG),
         image_format_from_str("png")
     );
 }
@@ -78,57 +86,9 @@ fn image_format_from_str_png() {
 #[test]
 fn image_format_from_str_ppm() {
     assert_eq!(
-        Some(image::ImageOutputFormat::PNM(
+        Ok(image::ImageOutputFormat::PNM(
             image::pnm::PNMSubtype::Pixmap(image::pnm::SampleEncoding::Binary)
         )),
         image_format_from_str("ppm")
     );
-}
-
-/// determine_format_by_extension
-#[test]
-fn determine_format_by_extension_ok_path() {
-    assert_eq!(
-        Some(image::ImageOutputFormat::PNG),
-        determine_format_by_extension("C:/users/some/path.png")
-    );
-}
-
-#[test]
-fn determine_format_by_extension_test_ok_file() {
-    assert_eq!(
-        Some(image::ImageOutputFormat::PNG),
-        determine_format_by_extension("path.png")
-    );
-}
-
-#[test]
-fn determine_format_by_extension_test_no_ext_path() {
-    assert_eq!(None, determine_format_by_extension("C:/users/some/png"));
-}
-
-#[test]
-fn determine_format_by_extension_test_no_ext_file() {
-    assert_eq!(None, determine_format_by_extension("png"));
-}
-
-/// get_extension
-#[test]
-fn get_extension_ok_path() {
-    assert_eq!(Some("png"), get_extension("C:/users/some/path.png"));
-}
-
-#[test]
-fn get_extension_test_ok_file() {
-    assert_eq!(Some("png"), get_extension("path.png"));
-}
-
-#[test]
-fn get_extension_test_no_ext_path() {
-    assert_eq!(None, get_extension("C:/users/some/png"));
-}
-
-#[test]
-fn get_extension_test_no_ext_file() {
-    assert_eq!(None, get_extension("png"));
 }
