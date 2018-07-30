@@ -1,5 +1,6 @@
-#[macro_use]
-extern crate clap;
+#![feature(rust_2018_preview)]
+
+#[macro_use] extern crate clap;
 extern crate image;
 
 use std::fs::File;

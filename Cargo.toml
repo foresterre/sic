@@ -1,3 +1,5 @@
+cargo-features = ["edition"]
+
 [package]
 name = "sic"
 version = "0.4.0"
@@ -10,6 +12,7 @@ exclude = [
     ".vscode/*",
     "imgconv.iml",
 ]
+edition = "2018"
 
 [dependencies.clap]
 version = "2.27.1"
