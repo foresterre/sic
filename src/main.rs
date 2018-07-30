@@ -9,11 +9,6 @@ use clap::{App, Arg, values_t};
 #[cfg(test)]
 mod tests;
 
-// TODO{test}: add tests with images
-// TODO{code,test}: accept different versions of supported formats
-// TODO{bug}: if an image can't be encoded, at this moment, an empty file will still be created
-// TODO{feature}: add image cropping prior to encoding (think about introducing a pipeline e.g. input -> modification -> output)
-// TODO{code}: improve error handling by defining an Error type. Possibly use the 'failure' crate.
 fn main() {
     let matches = App::new("Simple Image Converter")
         .version("0.4.0")
