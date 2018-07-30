@@ -1,6 +1,6 @@
 # Features & Implementation
 
-[ ] Accept different versions of supported formats
+- [ ] Accept different versions of supported formats
 
 For example, PNM supports PBM,PGM,PPM, standard PAM decoding modes.
 Idea's for implementing:
@@ -14,9 +14,9 @@ Idea's for implementing:
         - `JPEG` ?
             - `baseline` xor `progressive` OR `number` xor ``
             - usage example `sic input.png output -f JPEG progressive 90`
-[ ] Improve error handling by defining an Error type. Possibly use the 'failure' crate.
+- [ ] Improve error handling by defining an Error type. Possibly use the 'failure' crate.
 
-[ ] Add 'macro language' for image processing functions support
+- [ ] Add 'macro language' for image processing functions support
 
 - Command line syntax? ideas:
     - `sic in out.ext --script "invert; rotate180; flip_vertical"`
@@ -25,10 +25,10 @@ Idea's for implementing:
 
 # Tests:
 
-[ ] Add tests with images
-[ ] Test properly
+- [ ] Add tests with images
+- [ ] Test properly
 
 # Known bugs
 
-[ ] if an image can't be encoded, at this moment, an empty file will still be created
+- [ ] if an image can't be encoded, at this moment, an empty file will still be created
 
