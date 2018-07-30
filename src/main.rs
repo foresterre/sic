@@ -1,13 +1,10 @@
 #![feature(rust_2018_preview)]
 #![warn(rust_2018_idioms)]
 
-#[macro_use] extern crate clap;
-extern crate image;
-
 use std::fs::File;
 use std::path::Path;
 
-use clap::{App, Arg};
+use clap::{App, Arg, values_t};
 
 #[cfg(test)]
 mod tests;
