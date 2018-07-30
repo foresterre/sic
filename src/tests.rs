@@ -1,5 +1,3 @@
-extern crate image;
-
 use super::*;
 
 /// which_image_format
