@@ -4,7 +4,7 @@
 use std::fs::File;
 use std::path::Path;
 
-use clap::{App, Arg, values_t};
+use clap::{App, Arg};
 
 #[cfg(test)]
 mod tests;
@@ -26,11 +26,6 @@ fn main() {
             .value_name("FORMAT")
             .help("Output formats supported: JPEG, PNG, GIF, ICO, PPM")
             .takes_value(true))
-        .arg(Arg::with_name("resize")
-            .long("resize")
-            .help("Resize image to W x H. Maintains proportions (will take the smallest of W or H)")
-            .min_values(2)
-            .max_values(2))
         .arg(Arg::with_name("input_file")
             .help("Sets the input file")
             .value_name("INPUT_FILE")
@@ -52,31 +47,15 @@ fn main() {
     let image_buffer: Result<image::DynamicImage, String> =
         image::open(&Path::new(input)).map_err(|err| err.to_string());
 
-    // resize (prototype)
-    // TODO add possibility to use other resizing filter types
-    // TODO pipeline properly & create fn's
-    // TODO remove vec![1,1] test default
-
-    let new_dimensions = values_t!(matches.values_of("resize"), u32).unwrap_or(vec![1, 1]);
-
-    let resized_buffer = image_buffer.map(|img| {
-        img.resize(
-            new_dimensions[0],
-            new_dimensions[1],
-            image::FilterType::Gaussian,
-        )
-    });
-
     // encode
     let forced_format = matches.value_of("forced_output_format");
-    let encode_buffer: Result<(), String> = resized_buffer.map_err(|err| err.to_string()).and_then(
-        |img| {
+    let encode_buffer: Result<(), String> =
+        image_buffer.map_err(|err| err.to_string()).and_then(|img| {
             forced_format.map_or_else(
                 || convert_image_unforced(&img, output),
                 |format| convert_image_forced(&img, output, format),
             )
-        },
-    );
+        });
 
     match encode_buffer {
         Ok(_) => println!("Conversion complete."),
