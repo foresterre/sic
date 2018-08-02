@@ -3,7 +3,7 @@
 **/*.rs.bk
 
 # intellij
-.idea
+.idea/
 cmake-build-debug/
 *.iws
 .idea_modules/
