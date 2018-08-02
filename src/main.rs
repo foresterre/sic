@@ -1,5 +1,5 @@
-#![feature(rust_2018_preview)]
-#![warn(rust_2018_idioms)]
+extern crate image;
+extern crate clap;
 
 use std::fs::File;
 use std::path::Path;
