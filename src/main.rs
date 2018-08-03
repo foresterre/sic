@@ -1,13 +1,10 @@
 extern crate image;
 extern crate clap;
 
-use std::fs::File;
+use clap::{App, Arg};
 use std::path::Path;
 
-use clap::{App, Arg};
-
-#[cfg(test)]
-mod tests;
+mod conversion;
 
 fn main() {
     let matches = App::new("Simple Image Converter")
@@ -52,8 +49,8 @@ fn main() {
     let encode_buffer: Result<(), String> =
         image_buffer.map_err(|err| err.to_string()).and_then(|img| {
             forced_format.map_or_else(
-                || convert_image_unforced(&img, output),
-                |format| convert_image_forced(&img, output, format),
+                || conversion::convert_image_unforced(&img, output),
+                |format| conversion::convert_image_forced(&img, output, format),
             )
         });
 
@@ -63,40 +60,4 @@ fn main() {
     }
 }
 
-/// Determines the appropriate ImageOutputFormat based on a &str.
-fn image_format_from_str(format: &str) -> Result<image::ImageOutputFormat, String> {
-    let format_in_lower_case: &str = &*format.to_string().to_lowercase();
 
-    match format_in_lower_case {
-        "bmp" => Ok(image::ImageOutputFormat::BMP),
-        "gif" => Ok(image::ImageOutputFormat::GIF),
-        "ico" => Ok(image::ImageOutputFormat::ICO),
-        "jpeg" | "jpg" => Ok(image::ImageOutputFormat::JPEG(80)),
-        "png" => Ok(image::ImageOutputFormat::PNG),
-        "ppm" => Ok(image::ImageOutputFormat::PNM(
-            image::pnm::PNMSubtype::Pixmap(image::pnm::SampleEncoding::Binary),
-        )),
-        _ => Err("Image format unsupported.".to_string()),
-    }
-}
-
-/// Converts an image (`input`) to a certain `format` regardless of the extension of the `output` file path.
-fn convert_image_forced(
-    img: &image::DynamicImage,
-    output: &str,
-    format: &str,
-) -> Result<(), String> {
-    image_format_from_str(format)
-        .map_err(|err| err.to_string())
-        .and_then(|image_format| {
-            let mut out = File::create(&Path::new(output)).map_err(|err| err.to_string())?;
-
-            img.write_to(&mut out, image_format)
-                .map_err(|err| err.to_string())
-        })
-}
-
-/// Converts an image (`input`) to a certain `format` based on the extension of the `output` file path.
-fn convert_image_unforced(img: &image::DynamicImage, output: &str) -> Result<(), String> {
-    img.save(output).map_err(|err| err.to_string())
-}

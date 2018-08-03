@@ -15,4 +15,4 @@ fabric.properties
 *.iml
 
 # vscode
-.vscode
+.vscode/
