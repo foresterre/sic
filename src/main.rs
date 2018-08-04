@@ -1,7 +1,8 @@
 extern crate clap;
 extern crate image;
 extern crate pest;
-#[macro_use] extern crate pest_derive;
+#[macro_use]
+extern crate pest_derive;
 
 use clap::{App, Arg};
 use std::path::Path;
@@ -62,5 +63,3 @@ fn main() {
         Err(err) => println!("Conversion ended with an Error: {}", err),
     }
 }
-
-
