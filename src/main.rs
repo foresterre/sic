@@ -1,3 +1,5 @@
+#![feature(extern_prelude)]
+
 extern crate clap;
 extern crate image;
 extern crate pest;

@@ -3,14 +3,12 @@ use pest::iterators::Pairs;
 #[allow(unused_imports)]
 use pest::Parser;
 
-type PestParser = Parser;
-
 mod apply_operations;
 
 // ensure grammar refreshes on compile
 const _GRAMMAR: &str = include_str!("grammar.pest");
 
-#[derive(PestParser)]
+#[derive(Parser)]
 #[grammar = "operations/grammar.pest"]
 struct SICParser;
 
