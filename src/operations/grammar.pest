@@ -5,7 +5,7 @@ sep = _{ ";" }
 uint = @{ digit+ }
 digit = { '0'..'9' }
 
-operation_sequence = _{ (operation ~ sep)+ }
+operation_sequence = _{ (operation ~ sep?)+ }
 
 operation = _{ blur | flip_horizontal | flip_vertical | resize }
 

@@ -228,11 +228,27 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
-    fn test_multi_should_end_with_sep() {
+    fn test_multi_should_no_longer_end_with_sep() {
         let pairs = SICParser::parse(
             Rule::main,
             "flip_horizontal; flip_vertical; resize 100 200; blur 10",
+        ).unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            vec![
+                Operation::FlipHorizontal,
+                Operation::FlipVertical,
+                Operation::Resize(100, 200),
+                Operation::Blur(10)
+            ],
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_multi_sep_optional() {
+        let pairs = SICParser::parse(
+            Rule::main,
+            "flip_horizontal flip_vertical; resize 100 200 blur 10",
         ).unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             vec![
