@@ -8,7 +8,7 @@ use clap::{App, Arg};
 use std::path::Path;
 
 mod conversion;
-mod parser;
+mod operations;
 
 fn main() {
     let matches = App::new("Simple Image Converter")
