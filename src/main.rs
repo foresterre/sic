@@ -1,10 +1,13 @@
-extern crate image;
 extern crate clap;
+extern crate image;
+extern crate pest;
+#[macro_use] extern crate pest_derive;
 
 use clap::{App, Arg};
 use std::path::Path;
 
 mod conversion;
+mod parser;
 
 fn main() {
     let matches = App::new("Simple Image Converter")
