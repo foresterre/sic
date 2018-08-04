@@ -4,7 +4,6 @@ use image::DynamicImage;
 #[allow(unused_imports)]
 use pest::Parser;
 
-use std::path::Path;
 use std::rc::Rc;
 
 mod apply_operations;
@@ -87,6 +86,7 @@ mod tests {
     const _TEST_IMAGE_PATH: &str = "resources/unsplash_763569_cropped.jpg";
 
     fn _setup() -> DynamicImage {
+        use std::path::Path;
         image::open(&Path::new(_TEST_IMAGE_PATH)).unwrap()
     }
 

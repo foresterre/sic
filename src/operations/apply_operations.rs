@@ -1,5 +1,4 @@
 use image::{DynamicImage, FilterType};
-use std::path::Path;
 use std::rc::Rc;
 
 use super::Operation;
@@ -45,6 +44,7 @@ mod tests {
     const _TEST_IMAGE_PATH: &str = "resources/unsplash_763569_cropped.jpg";
 
     fn _setup() -> DynamicImage {
+        use std::path::Path;
         image::open(&Path::new(_TEST_IMAGE_PATH)).unwrap()
     }
 
