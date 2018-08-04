@@ -1,0 +1,3 @@
+`bwlines.png` => generated using image crate.
+
+`unsplash_763569_cropped.jpg` => Original photo by eberhard grossgasteiger on Unsplash, cropped.

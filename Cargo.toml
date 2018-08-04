@@ -11,6 +11,9 @@ exclude = [
     "imgconv.iml",
 ]
 
+[features]
+dont-run-on-ci = []
+
 [dependencies]
 clap = "2.32.0"
 image = "0.19.0"
