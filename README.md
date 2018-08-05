@@ -4,7 +4,19 @@ Converts a single image from one format to another _(plus some other operations)
 The image conversion is actually done by the awesome [image](https://crates.io/crates/image) crate  :balloon:.
 `sic` is a small command line frontend which supports a portion of the conversion operations supported by the __image__ crate.
 
-It was actually created to try out another awesome Rust library:  [clap](https://crates.io/crates/clap) :tada:
+It was initially created to try out another awesome Rust library:  [clap](https://crates.io/crates/clap) :tada:
+
+
+# Install
+
+With [cargo](https://crates.io/crates/sic) install: `cargo install sic`
+Pre build binary: see [releases](https://github.com/foresterre/sic/releases)
+From the source of this repo:
+- Setup rust and cargo with (for example) [rustup](https://rustup.rs/), a `nightly` version is required.
+- Clone this repo: `git clone https://github.com/foresterre/sic.git`
+- Switch to this repo: `cd sic`
+- Build a release: `cargo build --release`
+
 
 # Usage
 
