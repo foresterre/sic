@@ -10,7 +10,9 @@ It was initially created to try out another awesome Rust library:  [clap](https:
 # Install
 
 With [cargo](https://crates.io/crates/sic) install: `cargo install --force sic`
+
 Pre build binary: see [releases](https://github.com/foresterre/sic/releases)
+
 From the source of this repo:
 - Setup rust and cargo with (for example) [rustup](https://rustup.rs/), a `nightly` version is required.
 - Clone this repo: `git clone https://github.com/foresterre/sic.git`
@@ -50,17 +52,17 @@ description => descriptive information about the operation
 
 |operation|syntax|available (from version)|description|
 |---|---|---|---|
-|Blur               | `blur <uint>`         | Yes (unreleased) | Performs a Gaussian blur on the image ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.blur.html)) |
-|Brighten           | TBD                   | No               | ... |
-|Hue rotate         | TBD                   | No               | ... |
-|Contrast           | TBD                   | No               | ... |
-|Crop               | TBD                   | No               | ... |
-|filter3x3          | TBD                   | No               | ... |
-|Flip horizontal    | `flip_horizontal`     | Yes (unreleased) | Flips the image on the horizontal axis |
-|Flip vertical      | `flip_vertical`       | Yes (unreleased) | Flips the image on the horizontal axis |
-|Gray scale         | TBD                   | No               | ... |
-|Resize             | `resize <uint> <uint> | Yes (unreleased) | Resize the image using a Gaussian sampling filter ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.resize.html), [filter](https://docs.rs/image/0.19.0/image/enum.FilterType.html#variant.Gaussian)) |
-|rotate90           | TBD                   | No               | ... |
-|rotate180          | TBD                   | No               | ... |
-|rotate270          | TBD                   | No               | ... |
-|unsharpen          | TBD                   | No               | ... |
+|blur               | `blur <uint>`           | Yes (unreleased) | Performs a Gaussian blur on the image ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.blur.html)) |
+|brighten           | TBD                     | No               | ... |
+|hue rotate         | TBD                     | No               | ... |
+|contrast           | TBD                     | No               | ... |
+|crop               | TBD                     | No               | ... |
+|filter3x3          | TBD                     | No               | ... |
+|flip horizontal    | `flip_horizontal`       | Yes (unreleased) | Flips the image on the horizontal axis |
+|flip vertical      | `flip_vertical`         | Yes (unreleased) | Flips the image on the horizontal axis |
+|gray scale         | TBD                     | No               | ... |
+|resize             | `resize <uint> <uint>`  | Yes (unreleased) | Resize the image using a Gaussian sampling filter ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.resize.html), [filter](https://docs.rs/image/0.19.0/image/enum.FilterType.html#variant.Gaussian)) |
+|rotate90           | TBD                     | No               | ... |
+|rotate180          | TBD                     | No               | ... |
+|rotate270          | TBD                     | No               | ... |
+|unsharpen          | TBD                     | No               | ... |
