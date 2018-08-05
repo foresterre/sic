@@ -9,7 +9,7 @@ It was initially created to try out another awesome Rust library:  [clap](https:
 
 # Install
 
-With [cargo](https://crates.io/crates/sic) install: `cargo install sic`
+With [cargo](https://crates.io/crates/sic) install: `cargo install --force sic`
 Pre build binary: see [releases](https://github.com/foresterre/sic/releases)
 From the source of this repo:
 - Setup rust and cargo with (for example) [rustup](https://rustup.rs/), a `nightly` version is required.
