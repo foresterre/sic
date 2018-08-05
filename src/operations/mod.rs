@@ -27,7 +27,7 @@ pub fn parse_and_apply_script(image: DynamicImage, script: &str) -> Result<Dynam
     let rule_pairs: Pairs<Rule> = parsed_script
         .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
     let operations: Vec<Operation> = parse_image_operations(rule_pairs);
-    let result = apply_operations::apply_operations_on_image(image, operations);
+    let result = apply_operations::apply_operations_on_image(image, &operations);
 
     result.map_err(|err| err.to_string())
 }

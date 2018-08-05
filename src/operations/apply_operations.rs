@@ -25,7 +25,7 @@ impl ApplyOperation for Operation {
 
 pub fn apply_operations_on_image(
     image: DynamicImage,
-    operations: Vec<Operation>,
+    operations: &[Operation],
 ) -> Result<DynamicImage, String> {
     // this should be possible clean and nice and functional, but right now, I can't come up with it.
 
@@ -129,7 +129,7 @@ mod tests {
             Operation::Resize(200, 200),
         ];
 
-        let done = apply_operations_on_image(img, operations);
+        let done = apply_operations_on_image(img, &operations);
 
         assert!(done.is_ok());
 
