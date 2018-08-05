@@ -16,6 +16,8 @@ Covert an image from one format to another while not caring about the output fil
 * In general `sic --force-format "<format>" <input> <output>` (or  `sic --force-format "<format>" <input> <output>`)
 * Example `sic --force-format png input.bmp output.jpg` _(Note: `output.jpg` will have the PNG format even though the extension is `jpg`.)_
 
+_Note: supported forced formats currently are: bmp, gif, ico, jpg (80%), pnm (P6 only). Support for other versions of supported formats is planned._
+
 Apply image operations to an image.
 * In general: `sic --script "<operations>" <input> <output> `
 * Example `sic input.png output.jpg --script "flip_horizontal; blur 10; resize 250 250"
