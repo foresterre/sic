@@ -4,8 +4,6 @@ use image::DynamicImage;
 #[allow(unused_imports)]
 use pest::Parser;
 
-use std::rc::Rc;
-
 mod apply_operations;
 
 // ensure grammar refreshes on compile
@@ -29,16 +27,9 @@ pub fn parse_and_apply_script(image: DynamicImage, script: &str) -> Result<Dynam
     let rule_pairs: Pairs<Rule> = parsed_script
         .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
     let operations: Vec<Operation> = parse_image_operations(rule_pairs);
-    let result = apply_operations::apply_operations_on_image(Rc::new(image), operations);
+    let result = apply_operations::apply_operations_on_image(image, operations);
 
-    match result {
-        Ok(rc) => {
-            let unwrapped_dyn_image =
-                Rc::try_unwrap(rc).unwrap_or_else(|_| panic!("Unable to get resulting image."));
-            Ok(unwrapped_dyn_image)
-        }
-        Err(msg) => Err(format!("Unable to parse and apply: {}", msg)),
-    }
+    result.map_err(|err| err.to_string())
 }
 
 // TODO: proper unwrap() handling
