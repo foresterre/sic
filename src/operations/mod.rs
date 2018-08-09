@@ -40,11 +40,12 @@ pub fn parse_and_apply_script(image: DynamicImage, script: &str) -> Result<Dynam
 //   does return a Result.
 // Perhaps not unwrapping on every pair could be implemented in the future, but for now,
 //   the code will use unwrap to not become to awkward.
-// The Pest book describes these usages as idiomatic [1].
+// The Pest book describes usage of unwrap as idiomatic [1].
 //
 // Possible missteps:
 // - u32 out of bounds (the grammar describes "infinite unsigned integers")
-// -
+// - repetition of sub rules (not known at compile time (this should be checked)
+//
 //
 // [1] https://pest-parser.github.io/book/parser_api.html
 pub fn parse_image_operations(pairs: Pairs<Rule>) -> Vec<Operation> {
