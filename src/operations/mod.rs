@@ -33,7 +33,20 @@ pub fn parse_and_apply_script(image: DynamicImage, script: &str) -> Result<Dynam
     result.map_err(|err| err.to_string())
 }
 
-// TODO: proper unwrap() handling
+// This function has several unwraps which should not be able to fail.
+// The reason for this is that the pest grammar would not allow SICParse::parse() to succeed.
+// This does assume that the grammar is correct... ;).
+// Not grammatical constraints should be tested for and that's why this function
+//   does return a Result.
+// Perhaps not unwrapping on every pair could be implemented in the future, but for now,
+//   the code will use unwrap to not become to awkward.
+// The Pest book describes these usages as idiomatic [1].
+//
+// Possible missteps:
+// - u32 out of bounds (the grammar describes "infinite unsigned integers")
+// -
+//
+// [1] https://pest-parser.github.io/book/parser_api.html
 pub fn parse_image_operations(pairs: Pairs<Rule>) -> Vec<Operation> {
     pairs
         .map(|pair| match pair.as_rule() {
@@ -50,21 +63,11 @@ pub fn parse_image_operations(pairs: Pairs<Rule>) -> Vec<Operation> {
             Rule::flip_horizontal => Operation::FlipHorizontal,
             Rule::flip_vertical => Operation::FlipVertical,
             Rule::resize => {
-                let inner = pair.into_inner();
-                let extract_x = inner
-                    .clone()
-                    .nth(0)
-                    .unwrap()
-                    .as_str()
-                    .parse::<u32>()
-                    .unwrap();
-                let extract_y = inner
-                    .clone()
-                    .nth(1)
-                    .unwrap()
-                    .as_str()
-                    .parse::<u32>()
-                    .unwrap();
+                let mut inner = pair.into_inner();
+
+                let extract_x = inner.next().unwrap().as_str().parse::<u32>().unwrap();
+                let extract_y = inner.next().unwrap().as_str().parse::<u32>().unwrap();
+
                 Operation::Resize(extract_x, extract_y)
             }
             _ => unreachable!(),
