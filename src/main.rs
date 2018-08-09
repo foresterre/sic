@@ -7,6 +7,7 @@ extern crate pest;
 extern crate pest_derive;
 
 use clap::{App, Arg};
+
 use std::path::Path;
 
 mod conversion;
@@ -64,14 +65,11 @@ fn main() {
         image::open(&Path::new(input)).map_err(|err| err.to_string());
 
     // perform image operations
-    let operated_buffer = if let Some(script) = matches.value_of("script") {
-        image_buffer.map_err(|err| err.to_string()).and_then(|img|
-            operations::parse_and_apply_script(img, script)
-        )
-    }
-    else {
-        image_buffer
+    let operated_buffer = match matches.value_of("script") {
+        Some(script) => image_buffer.map_err(|err| err.to_string()).and_then(|img| operations::parse_and_apply_script(img, script)),
+        None => image_buffer,
     };
+
 
     // encode
     let forced_format = matches.value_of("forced_output_format");
@@ -88,3 +86,4 @@ fn main() {
         Err(err) => println!("Conversion ended with an Error: {}", err),
     }
 }
+
