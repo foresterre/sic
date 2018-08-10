@@ -18,7 +18,7 @@ const SIC_LICENSE: &str = include_str!("../LICENSE");
 
 fn main() {
     let matches = App::new("Simple Image Converter")
-        .version("0.5.1")
+        .version("0.6.0")
         .author("Martijn Gribnau <garm@ilumeo.com>")
         .about("Converts an image from one format to another.\n\n\
                 Supported input formats are described BMP, GIF, ICO, JPEG, PNG, PPM (limitations may apply). \n\n\
