@@ -149,6 +149,21 @@ mod tests {
     }
 
     #[test]
+    fn test_brighten_pos_single_stmt_parse_correct() {
+        let pairs = SICParser::parse(Rule::main, "brighten 3579;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(Ok(vec![Operation::Brighten(3579)]), parse_image_operations(pairs));
+    }
+
+    #[test]
+    fn test_brighten_neg_single_stmt_parse_correct() {
+        let pairs = SICParser::parse(Rule::main, "brighten -3579;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(Ok(vec![Operation::Brighten(-3579)]), parse_image_operations(pairs));
+    }
+
+
+    #[test]
     fn test_flip_horizontal_single_stmt_parse_correct() {
         let pairs = SICParser::parse(Rule::main, "flip_horizontal;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
