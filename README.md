@@ -47,7 +47,7 @@ Image operations availability:
 |operations|syntax|available (from version)|description|
 |---|---|---|---|
 |blur               | `blur <uint>`           | Yes (0.5.0) 	 | Performs a Gaussian blur on the image ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.blur.html)) |
-|brighten           | TBD                     | No               | ... |
+|brighten           | `brighten <int>`        | Yes (unreleased) | ... |
 |hue rotate         | TBD                     | No               | ... |
 |contrast           | TBD                     | No               | ... |
 |crop               | TBD                     | No               | ... |
@@ -70,7 +70,8 @@ available (from version) => lists whether the operation is supported right now (
 description => descriptive information about the operation
 
 
-<uint> means any 32 bit unsigned integer is required as parameter input
+<uint> means any 32 bit unsigned integer is required as parameter input,
+<int> means any 32 bit signed integer is required as parameter input,
 ```
 
 # Suggestions, Questions, Bugs

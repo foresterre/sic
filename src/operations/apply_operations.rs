@@ -11,14 +11,15 @@ impl ApplyOperation<Operation, DynamicImage, String> for DynamicImage {
     fn apply_operation(&self, operation: &Operation) -> Result<DynamicImage, String> {
         match *operation {
             Operation::Blur(sigma) => Ok(self.blur(sigma as f32)),
+            Operation::Brighten(amount) => Ok(self.brighten(amount)),
             Operation::FlipHorizontal => Ok(self.fliph()),
             Operation::FlipVertical => Ok(self.flipv()),
             Operation::Resize(new_x, new_y) => {
                 Ok(self.resize_exact(new_x, new_y, FilterType::Gaussian))
             }
             Operation::Rotate90 => Ok(self.rotate90()),
-            Operation::Rotate180 => Ok(self.rotate180()),
             Operation::Rotate270 => Ok(self.rotate270()),
+            Operation::Rotate180 => Ok(self.rotate180()),
         }
     }
 }
@@ -70,6 +71,56 @@ mod tests {
         assert!(done.is_ok());
 
         _manual_inspection(&done.unwrap(), "target/test_blur.png")
+    }
+
+    #[test]
+    fn test_brighten_pos() {
+        let img: DynamicImage = _setup();
+        let cmp: DynamicImage = _setup();
+
+        let operation = Operation::Brighten(25);
+
+        let done = img.apply_operation(&operation);
+        assert!(done.is_ok());
+
+        let result_img = done.unwrap();
+
+        assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
+
+        _manual_inspection(&result_img, "target/test_brighten_pos_25.png")
+    }
+
+    #[test]
+    fn test_brighten_zero() {
+        let img: DynamicImage = _setup();
+        let cmp: DynamicImage = _setup();
+        let operation = Operation::Brighten(0);
+
+        let done = img.apply_operation(&operation);
+        assert!(done.is_ok());
+
+        let result_img = done.unwrap();
+
+        assert_eq!(cmp.raw_pixels(), result_img.raw_pixels());
+
+        _manual_inspection(&result_img, "target/test_brighten_zero.png")
+    }
+
+    #[test]
+    fn test_brighten_neg() {
+        let img: DynamicImage = _setup();
+        let cmp: DynamicImage = _setup();
+
+        let operation = Operation::Brighten(-25);
+
+        let done = img.apply_operation(&operation);
+        assert!(done.is_ok());
+
+        let result_img = done.unwrap();
+
+        assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
+
+        _manual_inspection(&result_img, "target/test_brighten_neg_25.png")
     }
 
     #[test]
