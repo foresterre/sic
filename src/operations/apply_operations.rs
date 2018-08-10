@@ -249,7 +249,6 @@ mod tests {
         _manual_inspection(&result_img, "target/test_hue_rot_pos_460.png")
     }
 
-
     #[test]
     fn test_resize_up_gaussian() {
         // 217x447px => 400x500
