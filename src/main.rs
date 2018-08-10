@@ -9,9 +9,12 @@ extern crate pest_derive;
 use clap::{App, Arg};
 
 use std::path::Path;
+use std::process;
 
 mod conversion;
 mod operations;
+
+const SIC_LICENSE: &str = include_str!("../LICENSE");
 
 fn main() {
     let matches = App::new("Simple Image Converter")
@@ -30,6 +33,11 @@ fn main() {
             .value_name("FORMAT")
             .help("Output formats supported: JPEG, PNG, GIF, ICO, PPM")
             .takes_value(true))
+        .arg(Arg::with_name("license")
+            .long("license")
+            .value_name("LICENSE")
+            .help("Displays the license of the software.")
+            .takes_value(false))
         .arg(Arg::with_name("script")
             .long("script")
             .help("Apply image operations on the input image.\n\
@@ -46,14 +54,19 @@ fn main() {
         .arg(Arg::with_name("input_file")
             .help("Sets the input file")
             .value_name("INPUT_FILE")
-            .required(true)
+            .required_unless("license")
             .index(1))
         .arg(Arg::with_name("output_file")
             .help("Sets the output file")
             .value_name("OUTPUT_FILE")
-            .required(true)
+            .required_unless("license")
             .index(2))
         .get_matches();
+
+    if matches.is_present("license") {
+        println!("{}", SIC_LICENSE);
+        process::exit(0);
+    }
 
     // Can be unwrap because these values are required arguments.
     let input = matches.value_of("input_file").unwrap();
