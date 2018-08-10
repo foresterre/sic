@@ -6,8 +6,6 @@ extern crate pest;
 #[macro_use]
 extern crate pest_derive;
 
-
-
 use clap::{App, Arg};
 
 use std::path::Path;
@@ -68,15 +66,17 @@ fn main() {
 
     // perform image operations
     let operated_buffer = match matches.value_of("script") {
-        Some(script) => image_buffer.map_err(|err| err.to_string()).and_then(|img| operations::parse_and_apply_script(img, script)),
+        Some(script) => image_buffer
+            .map_err(|err| err.to_string())
+            .and_then(|img| operations::parse_and_apply_script(img, script)),
         None => image_buffer,
     };
 
-
     // encode
     let forced_format = matches.value_of("forced_output_format");
-    let encode_buffer: Result<(), String> =
-        operated_buffer.map_err(|err| err.to_string()).and_then(|img| {
+    let encode_buffer: Result<(), String> = operated_buffer
+        .map_err(|err| err.to_string())
+        .and_then(|img| {
             forced_format.map_or_else(
                 || conversion::convert_image_unforced(&img, output),
                 |format| conversion::convert_image_forced(&img, output, format),
@@ -88,4 +88,3 @@ fn main() {
         Err(err) => println!("Conversion ended with an Error: {}", err),
     }
 }
-

@@ -32,7 +32,7 @@ pub fn parse_and_apply_script(image: DynamicImage, script: &str) -> Result<Dynam
 
     match operations {
         Ok(ops) => apply_operations::apply_operations_on_image(image, &ops),
-        Err(err) => Err(err)
+        Err(err) => Err(err),
     }
 }
 
@@ -64,12 +64,11 @@ pub fn parse_image_operations(pairs: Pairs<Rule>) -> Result<Operations, String> 
                     .ok_or_else(|| "Unable to parse and capture `blur` value.".to_string())
                     .map(|val| val.as_str());
 
-                let u_int = u_int_text
-                    .and_then(|it: &str| it.parse::<u32>()
-                        .map_err(|e| e.to_string()));
+                let u_int =
+                    u_int_text.and_then(|it: &str| it.parse::<u32>().map_err(|e| e.to_string()));
 
                 u_int.map(|u| Operation::Blur(u))
-            },
+            }
             Rule::flip_horizontal => Ok(Operation::FlipHorizontal),
             Rule::flip_vertical => Ok(Operation::FlipVertical),
             Rule::resize => {
@@ -80,26 +79,17 @@ pub fn parse_image_operations(pairs: Pairs<Rule>) -> Result<Operations, String> 
                     .ok_or_else(|| "Unable to parse `resize <x> <y>`".to_string())
                     .map(|val| val.as_str());
 
-                let x = x_text
-                    .and_then(|it: &str| it.parse::<u32>()
-                        .map_err(|e| e.to_string()));
-
+                let x = x_text.and_then(|it: &str| it.parse::<u32>().map_err(|e| e.to_string()));
 
                 let y_text = inner
                     .next()
                     .ok_or_else(|| "Unable to parse `resize <x> <y>`".to_string())
                     .map(|val| val.as_str());
 
-                let y = y_text
-                    .and_then(|it: &str| it.parse::<u32>()
-                        .map_err(|e| e.to_string()));
+                let y = y_text.and_then(|it: &str| it.parse::<u32>().map_err(|e| e.to_string()));
 
-                x.and_then(|ux| {
-                    y.map(|uy| {
-                        Operation::Resize(ux, uy)
-                    })
-                })
-            },
+                x.and_then(|ux| y.map(|uy| Operation::Resize(ux, uy)))
+            }
             _ => Err("Parse failed: Operation doesn't exist".to_string()),
         }).collect::<Result<Operations, String>>()
 }
@@ -154,7 +144,10 @@ mod tests {
     fn test_flip_vertical_single_stmt_parse_correct() {
         let pairs = SICParser::parse(Rule::main, "flip_vertical;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
-        assert_eq!(Ok(vec![Operation::FlipVertical]), parse_image_operations(pairs));
+        assert_eq!(
+            Ok(vec![Operation::FlipVertical]),
+            parse_image_operations(pairs)
+        );
     }
 
     #[test]

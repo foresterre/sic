@@ -16,7 +16,7 @@ impl ApplyOperation<Operation, DynamicImage, String> for DynamicImage {
             Operation::FlipVertical => Ok(self.flipv()),
             Operation::Resize(new_x, new_y) => {
                 Ok(self.resize_exact(new_x, new_y, FilterType::Gaussian))
-            },
+            }
             _ => unreachable!(),
         }
     }
@@ -34,7 +34,7 @@ pub fn apply_operations_on_image(
         let op_status = mut_img.apply_operation(op);
 
         if op_status.is_err() {
-            return op_status.map_err(|err| err.to_string())
+            return op_status.map_err(|err| err.to_string());
         } else {
             mut_img = op_status.unwrap();
         }
