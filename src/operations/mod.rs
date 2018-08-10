@@ -15,6 +15,7 @@ struct SICParser;
 #[derive(Debug, PartialEq)]
 pub enum Operation {
     Blur(u32),
+    Brighten(i32),
     FlipHorizontal,
     FlipVertical,
     Resize(u32, u32),
@@ -63,13 +64,25 @@ pub fn parse_image_operations(pairs: Pairs<Rule>) -> Result<Operations, String> 
                 let u_int_text = pair
                     .into_inner()
                     .next()
-                    .ok_or_else(|| "Unable to parse and capture `blur` value.".to_string())
+                    .ok_or_else(|| "Unable to parse `blur` value.".to_string())
                     .map(|val| val.as_str());
 
                 let u_int =
                     u_int_text.and_then(|it: &str| it.parse::<u32>().map_err(|e| e.to_string()));
 
                 u_int.map(|u| Operation::Blur(u))
+            }
+            Rule::brighten => {
+                let int_text = pair
+                    .into_inner()
+                    .next()
+                    .ok_or_else(|| "Unable to parse `brighten` value.".to_string())
+                    .map(|val| val.as_str());
+
+                let int =
+                    int_text.and_then(|it: &str| it.parse::<i32>().map_err(|e| e.to_string()));
+
+                int.map(|i| Operation::Brighten(i))
             }
             Rule::flip_horizontal => Ok(Operation::FlipHorizontal),
             Rule::flip_vertical => Ok(Operation::FlipVertical),
