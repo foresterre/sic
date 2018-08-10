@@ -1,4 +1,5 @@
-use image::{DynamicImage, FilterType};
+#[allow(unused_imports)] // Warns for GenericImage, but it is used in the test cases.
+use image::{DynamicImage, FilterType, GenericImage};
 
 use super::Operation;
 
@@ -76,10 +77,18 @@ mod tests {
         let img: DynamicImage = _setup();
         let operation = Operation::FlipHorizontal;
 
+        let (xa, ya) = img.dimensions();
         let done = img.apply_operation(&operation);
+
         assert!(done.is_ok());
 
-        _manual_inspection(&done.unwrap(), "target/test_fliph.png")
+        let img_result = done.unwrap();
+        let (xb, yb) = img_result.dimensions();
+
+        assert_eq!(xa, xb);
+        assert_eq!(ya, yb);
+
+        _manual_inspection(&img_result, "target/test_fliph.png")
     }
 
     #[test]
@@ -87,10 +96,18 @@ mod tests {
         let img: DynamicImage = _setup();
         let operation = Operation::FlipVertical;
 
+        let (xa, ya) = img.dimensions();
         let done = img.apply_operation(&operation);
+
         assert!(done.is_ok());
 
-        _manual_inspection(&done.unwrap(), "target/test_flipv.png")
+        let img_result = done.unwrap();
+        let (xb, yb) = img_result.dimensions();
+
+        assert_eq!(xa, xb);
+        assert_eq!(ya, yb);
+
+        _manual_inspection(&img_result, "target/test_flipv.png")
     }
 
     #[test]
@@ -99,10 +116,22 @@ mod tests {
         let img: DynamicImage = _setup();
         let operation = Operation::Resize(400, 500);
 
+        let (xa, ya) = img.dimensions();
+
+        assert_eq!(ya, 447);
+        assert_eq!(xa, 217);
+
         let done = img.apply_operation(&operation);
+
         assert!(done.is_ok());
 
-        _manual_inspection(&done.unwrap(), "target/test_scale_400x500.png")
+        let img_result = done.unwrap();
+        let (xb, yb) = img_result.dimensions();
+
+        assert_eq!(xb, 400);
+        assert_eq!(yb, 500);
+
+        _manual_inspection(&img_result, "target/test_scale_400x500.png")
     }
 
     #[test]
@@ -111,10 +140,22 @@ mod tests {
         let img: DynamicImage = _setup();
         let operation = Operation::Resize(100, 200);
 
+        let (xa, ya) = img.dimensions();
+
+        assert_eq!(ya, 447);
+        assert_eq!(xa, 217);
+
         let done = img.apply_operation(&operation);
+
         assert!(done.is_ok());
 
-        _manual_inspection(&done.unwrap(), "target/test_scale_100x200.png")
+        let img_result = done.unwrap();
+        let (xb, yb) = img_result.dimensions();
+
+        assert_eq!(xb, 100);
+        assert_eq!(yb, 200);
+
+        _manual_inspection(&img_result, "target/test_scale_100x200.png")
     }
 
     #[test]
@@ -122,10 +163,18 @@ mod tests {
         let img: DynamicImage = _setup();
         let operation = Operation::Rotate90;
 
+        let (xa, ya) = img.dimensions();
         let done = img.apply_operation(&operation);
+
         assert!(done.is_ok());
 
-        _manual_inspection(&done.unwrap(), "target/test_scale_100x200.png")
+        let img_result = done.unwrap();
+        let (xb, yb) = img_result.dimensions();
+
+        assert_eq!(xa, yb);
+        assert_eq!(xb, ya);
+
+        _manual_inspection(&img_result, "target/test_rotate90.png")
     }
 
     #[test]
@@ -133,10 +182,18 @@ mod tests {
         let img: DynamicImage = _setup();
         let operation = Operation::Rotate180;
 
+        let (xa, ya) = img.dimensions();
         let done = img.apply_operation(&operation);
+
         assert!(done.is_ok());
 
-        _manual_inspection(&done.unwrap(), "target/test_scale_100x200.png")
+        let img_result = done.unwrap();
+        let (xb, yb) = img_result.dimensions();
+
+        assert_eq!(xa, xb);
+        assert_eq!(ya, yb);
+
+        _manual_inspection(&img_result, "target/test_rotate180.png")
     }
 
     #[test]
@@ -144,28 +201,49 @@ mod tests {
         let img: DynamicImage = _setup();
         let operation = Operation::Rotate270;
 
+        let (xa, ya) = img.dimensions();
         let done = img.apply_operation(&operation);
+
         assert!(done.is_ok());
 
-        _manual_inspection(&done.unwrap(), "target/test_scale_100x200.png")
+        let img_result = done.unwrap();
+        let (xb, yb) = img_result.dimensions();
+
+        assert_eq!(xa, yb);
+        assert_eq!(xb, ya);
+
+        _manual_inspection(&img_result, "target/test_rotate270.png")
     }
 
     #[test]
     fn test_multi() {
-        // 217x447px => 100x200
+        // 217x447px original
         let img: DynamicImage = _setup();
         let operations = vec![
-            Operation::Resize(100, 200),
-            Operation::Blur(1),
+            Operation::Resize(80, 100),
+            Operation::Blur(5),
             Operation::FlipHorizontal,
-            Operation::Resize(200, 200),
+            Operation::FlipVertical,
+            Operation::Rotate90,
         ];
+
+        let (xa, ya) = img.dimensions();
+
+        assert_eq!(ya, 447);
+        assert_eq!(xa, 217);
 
         let done = apply_operations_on_image(img, &operations);
 
         assert!(done.is_ok());
 
-        _manual_inspection(&done.unwrap(), "target/test_multi.png")
+        let img_result = done.unwrap();
+        let (xb, yb) = img_result.dimensions();
+
+        // dim original => 80x100 => 100x80
+        assert_eq!(xb, 100);
+        assert_eq!(yb, 80);
+
+        _manual_inspection(&img_result, "target/test_multi.png")
     }
 
 }
