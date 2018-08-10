@@ -18,6 +18,9 @@ pub enum Operation {
     FlipHorizontal,
     FlipVertical,
     Resize(u32, u32),
+    Rotate90,
+    Rotate180,
+    Rotate270,
 }
 
 pub type Operations = Vec<Operation>;
@@ -89,6 +92,9 @@ pub fn parse_image_operations(pairs: Pairs<Rule>) -> Result<Operations, String> 
 
                 x.and_then(|ux| y.map(|uy| Operation::Resize(ux, uy)))
             }
+            Rule::rotate90 => Ok(Operation::Rotate90),
+            Rule::rotate180 => Ok(Operation::Rotate180),
+            Rule::rotate270 => Ok(Operation::Rotate270),
             _ => Err("Parse failed: Operation doesn't exist".to_string()),
         }).collect::<Result<Operations, String>>()
 }
@@ -155,6 +161,33 @@ mod tests {
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![Operation::Resize(99, 88)]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_rotate90_single_stmt_parse_correct() {
+        let pairs = SICParser::parse(Rule::main, "rotate90;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(Ok(vec![Operation::Rotate90]), parse_image_operations(pairs));
+    }
+
+    #[test]
+    fn test_rotate180_single_stmt_parse_correct() {
+        let pairs = SICParser::parse(Rule::main, "rotate180;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Operation::Rotate180]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_rotate270_single_stmt_parse_correct() {
+        let pairs = SICParser::parse(Rule::main, "rotate270;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Operation::Rotate270]),
             parse_image_operations(pairs)
         );
     }
