@@ -1,4 +1,5 @@
 # Simple Image Converter (sic)
+
 Converts a single image from one format to another _(plus some other operations)_.
 
 The image conversion is actually done by the awesome [image](https://crates.io/crates/image) crate  :balloon:.
@@ -43,7 +44,7 @@ _Note: `resize` applies a gaussian sampling filter on resizing. This is currentl
 Image operations availability:
 
 
-|operation|syntax|available (from version)|description|
+|operations|syntax|available (from version)|description|
 |---|---|---|---|
 |blur               | `blur <uint>`           | Yes (0.5.0) 	 | Performs a Gaussian blur on the image ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.blur.html)) |
 |brighten           | TBD                     | No               | ... |
@@ -75,4 +76,4 @@ description => descriptive information about the operation
 
 Feel free to open an issue :mailbox_with_mail: if you have a suggestion, a question or found a bug =).
 
-:musical_keyboard: :guitar: :trumpet: :violin: :saxophone:
+:guitar: :trumpet: :violin: :saxophone:
