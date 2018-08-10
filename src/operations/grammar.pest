@@ -1,0 +1,17 @@
+whitespace = _{ (" " | "\t" | "\n" | "\r\n") }
+sep = _{ ";" }
+
+
+uint = @{ digit+ }
+digit = { '0'..'9' }
+
+operation_sequence = _{ (operation ~ sep?)+ }
+
+operation = _{ blur | flip_horizontal | flip_vertical | resize }
+
+blur = ${ ^"blur" ~ whitespace ~ uint}
+flip_horizontal = { ^"flip_horizontal" }
+flip_vertical = { ^"flip_vertical" }
+resize = ${ ^"resize" ~ whitespace ~ uint ~ whitespace ~ uint }
+
+main = _{ soi ~ operation_sequence ~ eoi }

@@ -1,13 +1,17 @@
-#![feature(rust_2018_preview)]
-#![warn(rust_2018_idioms)]
+#![feature(extern_prelude)]
 
-use std::fs::File;
-use std::path::Path;
+extern crate clap;
+extern crate image;
+extern crate pest;
+#[macro_use]
+extern crate pest_derive;
 
 use clap::{App, Arg};
 
-#[cfg(test)]
-mod tests;
+use std::path::Path;
+
+mod conversion;
+mod operations;
 
 fn main() {
     let matches = App::new("Simple Image Converter")
@@ -25,6 +29,19 @@ fn main() {
             .long("force-format")
             .value_name("FORMAT")
             .help("Output formats supported: JPEG, PNG, GIF, ICO, PPM")
+            .takes_value(true))
+        .arg(Arg::with_name("script")
+            .long("script")
+            .help("Apply image operations on the input image.\n
+                   Supported operations: \n
+                   1. blur <uint>;\n
+                   2. flip_horizontal;\n
+                   3. flip_vertical;\n
+                   4. resize <uint> <uint>;\n\n
+                   Operation separators (';') are optional.\n\n
+                   Example 1: `sic input.png output.png --script \"resize 250 250; blur 5;\"`\n
+                   Example 2: `sic input.png output.jpg --script \"flip_horizontal resize 10 5 blur 100\"`")
+            .value_name("SCRIPT")
             .takes_value(true))
         .arg(Arg::with_name("input_file")
             .help("Sets the input file")
@@ -47,13 +64,22 @@ fn main() {
     let image_buffer: Result<image::DynamicImage, String> =
         image::open(&Path::new(input)).map_err(|err| err.to_string());
 
+    // perform image operations
+    let operated_buffer = match matches.value_of("script") {
+        Some(script) => image_buffer
+            .map_err(|err| err.to_string())
+            .and_then(|img| operations::parse_and_apply_script(img, script)),
+        None => image_buffer,
+    };
+
     // encode
     let forced_format = matches.value_of("forced_output_format");
-    let encode_buffer: Result<(), String> =
-        image_buffer.map_err(|err| err.to_string()).and_then(|img| {
+    let encode_buffer: Result<(), String> = operated_buffer
+        .map_err(|err| err.to_string())
+        .and_then(|img| {
             forced_format.map_or_else(
-                || convert_image_unforced(&img, output),
-                |format| convert_image_forced(&img, output, format),
+                || conversion::convert_image_unforced(&img, output),
+                |format| conversion::convert_image_forced(&img, output, format),
             )
         });
 
@@ -61,42 +87,4 @@ fn main() {
         Ok(_) => println!("Conversion complete."),
         Err(err) => println!("Conversion ended with an Error: {}", err),
     }
-}
-
-/// Determines the appropriate ImageOutputFormat based on a &str.
-fn image_format_from_str(format: &str) -> Result<image::ImageOutputFormat, String> {
-    let format_in_lower_case: &str = &*format.to_string().to_lowercase();
-
-    match format_in_lower_case {
-        "bmp" => Ok(image::ImageOutputFormat::BMP),
-        "gif" => Ok(image::ImageOutputFormat::GIF),
-        "ico" => Ok(image::ImageOutputFormat::ICO),
-        "jpeg" | "jpg" => Ok(image::ImageOutputFormat::JPEG(80)),
-        "png" => Ok(image::ImageOutputFormat::PNG),
-        "ppm" => Ok(image::ImageOutputFormat::PNM(
-            image::pnm::PNMSubtype::Pixmap(image::pnm::SampleEncoding::Binary),
-        )),
-        _ => Err("Image format unsupported.".to_string()),
-    }
-}
-
-/// Converts an image (`input`) to a certain `format` regardless of the extension of the `output` file path.
-fn convert_image_forced(
-    img: &image::DynamicImage,
-    output: &str,
-    format: &str,
-) -> Result<(), String> {
-    image_format_from_str(format)
-        .map_err(|err| err.to_string())
-        .and_then(|image_format| {
-            let mut out = File::create(&Path::new(output)).map_err(|err| err.to_string())?;
-
-            img.write_to(&mut out, image_format)
-                .map_err(|err| err.to_string())
-        })
-}
-
-/// Converts an image (`input`) to a certain `format` based on the extension of the `output` file path.
-fn convert_image_unforced(img: &image::DynamicImage, output: &str) -> Result<(), String> {
-    img.save(output).map_err(|err| err.to_string())
 }
