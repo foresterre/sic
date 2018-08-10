@@ -14,6 +14,7 @@ impl ApplyOperation<Operation, DynamicImage, String> for DynamicImage {
             Operation::Brighten(amount) => Ok(self.brighten(amount)),
             Operation::FlipHorizontal => Ok(self.fliph()),
             Operation::FlipVertical => Ok(self.flipv()),
+            Operation::HueRotate(degree) => Ok(self.huerotate(degree)),
             Operation::Resize(new_x, new_y) => {
                 Ok(self.resize_exact(new_x, new_y, FilterType::Gaussian))
             }
@@ -160,6 +161,94 @@ mod tests {
 
         _manual_inspection(&img_result, "target/test_flipv.png")
     }
+
+    #[test]
+    fn test_hue_rotate_neg() {
+        let img: DynamicImage = _setup();
+        let cmp: DynamicImage = _setup();
+
+        let operation = Operation::HueRotate(-100);
+
+        let done = img.apply_operation(&operation);
+        assert!(done.is_ok());
+
+        let result_img = done.unwrap();
+
+        assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
+
+        _manual_inspection(&result_img, "target/test_hue_rot_neg_100.png")
+    }
+
+    #[test]
+    fn test_hue_rotate_pos() {
+        let img: DynamicImage = _setup();
+        let cmp: DynamicImage = _setup();
+
+        let operation = Operation::HueRotate(100);
+
+        let done = img.apply_operation(&operation);
+        assert!(done.is_ok());
+
+        let result_img = done.unwrap();
+
+        assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
+
+        _manual_inspection(&result_img, "target/test_hue_rot_pos_100.png")
+    }
+
+    #[test]
+    fn test_hue_rotate_zero() {
+        let img: DynamicImage = _setup();
+        let cmp: DynamicImage = _setup();
+
+        let operation = Operation::HueRotate(0);
+
+        let done = img.apply_operation(&operation);
+        assert!(done.is_ok());
+
+        let result_img = done.unwrap();
+
+        assert_eq!(cmp.raw_pixels(), result_img.raw_pixels());
+
+        _manual_inspection(&result_img, "target/test_brighten_0.png")
+    }
+
+    #[test]
+    fn test_hue_rotate_360() {
+        let img: DynamicImage = _setup();
+        let cmp: DynamicImage = _setup();
+
+        let operation = Operation::HueRotate(360);
+
+        let done = img.apply_operation(&operation);
+        assert!(done.is_ok());
+
+        let result_img = done.unwrap();
+
+        // https://docs.rs/image/0.19.0/image/enum.DynamicImage.html#method.huerotate
+        // huerotate(0) should be huerotate(360), but this doesn't seem the case
+        assert_eq!(cmp.huerotate(360).raw_pixels(), result_img.raw_pixels());
+
+        _manual_inspection(&result_img, "target/test_brighten_360.png")
+    }
+
+    #[test]
+    fn test_hue_rotate_over_rotate_pos() {
+        let img: DynamicImage = _setup();
+        let cmp: DynamicImage = _setup();
+
+        let operation = Operation::HueRotate(460);
+
+        let done = img.apply_operation(&operation);
+        assert!(done.is_ok());
+
+        let result_img = done.unwrap();
+
+        assert_ne!(cmp.huerotate(100).raw_pixels(), result_img.raw_pixels());
+
+        _manual_inspection(&result_img, "target/test_hue_rot_pos_460.png")
+    }
+
 
     #[test]
     fn test_resize_up_gaussian() {

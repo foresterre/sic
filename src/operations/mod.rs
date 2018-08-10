@@ -18,6 +18,7 @@ pub enum Operation {
     Brighten(i32),
     FlipHorizontal,
     FlipVertical,
+    HueRotate(i32),
     Resize(u32, u32),
     Rotate90,
     Rotate180,
@@ -86,6 +87,18 @@ pub fn parse_image_operations(pairs: Pairs<Rule>) -> Result<Operations, String> 
             }
             Rule::flip_horizontal => Ok(Operation::FlipHorizontal),
             Rule::flip_vertical => Ok(Operation::FlipVertical),
+            Rule::huerotate => {
+                let int_text = pair
+                    .into_inner()
+                    .next()
+                    .ok_or_else(|| "Unable to parse `brighten` value.".to_string())
+                    .map(|val| val.as_str());
+
+                let int =
+                    int_text.and_then(|it: &str| it.parse::<i32>().map_err(|e| e.to_string()));
+
+                int.map(|i| Operation::HueRotate(i))
+            }
             Rule::resize => {
                 let mut inner = pair.into_inner();
 
@@ -184,6 +197,26 @@ mod tests {
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![Operation::FlipVertical]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_hue_rotate_pos_single_stmt_parse_correct() {
+        let pairs = SICParser::parse(Rule::main, "huerotate 3579;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Operation::HueRotate(3579)]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_hue_rotate_neg_single_stmt_parse_correct() {
+        let pairs = SICParser::parse(Rule::main, "huerotate -3579;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Operation::HueRotate(-3579)]),
             parse_image_operations(pairs)
         );
     }
