@@ -61,6 +61,7 @@ Image operations availability:
 |rotate270          | TBD                     | No               | ... |
 |unsharpen          | TBD                     | No               | ... |
 
+
 legend:
 ```
 operation => operation name
