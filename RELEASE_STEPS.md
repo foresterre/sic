@@ -17,8 +17,8 @@ Merge all PR's to the `master` branch, then:
 
 ### Publish & Upload
 
-7. Run `cargo publish` and check the resulting `.crate`
-8. Run `cargo upload` and verify the result
+7. Run `cargo package` and check the resulting `.crate`
+8. Run `cargo publish` and verify the result
 
 
 ### Release, Tag & Binaries
