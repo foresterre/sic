@@ -12,13 +12,13 @@ impl ApplyOperation<Operation, DynamicImage, String> for DynamicImage {
         match *operation {
             Operation::Blur(sigma) => Ok(self.blur(sigma as f32)),
             Operation::Brighten(amount) => Ok(self.brighten(amount)),
-            Operation::Rotate270 => Ok(self.rotate270()),
             Operation::FlipHorizontal => Ok(self.fliph()),
             Operation::FlipVertical => Ok(self.flipv()),
             Operation::Resize(new_x, new_y) => {
                 Ok(self.resize_exact(new_x, new_y, FilterType::Gaussian))
             }
             Operation::Rotate90 => Ok(self.rotate90()),
+            Operation::Rotate270 => Ok(self.rotate270()),
             Operation::Rotate180 => Ok(self.rotate180()),
         }
     }
