@@ -15,8 +15,8 @@ mod operations;
 
 fn main() {
     let matches = App::new("Simple Image Converter")
-        .version("0.4.0")
-        .author("foresterre <garm@ilumeo.com>")
+        .version("0.5.1")
+        .author("Martijn Gribnau <garm@ilumeo.com>")
         .about("Converts an image from one format to another.\n\n\
                 Supported input formats are described BMP, GIF, ICO, JPEG, PNG, PPM (limitations may apply). \n\n\
                 The image conversion is actually done by the awesome 'image' crate [1]. \n\
@@ -32,14 +32,14 @@ fn main() {
             .takes_value(true))
         .arg(Arg::with_name("script")
             .long("script")
-            .help("Apply image operations on the input image.\n
-                   Supported operations: \n
-                   1. blur <uint>;\n
-                   2. flip_horizontal;\n
-                   3. flip_vertical;\n
-                   4. resize <uint> <uint>;\n\n
-                   Operation separators (';') are optional.\n\n
-                   Example 1: `sic input.png output.png --script \"resize 250 250; blur 5;\"`\n
+            .help("Apply image operations on the input image.\n\
+                   Supported operations: \n\
+                   1. blur <uint>;\n\
+                   2. flip_horizontal;\n\
+                   3. flip_vertical;\n\
+                   4. resize <uint> <uint>;\n\n\
+                   Operation separators (';') are optional.\n\n\
+                   Example 1: `sic input.png output.png --script \"resize 250 250; blur 5;\"`\n\
                    Example 2: `sic input.png output.jpg --script \"flip_horizontal resize 10 5 blur 100\"`")
             .value_name("SCRIPT")
             .takes_value(true))
