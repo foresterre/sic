@@ -56,9 +56,9 @@ Image operations availability:
 |flip vertical      | `flip_vertical`         | Yes (0.5.0) 	 | Flips the image on the horizontal axis |
 |gray scale         | TBD                     | No               | ... |
 |resize             | `resize <uint> <uint>`  | Yes (0.5.0) 	 | Resize the image using a Gaussian sampling filter ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.resize.html), [filter](https://docs.rs/image/0.19.0/image/enum.FilterType.html#variant.Gaussian)) |
-|rotate90           | TBD                     | No               | ... |
-|rotate180          | TBD                     | No               | ... |
-|rotate270          | TBD                     | No               | ... |
+|rotate90           | `rotate90`              | Yes (unreleased) | ... |
+|rotate180          | `rotate180`             | Yes (unreleased) | ... |
+|rotate270          | `rotate270`             | Yes (unreleased) | ... |
 |unsharpen          | TBD                     | No               | ... |
 
 
