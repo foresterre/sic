@@ -15,6 +15,9 @@ impl ApplyOperation<Operation, DynamicImage, String> for DynamicImage {
             Operation::Resize(new_x, new_y) => {
                 Ok(self.resize_exact(new_x, new_y, FilterType::Gaussian))
             }
+            Operation::Rotate90 => Ok(self.rotate90()),
+            Operation::Rotate180 => Ok(self.rotate180()),
+            Operation::Rotate270 => Ok(self.rotate270()),
         }
     }
 }
@@ -69,7 +72,7 @@ mod tests {
     }
 
     #[test]
-    fn test_fliph() {
+    fn test_flip_h() {
         let img: DynamicImage = _setup();
         let operation = Operation::FlipHorizontal;
 
@@ -80,7 +83,7 @@ mod tests {
     }
 
     #[test]
-    fn test_flipv() {
+    fn test_flip_v() {
         let img: DynamicImage = _setup();
         let operation = Operation::FlipVertical;
 
@@ -107,6 +110,39 @@ mod tests {
         // 217x447px => 100x200
         let img: DynamicImage = _setup();
         let operation = Operation::Resize(100, 200);
+
+        let done = img.apply_operation(&operation);
+        assert!(done.is_ok());
+
+        _manual_inspection(&done.unwrap(), "target/test_scale_100x200.png")
+    }
+
+    #[test]
+    fn test_rotate90() {
+        let img: DynamicImage = _setup();
+        let operation = Operation::Rotate90;
+
+        let done = img.apply_operation(&operation);
+        assert!(done.is_ok());
+
+        _manual_inspection(&done.unwrap(), "target/test_scale_100x200.png")
+    }
+
+    #[test]
+    fn test_rotate180() {
+        let img: DynamicImage = _setup();
+        let operation = Operation::Rotate180;
+
+        let done = img.apply_operation(&operation);
+        assert!(done.is_ok());
+
+        _manual_inspection(&done.unwrap(), "target/test_scale_100x200.png")
+    }
+
+    #[test]
+    fn test_rotate270() {
+        let img: DynamicImage = _setup();
+        let operation = Operation::Rotate270;
 
         let done = img.apply_operation(&operation);
         assert!(done.is_ok());
