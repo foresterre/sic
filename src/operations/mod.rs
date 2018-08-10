@@ -1,6 +1,5 @@
 use image::DynamicImage;
 use pest::iterators::Pairs;
-#[allow(unused_imports)]
 use pest::Parser;
 
 mod apply_operations;
