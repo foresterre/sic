@@ -9,12 +9,13 @@ digit = { '0'..'9' }
 
 operation_sequence = _{ (operation ~ sep?)+ }
 
-operation = _{ blur | brighten | flip_horizontal | flip_vertical | resize | rotate90 | rotate180 | rotate270 }
+operation = _{ blur | brighten | flip_horizontal | flip_vertical | huerotate | resize | rotate90 | rotate180 | rotate270 }
 
 blur = ${ ^"blur" ~ whitespace ~ uint}
 brighten = ${ ^"brighten" ~ whitespace ~ int }
 flip_horizontal = { ^"flip_horizontal" }
 flip_vertical = { ^"flip_vertical" }
+huerotate = ${ ^"huerotate" ~ whitespace ~ int }
 resize = ${ ^"resize" ~ whitespace ~ uint ~ whitespace ~ uint }
 rotate90 = { ^"rotate90" }
 rotate180 = { ^"rotate180" }
