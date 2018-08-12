@@ -81,13 +81,11 @@ fn main() {
     let operated_buffer = match matches.value_of("script") {
         Some(script) => {
             println!("Preparing to apply image operations: `{}`", script);
-            image_buffer
-                .map_err(|err| err.to_string())
-                .and_then(|img| {
-                    println!("Applying image operations.");
-                    operations::parse_and_apply_script(img, script)
-                })
-        },
+            image_buffer.map_err(|err| err.to_string()).and_then(|img| {
+                println!("Applying image operations.");
+                operations::parse_and_apply_script(img, script)
+            })
+        }
         None => image_buffer,
     };
 

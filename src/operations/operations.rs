@@ -9,7 +9,7 @@ pub trait ApplyOperation<O, T, E> {
 impl ApplyOperation<Operation, DynamicImage, String> for DynamicImage {
     fn apply_operation(&self, operation: &Operation) -> Result<DynamicImage, String> {
         match *operation {
-            Operation::Blur(sigma) => Ok(self.blur(sigma as f32)),
+            Operation::Blur(sigma) => Ok(self.blur(sigma)),
             Operation::Brighten(amount) => Ok(self.brighten(amount)),
             Operation::Contrast(c) => Ok(self.adjust_contrast(c)),
             Operation::FlipHorizontal => Ok(self.fliph()),
@@ -49,13 +49,13 @@ pub fn apply_operations_on_image(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use operations::test_setup::*;
     use image::GenericImage;
+    use operations::test_setup::*;
 
     #[test]
     fn test_blur() {
         let img: DynamicImage = _setup();
-        let operation = Operation::Blur(25);
+        let operation = Operation::Blur(25.0);
 
         let done = img.apply_operation(&operation);
         assert!(done.is_ok());
@@ -383,7 +383,7 @@ mod tests {
         let img: DynamicImage = _setup();
         let operations = vec![
             Operation::Resize(80, 100),
-            Operation::Blur(5),
+            Operation::Blur(5.0),
             Operation::FlipHorizontal,
             Operation::FlipVertical,
             Operation::Rotate90,

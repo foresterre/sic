@@ -23,7 +23,7 @@ use super::{Operation, Operations, Rule};
 pub fn parse_image_operations(pairs: Pairs<Rule>) -> Result<Operations, String> {
     pairs
         .map(|pair| match pair.as_rule() {
-            Rule::blur => parse_unop_u32(pair).map(|u| Operation::Blur(u)),
+            Rule::blur => parse_unop_f32(pair).map(|u| Operation::Blur(u)),
             Rule::brighten => parse_unop_i32(pair).map(|i| Operation::Brighten(i)),
             Rule::contrast => parse_unop_f32(pair).map(|f| Operation::Contrast(f)),
             Rule::flip_horizontal => Ok(Operation::FlipHorizontal),
@@ -41,16 +41,6 @@ pub fn parse_image_operations(pairs: Pairs<Rule>) -> Result<Operations, String> 
 }
 
 // generalizing this to T would be nice, but delivered me a lot of headaches. Using this for now.
-fn parse_unop_u32(pair: Pair<Rule>) -> Result<u32, String> {
-    let mut inner = pair.into_inner();
-
-    inner
-        .next()
-        .ok_or_else(|| format!("Unable to parse {}, too many arguments: {}", inner, 1))
-        .map(|val| val.as_str())
-        .and_then(|it: &str| it.parse::<u32>().map_err(|err| err.to_string()))
-}
-
 fn parse_unop_f32(pair: Pair<Rule>) -> Result<f32, String> {
     let mut inner = pair.into_inner();
 
@@ -99,7 +89,7 @@ mod tests {
     fn test_blur_single_stmt_parse_correct() {
         let pairs = SICParser::parse(Rule::main, "blur 15;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
-        assert_eq!(Ok(vec![Operation::Blur(15)]), parse_image_operations(pairs));
+        assert_eq!(Ok(vec![Operation::Blur(15.0)]), parse_image_operations(pairs));
     }
 
     #[test]
@@ -234,7 +224,7 @@ mod tests {
         ).unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![
-                Operation::Blur(10),
+                Operation::Blur(10.0),
                 Operation::FlipHorizontal,
                 Operation::FlipVertical,
                 Operation::Resize(100, 200)
@@ -254,7 +244,7 @@ mod tests {
                 Operation::FlipHorizontal,
                 Operation::FlipVertical,
                 Operation::Resize(100, 200),
-                Operation::Blur(10)
+                Operation::Blur(10.0)
             ]),
             parse_image_operations(pairs)
         );
@@ -271,7 +261,7 @@ mod tests {
                 Operation::FlipHorizontal,
                 Operation::FlipVertical,
                 Operation::Resize(100, 200),
-                Operation::Blur(10)
+                Operation::Blur(10.0)
             ]),
             parse_image_operations(pairs)
         );
@@ -288,7 +278,7 @@ mod tests {
                 Operation::FlipHorizontal,
                 Operation::FlipVertical,
                 Operation::Resize(100, 200),
-                Operation::Blur(10)
+                Operation::Blur(10.0)
             ]),
             parse_image_operations(pairs)
         );
@@ -305,7 +295,7 @@ mod tests {
                 Operation::FlipHorizontal,
                 Operation::FlipVertical,
                 Operation::Resize(100, 200),
-                Operation::Blur(10)
+                Operation::Blur(10.0)
             ]),
             parse_image_operations(pairs)
         );
@@ -322,7 +312,7 @@ mod tests {
                 Operation::FlipHorizontal,
                 Operation::FlipVertical,
                 Operation::Resize(100, 200),
-                Operation::Blur(10)
+                Operation::Blur(10.0)
             ]),
             parse_image_operations(pairs)
         );
@@ -339,7 +329,7 @@ mod tests {
                 Operation::FlipHorizontal,
                 Operation::FlipVertical,
                 Operation::Resize(100, 200),
-                Operation::Blur(10)
+                Operation::Blur(10.0)
             ]),
             parse_image_operations(pairs)
         );

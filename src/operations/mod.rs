@@ -20,7 +20,7 @@ struct SICParser;
 
 #[derive(Debug, PartialEq)]
 pub enum Operation {
-    Blur(u32),
+    Blur(f32),
     Brighten(i32),
     Contrast(f32),
     FlipHorizontal,
