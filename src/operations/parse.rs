@@ -1,4 +1,4 @@
-use pest::iterators::Pairs;
+use pest::iterators::{Pair, Pairs};
 
 use super::{Operation, Operations, Rule};
 
@@ -23,61 +23,13 @@ use super::{Operation, Operations, Rule};
 pub fn parse_image_operations(pairs: Pairs<Rule>) -> Result<Operations, String> {
     pairs
         .map(|pair| match pair.as_rule() {
-            Rule::blur => {
-                let u_int_text = pair
-                    .into_inner()
-                    .next()
-                    .ok_or_else(|| "Unable to parse `blur` value.".to_string())
-                    .map(|val| val.as_str());
-
-                let u_int =
-                    u_int_text.and_then(|it: &str| it.parse::<u32>().map_err(|e| e.to_string()));
-
-                u_int.map(|u| Operation::Blur(u))
-            }
-            Rule::brighten => {
-                let int_text = pair
-                    .into_inner()
-                    .next()
-                    .ok_or_else(|| "Unable to parse `brighten` value.".to_string())
-                    .map(|val| val.as_str());
-
-                let int =
-                    int_text.and_then(|it: &str| it.parse::<i32>().map_err(|e| e.to_string()));
-
-                int.map(|i| Operation::Brighten(i))
-            }
+            Rule::blur => parse_unop_u32(pair).map(|u| Operation::Blur(u)),
+            Rule::brighten => parse_unop_i32(pair).map(|i| Operation::Brighten(i)),
             Rule::flip_horizontal => Ok(Operation::FlipHorizontal),
             Rule::flip_vertical => Ok(Operation::FlipVertical),
-            Rule::huerotate => {
-                let int_text = pair
-                    .into_inner()
-                    .next()
-                    .ok_or_else(|| "Unable to parse `brighten` value.".to_string())
-                    .map(|val| val.as_str());
-
-                let int =
-                    int_text.and_then(|it: &str| it.parse::<i32>().map_err(|e| e.to_string()));
-
-                int.map(|i| Operation::HueRotate(i))
-            }
+            Rule::huerotate => parse_unop_i32(pair).map(|i| Operation::HueRotate(i)),
             Rule::resize => {
-                let mut inner = pair.into_inner();
-
-                let x_text = inner
-                    .next()
-                    .ok_or_else(|| "Unable to parse `resize <x> <y>`".to_string())
-                    .map(|val| val.as_str());
-
-                let x = x_text.and_then(|it: &str| it.parse::<u32>().map_err(|e| e.to_string()));
-
-                let y_text = inner
-                    .next()
-                    .ok_or_else(|| "Unable to parse `resize <x> <y>`".to_string())
-                    .map(|val| val.as_str());
-
-                let y = y_text.and_then(|it: &str| it.parse::<u32>().map_err(|e| e.to_string()));
-
+                let (x, y) = parse_binop_u32(pair);
                 x.and_then(|ux| y.map(|uy| Operation::Resize(ux, uy)))
             }
             Rule::rotate90 => Ok(Operation::Rotate90),
@@ -85,6 +37,47 @@ pub fn parse_image_operations(pairs: Pairs<Rule>) -> Result<Operations, String> 
             Rule::rotate270 => Ok(Operation::Rotate270),
             _ => Err("Parse failed: Operation doesn't exist".to_string()),
         }).collect::<Result<Operations, String>>()
+}
+
+// generalizing this to T would be nice, but delivered me a lot of headaches. Using this for now.
+fn parse_unop_u32(pair: Pair<Rule>) -> Result<u32, String> {
+    let mut inner = pair.into_inner();
+
+    println!("{}", inner);
+
+    inner
+        .next()
+        .ok_or_else(|| format!("Unable to parse {}, too many arguments: {}", inner, 1))
+        .map(|val| val.as_str())
+        .and_then(|it: &str| it.parse::<u32>().map_err(|err| err.to_string()))
+}
+
+fn parse_unop_i32(pair: Pair<Rule>) -> Result<i32, String> {
+    pair.into_inner()
+        .next()
+        .ok_or_else(|| format!("Unable to parse UnOp::i32, Expected 2 arguments."))
+        .map(|val| val.as_str())
+        .and_then(|it: &str| it.parse::<i32>().map_err(|err| err.to_string()))
+}
+
+fn parse_binop_u32(pair: Pair<Rule>) -> (Result<u32, String>, Result<u32, String>) {
+    let mut inner = pair.into_inner();
+
+    let x_text = inner
+        .next()
+        .ok_or_else(|| "Unable to parse `resize <x> <y>`".to_string())
+        .map(|val| val.as_str());
+
+    let x = x_text.and_then(|it: &str| it.parse::<u32>().map_err(|err| err.to_string()));
+
+    let y_text = inner
+        .next()
+        .ok_or_else(|| "Unable to parse `resize <x> <y>`".to_string())
+        .map(|val| val.as_str());
+
+    let y = y_text.and_then(|it: &str| it.parse::<u32>().map_err(|err| err.to_string()));
+
+    (x, y)
 }
 
 #[cfg(test)]

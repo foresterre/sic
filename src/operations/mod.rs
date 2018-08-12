@@ -1,5 +1,4 @@
 use image::DynamicImage;
-use pest::iterators::Pairs;
 use pest::Parser;
 
 use operations::operations::apply_operations_on_image;
@@ -36,21 +35,27 @@ pub type Operations = Vec<Operation>;
 
 pub fn parse_and_apply_script(image: DynamicImage, script: &str) -> Result<DynamicImage, String> {
     let parsed_script = SICParser::parse(PARSER_RULE, script);
-    let rule_pairs: Pairs<Rule> = parsed_script
-        .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
 
-    let operations: Result<Operations, String> = parse_image_operations(rule_pairs);
-
-    match operations {
-        Ok(ops) => apply_operations_on_image(image, &ops),
-        Err(err) => Err(err),
-    }
+    parsed_script
+        .map_err(|err| format!("Unable to parse sic image operations script: {:?}", err))
+        .and_then(|pairs| parse_image_operations(pairs))
+        .and_then(|operations| apply_operations_on_image(image, &operations))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use operations::test_setup::*;
+
+    #[test]
+    fn test_too_many_args() {
+        let input = "blur 15 28;";
+        let parsed = SICParser::parse(Rule::main, input);
+
+        // Manually constructing a pest::Error::ParsingError is a hell, because of Position, which,
+        // except for the from_start() method is private.
+        assert!(parsed.is_err());
+    }
 
     #[test]
     fn test_multi_parse_and_apply_script() {
