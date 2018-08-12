@@ -79,9 +79,15 @@ fn main() {
 
     // perform image operations
     let operated_buffer = match matches.value_of("script") {
-        Some(script) => image_buffer
-            .map_err(|err| err.to_string())
-            .and_then(|img| operations::parse_and_apply_script(img, script)),
+        Some(script) => {
+            println!("Preparing to apply image operations: `{}`", script);
+            image_buffer
+                .map_err(|err| err.to_string())
+                .and_then(|img| {
+                    println!("Applying image operations.");
+                    operations::parse_and_apply_script(img, script)
+                })
+        },
         None => image_buffer,
     };
 
@@ -97,7 +103,7 @@ fn main() {
         });
 
     match encode_buffer {
-        Ok(_) => println!("Conversion complete."),
-        Err(err) => println!("Conversion ended with an Error: {}", err),
+        Ok(_) => println!("Operations complete."),
+        Err(err) => println!("Operations ended with an Error: {}", err),
     }
 }

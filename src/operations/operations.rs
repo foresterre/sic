@@ -49,19 +49,7 @@ pub fn apply_operations_on_image(
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    const _TEST_IMAGE_PATH: &str = "resources/unsplash_763569_cropped.jpg";
-
-    fn _setup() -> DynamicImage {
-        use std::path::Path;
-        image::open(&Path::new(_TEST_IMAGE_PATH)).unwrap()
-    }
-
-    fn _manual_inspection(img: &DynamicImage, path: &str) {
-        if !cfg!(feature = "dont-run-on-ci") {
-            let _ = img.save(path);
-        }
-    }
+    use operations::test_setup::*;
 
     #[test]
     fn test_blur() {
