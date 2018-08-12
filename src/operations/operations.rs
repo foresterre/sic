@@ -1,5 +1,4 @@
-#[allow(unused_imports)] // Warns for GenericImage, but it is used in the test cases.
-use image::{DynamicImage, FilterType, GenericImage};
+use image::{DynamicImage, FilterType};
 
 use super::Operation;
 
@@ -12,6 +11,7 @@ impl ApplyOperation<Operation, DynamicImage, String> for DynamicImage {
         match *operation {
             Operation::Blur(sigma) => Ok(self.blur(sigma as f32)),
             Operation::Brighten(amount) => Ok(self.brighten(amount)),
+            Operation::Contrast(c) => Ok(self.adjust_contrast(c)),
             Operation::FlipHorizontal => Ok(self.fliph()),
             Operation::FlipVertical => Ok(self.flipv()),
             Operation::HueRotate(degree) => Ok(self.huerotate(degree)),
@@ -50,6 +50,7 @@ pub fn apply_operations_on_image(
 mod tests {
     use super::*;
     use operations::test_setup::*;
+    use image::GenericImage;
 
     #[test]
     fn test_blur() {
@@ -110,6 +111,40 @@ mod tests {
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
         _manual_inspection(&result_img, "target/test_brighten_neg_25.png")
+    }
+
+    #[test]
+    fn test_contrast_pos() {
+        let img: DynamicImage = _setup();
+        let cmp: DynamicImage = _setup();
+
+        let operation = Operation::Contrast(150.9);
+
+        let done = img.apply_operation(&operation);
+        assert!(done.is_ok());
+
+        let result_img = done.unwrap();
+
+        assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
+
+        _manual_inspection(&result_img, "target/test_contrast_pos_15_9.png")
+    }
+
+    #[test]
+    fn test_contrast_neg() {
+        let img: DynamicImage = _setup();
+        let cmp: DynamicImage = _setup();
+
+        let operation = Operation::Contrast(-150.9);
+
+        let done = img.apply_operation(&operation);
+        assert!(done.is_ok());
+
+        let result_img = done.unwrap();
+
+        assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
+
+        _manual_inspection(&result_img, "target/test_contrast_pos_15_9.png")
     }
 
     #[test]

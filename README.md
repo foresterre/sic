@@ -49,7 +49,7 @@ Image operations availability:
 |blur               | `blur <uint>`           | Yes (0.5.0) 	 | Performs a Gaussian blur on the image ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.blur.html)) |
 |brighten           | `brighten <int>`        | Yes (unreleased) | ... |
 |hue rotate         | `huerotate <int>`       | Yes (unreleased) | Rotate's the hue, argument is in degrees. Rotatates `<int>%360` degrees. | 
-|contrast           | TBD                     | No               | ... |
+|contrast           | `contrast <fp>`         | Yes (unreleased) | ... |
 |crop               | TBD                     | No               | ... |
 |filter3x3          | TBD                     | No               | ... |
 |flip horizontal    | `flip_horizontal`       | Yes (0.5.0) 	 | Flips the image on the horizontal axis |
@@ -70,8 +70,9 @@ available (from version) => lists whether the operation is supported right now (
 description => descriptive information about the operation
 
 
-<uint> means any 32 bit unsigned integer is required as parameter input,
-<int> means any 32 bit signed integer is required as parameter input,
+<uint> means any 32 bit unsigned integer is required as parameter input.
+<int> means any 32 bit signed integer is required as parameter input.
+<fp> means any 32 bit floating point number is required as parameter input.
 ```
 
 # Suggestions, Questions, Bugs

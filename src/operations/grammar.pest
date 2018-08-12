@@ -2,6 +2,7 @@ whitespace = _{ (" " | "\t" | "\n" | "\r\n") }
 sep = _{ ";" }
 
 
+fp = @{ int ~ ("." ~ digit+)? }
 uint = @{ digit+ }
 int  = @{ "-"? ~ digit+ }
 
@@ -9,10 +10,11 @@ digit = { '0'..'9' }
 
 operation_sequence = _{ (operation ~ sep?)+ }
 
-operation = _{ blur | brighten | flip_horizontal | flip_vertical | huerotate | resize | rotate90 | rotate180 | rotate270 }
+operation = _{ blur | brighten | contrast | flip_horizontal | flip_vertical | huerotate | resize | rotate90 | rotate180 | rotate270 }
 
 blur = ${ ^"blur" ~ whitespace ~ uint}
 brighten = ${ ^"brighten" ~ whitespace ~ int }
+contrast = ${ ^"contrast" ~ whitespace ~ fp }
 flip_horizontal = { ^"flip_horizontal" }
 flip_vertical = { ^"flip_vertical" }
 huerotate = ${ ^"huerotate" ~ whitespace ~ int }

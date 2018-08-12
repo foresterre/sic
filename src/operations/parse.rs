@@ -25,6 +25,7 @@ pub fn parse_image_operations(pairs: Pairs<Rule>) -> Result<Operations, String> 
         .map(|pair| match pair.as_rule() {
             Rule::blur => parse_unop_u32(pair).map(|u| Operation::Blur(u)),
             Rule::brighten => parse_unop_i32(pair).map(|i| Operation::Brighten(i)),
+            Rule::contrast => parse_unop_f32(pair).map(|f| Operation::Contrast(f)),
             Rule::flip_horizontal => Ok(Operation::FlipHorizontal),
             Rule::flip_vertical => Ok(Operation::FlipVertical),
             Rule::huerotate => parse_unop_i32(pair).map(|i| Operation::HueRotate(i)),
@@ -48,6 +49,16 @@ fn parse_unop_u32(pair: Pair<Rule>) -> Result<u32, String> {
         .ok_or_else(|| format!("Unable to parse {}, too many arguments: {}", inner, 1))
         .map(|val| val.as_str())
         .and_then(|it: &str| it.parse::<u32>().map_err(|err| err.to_string()))
+}
+
+fn parse_unop_f32(pair: Pair<Rule>) -> Result<f32, String> {
+    let mut inner = pair.into_inner();
+
+    inner
+        .next()
+        .ok_or_else(|| format!("Unable to parse {}, too many arguments: {}", inner, 1))
+        .map(|val| val.as_str())
+        .and_then(|it: &str| it.parse::<f32>().map_err(|err| err.to_string()))
 }
 
 fn parse_unop_i32(pair: Pair<Rule>) -> Result<i32, String> {
@@ -90,6 +101,33 @@ mod tests {
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(Ok(vec![Operation::Blur(15)]), parse_image_operations(pairs));
     }
+
+    #[test]
+    fn test_contrast_single_stmt_int_parse_correct() {
+        let pairs = SICParser::parse(Rule::main, "contrast 15;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(Ok(vec![Operation::Contrast(15.0)]), parse_image_operations(pairs));
+    }
+
+    #[test]
+    fn test_contrast_single_stmt_f32_parse_correct() {
+        let pairs = SICParser::parse(Rule::main, "contrast 15.8;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(Ok(vec![Operation::Contrast(15.8)]), parse_image_operations(pairs));
+    }
+
+    #[test]
+    fn test_contrast_single_stmt_parse_fail_end_in_dot() {
+        let pairs = SICParser::parse(Rule::main, "contrast 15.;");
+        assert!(pairs.is_err());
+    }
+
+    #[test]
+    fn test_contrast_single_stmt_parse_fail_max_f32_1() {
+        let pairs = SICParser::parse(Rule::main, "340282200000000000000000000000000000000.0;");
+        assert!(pairs.is_err());
+    }
+
 
     #[test]
     fn test_brighten_pos_single_stmt_parse_correct() {
