@@ -28,11 +28,12 @@ pub fn parse_image_operations(pairs: Pairs<Rule>) -> Result<Operations, String> 
             Rule::contrast => parse_unop_f32(pair).map(|f| Operation::Contrast(f)),
             Rule::flip_horizontal => Ok(Operation::FlipHorizontal),
             Rule::flip_vertical => Ok(Operation::FlipVertical),
+            Rule::grayscale => Ok(Operation::GrayScale),
             Rule::huerotate => parse_unop_i32(pair).map(|i| Operation::HueRotate(i)),
             Rule::resize => {
                 let (x, y) = parse_binop_u32(pair);
                 x.and_then(|ux| y.map(|uy| Operation::Resize(ux, uy)))
-            }
+            },
             Rule::rotate90 => Ok(Operation::Rotate90),
             Rule::rotate180 => Ok(Operation::Rotate180),
             Rule::rotate270 => Ok(Operation::Rotate270),

@@ -25,6 +25,7 @@ pub enum Operation {
     Contrast(f32),
     FlipHorizontal,
     FlipVertical,
+    GrayScale,
     HueRotate(i32),
     Resize(u32, u32),
     Rotate90,

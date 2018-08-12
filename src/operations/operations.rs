@@ -14,6 +14,7 @@ impl ApplyOperation<Operation, DynamicImage, String> for DynamicImage {
             Operation::Contrast(c) => Ok(self.adjust_contrast(c)),
             Operation::FlipHorizontal => Ok(self.fliph()),
             Operation::FlipVertical => Ok(self.flipv()),
+            Operation::GrayScale => Ok(self.grayscale()),
             Operation::HueRotate(degree) => Ok(self.huerotate(degree)),
             Operation::Resize(new_x, new_y) => {
                 Ok(self.resize_exact(new_x, new_y, FilterType::Gaussian))
@@ -183,6 +184,37 @@ mod tests {
         assert_eq!(ya, yb);
 
         _manual_inspection(&img_result, "target/test_flipv.png")
+    }
+
+    #[test]
+    fn test_gray_scale() {
+        use image::Pixel;
+
+        let img: DynamicImage = _setup_with("resources/rainbow_8x6.bmp");
+        let operation = Operation::GrayScale;
+
+        let done = img.apply_operation(&operation);
+
+        assert!(done.is_ok());
+
+        let img_result = done.unwrap();
+
+        // The color type isn't actually changed to luma, so instead of checking color type,
+        // here pixels are checked to have equal (r, g, b) components.
+        for i in 0..8 {
+            for j in 0..6 {
+                let pixel = img_result.get_pixel(i, j);
+                let channels_result = pixel.channels();
+                let r_component = channels_result[0];
+                let g_component = channels_result[1];
+                let b_component = channels_result[2];
+
+                assert_eq!(r_component, g_component);
+                assert_eq!(g_component, b_component);
+            }
+        }
+
+        _manual_inspection(&img_result, "target/test_gray_scale.png")
     }
 
     #[test]
