@@ -1,5 +1,4 @@
-#[allow(unused_imports)] // Warns for GenericImage, but it is used in the test cases.
-use image::{DynamicImage, FilterType, GenericImage};
+use image::{DynamicImage, FilterType};
 
 use super::Operation;
 
@@ -50,6 +49,7 @@ pub fn apply_operations_on_image(
 mod tests {
     use super::*;
     use operations::test_setup::*;
+    use image::GenericImage;
 
     #[test]
     fn test_blur() {
