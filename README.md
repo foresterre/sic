@@ -48,7 +48,7 @@ Image operations availability:
 |---|---|---|---|
 |blur               | `blur <uint>`           | Yes (0.5.0) 	 | Performs a Gaussian blur on the image ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.blur.html)) |
 |brighten           | `brighten <int>`        | Yes (unreleased) | ... |
-|hue rotate         | `huerotate <int>`       | Yes (unreleased) | Rotate's the hue, argument is in degrees. Rotatates <int>%360 degrees. | 
+|hue rotate         | `huerotate <int>`       | Yes (unreleased) | Rotate's the hue, argument is in degrees. Rotatates `<int>%360` degrees. | 
 |contrast           | TBD                     | No               | ... |
 |crop               | TBD                     | No               | ... |
 |filter3x3          | TBD                     | No               | ... |
