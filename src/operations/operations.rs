@@ -324,7 +324,7 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        _manual_inspection(&result_img, "target/test_hue_rotate.png")
+        _manual_inspection(&result_img, "target/test_invert.png")
     }
 
     #[test]
