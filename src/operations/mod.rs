@@ -22,6 +22,7 @@ struct SICParser;
 pub enum Operation {
     Blur(u32),
     Brighten(i32),
+    Contrast(f32),
     FlipHorizontal,
     FlipVertical,
     HueRotate(i32),
