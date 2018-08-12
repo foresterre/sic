@@ -43,8 +43,8 @@ fn main() {
             .help("Apply image operations on the input image.\n\
                    Supported operations: \n\
                    1. blur <uint>;\n\
-                   2. fliph; \talias: flip_horizontal;\n\
-                   3. flipv; \talias: flip_vertical;\n\
+                   2. fliph;\n\
+                   3. flipv;\n\
                    4. resize <uint> <uint>;\n\n\
                    Operation separators (';') are optional.\n\n\
                    Example 1: `sic input.png output.png --script \"resize 250 250; blur 5;\"`\n\
