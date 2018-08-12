@@ -43,8 +43,6 @@ pub fn parse_image_operations(pairs: Pairs<Rule>) -> Result<Operations, String> 
 fn parse_unop_u32(pair: Pair<Rule>) -> Result<u32, String> {
     let mut inner = pair.into_inner();
 
-    println!("{}", inner);
-
     inner
         .next()
         .ok_or_else(|| format!("Unable to parse {}, too many arguments: {}", inner, 1))
