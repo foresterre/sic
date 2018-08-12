@@ -62,7 +62,7 @@ mod tests {
     #[test]
     fn test_multi_parse_and_apply_script() {
         let image = _setup();
-        let script: &str = "flip_horizontal; resize 100 100; blur 3;";
+        let script: &str = "fliph; resize 100 100; blur 3;";
 
         let result = parse_and_apply_script(image, script);
 
