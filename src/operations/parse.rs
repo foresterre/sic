@@ -30,6 +30,7 @@ pub fn parse_image_operations(pairs: Pairs<Rule>) -> Result<Operations, String> 
             Rule::flip_vertical => Ok(Operation::FlipVertical),
             Rule::grayscale => Ok(Operation::GrayScale),
             Rule::huerotate => parse_unop_i32(pair).map(|i| Operation::HueRotate(i)),
+            Rule::invert => Ok(Operation::Invert),
             Rule::resize => {
                 let (x, y) = parse_binop_u32(pair);
                 x.and_then(|ux| y.map(|uy| Operation::Resize(ux, uy)))
@@ -200,6 +201,13 @@ mod tests {
             Ok(vec![Operation::HueRotate(-3579)]),
             parse_image_operations(pairs)
         );
+    }
+
+    #[test]
+    fn test_invert_single_stmt_parse_correct() {
+        let pairs = SICParser::parse(Rule::main, "invert;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(Ok(vec![Operation::Invert]), parse_image_operations(pairs));
     }
 
     #[test]
