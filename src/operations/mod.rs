@@ -27,6 +27,7 @@ pub enum Operation {
     FlipVertical,
     GrayScale,
     HueRotate(i32),
+    Invert,
     Resize(u32, u32),
     Rotate90,
     Rotate180,

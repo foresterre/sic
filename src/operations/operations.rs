@@ -16,6 +16,12 @@ impl ApplyOperation<Operation, DynamicImage, String> for DynamicImage {
             Operation::FlipVertical => Ok(self.flipv()),
             Operation::GrayScale => Ok(self.grayscale()),
             Operation::HueRotate(degree) => Ok(self.huerotate(degree)),
+            Operation::Invert => {
+                let ref mut img = self.clone();
+                image::DynamicImage::invert(img);
+                let res = img.clone();
+                Ok(res)
+            }
             Operation::Resize(new_x, new_y) => {
                 Ok(self.resize_exact(new_x, new_y, FilterType::Gaussian))
             }
@@ -265,7 +271,7 @@ mod tests {
 
         assert_eq!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        _manual_inspection(&result_img, "target/test_brighten_0.png")
+        _manual_inspection(&result_img, "target/test_hue_rot_0.png")
     }
 
     #[test]
@@ -284,7 +290,7 @@ mod tests {
         // huerotate(0) should be huerotate(360), but this doesn't seem the case
         assert_eq!(cmp.huerotate(360).raw_pixels(), result_img.raw_pixels());
 
-        _manual_inspection(&result_img, "target/test_brighten_360.png")
+        _manual_inspection(&result_img, "target/test_hue_rot_pos_360.png")
     }
 
     #[test]
@@ -302,6 +308,23 @@ mod tests {
         assert_ne!(cmp.huerotate(100).raw_pixels(), result_img.raw_pixels());
 
         _manual_inspection(&result_img, "target/test_hue_rot_pos_460.png")
+    }
+
+    #[test]
+    fn test_invert() {
+        let img: DynamicImage = _setup();
+        let cmp: DynamicImage = _setup();
+
+        let operation = Operation::Invert;
+
+        let done = img.apply_operation(&operation);
+        assert!(done.is_ok());
+
+        let result_img = done.unwrap();
+
+        assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
+
+        _manual_inspection(&result_img, "target/test_invert.png")
     }
 
     #[test]
