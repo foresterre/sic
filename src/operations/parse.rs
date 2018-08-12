@@ -159,13 +159,10 @@ mod tests {
     }
 
     #[test]
-    fn test_flip_horizontal_alias_single_stmt_parse_correct() {
-        let pairs = SICParser::parse(Rule::main, "flip_horizontal;")
-            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
-        assert_eq!(
-            Ok(vec![Operation::FlipHorizontal]),
-            parse_image_operations(pairs)
-        );
+    fn test_flip_horizontal_removed() {
+        let pairs = SICParser::parse(Rule::main, "flip_horizontal;");
+
+        assert!(pairs.is_err());
     }
 
     #[test]
@@ -179,13 +176,10 @@ mod tests {
     }
 
     #[test]
-    fn test_flip_vertical_alias_single_stmt_parse_correct() {
-        let pairs = SICParser::parse(Rule::main, "flip_vertical;")
-            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
-        assert_eq!(
-            Ok(vec![Operation::FlipVertical]),
-            parse_image_operations(pairs)
-        );
+    fn test_flip_vertical_removed() {
+        let pairs = SICParser::parse(Rule::main, "flip_vertical;");
+
+        assert!(pairs.is_err());
     }
 
     #[test]
