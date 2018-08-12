@@ -33,7 +33,7 @@ pub fn parse_image_operations(pairs: Pairs<Rule>) -> Result<Operations, String> 
             Rule::resize => {
                 let (x, y) = parse_binop_u32(pair);
                 x.and_then(|ux| y.map(|uy| Operation::Resize(ux, uy)))
-            },
+            }
             Rule::rotate90 => Ok(Operation::Rotate90),
             Rule::rotate180 => Ok(Operation::Rotate180),
             Rule::rotate270 => Ok(Operation::Rotate270),
@@ -90,21 +90,30 @@ mod tests {
     fn test_blur_single_stmt_parse_correct() {
         let pairs = SICParser::parse(Rule::main, "blur 15;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
-        assert_eq!(Ok(vec![Operation::Blur(15.0)]), parse_image_operations(pairs));
+        assert_eq!(
+            Ok(vec![Operation::Blur(15.0)]),
+            parse_image_operations(pairs)
+        );
     }
 
     #[test]
     fn test_contrast_single_stmt_int_parse_correct() {
         let pairs = SICParser::parse(Rule::main, "contrast 15;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
-        assert_eq!(Ok(vec![Operation::Contrast(15.0)]), parse_image_operations(pairs));
+        assert_eq!(
+            Ok(vec![Operation::Contrast(15.0)]),
+            parse_image_operations(pairs)
+        );
     }
 
     #[test]
     fn test_contrast_single_stmt_f32_parse_correct() {
         let pairs = SICParser::parse(Rule::main, "contrast 15.8;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
-        assert_eq!(Ok(vec![Operation::Contrast(15.8)]), parse_image_operations(pairs));
+        assert_eq!(
+            Ok(vec![Operation::Contrast(15.8)]),
+            parse_image_operations(pairs)
+        );
     }
 
     #[test]
@@ -118,7 +127,6 @@ mod tests {
         let pairs = SICParser::parse(Rule::main, "340282200000000000000000000000000000000.0;");
         assert!(pairs.is_err());
     }
-
 
     #[test]
     fn test_brighten_pos_single_stmt_parse_correct() {
@@ -142,6 +150,16 @@ mod tests {
 
     #[test]
     fn test_flip_horizontal_single_stmt_parse_correct() {
+        let pairs = SICParser::parse(Rule::main, "fliph;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Operation::FlipHorizontal]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_flip_horizontal_alias_single_stmt_parse_correct() {
         let pairs = SICParser::parse(Rule::main, "flip_horizontal;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
@@ -152,6 +170,16 @@ mod tests {
 
     #[test]
     fn test_flip_vertical_single_stmt_parse_correct() {
+        let pairs = SICParser::parse(Rule::main, "flipv;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Operation::FlipVertical]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_flip_vertical_alias_single_stmt_parse_correct() {
         let pairs = SICParser::parse(Rule::main, "flip_vertical;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
@@ -219,10 +247,8 @@ mod tests {
 
     #[test]
     fn test_multi_stmt_parse_correct() {
-        let pairs = SICParser::parse(
-            Rule::main,
-            "blur 10;flip_horizontal;flip_vertical;resize 100 200;",
-        ).unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        let pairs = SICParser::parse(Rule::main, "blur 10;fliph;flipv;resize 100 200;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![
                 Operation::Blur(10.0),
@@ -236,10 +262,8 @@ mod tests {
 
     #[test]
     fn test_multi_stmt_parse_diff_order_correct() {
-        let pairs = SICParser::parse(
-            Rule::main,
-            "flip_horizontal;flip_vertical;resize 100 200;blur 10;",
-        ).unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        let pairs = SICParser::parse(Rule::main, "fliph;flipv;resize 100 200;blur 10;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![
                 Operation::FlipHorizontal,
@@ -253,10 +277,8 @@ mod tests {
 
     #[test]
     fn test_multi_whitespace() {
-        let pairs = SICParser::parse(
-            Rule::main,
-            "flip_horizontal; flip_vertical; resize 100 200; blur 10;",
-        ).unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        let pairs = SICParser::parse(Rule::main, "fliph; flipv; resize 100 200; blur 10;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![
                 Operation::FlipHorizontal,
@@ -272,7 +294,7 @@ mod tests {
     fn test_multi_whitespace_2() {
         let pairs = SICParser::parse(
             Rule::main,
-            "flip_horizontal    ; flip_vertical   ;   \t\t resize 100 200; blur 10;",
+            "fliph    ; flipv   ;   \t\t resize 100 200; blur 10;",
         ).unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![
@@ -287,10 +309,8 @@ mod tests {
 
     #[test]
     fn test_multi_whitespace_3() {
-        let pairs = SICParser::parse(
-            Rule::main,
-            "flip_horizontal;\nflip_vertical;\nresize 100 200;\n\tblur 10;",
-        ).unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        let pairs = SICParser::parse(Rule::main, "fliph;\nflipv;\nresize 100 200;\n\tblur 10;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![
                 Operation::FlipHorizontal,
@@ -304,10 +324,8 @@ mod tests {
 
     #[test]
     fn test_multi_should_no_longer_end_with_sep() {
-        let pairs = SICParser::parse(
-            Rule::main,
-            "flip_horizontal; flip_vertical; resize 100 200; blur 10",
-        ).unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        let pairs = SICParser::parse(Rule::main, "fliph; flipv; resize 100 200; blur 10")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![
                 Operation::FlipHorizontal,
@@ -321,10 +339,8 @@ mod tests {
 
     #[test]
     fn test_multi_sep_optional() {
-        let pairs = SICParser::parse(
-            Rule::main,
-            "flip_horizontal flip_vertical; resize 100 200 blur 10",
-        ).unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        let pairs = SICParser::parse(Rule::main, "fliph flipv; resize 100 200 blur 10")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![
                 Operation::FlipHorizontal,
