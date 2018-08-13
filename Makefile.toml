@@ -3,6 +3,7 @@ description = "Prepare release."
 dependencies = [ "install_bom" ]
 script = [
 	"cargo bom > dep_licenses.txt",
+	"cargo build --release",
 ]
 
 [tasks.install_bom]
@@ -11,17 +12,3 @@ script = [
 	"cargo install cargo-bom"	
 ]
 force = true
-
-[tasks.prepare_repo]
-description = "Prepare the repo for a release. Right now expects some manual steps, such as changing version numbers."
-script = [
-	"git checkout master",
-	"git pull origin master",
-	"git checkout -f -b prepare_release",
-	"rustup component add rustfmt-preview",
-	"cargo fmt",
-	"git commit -m \"Formatted the code while preparing for the next release.\" -a"
-	"git push origin prepare_release",
-	"echo DO NOW: update version number in `main.rs` and `Cargo.toml`.",
-	"echo DO NOW: commit and push."
-]
