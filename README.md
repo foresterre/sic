@@ -60,7 +60,7 @@ Image operations availability:
 |rotate90           | `rotate90`              | Yes (unreleased) | ... |
 |rotate180          | `rotate180`             | Yes (unreleased) | ... |
 |rotate270          | `rotate270`             | Yes (unreleased) | ... |
-|unsharpen          | TBD                     | No               | ... |
+|unsharpen          | `unsharpen <fp> <int>`  | Yes (unreleased) | ... |
 
 
 legend:

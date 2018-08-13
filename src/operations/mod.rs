@@ -32,6 +32,7 @@ pub enum Operation {
     Rotate90,
     Rotate180,
     Rotate270,
+    Unsharpen(f32, i32),
 }
 
 pub type Operations = Vec<Operation>;
