@@ -15,6 +15,7 @@ mod conversion;
 mod operations;
 
 const SIC_LICENSE: &str = include_str!("../LICENSE");
+const DEP_LICENSES: &str = include_str!("../DEP");
 
 fn main() {
     let matches = App::new("Simple Image Converter")
@@ -35,8 +36,11 @@ fn main() {
             .takes_value(true))
         .arg(Arg::with_name("license")
             .long("license")
-            .value_name("LICENSE")
-            .help("Displays the license of the software.")
+            .help("Displays the license of the `sic` software.")
+            .takes_value(false))
+        .arg(Arg::with_name("dep-licenses")
+            .long("dep-licenses")
+            .help("Displays the licenses of the dependencies on which this software relies.")
             .takes_value(false))
         .arg(Arg::with_name("script")
             .long("script")
@@ -54,18 +58,35 @@ fn main() {
         .arg(Arg::with_name("input_file")
             .help("Sets the input file")
             .value_name("INPUT_FILE")
-            .required_unless("license")
+            .required_unless_one(&["license", "dep-licenses"])
             .index(1))
         .arg(Arg::with_name("output_file")
             .help("Sets the output file")
             .value_name("OUTPUT_FILE")
-            .required_unless("license")
+            .required_unless_one(&["license", "dep-licenses"])
             .index(2))
         .get_matches();
 
-    if matches.is_present("license") {
-        println!("{}", SIC_LICENSE);
-        process::exit(0);
+    match (
+        matches.is_present("license"),
+        matches.is_present("dep-licenses"),
+    ) {
+        (true, true) => {
+            println!(
+                "Simple Image Converter license:\n{} \n\n{}",
+                SIC_LICENSE, DEP_LICENSES
+            );
+            process::exit(92);
+        }
+        (true, _) => {
+            println!("{}", SIC_LICENSE);
+            process::exit(90);
+        }
+        (_, true) => {
+            println!("{}", DEP_LICENSES);
+            process::exit(91);
+        }
+        _ => {}
     }
 
     // Can be unwrap because these values are required arguments.
