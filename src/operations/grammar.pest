@@ -10,7 +10,7 @@ digit = { '0'..'9' }
 
 operation_sequence = _{ (operation ~ sep?)+ }
 
-operation = _{ blur | brighten | contrast | flip_horizontal | flip_vertical | grayscale | huerotate | invert | resize | rotate90 | rotate180 | rotate270 }
+operation = _{ blur | brighten | contrast | flip_horizontal | flip_vertical | grayscale | huerotate | invert | resize | rotate90 | rotate180 | rotate270 | unsharpen }
 
 blur = ${ ^"blur" ~ whitespace ~ uint}
 brighten = ${ ^"brighten" ~ whitespace ~ int }
@@ -24,6 +24,7 @@ resize = ${ ^"resize" ~ whitespace ~ uint ~ whitespace ~ uint }
 rotate90 = { ^"rotate90" }
 rotate180 = { ^"rotate180" }
 rotate270 = { ^"rotate270" }
+unsharpen = ${ ^"unsharpen" ~ whitespace ~ fp ~ whitespace ~ int }
 
 
 main = _{ soi ~ operation_sequence ~ eoi }

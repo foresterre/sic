@@ -38,11 +38,15 @@ pub fn parse_image_operations(pairs: Pairs<Rule>) -> Result<Operations, String> 
             Rule::rotate90 => Ok(Operation::Rotate90),
             Rule::rotate180 => Ok(Operation::Rotate180),
             Rule::rotate270 => Ok(Operation::Rotate270),
+            Rule::unsharpen => {
+                let (x, y) = parse_binop_f32_i32(pair);
+                x.and_then(|ux| y.map(|uy| Operation::Unsharpen(ux, uy)))
+            }
             _ => Err("Parse failed: Operation doesn't exist".to_string()),
         }).collect::<Result<Operations, String>>()
 }
 
-// generalizing this to T would be nice, but delivered me a lot of headaches. Using this for now.
+// generalizing this to T1/T2 would be nice, but gave me a lot of headaches. Using this for now.
 fn parse_unop_f32(pair: Pair<Rule>) -> Result<f32, String> {
     let mut inner = pair.into_inner();
 
@@ -66,17 +70,37 @@ fn parse_binop_u32(pair: Pair<Rule>) -> (Result<u32, String>, Result<u32, String
 
     let x_text = inner
         .next()
-        .ok_or_else(|| "Unable to parse `resize <x> <y>`".to_string())
+        .ok_or_else(|| "Unable to parse BinOp::<u32, u32> _1".to_string())
         .map(|val| val.as_str());
 
     let x = x_text.and_then(|it: &str| it.parse::<u32>().map_err(|err| err.to_string()));
 
     let y_text = inner
         .next()
-        .ok_or_else(|| "Unable to parse `resize <x> <y>`".to_string())
+        .ok_or_else(|| "Unable to parse BinOp::<u32, u32> _2".to_string())
         .map(|val| val.as_str());
 
     let y = y_text.and_then(|it: &str| it.parse::<u32>().map_err(|err| err.to_string()));
+
+    (x, y)
+}
+
+fn parse_binop_f32_i32(pair: Pair<Rule>) -> (Result<f32, String>, Result<i32, String>) {
+    let mut inner = pair.into_inner();
+
+    let x_text = inner
+        .next()
+        .ok_or_else(|| "Unable to parse BinOp::<f32, i32> _1".to_string())
+        .map(|val| val.as_str());
+
+    let x = x_text.and_then(|it: &str| it.parse::<f32>().map_err(|err| err.to_string()));
+
+    let y_text = inner
+        .next()
+        .ok_or_else(|| "Unable to parse BinOp::<f32, i32> _2".to_string())
+        .map(|val| val.as_str());
+
+    let y = y_text.and_then(|it: &str| it.parse::<i32>().map_err(|err| err.to_string()));
 
     (x, y)
 }
@@ -245,6 +269,42 @@ mod tests {
             Ok(vec![Operation::Rotate270]),
             parse_image_operations(pairs)
         );
+    }
+
+    #[test]
+    fn test_unsharpen_single_stmt_parse_correct_ints() {
+        let pairs = SICParser::parse(Rule::main, "unsharpen 99 88;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Operation::Unsharpen(99.0, 88)]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_unsharpen_single_stmt_parse_correct_fp_int() {
+        let pairs = SICParser::parse(Rule::main, "unsharpen 99.0 88;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Operation::Unsharpen(99.0, 88)]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_unsharpen_single_stmt_parse_correct_fp_int_neg() {
+        let pairs = SICParser::parse(Rule::main, "unsharpen -99.0 -88;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Operation::Unsharpen(-99.0, -88)]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_unsharpen_single_stmt_parse_correct_fp_fp_fail() {
+        let pairs = SICParser::parse(Rule::main, "unsharpen -99.0 -88.0;");
+        assert!(pairs.is_err());
     }
 
     #[test]

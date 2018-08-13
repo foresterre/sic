@@ -28,6 +28,7 @@ impl ApplyOperation<Operation, DynamicImage, String> for DynamicImage {
             Operation::Rotate90 => Ok(self.rotate90()),
             Operation::Rotate270 => Ok(self.rotate270()),
             Operation::Rotate180 => Ok(self.rotate180()),
+            Operation::Unsharpen(sigma, threshold) => Ok(self.unsharpen(sigma, threshold)),
         }
     }
 }
@@ -328,30 +329,6 @@ mod tests {
     }
 
     #[test]
-    fn test_resize_up_gaussian() {
-        // 217x447px => 400x500
-        let img: DynamicImage = _setup();
-        let operation = Operation::Resize(400, 500);
-
-        let (xa, ya) = img.dimensions();
-
-        assert_eq!(ya, 447);
-        assert_eq!(xa, 217);
-
-        let done = img.apply_operation(&operation);
-
-        assert!(done.is_ok());
-
-        let img_result = done.unwrap();
-        let (xb, yb) = img_result.dimensions();
-
-        assert_eq!(xb, 400);
-        assert_eq!(yb, 500);
-
-        _manual_inspection(&img_result, "target/test_scale_400x500.png")
-    }
-
-    #[test]
     fn test_resize_down_gaussian() {
         // 217x447px => 100x200
         let img: DynamicImage = _setup();
@@ -359,8 +336,8 @@ mod tests {
 
         let (xa, ya) = img.dimensions();
 
-        assert_eq!(ya, 447);
         assert_eq!(xa, 217);
+        assert_eq!(ya, 447);
 
         let done = img.apply_operation(&operation);
 
@@ -373,6 +350,30 @@ mod tests {
         assert_eq!(yb, 200);
 
         _manual_inspection(&img_result, "target/test_scale_100x200.png")
+    }
+
+    #[test]
+    fn test_resize_up_gaussian() {
+        // 217x447px => 300x500
+        let img: DynamicImage = _setup();
+        let operation = Operation::Resize(300, 500);
+
+        let (xa, ya) = img.dimensions();
+
+        assert_eq!(xa, 217);
+        assert_eq!(ya, 447);
+
+        let done = img.apply_operation(&operation);
+
+        assert!(done.is_ok());
+
+        let img_result = done.unwrap();
+        let (xb, yb) = img_result.dimensions();
+
+        assert_eq!(xb, 300);
+        assert_eq!(yb, 500);
+
+        _manual_inspection(&img_result, "target/test_scale_400x500.png")
     }
 
     #[test]
@@ -430,6 +431,40 @@ mod tests {
         assert_eq!(xb, ya);
 
         _manual_inspection(&img_result, "target/test_rotate270.png")
+    }
+
+    #[test]
+    fn test_unsharpen_pos() {
+        let img: DynamicImage = _setup();
+        let cmp: DynamicImage = _setup();
+
+        let operation = Operation::Unsharpen(20.1, 20);
+
+        let done = img.apply_operation(&operation);
+        assert!(done.is_ok());
+
+        let result_img = done.unwrap();
+
+        assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
+
+        _manual_inspection(&result_img, "target/test_unsharpen_20_1_20.png")
+    }
+
+    #[test]
+    fn test_unsharpen_neg() {
+        let img: DynamicImage = _setup();
+        let cmp: DynamicImage = _setup();
+
+        let operation = Operation::Unsharpen(-20.1, -20);
+
+        let done = img.apply_operation(&operation);
+        assert!(done.is_ok());
+
+        let result_img = done.unwrap();
+
+        assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
+
+        _manual_inspection(&result_img, "target/test_unsharpen_neg20_1_neg20.png")
     }
 
     #[test]
