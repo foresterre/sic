@@ -50,7 +50,7 @@ Image operations availability:
 |brighten           | `brighten <int>`        | Yes (unreleased) | ... |
 |hue rotate         | `huerotate <int>`       | Yes (unreleased) | Rotate's the hue, argument is in degrees. Rotatates `<int>%360` degrees. | 
 |contrast           | `contrast <fp>`         | Yes (unreleased) | ... |
-|crop               | TBD                     | No               | ... |
+|crop               |                         | No               | You can use `resize <uint> <uint>`` with values smaller or equal to the current image size for now. |
 |filter3x3          | TBD                     | No               | ... |
 |flip horizontal    | `flip_horizontal`       | Yes (0.5.0) 	 | Flips the image on the horizontal axis |
 |flip vertical      | `flip_vertical`         | Yes (0.5.0) 	 | Flips the image on the horizontal axis |
