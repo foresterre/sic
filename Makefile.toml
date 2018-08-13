@@ -2,8 +2,9 @@
 description = "Prepare release."
 dependencies = [ "install_bom" ]
 script = [
-	"cargo bom > dep_licenses.txt",
+	"cargo bom > LICENSES_DEPS",
 	"cargo build --release",
+	"rm LICENSES_DEPS"
 ]
 
 [tasks.install_bom]
