@@ -51,7 +51,7 @@ Image operations availability:
 |hue rotate         | `huerotate <int>`       | Yes (unreleased) | Rotate's the hue, argument is in degrees. Rotatates `<int>%360` degrees. | 
 |contrast           | `contrast <fp>`         | Yes (unreleased) | ... |
 |crop               |                         | No               | You can use `resize <uint> <uint>`` with values smaller or equal to the current image size for now. |
-|filter3x3          | TBD                     | No               | ... |
+|filter3x3          | `filter3x3 <args9>` [A] | In progress      | ... |
 |flip horizontal    | `flip_horizontal`       | Yes (0.5.0) 	 | Flips the image on the horizontal axis |
 |flip vertical      | `flip_vertical`         | Yes (0.5.0) 	 | Flips the image on the horizontal axis |
 |gray scale         | `grayscale`             | Yes (unreleased) | ... |
@@ -62,6 +62,14 @@ Image operations availability:
 |rotate270          | `rotate270`             | Yes (unreleased) | ... |
 |unsharpen          | `unsharpen <fp> <int>`  | Yes (unreleased) | ... |
 
+
+[A] Syntax example:
+```
+filter3x3 10.0 9.0 8.0 | 7.5 6.5 5.5 | 4 3 2;
+filter3x3 10.0 9.0 8.0 7.5 6.5 5.5 4 3 2;
+filter3x3 10.0 9.0 8.0 7.5 6.5 5.5 4 3 2
+filter3x3 10.0 9.0 8.0 7.5 6.5 5.5 4 3 2 filter3x3 12.0 29.0 28 27.5 26 25.5 14 3 2
+```
 
 legend:
 ```
@@ -74,6 +82,7 @@ description => descriptive information about the operation
 <uint> means any 32 bit unsigned integer is required as parameter input.
 <int> means any 32 bit signed integer is required as parameter input.
 <fp> means any 32 bit floating point number is required as parameter input.
+<args9> ... ... ... , ... ... ... , ... ... ...
 ```
 
 # Suggestions, Questions, Bugs

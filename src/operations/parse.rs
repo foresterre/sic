@@ -26,6 +26,7 @@ pub fn parse_image_operations(pairs: Pairs<Rule>) -> Result<Operations, String> 
             Rule::blur => parse_unop_f32(pair).map(|u| Operation::Blur(u)),
             Rule::brighten => parse_unop_i32(pair).map(|i| Operation::Brighten(i)),
             Rule::contrast => parse_unop_f32(pair).map(|f| Operation::Contrast(f)),
+            Rule::filter3x3 => parse_triplet3x_f32(pair).map(|it| Operation::Filter3x3(it)),
             Rule::flip_horizontal => Ok(Operation::FlipHorizontal),
             Rule::flip_vertical => Ok(Operation::FlipVertical),
             Rule::grayscale => Ok(Operation::GrayScale),
@@ -44,6 +45,10 @@ pub fn parse_image_operations(pairs: Pairs<Rule>) -> Result<Operations, String> 
             }
             _ => Err("Parse failed: Operation doesn't exist".to_string()),
         }).collect::<Result<Operations, String>>()
+}
+
+fn parse_triplet3x_f32(pair: Pair<Rule>) -> Result<[f32; 9], String> {
+    Err("not impl".to_string())
 }
 
 // generalizing this to T1/T2 would be nice, but gave me a lot of headaches. Using this for now.

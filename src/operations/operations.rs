@@ -12,6 +12,7 @@ impl ApplyOperation<Operation, DynamicImage, String> for DynamicImage {
             Operation::Blur(sigma) => Ok(self.blur(sigma)),
             Operation::Brighten(amount) => Ok(self.brighten(amount)),
             Operation::Contrast(c) => Ok(self.adjust_contrast(c)),
+            Operation::Filter3x3(it) => Ok(self.filter3x3(&it)),
             Operation::FlipHorizontal => Ok(self.fliph()),
             Operation::FlipVertical => Ok(self.flipv()),
             Operation::GrayScale => Ok(self.grayscale()),

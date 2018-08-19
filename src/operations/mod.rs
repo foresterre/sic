@@ -23,6 +23,7 @@ pub enum Operation {
     Blur(f32),
     Brighten(i32),
     Contrast(f32),
+    Filter3x3([f32; 9]),
     FlipHorizontal,
     FlipVertical,
     GrayScale,
