@@ -150,6 +150,68 @@ mod tests {
     use pest::Parser;
 
     #[test]
+    fn test_blur_single_stmt_parse_correct() {
+        let pairs = SICParser::parse(Rule::main, "blur 15;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Operation::Blur(15.0)]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_contrast_single_stmt_int_parse_correct() {
+        let pairs = SICParser::parse(Rule::main, "contrast 15;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Operation::Contrast(15.0)]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_contrast_single_stmt_f32_parse_correct() {
+        let pairs = SICParser::parse(Rule::main, "contrast 15.8;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Operation::Contrast(15.8)]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_contrast_single_stmt_parse_fail_end_in_dot() {
+        let pairs = SICParser::parse(Rule::main, "contrast 15.;");
+        assert!(pairs.is_err());
+    }
+
+    #[test]
+    fn test_contrast_single_stmt_parse_fail_max_f32_1() {
+        let pairs = SICParser::parse(Rule::main, "340282200000000000000000000000000000000.0;");
+        assert!(pairs.is_err());
+    }
+
+    #[test]
+    fn test_brighten_pos_single_stmt_parse_correct() {
+        let pairs = SICParser::parse(Rule::main, "brighten 3579;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Operation::Brighten(3579)]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_brighten_neg_single_stmt_parse_correct() {
+        let pairs = SICParser::parse(Rule::main, "brighten -3579;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Operation::Brighten(-3579)]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
     #[should_panic]
     fn test_filter3x3_triplets_f3_with_end_triplet_sep_fail() {
         SICParser::parse(Rule::main, "filter3x3 0 0 0 | 1 1 1 | 2 2 2 |")
@@ -342,68 +404,6 @@ mod tests {
     fn test_filter3x3_insufficient_triplet_count_2() {
         SICParser::parse(Rule::main, "filter3x3 0 0.9 0 | 1 2.2 3")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
-    }
-
-    #[test]
-    fn test_blur_single_stmt_parse_correct() {
-        let pairs = SICParser::parse(Rule::main, "blur 15;")
-            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
-        assert_eq!(
-            Ok(vec![Operation::Blur(15.0)]),
-            parse_image_operations(pairs)
-        );
-    }
-
-    #[test]
-    fn test_contrast_single_stmt_int_parse_correct() {
-        let pairs = SICParser::parse(Rule::main, "contrast 15;")
-            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
-        assert_eq!(
-            Ok(vec![Operation::Contrast(15.0)]),
-            parse_image_operations(pairs)
-        );
-    }
-
-    #[test]
-    fn test_contrast_single_stmt_f32_parse_correct() {
-        let pairs = SICParser::parse(Rule::main, "contrast 15.8;")
-            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
-        assert_eq!(
-            Ok(vec![Operation::Contrast(15.8)]),
-            parse_image_operations(pairs)
-        );
-    }
-
-    #[test]
-    fn test_contrast_single_stmt_parse_fail_end_in_dot() {
-        let pairs = SICParser::parse(Rule::main, "contrast 15.;");
-        assert!(pairs.is_err());
-    }
-
-    #[test]
-    fn test_contrast_single_stmt_parse_fail_max_f32_1() {
-        let pairs = SICParser::parse(Rule::main, "340282200000000000000000000000000000000.0;");
-        assert!(pairs.is_err());
-    }
-
-    #[test]
-    fn test_brighten_pos_single_stmt_parse_correct() {
-        let pairs = SICParser::parse(Rule::main, "brighten 3579;")
-            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
-        assert_eq!(
-            Ok(vec![Operation::Brighten(3579)]),
-            parse_image_operations(pairs)
-        );
-    }
-
-    #[test]
-    fn test_brighten_neg_single_stmt_parse_correct() {
-        let pairs = SICParser::parse(Rule::main, "brighten -3579;")
-            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
-        assert_eq!(
-            Ok(vec![Operation::Brighten(-3579)]),
-            parse_image_operations(pairs)
-        );
     }
 
     #[test]
