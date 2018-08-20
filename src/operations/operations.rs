@@ -1,3 +1,4 @@
+use arrayvec::ArrayVec;
 use image::{DynamicImage, FilterType};
 
 use super::Operation;
@@ -154,6 +155,25 @@ mod tests {
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
         _manual_inspection(&result_img, "target/test_contrast_pos_15_9.png")
+    }
+
+    #[test]
+    fn test_filter3x3() {
+        let img: DynamicImage = _setup();
+        let cmp: DynamicImage = _setup();
+
+        let operation = Operation::Filter3x3(ArrayVec::from([
+            99.0, 546.0, 0.0, 74.0, 1.0, 1.0, -38.0, -392.0, 2.0
+        ]));
+
+        let done = img.apply_operation(&operation);
+        assert!(done.is_ok());
+
+        let result_img = done.unwrap();
+
+        assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
+
+        _manual_inspection(&result_img, "target/test_filter3x3.png")
     }
 
     #[test]
