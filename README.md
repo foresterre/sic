@@ -46,24 +46,58 @@ Image operations availability:
 
 |operations|syntax|available (from version)|description|
 |---|---|---|---|
-|blur               | `blur <uint>`           | Yes (0.5.0) 	 | Performs a Gaussian blur on the image ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.blur.html)) |
-|brighten           | `brighten <int>`        | Yes (unreleased) | ... |
-|hue rotate         | `huerotate <int>`       | Yes (unreleased) | Rotate's the hue, argument is in degrees. Rotatates `<int>%360` degrees. | 
-|contrast           | `contrast <fp>`         | Yes (unreleased) | ... |
-|crop               |                         | No               | You can use `resize <uint> <uint>`` with values smaller or equal to the current image size for now. |
-|filter3x3          | `filter3x3 <args9>` [A] | In progress      | ... |
-|flip horizontal    | `flip_horizontal`       | Yes (0.5.0) 	 | Flips the image on the horizontal axis |
-|flip vertical      | `flip_vertical`         | Yes (0.5.0) 	 | Flips the image on the horizontal axis |
-|gray scale         | `grayscale`             | Yes (unreleased) | ... |
-|invert             | `invert`                | Yes (unreleased) | ... |
-|resize             | `resize <uint> <uint>`  | Yes (0.5.0) 	 | Resize the image using a Gaussian sampling filter ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.resize.html), [filter](https://docs.rs/image/0.19.0/image/enum.FilterType.html#variant.Gaussian)) |
-|rotate90           | `rotate90`              | Yes (unreleased) | ... |
-|rotate180          | `rotate180`             | Yes (unreleased) | ... |
-|rotate270          | `rotate270`             | Yes (unreleased) | ... |
-|unsharpen          | `unsharpen <fp> <int>`  | Yes (unreleased) | ... |
+|blur               | `blur <uint>` [E-BLUR]                | Yes (0.5.0) 	    | Performs a Gaussian blur on the image ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.blur.html)) |
+|brighten           | `brighten <int>` [E-BRIGHTEN]         | Yes (unreleased)  | ... |
+|hue rotate         | `huerotate <int>` [E-HUEROTATE]       | Yes (unreleased)  | Rotate's the hue, argument is in degrees. Rotates `<int>%360` degrees. |
+|contrast           | `contrast <fp>` [E-CONTRAST]          | Yes (unreleased)  | ... |
+|crop               |                                       | No                | You can use `resize <uint> <uint>`` with values smaller or equal to the current image size for now. |
+|filter3x3          | `filter3x3 <args9>` [E-FILTER3X3]     | In progress       | ... |
+|flip horizontal    | `fliph` [E-FLIPH]                     | Yes (0.5.0) 	    | Flips the image on the horizontal axis |
+|flip vertical      | `flipv` [E-FLIPV]                     | Yes (0.5.0) 	    | Flips the image on the horizontal axis |
+|gray scale         | `grayscale` [E-GRAYSCALE]             | Yes (unreleased)  | ... |
+|invert             | `invert` [E-INVERT]                   | Yes (unreleased)  | ... |
+|resize             | `resize <uint> <uint>` [E-RESIZE]     | Yes (0.5.0) 	    | Resize the image using a Gaussian sampling filter ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.resize.html), [filter](https://docs.rs/image/0.19.0/image/enum.FilterType.html#variant.Gaussian)) |
+|rotate90           | `rotate90` [E-ROTATE90]               | Yes (unreleased)  | ... |
+|rotate180          | `rotate180` [E-ROTATE180]             | Yes (unreleased)  | ... |
+|rotate270          | `rotate270` [E-ROTATE270]             | Yes (unreleased)  | ... |
+|unsharpen          | `unsharpen <fp> <int>` [E-UNSHARPEN]  | Yes (unreleased)  | ... |
 
+_legend_:
+```
+<uint> means any 32 bit unsigned integer is required as parameter input.
+<int> means any 32 bit signed integer is required as parameter input.
+<fp> means any 32 bit floating point number is required as parameter input.
+<args9> means `<fp> <fp> <fp> | <fp> <fp> <fp> | <fp> <fp> <fp>` where the `|` separator is optional. If the separator is used, white space should surround the separator. The separators can only be used like in the example, so one separator after each of the first two triplets.
+```
 
-[A] Syntax example:
+_Syntax examples:_
+For each example: each of the lines are valid syntactically and the full examples are valid syntactically as well.
+
+[E-BLUR], Blur operation example script:
+```
+blur 10;
+```
+
+[E-BRIGHTEN], Brighten operation example script:
+```
+brighten 10;
+brighten -10;
+```
+
+[E-HUEROTATE]. Hue rotate operation example script:
+```
+huerotate 10;
+huerotate -10;
+```
+
+[E-CONTRAST], Contrast operation example script:
+```
+contrast -10;
+contrast 10;
+contrast 1.35;
+```
+
+[E-FILTER3X3] Filter3x3 operation example script:
 ```
 filter3x3 10.0 9.0 8.0 | 7.5 6.5 5.5 | 4 3 2;
 filter3x3 10.0 9.0 8.0 7.5 6.5 5.5 4 3 2;
@@ -71,18 +105,54 @@ filter3x3 10.0 9.0 8.0 7.5 6.5 5.5 4 3 2
 filter3x3 10.0 9.0 8.0 7.5 6.5 5.5 4 3 2 filter3x3 12.0 29.0 28 27.5 26 25.5 14 3 2
 ```
 
-legend:
+[E-FLIPH]. Flip horizontal operation example script:
 ```
-operation => operation name
-syntax => command syntax
-available (from version) => lists whether the operation is supported right now (and optionally from which version forward)
-description => descriptive information about the operation
+fliph;
+```
 
+[E-FLIPV]. Flip vertical operation example script:
+```
+flipv;
+```
 
-<uint> means any 32 bit unsigned integer is required as parameter input.
-<int> means any 32 bit signed integer is required as parameter input.
-<fp> means any 32 bit floating point number is required as parameter input.
-<args9> means `<fp> <fp> <fp> | <fp> <fp> <fp> | <fp> <fp> <fp>` where the `|` separator is optional. If the separator is used, white space should surround the separator.
+[E-GRAYSCALE]. Gray scale operation example script:
+```
+grayscale;
+```
+
+[E-INVERT]. Invert operation example script:
+```
+invert;
+```
+
+[E-RESIZE]. Resize operation example script:
+```
+resize 10 10;
+resize 1 1;
+resize 80 180;
+```
+
+[E-ROTATE90]. Rotate 90 degree operation example script:
+```
+rotate90;
+```
+
+[E-ROTATE180]. Rotate 180 degree operation example script:
+```
+rotate180;
+```
+
+[E-ROTATE270]. Rotate 270 degree operation example script:
+```
+rotate270;
+```
+
+[E-UNSHARPEN]. Unsharpen operation example script:
+```
+unsharpen -12.3 -12;
+unsharpen -10.0 12;
+unsharpen 12.3 1;
+unsharpen 10 1;
 ```
 
 # Suggestions, Questions, Bugs
