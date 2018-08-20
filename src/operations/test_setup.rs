@@ -3,6 +3,7 @@ use image::DynamicImage;
 #[cfg(test)]
 const _TEST_IMAGE_PATH: &str = "resources/unsplash_763569_cropped.jpg";
 
+#[cfg(test)]
 pub fn _setup_with(image: &str) -> DynamicImage {
     use std::path::Path;
     image::open(&Path::new(image)).unwrap()

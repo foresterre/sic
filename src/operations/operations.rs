@@ -12,6 +12,10 @@ impl ApplyOperation<Operation, DynamicImage, String> for DynamicImage {
             Operation::Blur(sigma) => Ok(self.blur(sigma)),
             Operation::Brighten(amount) => Ok(self.brighten(amount)),
             Operation::Contrast(c) => Ok(self.adjust_contrast(c)),
+            // We need to ensure here that Filter3x3's `it` (&[f32]) has length 9.
+            // Otherwise it will panic, see: https://docs.rs/image/0.19.0/src/image/dynimage.rs.html#349
+            // This check happens already within the `parse` module.
+            Operation::Filter3x3(ref it) => Ok(self.filter3x3(&it)),
             Operation::FlipHorizontal => Ok(self.fliph()),
             Operation::FlipVertical => Ok(self.flipv()),
             Operation::GrayScale => Ok(self.grayscale()),
@@ -57,6 +61,7 @@ pub fn apply_operations_on_image(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use arrayvec::ArrayVec;
     use image::GenericImage;
     use operations::test_setup::*;
 
@@ -153,6 +158,25 @@ mod tests {
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
         _manual_inspection(&result_img, "target/test_contrast_pos_15_9.png")
+    }
+
+    #[test]
+    fn test_filter3x3() {
+        let img: DynamicImage = _setup();
+        let cmp: DynamicImage = _setup();
+
+        let operation = Operation::Filter3x3(ArrayVec::from([
+            1.0, 0.5, 0.0, 1.0, 0.5, 0.0, 1.0, 0.5, 0.0,
+        ]));
+
+        let done = img.apply_operation(&operation);
+        assert!(done.is_ok());
+
+        let result_img = done.unwrap();
+
+        assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
+
+        _manual_inspection(&result_img, "target/test_filter3x3.png")
     }
 
     #[test]

@@ -1,3 +1,4 @@
+use arrayvec::ArrayVec;
 use image::DynamicImage;
 use pest::Parser;
 
@@ -23,6 +24,7 @@ pub enum Operation {
     Blur(f32),
     Brighten(i32),
     Contrast(f32),
+    Filter3x3(ArrayVec<[f32; 9]>),
     FlipHorizontal,
     FlipVertical,
     GrayScale,
