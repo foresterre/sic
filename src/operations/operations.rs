@@ -13,6 +13,9 @@ impl ApplyOperation<Operation, DynamicImage, String> for DynamicImage {
             Operation::Blur(sigma) => Ok(self.blur(sigma)),
             Operation::Brighten(amount) => Ok(self.brighten(amount)),
             Operation::Contrast(c) => Ok(self.adjust_contrast(c)),
+            // We need to ensure here that Filter3x3's `it` (&[f32]) has length 9.
+            // Otherwise it will panic, see: https://docs.rs/image/0.19.0/src/image/dynimage.rs.html#349
+            // This check happens already within the `parse` module.
             Operation::Filter3x3(ref it) => Ok(self.filter3x3(&it)),
             Operation::FlipHorizontal => Ok(self.fliph()),
             Operation::FlipVertical => Ok(self.flipv()),
@@ -163,7 +166,7 @@ mod tests {
         let cmp: DynamicImage = _setup();
 
         let operation = Operation::Filter3x3(ArrayVec::from([
-            99.0, 546.0, 0.0, 74.0, 1.0, 1.0, -38.0, -392.0, 2.0
+            1.0, 0.5, 0.0, 1.0, 0.5, 0.0, 1.0, 0.5, 0.0,
         ]));
 
         let done = img.apply_operation(&operation);
