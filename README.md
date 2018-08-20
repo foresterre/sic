@@ -82,7 +82,7 @@ description => descriptive information about the operation
 <uint> means any 32 bit unsigned integer is required as parameter input.
 <int> means any 32 bit signed integer is required as parameter input.
 <fp> means any 32 bit floating point number is required as parameter input.
-<args9> ... ... ... , ... ... ... , ... ... ...
+<args9> means `<fp> <fp> <fp> | <fp> <fp> <fp> | <fp> <fp> <fp>` where the `|` separator is optional. If the separator is used, white space should surround the separator.
 ```
 
 # Suggestions, Questions, Bugs
