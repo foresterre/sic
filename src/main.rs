@@ -18,6 +18,8 @@ mod operations;
 const SIC_LICENSE: &str = include_str!("../LICENSE");
 const DEP_LICENSES: &str = include_str!("../DEP");
 
+const HELP_OPERATIONS_AVAILABLE: &str = include_str!("../docs/help.txt");
+
 fn main() {
     let matches = App::new("Simple Image Converter")
         .version("0.6.0")
@@ -45,15 +47,7 @@ fn main() {
             .takes_value(false))
         .arg(Arg::with_name("script")
             .long("script")
-            .help("Apply image operations on the input image.\n\
-                   Supported operations: \n\
-                   1. blur <uint>;\n\
-                   2. fliph;\n\
-                   3. flipv;\n\
-                   4. resize <uint> <uint>;\n\n\
-                   Operation separators (';') are optional.\n\n\
-                   Example 1: `sic input.png output.png --script \"resize 250 250; blur 5;\"`\n\
-                   Example 2: `sic input.png output.jpg --script \"flip_horizontal resize 10 5 blur 100\"`")
+            .help(HELP_OPERATIONS_AVAILABLE)
             .value_name("SCRIPT")
             .takes_value(true))
         .arg(Arg::with_name("input_file")
