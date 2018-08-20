@@ -48,6 +48,10 @@ pub fn parse_image_operations(pairs: Pairs<Rule>) -> Result<Operations, String> 
 }
 
 fn parse_triplet3x_f32(pair: Pair<Rule>) -> Result<[f32; 9], String> {
+    (0..9).for_each(|i| {
+        println!("{}", i)
+    });
+
     Err("not impl".to_string())
 }
 
@@ -115,6 +119,135 @@ mod tests {
     use super::*;
     use operations::SICParser;
     use pest::Parser;
+
+    #[test]
+    fn test_filter3x3_triplets_f3_with_end_triplet_sep() {
+        let pairs = SICParser::parse(Rule::main, "filter3x3 0 0 0 | 1 1 1 | 2 2 2 |")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Operation::Filter3x3([0.0, 9.0, 0.3, 1.0, 34.0, 1.0, 3.0, 4.0, 5.0])]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_filter3x3_triplets_f3_no_end_triplet_sep() {
+        let pairs = SICParser::parse(Rule::main, "filter3x3 0 0 0 | 1 1 1 | 2 2 2")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Operation::Filter3x3([0.0, 9.0, 0.3, 1.0, 34.0, 1.0, 3.0, 4.0, 5.0])]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_filter3x3_triplets_f3_ensure_f32() {
+        let pairs = SICParser::parse(Rule::main, "filter3x3 0 0.9 0 | 1 1.1 1 | 2.0 2 2")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Operation::Filter3x3([0.0, 9.0, 0.3, 1.0, 34.0, 1.0, 3.0, 4.0, 5.0])]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_filter3x3_triplets_f3_no_sep() {
+        let pairs = SICParser::parse(Rule::main, "filter3x3 0 0.9 0 1 1.1 1 2.0 2 2")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Operation::Filter3x3([0.0, 9.0, 0.3, 1.0, 34.0, 1.0, 3.0, 4.0, 5.0])]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_filter3x3_triplets_f3_end_op_sep() {
+        let pairs = SICParser::parse(Rule::main, "filter3x3 0 0.9 0 1 1.1 1 2.0 2 2;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Operation::Filter3x3([0.0, 9.0, 0.3, 1.0, 34.0, 1.0, 3.0, 4.0, 5.0])]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_filter3x3_triplets_f3_sep_newline() {
+        let pairs = SICParser::parse(Rule::main, "filter3x3 0 0.9 0\n1 1.1 1\n2.0 2 2;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Operation::Filter3x3([0.0, 9.0, 0.3, 1.0, 34.0, 1.0, 3.0, 4.0, 5.0])]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_filter3x3_triplets_f3_weird_spacing() {
+        let pairs = SICParser::parse(Rule::main, "filter3x3 0 0.9\t0\n1 1.1 1\n2.0 2 2")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Operation::Filter3x3([0.0, 9.0, 0.3, 1.0, 34.0, 1.0, 3.0, 4.0, 5.0])]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_filter3x3_triplets_f3_tabbed_spacing() {
+        let pairs = SICParser::parse(Rule::main, "filter3x3 0 0.9 0\t1 1.1 1\t2.0 2 2;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Operation::Filter3x3([0.0, 9.0, 0.3, 1.0, 34.0, 1.0, 3.0, 4.0, 5.0])]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_filter3x3_triplets_f3_indented_newlines() {
+        let pairs = SICParser::parse(Rule::main, "filter3x3\n\t0 0.9 0\n\t1 1.1 1\n\t2.0 2 2")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Operation::Filter3x3([0.0, 9.0, 0.3, 1.0, 34.0, 1.0, 3.0, 4.0, 5.0])]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_filter3x3_triplets_f3_require_spacing_on_triplet_sep_1() {
+        SICParser::parse(Rule::main, "filter3x3 0 0.9 0 | 1 1.1 1|2.0 2 2")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_filter3x3_triplets_f3_require_spacing_on_triplet_sep_2() {
+        SICParser::parse(Rule::main, "filter3x3 0 0.9 0 | 1 1.1 1 |2.0 2 2")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_filter3x3_triplets_f3_require_spacing_on_triplet_sep_3() {
+        SICParser::parse(Rule::main, "filter3x3 0 0.9 0 | 1 1.1 1| 2.0 2 2")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_filter3x3_triplets_f3_require_spacing_on_triplet_sep_end_fail() {
+        SICParser::parse(Rule::main, "filter3x3 0 0.9 0 | 1 1.1 1 | 2.0 2 2|")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+    }
+
+    #[test]
+    fn test_filter3x3_triplets_f3_require_spacing_on_triplet_sep_end_ok() {
+        let pairs = SICParser::parse(Rule::main, "filter3x3 0 0.9 0 | 1 1.1 1 | 2.0 2 2 | ")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Operation::Filter3x3([0.0, 9.0, 0.3, 1.0, 34.0, 1.0, 3.0, 4.0, 5.0])]),
+            parse_image_operations(pairs)
+        );
+    }
+
 
     #[test]
     fn test_blur_single_stmt_parse_correct() {
