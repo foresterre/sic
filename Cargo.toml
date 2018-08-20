@@ -5,6 +5,7 @@ authors = ["foresterre <garm@ilumeo.com>"]
 description = "`sic` stands for simple image converter and is a partial front-end for the `image` crate."
 license = "MIT"
 repository = "https://github.com/foresterre/sic"
+readme = "README.md"
 exclude = [
     ".idea/*",
     ".vscode/*",
@@ -15,6 +16,7 @@ exclude = [
 dont-run-on-ci = []
 
 [dependencies]
+arrayvec = "0.4.7"
 clap = "2.32.0"
 image = "0.19.0"
 pest = "1.0.6"

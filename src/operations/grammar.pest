@@ -8,10 +8,10 @@ uint = @{ digit+ }
 int  = @{ "-"? ~ digit+ }
 
 triplet_sep = _{ whitespace ~ "|" ~ whitespace }
-triplet_fp3 = ${ fp ~ whitespace ~ fp ~ whitespace ~ fp }
+triplet_fp3 = _{ fp ~ whitespace ~ fp ~ whitespace ~ fp }
 
-f3x3_args_sep = ${ triplet_fp3 ~ triplet_sep ~ triplet_fp3 ~ triplet_sep ~ triplet_fp3 }
-f3x3_args_no_sep = ${ triplet_fp3 ~ whitespace ~ triplet_fp3  ~ whitespace ~ triplet_fp3 }
+f3x3_args_sep = _{ triplet_fp3 ~ triplet_sep ~ triplet_fp3 ~ triplet_sep ~ triplet_fp3 }
+f3x3_args_no_sep = _{ triplet_fp3 ~ whitespace ~ triplet_fp3  ~ whitespace ~ triplet_fp3 }
 
 
 blur = ${ ^"blur" ~ whitespace ~ uint}
