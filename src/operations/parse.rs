@@ -45,15 +45,12 @@ fn parse_triplet3x_f32(pair: Pair<Rule>) -> Result<ArrayVec<[f32; 9]>, String> {
     let mut array = ArrayVec::<[f32; 9]>::new();
 
     for i in 0..SIZE {
-        println!("inner: {:?}", inner);
-
         let ith_number = inner
             .next()
             .ok_or_else(|| format!("Unable to parse {}, arguments #: {}", inner, i))
             .map(|val| val.as_str())
             .and_then(|it: &str| it.parse::<f32>().map_err(|err| err.to_string()));
 
-        println!("i: {} => {:?}", i, ith_number);
         if let Some(number) = ith_number.ok() {
             let push_result = array.try_push(number);
 

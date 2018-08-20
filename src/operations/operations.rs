@@ -1,4 +1,3 @@
-use arrayvec::ArrayVec;
 use image::{DynamicImage, FilterType};
 
 use super::Operation;
@@ -62,6 +61,7 @@ pub fn apply_operations_on_image(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use arrayvec::ArrayVec;
     use image::GenericImage;
     use operations::test_setup::*;
 
