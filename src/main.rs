@@ -18,7 +18,7 @@ mod operations;
 const SIC_LICENSE: &str = include_str!("../LICENSE");
 const DEP_LICENSES: &str = include_str!("../DEP");
 
-const HELP_OPERATIONS_AVAILABLE: &str = include_str!("../docs/help.txt");
+const HELP_OPERATIONS_AVAILABLE: &str = include_str!("../docs/cli_help_script.txt");
 
 fn main() {
     let matches = App::new("Simple Image Converter")
