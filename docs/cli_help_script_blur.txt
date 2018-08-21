@@ -1,5 +1,7 @@
-Operation: Blur
-===============
+User Manual
+===========
+Page: 'Blur (script command)'
+Category: 'Script commands'
 
 Goal:
 -----

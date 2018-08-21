@@ -7,10 +7,12 @@ extern crate pest;
 #[macro_use]
 extern crate pest_derive;
 
-use clap::{App, Arg};
-
 use std::path::Path;
 use std::process;
+
+use clap::{App, Arg};
+
+use help::{HelpText, HelpTopic};
 
 mod conversion;
 mod help;
@@ -46,9 +48,10 @@ fn main() {
             .long("dep-licenses")
             .help("Displays the licenses of the dependencies on which this software relies.")
             .takes_value(false))
-        .arg(Arg::with_name("script-user-manual")
-            .long("script-manual")
-            .help("Displays help text for each supported script operation.")
+        .arg(Arg::with_name("user-manual")
+            .long("user-manual")
+            .short("H")
+            .help("Displays help text for different topics such as each supported script operation.")
             .takes_value(true))
         .arg(Arg::with_name("script")
             .long("script")
@@ -58,19 +61,19 @@ fn main() {
         .arg(Arg::with_name("input_file")
             .help("Sets the input file")
             .value_name("INPUT_FILE")
-            .required_unless_one(&["license", "dep-licenses", "script-user-manual"])
+            .required_unless_one(&["license", "dep-licenses", "user-manual"])
             .index(1))
         .arg(Arg::with_name("output_file")
             .help("Sets the output file")
             .value_name("OUTPUT_FILE")
-            .required_unless_one(&["license", "dep-licenses", "script-user-manual"])
+            .required_unless_one(&["license", "dep-licenses", "user-manual"])
             .index(2))
         .get_matches();
 
     match (
         matches.is_present("license"),
         matches.is_present("dep-licenses"),
-        matches.is_present("script-user-manual"),
+        matches.is_present("user-manual"),
     ) {
         (true, true, _) => {
             println!(
@@ -88,17 +91,18 @@ fn main() {
             process::exit(0);
         }
         (false, false, true) => {
-            if let Some(topic) = matches.value_of("script-user-manual") {
-                let help_text = help::UserManual::help_text(topic);
+            if let Some(topic) = matches.value_of("user-manual") {
+                let topic = HelpTopic::from_str(topic);
+                let text = topic.help();
 
-                match help_text {
-                    Ok(text) => {
-                        println!("Help page for script command: {}\n\n{}", topic, text);
+                match text {
+                    Some(it) => {
+                        println!("{}", it);
                         process::exit(0);
                     }
-                    Err(err) => {
-                        println!("Unable to display help: {}", err);
-                        process::exit(94);
+                    None => {
+                        println!("Unable to display help: topic unavailable.");
+                        process::exit(904);
                     }
                 }
             }

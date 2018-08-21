@@ -48,13 +48,13 @@ Image operations availability:
 |---|---|---|---|
 |blur               | `blur <uint>` [E-BLUR]                | Yes (0.5.0) 	    | Performs a Gaussian blur on the image ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.blur.html)) |
 |brighten           | `brighten <int>` [E-BRIGHTEN]         | Yes (0.7.0) 	    | |
-|hue rotate         | `huerotate <int>` [E-HUEROTATE]       | Yes (0.7.0) 	    | Rotate's the hue, argument is in degrees. Rotates `<int>%360` degrees. |
 |contrast           | `contrast <fp>` [E-CONTRAST]          | Yes (0.7.0) 	    | |
 |crop               |                                       | No                | You can use `resize <uint> <uint>`` with values smaller or equal to the current image size for now. |
 |filter3x3          | `filter3x3 <args9>` [E-FILTER3X3]     | Yes (0.7.0)       | |
 |flip horizontal    | `fliph` [E-FLIPH]                     | Yes (0.5.0) 	    | Flips the image on the horizontal axis |
 |flip vertical      | `flipv` [E-FLIPV]                     | Yes (0.5.0) 	    | Flips the image on the horizontal axis |
 |gray scale         | `grayscale` [E-GRAYSCALE]             | Yes (0.7.0) 	    | |
+|hue rotate         | `huerotate <int>` [E-HUEROTATE]       | Yes (0.7.0) 	    | Rotate's the hue, argument is in degrees. Rotates `<int>%360` degrees. |
 |invert             | `invert` [E-INVERT]                   | Yes (0.7.0) 	    | |
 |resize             | `resize <uint> <uint>` [E-RESIZE]     | Yes (0.5.0) 	    | Resize the image using a Gaussian sampling filter ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.resize.html), [filter](https://docs.rs/image/0.19.0/image/enum.FilterType.html#variant.Gaussian)) |
 |rotate90           | `rotate90` [E-ROTATE90]               | Yes (0.7.0) 	    | |
@@ -82,12 +82,6 @@ blur 10;
 ```
 brighten 10;
 brighten -10;
-```
-
-[E-HUEROTATE]. Hue rotate operation example script:
-```
-huerotate 10;
-huerotate -10;
 ```
 
 [E-CONTRAST], Contrast operation example script:
@@ -118,6 +112,12 @@ flipv;
 [E-GRAYSCALE]. Gray scale operation example script:
 ```
 grayscale;
+```
+
+[E-HUEROTATE]. Hue rotate operation example script:
+```
+huerotate 10;
+huerotate -10;
 ```
 
 [E-INVERT]. Invert operation example script:
