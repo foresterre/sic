@@ -1,0 +1,16 @@
+Operation: Blur
+===============
+
+Goal:
+-----
+Performs a Gaussian blur on the image.
+
+Syntax:
+-------
+`blur <uint>`
+
+where <uint> means: any 32 bit unsigned integer is required as parameter input.
+
+Usage example:
+--------------
+`sic input.png output.png --script "blur 10;"`

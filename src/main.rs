@@ -13,6 +13,7 @@ use std::path::Path;
 use std::process;
 
 mod conversion;
+mod help;
 mod operations;
 
 const SIC_LICENSE: &str = include_str!("../LICENSE");
@@ -45,6 +46,10 @@ fn main() {
             .long("dep-licenses")
             .help("Displays the licenses of the dependencies on which this software relies.")
             .takes_value(false))
+        .arg(Arg::with_name("script-user-manual")
+            .long("script-manual")
+            .help("Displays help text for each supported script operation.")
+            .takes_value(true))
         .arg(Arg::with_name("script")
             .long("script")
             .help(HELP_OPERATIONS_AVAILABLE)
@@ -53,33 +58,50 @@ fn main() {
         .arg(Arg::with_name("input_file")
             .help("Sets the input file")
             .value_name("INPUT_FILE")
-            .required_unless_one(&["license", "dep-licenses"])
+            .required_unless_one(&["license", "dep-licenses", "script-user-manual"])
             .index(1))
         .arg(Arg::with_name("output_file")
             .help("Sets the output file")
             .value_name("OUTPUT_FILE")
-            .required_unless_one(&["license", "dep-licenses"])
+            .required_unless_one(&["license", "dep-licenses", "script-user-manual"])
             .index(2))
         .get_matches();
 
     match (
         matches.is_present("license"),
         matches.is_present("dep-licenses"),
+        matches.is_present("script-user-manual"),
     ) {
-        (true, true) => {
+        (true, true, _) => {
             println!(
                 "Simple Image Converter license:\n{} \n\n{}",
                 SIC_LICENSE, DEP_LICENSES
             );
-            process::exit(92);
+            process::exit(0);
         }
-        (true, _) => {
+        (true, _, _) => {
             println!("{}", SIC_LICENSE);
-            process::exit(90);
+            process::exit(0);
         }
-        (_, true) => {
+        (_, true, _) => {
             println!("{}", DEP_LICENSES);
-            process::exit(91);
+            process::exit(0);
+        }
+        (false, false, true) => {
+            if let Some(topic) = matches.value_of("script-user-manual") {
+                let help_text = help::UserManual::help_text(topic);
+
+                match help_text {
+                    Ok(text) => {
+                        println!("Help page for script command: {}\n\n{}", topic, text);
+                        process::exit(0);
+                    }
+                    Err(err) => {
+                        println!("Unable to display help: {}", err);
+                        process::exit(94);
+                    }
+                }
+            }
         }
         _ => {}
     }
