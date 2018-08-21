@@ -47,20 +47,20 @@ Image operations availability:
 |operations|syntax|available (from version)|description|
 |---|---|---|---|
 |blur               | `blur <uint>` [E-BLUR]                | Yes (0.5.0) 	    | Performs a Gaussian blur on the image ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.blur.html)) |
-|brighten           | `brighten <int>` [E-BRIGHTEN]         | Yes (unreleased)  | ... |
-|hue rotate         | `huerotate <int>` [E-HUEROTATE]       | Yes (unreleased)  | Rotate's the hue, argument is in degrees. Rotates `<int>%360` degrees. |
-|contrast           | `contrast <fp>` [E-CONTRAST]          | Yes (unreleased)  | ... |
+|brighten           | `brighten <int>` [E-BRIGHTEN]         | Yes (0.7.0) 	    | ... |
+|hue rotate         | `huerotate <int>` [E-HUEROTATE]       | Yes (0.7.0) 	    | Rotate's the hue, argument is in degrees. Rotates `<int>%360` degrees. |
+|contrast           | `contrast <fp>` [E-CONTRAST]          | Yes (0.7.0) 	    | ... |
 |crop               |                                       | No                | You can use `resize <uint> <uint>`` with values smaller or equal to the current image size for now. |
-|filter3x3          | `filter3x3 <args9>` [E-FILTER3X3]     | In progress       | ... |
+|filter3x3          | `filter3x3 <args9>` [E-FILTER3X3]     | Yes (0.7.0)       | ... |
 |flip horizontal    | `fliph` [E-FLIPH]                     | Yes (0.5.0) 	    | Flips the image on the horizontal axis |
 |flip vertical      | `flipv` [E-FLIPV]                     | Yes (0.5.0) 	    | Flips the image on the horizontal axis |
-|gray scale         | `grayscale` [E-GRAYSCALE]             | Yes (unreleased)  | ... |
-|invert             | `invert` [E-INVERT]                   | Yes (unreleased)  | ... |
+|gray scale         | `grayscale` [E-GRAYSCALE]             | Yes (0.7.0) 	    | ... |
+|invert             | `invert` [E-INVERT]                   | Yes (0.7.0) 	    | ... |
 |resize             | `resize <uint> <uint>` [E-RESIZE]     | Yes (0.5.0) 	    | Resize the image using a Gaussian sampling filter ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.resize.html), [filter](https://docs.rs/image/0.19.0/image/enum.FilterType.html#variant.Gaussian)) |
-|rotate90           | `rotate90` [E-ROTATE90]               | Yes (unreleased)  | ... |
-|rotate180          | `rotate180` [E-ROTATE180]             | Yes (unreleased)  | ... |
-|rotate270          | `rotate270` [E-ROTATE270]             | Yes (unreleased)  | ... |
-|unsharpen          | `unsharpen <fp> <int>` [E-UNSHARPEN]  | Yes (unreleased)  | ... |
+|rotate90           | `rotate90` [E-ROTATE90]               | Yes (0.7.0) 	    | ... |
+|rotate180          | `rotate180` [E-ROTATE180]             | Yes (0.7.0) 	    | ... |
+|rotate270          | `rotate270` [E-ROTATE270]             | Yes (0.7.0) 	    | ... |
+|unsharpen          | `unsharpen <fp> <int>` [E-UNSHARPEN]  | Yes (0.7.0) 	    | ... |
 
 _legend_:
 ```
