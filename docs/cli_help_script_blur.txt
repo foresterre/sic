@@ -1,7 +1,7 @@
 User Manual
 ===========
-Page: 'Blur (script command)'
-Category: 'Script commands'
+Page: 'Blur'
+Category: 'Script command'
 
 Goal:
 -----

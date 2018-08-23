@@ -12,8 +12,6 @@ use std::process;
 
 use clap::{App, Arg};
 
-use help::{HelpText, HelpTopic};
-
 mod conversion;
 mod help;
 mod operations;
@@ -52,6 +50,7 @@ fn main() {
             .long("user-manual")
             .short("H")
             .help("Displays help text for different topics such as each supported script operation.")
+//            .possible_values(HelpTopicIndex::new().index.map(|s| s.to_str()).as_slice())
             .takes_value(true))
         .arg(Arg::with_name("script")
             .long("script")
@@ -92,19 +91,15 @@ fn main() {
         }
         (false, false, true) => {
             if let Some(topic) = matches.value_of("user-manual") {
-                let topic = HelpTopic::from_str(topic);
-                let text = topic.help();
+                let help = help::HelpIndex::new();
+                let page = help.get_topic(&*topic.to_lowercase());
 
-                match text {
-                    Some(it) => {
-                        println!("{}", it);
-                        process::exit(0);
-                    }
-                    None => {
-                        println!("Unable to display help: topic unavailable.");
-                        process::exit(904);
-                    }
+                match page {
+                    Some(it) => println!("{}", it.help_text),
+                    None => println!("Topic unavailable, pages available: {:#?}", help.get_available_topics()),
                 }
+
+                process::exit(0);
             }
         }
         _ => {}
