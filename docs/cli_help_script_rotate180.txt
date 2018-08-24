@@ -1,0 +1,21 @@
+User Manual
+===========
+
+Page: 'rotate180'
+Category: 'script command'
+
+Goal:
+-----
+Rotate the input image 180 degree clockwise.
+
+Syntax:
+-------
+`rotate180`
+
+Usage example:
+--------------
+`sic input.png output.png --script "rotate180;"`
+
+See also:
+---------
+https://docs.rs/image/0.19.0/image/imageops/fn.rotate180.html

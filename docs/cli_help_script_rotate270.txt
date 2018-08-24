@@ -1,0 +1,21 @@
+User Manual
+===========
+
+Page: 'rotate270'
+Category: 'script command'
+
+Goal:
+-----
+Rotate the input image 270 degree clockwise.
+
+Syntax:
+-------
+`rotate270`
+
+Usage example:
+--------------
+`sic input.png output.png --script "rotate270;"`
+
+See also:
+---------
+https://docs.rs/image/0.19.0/image/imageops/fn.rotate270.html

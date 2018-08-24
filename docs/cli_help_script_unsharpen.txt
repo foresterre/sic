@@ -1,0 +1,30 @@
+User Manual
+===========
+
+Page: 'rotate270'
+Category: 'script command'
+
+Goal:
+-----
+Unsharpen the input image up to a threshold.
+
+Syntax:
+-------
+`unsharpen <fp> <int>`
+
+where <fp> means: any 32 bit floating point number is required as parameter input.
+and <int> means: any 32 bit signed integer is required as parameter input.
+
+The first argument (<fp>) decides how much the image is blurred, and the second argument (<int>) defines the threshold of how much the image will be sharpened.
+
+Usage example:
+--------------
+`sic input.png output.png --script "unsharpen 10 5;"`
+or `sic input.png output.png --script "unsharpen 0.8 3;"`
+
+
+See also:
+---------
+https://docs.rs/image/0.19.0/image/imageops/fn.unsharpen.html
+https://en.wikipedia.org/wiki/Unsharp_masking#Digital_unsharp_masking
+

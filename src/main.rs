@@ -96,7 +96,7 @@ fn main() {
 
                 match page {
                     Some(it) => println!("{}", it.help_text),
-                    None => println!("Topic unavailable, pages available: {:#?}", help.get_available_topics()),
+                    None => println!("This topic is unavailable in the user manual. The following topics are available: \n\t* {}", help.get_available_topics()),
                 }
 
                 process::exit(0);

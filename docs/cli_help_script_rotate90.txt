@@ -1,0 +1,21 @@
+User Manual
+===========
+
+Page: 'rotate90'
+Category: 'script command'
+
+Goal:
+-----
+Rotate the input image 90 degree clockwise.
+
+Syntax:
+-------
+`rotate90`
+
+Usage example:
+--------------
+`sic input.png output.png --script "rotate90;"`
+
+See also:
+---------
+https://docs.rs/image/0.19.0/image/imageops/fn.rotate90.html

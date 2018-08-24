@@ -1,3 +1,11 @@
+User Manual
+===========
+
+Page: 'script'
+Category: 'cli option'
+
+Goal:
+-----
 Apply image operations on the input image.
 
 Supported operations:
@@ -7,12 +15,12 @@ Supported operations:
 |-------------------|-------------------------|------------------|
 |blur               | `blur <uint>`           | 0.5.0            |
 |brighten           | `brighten <int>`        | 0.7.0            |
-|hue rotate         | `huerotate <int>`       | 0.7.0            |
 |contrast           | `contrast <fp>`         | 0.7.0            |
 |filter3x3          | `filter3x3 <args9>`     | 0.7.0            |
 |flip horizontal    | `fliph`                 | 0.5.0            |
 |flip vertical      | `flipv`                 | 0.5.0            |
 |gray scale         | `grayscale`             | 0.7.0            |
+|hue rotate         | `huerotate <int>`       | 0.7.0            |
 |invert             | `invert`                | 0.7.0            |
 |resize             | `resize <uint> <uint>`  | 0.5.0            |
 |rotate90           | `rotate90`              | 0.7.0            |
