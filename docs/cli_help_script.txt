@@ -1,0 +1,52 @@
+User Manual
+===========
+
+Page: 'script'
+Category: 'cli option'
+
+Goal:
+-----
+Apply image operations on the input image.
+
+Supported operations:
+
+|-------------------|-------------------------|------------------|
+| operations        | syntax                  | As of version    |
+|-------------------|-------------------------|------------------|
+|blur               | `blur <uint>`           | 0.5.0            |
+|brighten           | `brighten <int>`        | 0.7.0            |
+|contrast           | `contrast <fp>`         | 0.7.0            |
+|filter3x3          | `filter3x3 <args9>`     | 0.7.0            |
+|flip horizontal    | `fliph`                 | 0.5.0            |
+|flip vertical      | `flipv`                 | 0.5.0            |
+|gray scale         | `grayscale`             | 0.7.0            |
+|hue rotate         | `huerotate <int>`       | 0.7.0            |
+|invert             | `invert`                | 0.7.0            |
+|resize             | `resize <uint> <uint>`  | 0.5.0            |
+|rotate90           | `rotate90`              | 0.7.0            |
+|rotate180          | `rotate180`             | 0.7.0            |
+|rotate270          | `rotate270`             | 0.7.0            |
+|unsharpen          | `unsharpen <fp> <int>`  | 0.7.0            |
+|-------------------|-------------------------|------------------|
+
+table legend:
+
+<uint> means any 32 bit unsigned integer is required as parameter input.
+<int> means any 32 bit signed integer is required as parameter input.
+<fp> means any 32 bit floating point number is required as parameter input.
+<args9> means `<fp> <fp> <fp> | <fp> <fp> <fp> | <fp> <fp> <fp>` where the `|` separator is optional.
+    If the separator is used, white space should surround the separator.
+    The separators can only be used like in the example,
+        thus only one separator after each of the first two triplets.
+    So, `filter3x3 1.0 0.9 0.8 | 0.7 0.6 0.5 | 0.4 0.3 0.2`
+        and `filter3x3 1.0 0.9 0.8 0.7 0.6 0.5 0.4 0.3 0.2` are both valid.
+    But `filter3x3 1.0 0.9 0.8 0.7 0.6 0.5 | 0.4 0.3 0.2`
+        or `filter3x3 1.0 0.9 | 0.8 | 0.7 0.6 0.5 | 0.4 0.3 0.2` are not.
+
+
+Operation separators (';') are optional.
+
+Example 1: sic input.png output.png --script "resize 250 250; blur 5; huerotate -30"
+Example 2: sic input.png output.jpg --script "flipv resize 10 5 blur 100 grayscale"
+Example 3: sic input.png output.jpg --script "filter3x3 1.0 0.9 0.8 | 0.7 0.6 0.5 | 0.4 0.3 0.2; flipv; invert"
+

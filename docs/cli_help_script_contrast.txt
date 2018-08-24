@@ -1,0 +1,27 @@
+User Manual
+===========
+
+Page: 'contrast'
+Category: 'script command'
+
+Goal:
+-----
+Increases or decreases the contrast of the supplied image.
+
+Syntax:
+-------
+`contrast <fp>`
+
+where <fp> means: any 32 bit floating point number is required as parameter input.
+
+A positive value for <int> means the contrast will be increased, and a negative value for <int> means the contrast will be decreased.
+
+Usage example:
+--------------
+`sic input.png output.png --script "contrast 10;"`
+or
+`sic input.png output.png --script "contrast -10;"`
+
+See also:
+---------
+https://docs.rs/image/0.19.0/image/imageops/colorops/fn.contrast.html

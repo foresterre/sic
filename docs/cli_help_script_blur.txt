@@ -1,0 +1,23 @@
+User Manual
+===========
+
+Page: 'blur'
+Category: 'script command'
+
+Goal:
+-----
+Performs a Gaussian blur on the image.
+
+Syntax:
+-------
+`blur <uint>`
+
+where <uint> means: any 32 bit unsigned integer is required as parameter input.
+
+Usage example:
+--------------
+`sic input.png output.png --script "blur 10;"`
+
+See also:
+---------
+https://docs.rs/image/0.19.0/image/imageops/fn.blur.html

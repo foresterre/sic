@@ -1,0 +1,21 @@
+User Manual
+===========
+
+Page: 'flipv'
+Category: 'script command'
+
+Goal:
+-----
+Flips the pixels of the input image on the vertical axis.
+
+Syntax:
+-------
+`flipv`
+
+Usage example:
+--------------
+`sic input.png output.png --script "flipv;"`
+
+See also:
+---------
+https://docs.rs/image/0.19.0/image/imageops/fn.flip_vertical.html

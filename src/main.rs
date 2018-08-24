@@ -7,16 +7,19 @@ extern crate pest;
 #[macro_use]
 extern crate pest_derive;
 
-use clap::{App, Arg};
-
 use std::path::Path;
 use std::process;
 
+use clap::{App, Arg};
+
 mod conversion;
+mod help;
 mod operations;
 
 const SIC_LICENSE: &str = include_str!("../LICENSE");
 const DEP_LICENSES: &str = include_str!("../DEP");
+
+const HELP_OPERATIONS_AVAILABLE: &str = include_str!("../docs/cli_help_script.txt");
 
 fn main() {
     let matches = App::new("Simple Image Converter")
@@ -43,49 +46,61 @@ fn main() {
             .long("dep-licenses")
             .help("Displays the licenses of the dependencies on which this software relies.")
             .takes_value(false))
+        .arg(Arg::with_name("user-manual")
+            .long("user-manual")
+            .short("H")
+            .help("Displays help text for different topics such as each supported script operation.")
+//            .possible_values(HelpTopicIndex::new().index.map(|s| s.to_str()).as_slice())
+            .takes_value(true))
         .arg(Arg::with_name("script")
             .long("script")
-            .help("Apply image operations on the input image.\n\
-                   Supported operations: \n\
-                   1. blur <uint>;\n\
-                   2. fliph;\n\
-                   3. flipv;\n\
-                   4. resize <uint> <uint>;\n\n\
-                   Operation separators (';') are optional.\n\n\
-                   Example 1: `sic input.png output.png --script \"resize 250 250; blur 5;\"`\n\
-                   Example 2: `sic input.png output.jpg --script \"flip_horizontal resize 10 5 blur 100\"`")
+            .help(HELP_OPERATIONS_AVAILABLE)
             .value_name("SCRIPT")
             .takes_value(true))
         .arg(Arg::with_name("input_file")
             .help("Sets the input file")
             .value_name("INPUT_FILE")
-            .required_unless_one(&["license", "dep-licenses"])
+            .required_unless_one(&["license", "dep-licenses", "user-manual"])
             .index(1))
         .arg(Arg::with_name("output_file")
             .help("Sets the output file")
             .value_name("OUTPUT_FILE")
-            .required_unless_one(&["license", "dep-licenses"])
+            .required_unless_one(&["license", "dep-licenses", "user-manual"])
             .index(2))
         .get_matches();
 
     match (
         matches.is_present("license"),
         matches.is_present("dep-licenses"),
+        matches.is_present("user-manual"),
     ) {
-        (true, true) => {
+        (true, true, _) => {
             println!(
                 "Simple Image Converter license:\n{} \n\n{}",
                 SIC_LICENSE, DEP_LICENSES
             );
-            process::exit(92);
+            process::exit(0);
         }
-        (true, _) => {
+        (true, _, _) => {
             println!("{}", SIC_LICENSE);
-            process::exit(90);
+            process::exit(0);
         }
-        (_, true) => {
+        (_, true, _) => {
             println!("{}", DEP_LICENSES);
-            process::exit(91);
+            process::exit(0);
+        }
+        (false, false, true) => {
+            if let Some(topic) = matches.value_of("user-manual") {
+                let help = help::HelpIndex::new();
+                let page = help.get_topic(&*topic.to_lowercase());
+
+                match page {
+                    Some(it) => println!("{}", it.help_text),
+                    None => println!("This topic is unavailable in the user manual. The following topics are available: \n\t* {}", help.get_available_topics()),
+                }
+
+                process::exit(0);
+            }
         }
         _ => {}
     }
