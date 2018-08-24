@@ -177,10 +177,7 @@ impl HelpIndex {
 }
 
 // Dislike the cloning here, this should be possible in a different way (?)
-fn insert_help_entry(
-    dict: &mut HashMap<HelpTopicKind, HelpTopic>,
-    kind: &mut HelpTopicKind,
-) {
+fn insert_help_entry(dict: &mut HashMap<HelpTopicKind, HelpTopic>, kind: &mut HelpTopicKind) {
     dict.insert(
         kind.clone(),
         HelpTopic {
