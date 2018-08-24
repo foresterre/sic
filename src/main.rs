@@ -23,7 +23,7 @@ const HELP_OPERATIONS_AVAILABLE: &str = include_str!("../docs/cli_help_script.tx
 
 fn main() {
     let matches = App::new("Simple Image Converter")
-        .version("0.6.0")
+        .version("0.7.0")
         .author("Martijn Gribnau <garm@ilumeo.com>")
         .about("Converts an image from one format to another.\n\n\
                 Supported input formats are described BMP, GIF, ICO, JPEG, PNG, PPM (limitations may apply). \n\n\
@@ -49,8 +49,8 @@ fn main() {
         .arg(Arg::with_name("user-manual")
             .long("user-manual")
             .short("H")
-            .help("Displays help text for different topics such as each supported script operation.")
-//            .possible_values(HelpTopicIndex::new().index.map(|s| s.to_str()).as_slice())
+            .help("Displays help text for different topics such as each supported script operation. Run `sic -H index` to display a list of available topics.")
+            .value_name("TOPIC")
             .takes_value(true))
         .arg(Arg::with_name("script")
             .long("script")

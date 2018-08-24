@@ -4,7 +4,7 @@ Merge all PR's to the `master` branch, then:
 
 0. Verify that each PR has run `cargo fmt`.
 1. Does `cargo test` succeed?
-2. Does `cargo run -- resources/bwlines.png target/out.jpg --script "blur 10; flip_vertical; resize 10 10;"` complete successfully and produce a 10x10 blurred and flipped vertically JPEG image?
+2. Does `cargo run -- resources/bwlines.png target/out.jpg --script "blur 10; flipv; resize 10 10;"` complete successfully and produce a 10x10 blurred and flipped vertically JPEG image?
 3. Do all CI runs complete successfully?
 
 
