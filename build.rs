@@ -1,14 +1,13 @@
-use std::process::Command;
-use std::path::Path;
-use std::str;
 use std::fs::File;
 use std::io::Write;
+use std::path::Path;
+use std::process::Command;
+use std::str;
 
 const DEP_LICENSES_PATH: &str = "target/DEP_LICENSES";
 const IF_DEBUG_TEXT: &str = "This is a debug build. \
-    It should not be used by users. \
-    Please obtain a release build instead.";
-
+                             It should not be used by users. \
+                             Please obtain a release build instead.";
 
 // The build script for `sic` primarily makes licenses of dependencies available to the installed
 // executable.
@@ -33,8 +32,7 @@ fn main() {
             .output()
             .expect("`where.exe` unavailable.")
             .stdout
-    }
-    else {
+    } else {
         Command::new("which")
             .args(&["cargo-bom"])
             .output()
@@ -44,14 +42,12 @@ fn main() {
 
     // Convert to str
     let str_path = str::from_utf8(cargo_bom_might_be_installed.as_slice())
-       .expect("Unable to convert path.")
-       .trim();
+        .expect("Unable to convert path.")
+        .trim();
 
     // Convert to a path and check if it exists;
     // If it does; cargo-bom has been found and doesn't need to be installed first.
     let path = Path::new(str_path);
-
-
 
     // In this case we install cargo-bom
     if !path.exists() {
@@ -64,8 +60,7 @@ fn main() {
         if !installation_code.success() {
             panic!("Unable to install cargo-bom.");
         }
-    }
-    else {
+    } else {
         println!("cargo-bom path found at: {:?}", path);
     }
 
@@ -85,10 +80,8 @@ fn main() {
 
 fn write(path: &str, contents: &[u8]) {
     // Truncates the file if it exists; else creates it.
-    let mut file = File::create(path)
-        .expect("Unable to create dependency license file.");
+    let mut file = File::create(path).expect("Unable to create dependency license file.");
 
     file.write_all(contents)
         .expect("Unable to write license texts to license file.");
-
 }
