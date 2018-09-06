@@ -51,7 +51,7 @@ fn main() {
     // If it does; cargo-bom has been found and doesn't need to be installed first.
     let path = Path::new(str_path);
 
-    println!("-> {:?}", path);
+
 
     // In this case we install cargo-bom
     if !path.exists() {
@@ -64,6 +64,9 @@ fn main() {
         if !installation_code.success() {
             panic!("Unable to install cargo-bom.");
         }
+    }
+    else {
+        println!("cargo-bom path found at: {:?}", path);
     }
 
     // Now cargo-bom should be installed and in our PATH.
