@@ -27,5 +27,8 @@ Merge all PR's to the `master` branch, then:
     - tags are equal to crate version number e.g. `0.5.1`
     - release title is `sic-<version>` e.g. `sic-0.5.1`
 
-10. Add Windows and Linux (Ubuntu compiled) binaries to the release
+10. Run `cargo clean` to ensure no unwanted artifacts are part of the build ^1.
+11. Add Windows and Linux (Ubuntu compiled) binaries to the release
     - compile with `cargo build --release`
+
+^1: If `cargo` does not detect changes in the Rust source code, it might keep previous builds as "release" builds. We include the generated `target/DEP_LICENSES` from a text file. This might not contain up to date information if we run release at first, then debug and then release again (for the actual release build). Then the debug text is included instead of the actual generated licenses (since no changes to the source code where detected; so `build.rs` won't be compiled and executed).
