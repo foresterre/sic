@@ -1,9 +1,5 @@
-#![feature(extern_prelude)]
+use image;
 
-extern crate arrayvec;
-extern crate clap;
-extern crate image;
-extern crate pest;
 #[macro_use]
 extern crate pest_derive;
 

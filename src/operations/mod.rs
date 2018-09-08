@@ -2,8 +2,8 @@ use arrayvec::ArrayVec;
 use image::DynamicImage;
 use pest::Parser;
 
-use operations::operations::apply_operations_on_image;
-use operations::parse::parse_image_operations;
+use crate::operations::operations::apply_operations_on_image;
+use crate::operations::parse::parse_image_operations;
 
 #[cfg(test)]
 mod test_setup;
@@ -51,7 +51,7 @@ pub fn parse_and_apply_script(image: DynamicImage, script: &str) -> Result<Dynam
 #[cfg(test)]
 mod tests {
     use super::*;
-    use operations::test_setup::*;
+    use crate::operations::test_setup::*;
 
     #[test]
     fn test_too_many_args() {
