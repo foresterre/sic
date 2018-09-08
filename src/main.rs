@@ -1,3 +1,4 @@
+#![feature(rust_2018_preview)]
 #![feature(extern_prelude)]
 
 extern crate arrayvec;

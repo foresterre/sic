@@ -1,5 +1,3 @@
-edition = "2018"
-
 [package]
 name = "sic"
 version = "0.7.2"
