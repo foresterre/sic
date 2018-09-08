@@ -15,7 +15,7 @@ keywords = ["image", "converter", "cli", "front-end", "image-cli"]
 categories = ["multimedia::images", "command-line-utilities"]
 
 [features]
-dont-run-on-ci = []
+output-test-images = []
 
 [dependencies]
 arrayvec = "0.4.7"
