@@ -1,5 +1,3 @@
-
-
 use image;
 
 #[macro_use]
