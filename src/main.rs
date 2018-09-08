@@ -17,13 +17,13 @@ mod help;
 mod operations;
 
 const SIC_LICENSE: &str = include_str!("../LICENSE");
-const DEP_LICENSES: &str = include_str!("../DEP");
+const DEP_LICENSES: &str = include_str!("../LICENSES_DEPENDENCIES");
 
 const HELP_OPERATIONS_AVAILABLE: &str = include_str!("../docs/cli_help_script.txt");
 
 fn main() {
     let matches = App::new("Simple Image Converter")
-        .version("0.7.0")
+        .version("0.7.2")
         .author("Martijn Gribnau <garm@ilumeo.com>")
         .about("Converts an image from one format to another.\n\n\
                 Supported input formats are described BMP, GIF, ICO, JPEG, PNG, PPM (limitations may apply). \n\n\

@@ -1,3 +1,5 @@
-`bwlines.png` => generated using image crate.
+The `bwlines.png` was generated using image crate for this project.
+The `rainbow_8x6` image was created for this project.
 
-`unsplash_763569_cropped.jpg` => Original photo by eberhard grossgasteiger on Unsplash, cropped.
+The `unsplash_763569_cropped.jpg` image is a photo by Eberhard Grossgasteiger, distributed on Unsplash
+under the Unsplash license (https://unsplash.com/license) and was cropped for this project.

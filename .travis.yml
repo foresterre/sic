@@ -3,5 +3,5 @@ rust:
   - nightly
 cache: cargo
 script:
-  - cargo build --verbose --all --features dont-run-on-ci
-  - cargo test --verbose --all --features dont-run-on-ci
+  - cargo build --verbose --all
+  - cargo test --verbose --all
