@@ -76,8 +76,9 @@ fn main() {
     let dep_licenses_in_bytes = Command::new("cargo")
         .args(&["bom"])
         .output()
-        .expect("Unable to read `cargo bom` output; `cargo-bom` and `cargo` should be in your path!")
-        .stdout;
+        .expect(
+            "Unable to read `cargo bom` output; `cargo-bom` and `cargo` should be in your path!",
+        ).stdout;
 
     write_file(DEP_LICENSES_PATH, &dep_licenses_in_bytes);
 
