@@ -143,7 +143,7 @@ fn parse_binop_f32_i32(pair: Pair<Rule>) -> (Result<f32, String>, Result<i32, St
 #[cfg(test)]
 mod tests {
     use super::*;
-    use operations::SICParser;
+    use crate::operations::SICParser;
     use pest::Parser;
 
     #[test]

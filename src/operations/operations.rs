@@ -63,7 +63,7 @@ mod tests {
     use super::*;
     use arrayvec::ArrayVec;
     use image::GenericImage;
-    use operations::test_setup::*;
+    use crate::operations::test_setup::*;
 
     #[test]
     fn test_blur() {
