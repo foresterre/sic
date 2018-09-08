@@ -17,7 +17,7 @@ mod help;
 mod operations;
 
 const SIC_LICENSE: &str = include_str!("../LICENSE");
-const DEP_LICENSES: &str = include_str!("../target/DEP_LICENSES");
+const DEP_LICENSES: &str = include_str!("../LICENSES_DEPENDENCIES");
 
 const HELP_OPERATIONS_AVAILABLE: &str = include_str!("../docs/cli_help_script.txt");
 

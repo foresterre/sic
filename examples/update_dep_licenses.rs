@@ -4,26 +4,32 @@ use std::path::Path;
 use std::process::Command;
 use std::str;
 
-const DEP_LICENSES_PATH: &str = "target/DEP_LICENSES";
-const IF_DEBUG_TEXT: &str = "This is a debug build. \
-                             It should not be used by users. \
-                             Please obtain a release build instead.";
+const DEP_LICENSES_PATH: &str = "LICENSES_DEPENDENCIES";
 
-// The build script for `sic` primarily makes licenses of dependencies available to the installed
-// executable.
-// Previously we used cargo-make for this purpose, but in case `sic` is installed by running
-// `cargo install --force sic`, `cargo make release` is not invoked.
-// To fix that, we will now use this build script instead.
-// As a bonus, it should now work both on Windows and Linux out of the box; i.e. on Windows it
-// doesn't rely on some installed tools like which anymore.
+// The `update_dep_licenses` script is no longer a build.rs, mandatory pre-build script.
+// To solve issues with `cargo install` (1) and ensure that the licenses of dependencies are
+// included in a release binary, the licenses will now always be included.
+// This will be done by including a `LICENSES_DEPENDENCIES` file in the root of the repo.
+// Every release, this file needs to be updated, and there this script comes into play.
+//
+// This script updates the `LICENSES_DEPENDENCIES` file by using cargo-bom to generate the
+// dependencies, this project relies on.
+//
+// Usage:
+// To update the `LICENSES_DEPENDENCIES` file, run from the project root folder:
+// `cargo run --example update_dep_licenses`
+//
+// (1): https://github.com/foresterre/sic/issues/50
+//
+// >> The build script for `sic` primarily makes licenses of dependencies available to the installed
+// >> executable.
+// >> Previously we used cargo-make for this purpose, but in case `sic` is installed by running
+// >> `cargo install --force sic`, `cargo make release` is not invoked.
+// >> To fix that, we will now use this build script instead.
+// >> As a bonus, it should now work both on Windows and Linux out of the box; i.e. on Windows it
+// >> doesn't rely on some installed tools like which anymore.
 fn main() {
-    println!("Starting the pre-processing of a `sic` build.");
-
-    // If we are not creating a release; do not complicate the build.
-    if cfg!(debug_assertions) {
-        write(DEP_LICENSES_PATH, IF_DEBUG_TEXT.as_bytes());
-        return;
-    }
+    println!("Starting the update process of the dependency licenses file.");
 
     // Check if cargo-bom is available in our PATH.
     let cargo_bom_might_be_installed = if cfg!(windows) {
@@ -70,15 +76,16 @@ fn main() {
     let dep_licenses_in_bytes = Command::new("cargo")
         .args(&["bom"])
         .output()
-        .expect("Unable to read `cargo bom` output.")
-        .stdout;
+        .expect(
+            "Unable to read `cargo bom` output; `cargo-bom` and `cargo` should be in your path!",
+        ).stdout;
 
-    write(DEP_LICENSES_PATH, &dep_licenses_in_bytes);
+    write_file(DEP_LICENSES_PATH, &dep_licenses_in_bytes);
 
-    println!("Completed the pre-processing of a `sic` build.");
+    println!("Completed the update process of the dependency licenses file.");
 }
 
-fn write(path: &str, contents: &[u8]) {
+fn write_file(path: &str, contents: &[u8]) {
     // Truncates the file if it exists; else creates it.
     let mut file = File::create(path).expect("Unable to create dependency license file.");
 
