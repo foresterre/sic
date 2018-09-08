@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 
+mod user_manual;
+
 // Probably should create a macro to generate various of the entries. Now, I've to manually
 // add a new topic to the name match function, and to the available topics list.
 // The Rust documentation advises to use an enum if you now your values in advance.
@@ -80,21 +82,21 @@ impl HelpTopicKind {
 
     pub fn text(&self) -> String {
         let help_page = match self {
-            HelpTopicKind::Script => include_str!("../../user_manual/cli_help_script.txt"),
-            HelpTopicKind::Blur => include_str!("../../user_manual/cli_help_script_blur.txt"),
-            HelpTopicKind::Brighten => include_str!("../../user_manual/cli_help_script_brighten.txt"),
-            HelpTopicKind::Contrast => include_str!("../../user_manual/cli_help_script_contrast.txt"),
-            HelpTopicKind::Filter3x3 => include_str!("../../user_manual/cli_help_script_filter3x3.txt"),
-            HelpTopicKind::FlipH => include_str!("../../user_manual/cli_help_script_fliph.txt"),
-            HelpTopicKind::FlipV => include_str!("../../user_manual/cli_help_script_flipv.txt"),
-            HelpTopicKind::GrayScale => include_str!("../../user_manual/cli_help_script_grayscale.txt"),
-            HelpTopicKind::HueRotate => include_str!("../../user_manual/cli_help_script_huerotate.txt"),
-            HelpTopicKind::Invert => include_str!("../../user_manual/cli_help_script_invert.txt"),
-            HelpTopicKind::Resize => include_str!("../../user_manual/cli_help_script_resize.txt"),
-            HelpTopicKind::Rotate90 => include_str!("../../user_manual/cli_help_script_rotate90.txt"),
-            HelpTopicKind::Rotate180 => include_str!("../../user_manual/cli_help_script_rotate180.txt"),
-            HelpTopicKind::Rotate270 => include_str!("../../user_manual/cli_help_script_rotate270.txt"),
-            HelpTopicKind::Unsharpen => include_str!("../../user_manual/cli_help_script_unsharpen.txt"),
+            HelpTopicKind::Script => include_str!("../../resources/user_manual/cli_help_script.txt"),
+            HelpTopicKind::Blur => include_str!("../../resources/user_manual/cli_help_script_blur.txt"),
+            HelpTopicKind::Brighten => include_str!("../../resources/user_manual/cli_help_script_brighten.txt"),
+            HelpTopicKind::Contrast => include_str!("../../resources/user_manual/cli_help_script_contrast.txt"),
+            HelpTopicKind::Filter3x3 => include_str!("../../resources/user_manual/cli_help_script_filter3x3.txt"),
+            HelpTopicKind::FlipH => include_str!("../../resources/user_manual/cli_help_script_fliph.txt"),
+            HelpTopicKind::FlipV => include_str!("../../resources/user_manual/cli_help_script_flipv.txt"),
+            HelpTopicKind::GrayScale => include_str!("../../resources/user_manual/cli_help_script_grayscale.txt"),
+            HelpTopicKind::HueRotate => include_str!("../../resources/user_manual/cli_help_script_huerotate.txt"),
+            HelpTopicKind::Invert => include_str!("../../resources/user_manual/cli_help_script_invert.txt"),
+            HelpTopicKind::Resize => include_str!("../../resources/user_manual/cli_help_script_resize.txt"),
+            HelpTopicKind::Rotate90 => include_str!("../../resources/user_manual/cli_help_script_rotate90.txt"),
+            HelpTopicKind::Rotate180 => include_str!("../../resources/user_manual/cli_help_script_rotate180.txt"),
+            HelpTopicKind::Rotate270 => include_str!("../../resources/user_manual/cli_help_script_rotate270.txt"),
+            HelpTopicKind::Unsharpen => include_str!("../../resources/user_manual/cli_help_script_unsharpen.txt"),
             HelpTopicKind::Unavailable => unreachable!(),
         };
 
