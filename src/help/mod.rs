@@ -7,10 +7,10 @@ use std::hash::{Hash, Hasher};
 // Here, the values are known in advance, but since I also need the string values, it might be
 // an option to just use the string values, even for pattern matching.
 // Another option is to generate help pages and the index by looking at the available
-// pages (text files) in the docs/ directory. The category and page can be parsed
+// pages (text files) in the user_manual/ directory. The category and page can be parsed
 // (for example) from the file name.
-// Or a similar option, include a 'docs.json' like file which specifies the meta data for the
-// docs to be included.
+// Or a similar option, include a 'user_manual.json' like file which specifies the meta data for the
+// user_manual to be included.
 #[derive(Debug, Clone)]
 pub enum HelpTopicKind {
     Script,
@@ -80,21 +80,21 @@ impl HelpTopicKind {
 
     pub fn text(&self) -> String {
         let help_page = match self {
-            HelpTopicKind::Script => include_str!("../../docs/cli_help_script.txt"),
-            HelpTopicKind::Blur => include_str!("../../docs/cli_help_script_blur.txt"),
-            HelpTopicKind::Brighten => include_str!("../../docs/cli_help_script_brighten.txt"),
-            HelpTopicKind::Contrast => include_str!("../../docs/cli_help_script_contrast.txt"),
-            HelpTopicKind::Filter3x3 => include_str!("../../docs/cli_help_script_filter3x3.txt"),
-            HelpTopicKind::FlipH => include_str!("../../docs/cli_help_script_fliph.txt"),
-            HelpTopicKind::FlipV => include_str!("../../docs/cli_help_script_flipv.txt"),
-            HelpTopicKind::GrayScale => include_str!("../../docs/cli_help_script_grayscale.txt"),
-            HelpTopicKind::HueRotate => include_str!("../../docs/cli_help_script_huerotate.txt"),
-            HelpTopicKind::Invert => include_str!("../../docs/cli_help_script_invert.txt"),
-            HelpTopicKind::Resize => include_str!("../../docs/cli_help_script_resize.txt"),
-            HelpTopicKind::Rotate90 => include_str!("../../docs/cli_help_script_rotate90.txt"),
-            HelpTopicKind::Rotate180 => include_str!("../../docs/cli_help_script_rotate180.txt"),
-            HelpTopicKind::Rotate270 => include_str!("../../docs/cli_help_script_rotate270.txt"),
-            HelpTopicKind::Unsharpen => include_str!("../../docs/cli_help_script_unsharpen.txt"),
+            HelpTopicKind::Script => include_str!("../../user_manual/cli_help_script.txt"),
+            HelpTopicKind::Blur => include_str!("../../user_manual/cli_help_script_blur.txt"),
+            HelpTopicKind::Brighten => include_str!("../../user_manual/cli_help_script_brighten.txt"),
+            HelpTopicKind::Contrast => include_str!("../../user_manual/cli_help_script_contrast.txt"),
+            HelpTopicKind::Filter3x3 => include_str!("../../user_manual/cli_help_script_filter3x3.txt"),
+            HelpTopicKind::FlipH => include_str!("../../user_manual/cli_help_script_fliph.txt"),
+            HelpTopicKind::FlipV => include_str!("../../user_manual/cli_help_script_flipv.txt"),
+            HelpTopicKind::GrayScale => include_str!("../../user_manual/cli_help_script_grayscale.txt"),
+            HelpTopicKind::HueRotate => include_str!("../../user_manual/cli_help_script_huerotate.txt"),
+            HelpTopicKind::Invert => include_str!("../../user_manual/cli_help_script_invert.txt"),
+            HelpTopicKind::Resize => include_str!("../../user_manual/cli_help_script_resize.txt"),
+            HelpTopicKind::Rotate90 => include_str!("../../user_manual/cli_help_script_rotate90.txt"),
+            HelpTopicKind::Rotate180 => include_str!("../../user_manual/cli_help_script_rotate180.txt"),
+            HelpTopicKind::Rotate270 => include_str!("../../user_manual/cli_help_script_rotate270.txt"),
+            HelpTopicKind::Unsharpen => include_str!("../../user_manual/cli_help_script_unsharpen.txt"),
             HelpTopicKind::Unavailable => unreachable!(),
         };
 
