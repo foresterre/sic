@@ -8,7 +8,7 @@ use super::{Operation, Operations, Rule};
 // It returns an error (Err) in case of any parse failure.
 // The error currently contains a String, but this will need to be reworked to proper error types.
 // The function is supposed to never panic.
-pub fn parse_image_operations(pairs: Pairs<Rule>) -> Result<Operations, String> {
+pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Operations, String> {
     pairs
         .map(|pair| match pair.as_rule() {
             Rule::blur => parse_unop_f32(pair).map(|u| Operation::Blur(u)),
@@ -37,7 +37,7 @@ pub fn parse_image_operations(pairs: Pairs<Rule>) -> Result<Operations, String> 
 
 // The code below, should work for parsing the 9 elements of a 3x3 fp32 triplet structure, but
 // let's be honest; this code can't be called beautiful. This should be refactored.
-fn parse_triplet3x_f32(pair: Pair<Rule>) -> Result<ArrayVec<[f32; 9]>, String> {
+fn parse_triplet3x_f32(pair: Pair<'_, Rule>) -> Result<ArrayVec<[f32; 9]>, String> {
     const SIZE: usize = 9;
 
     let mut inner = pair.into_inner();
@@ -82,7 +82,7 @@ fn parse_triplet3x_f32(pair: Pair<Rule>) -> Result<ArrayVec<[f32; 9]>, String> {
 }
 
 // generalizing this to T1/T2 would be nice, but gave me a lot of headaches. Using this for now.
-fn parse_unop_f32(pair: Pair<Rule>) -> Result<f32, String> {
+fn parse_unop_f32(pair: Pair<'_, Rule>) -> Result<f32, String> {
     let mut inner = pair.into_inner();
 
     inner
@@ -92,7 +92,7 @@ fn parse_unop_f32(pair: Pair<Rule>) -> Result<f32, String> {
         .and_then(|it: &str| it.parse::<f32>().map_err(|err| err.to_string()))
 }
 
-fn parse_unop_i32(pair: Pair<Rule>) -> Result<i32, String> {
+fn parse_unop_i32(pair: Pair<'_, Rule>) -> Result<i32, String> {
     pair.into_inner()
         .next()
         .ok_or_else(|| format!("Unable to parse UnOp::i32, Expected 2 arguments."))
@@ -100,7 +100,7 @@ fn parse_unop_i32(pair: Pair<Rule>) -> Result<i32, String> {
         .and_then(|it: &str| it.parse::<i32>().map_err(|err| err.to_string()))
 }
 
-fn parse_binop_u32(pair: Pair<Rule>) -> (Result<u32, String>, Result<u32, String>) {
+fn parse_binop_u32(pair: Pair<'_, Rule>) -> (Result<u32, String>, Result<u32, String>) {
     let mut inner = pair.into_inner();
 
     let x_text = inner
@@ -120,7 +120,7 @@ fn parse_binop_u32(pair: Pair<Rule>) -> (Result<u32, String>, Result<u32, String
     (x, y)
 }
 
-fn parse_binop_f32_i32(pair: Pair<Rule>) -> (Result<f32, String>, Result<i32, String>) {
+fn parse_binop_f32_i32(pair: Pair<'_, Rule>) -> (Result<f32, String>, Result<i32, String>) {
     let mut inner = pair.into_inner();
 
     let x_text = inner
@@ -143,7 +143,7 @@ fn parse_binop_f32_i32(pair: Pair<Rule>) -> (Result<f32, String>, Result<i32, St
 #[cfg(test)]
 mod tests {
     use super::*;
-    use operations::SICParser;
+    use crate::operations::SICParser;
     use pest::Parser;
 
     #[test]
