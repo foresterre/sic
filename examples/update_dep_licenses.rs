@@ -14,7 +14,10 @@ const DEP_LICENSES_PATH: &str = "LICENSES_DEPENDENCIES";
 //
 // This script updates the `LICENSES_DEPENDENCIES` file by using cargo-bom to generate the
 // dependencies, this project relies on.
-// This script
+//
+// Usage:
+// To update the `LICENSES_DEPENDENCIES` file, run from the project root folder:
+// `cargo run --example update_dep_licenses`
 //
 // (1): https://github.com/foresterre/sic/issues/50
 //
@@ -26,7 +29,7 @@ const DEP_LICENSES_PATH: &str = "LICENSES_DEPENDENCIES";
 // >> As a bonus, it should now work both on Windows and Linux out of the box; i.e. on Windows it
 // >> doesn't rely on some installed tools like which anymore.
 fn main() {
-    println!("Starting the pre-processing of a `sic` build.");
+    println!("Starting the update process of the dependency licenses file.");
 
     // Check if cargo-bom is available in our PATH.
     let cargo_bom_might_be_installed = if cfg!(windows) {
@@ -78,7 +81,7 @@ fn main() {
 
     write_file(DEP_LICENSES_PATH, &dep_licenses_in_bytes);
 
-    println!("Completed the pre-processing of a `sic` build.");
+    println!("Completed the update process of the dependency licenses file.");
 }
 
 fn write_file(path: &str, contents: &[u8]) {
