@@ -65,13 +65,13 @@ mod tests {
 
     #[test]
     fn test_multi_parse_and_apply_script() {
-        let image = _setup();
+        let image = setup_default_test_image();
         let script: &str = "fliph; resize 100 100; blur 3;";
 
         let result = parse_and_apply_script(image, script);
 
         assert!(result.is_ok());
 
-        let _ = _manual_inspection(&result.unwrap(), "target/parse_util_apply_all.png");
+        let _ = output_test_image_for_manual_inspection(&result.unwrap(), "target/parse_util_apply_all.png");
     }
 }

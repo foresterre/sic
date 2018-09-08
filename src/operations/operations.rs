@@ -67,19 +67,19 @@ mod tests {
 
     #[test]
     fn test_blur() {
-        let img: DynamicImage = _setup();
+        let img: DynamicImage = setup_default_test_image();
         let operation = Operation::Blur(25.0);
 
         let done = img.apply_operation(&operation);
         assert!(done.is_ok());
 
-        _manual_inspection(&done.unwrap(), "target/test_blur.png")
+        output_test_image_for_manual_inspection(&done.unwrap(), "target/test_blur.png")
     }
 
     #[test]
     fn test_brighten_pos() {
-        let img: DynamicImage = _setup();
-        let cmp: DynamicImage = _setup();
+        let img: DynamicImage = setup_default_test_image();
+        let cmp: DynamicImage = setup_default_test_image();
 
         let operation = Operation::Brighten(25);
 
@@ -90,13 +90,13 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        _manual_inspection(&result_img, "target/test_brighten_pos_25.png")
+        output_test_image_for_manual_inspection(&result_img, "target/test_brighten_pos_25.png")
     }
 
     #[test]
     fn test_brighten_zero() {
-        let img: DynamicImage = _setup();
-        let cmp: DynamicImage = _setup();
+        let img: DynamicImage = setup_default_test_image();
+        let cmp: DynamicImage = setup_default_test_image();
         let operation = Operation::Brighten(0);
 
         let done = img.apply_operation(&operation);
@@ -106,13 +106,13 @@ mod tests {
 
         assert_eq!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        _manual_inspection(&result_img, "target/test_brighten_zero.png")
+        output_test_image_for_manual_inspection(&result_img, "target/test_brighten_zero.png")
     }
 
     #[test]
     fn test_brighten_neg() {
-        let img: DynamicImage = _setup();
-        let cmp: DynamicImage = _setup();
+        let img: DynamicImage = setup_default_test_image();
+        let cmp: DynamicImage = setup_default_test_image();
 
         let operation = Operation::Brighten(-25);
 
@@ -123,13 +123,13 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        _manual_inspection(&result_img, "target/test_brighten_neg_25.png")
+        output_test_image_for_manual_inspection(&result_img, "target/test_brighten_neg_25.png")
     }
 
     #[test]
     fn test_contrast_pos() {
-        let img: DynamicImage = _setup();
-        let cmp: DynamicImage = _setup();
+        let img: DynamicImage = setup_default_test_image();
+        let cmp: DynamicImage = setup_default_test_image();
 
         let operation = Operation::Contrast(150.9);
 
@@ -140,13 +140,13 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        _manual_inspection(&result_img, "target/test_contrast_pos_15_9.png")
+        output_test_image_for_manual_inspection(&result_img, "target/test_contrast_pos_15_9.png")
     }
 
     #[test]
     fn test_contrast_neg() {
-        let img: DynamicImage = _setup();
-        let cmp: DynamicImage = _setup();
+        let img: DynamicImage = setup_default_test_image();
+        let cmp: DynamicImage = setup_default_test_image();
 
         let operation = Operation::Contrast(-150.9);
 
@@ -157,13 +157,13 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        _manual_inspection(&result_img, "target/test_contrast_pos_15_9.png")
+        output_test_image_for_manual_inspection(&result_img, "target/test_contrast_pos_15_9.png")
     }
 
     #[test]
     fn test_filter3x3() {
-        let img: DynamicImage = _setup();
-        let cmp: DynamicImage = _setup();
+        let img: DynamicImage = setup_default_test_image();
+        let cmp: DynamicImage = setup_default_test_image();
 
         let operation = Operation::Filter3x3(ArrayVec::from([
             1.0, 0.5, 0.0, 1.0, 0.5, 0.0, 1.0, 0.5, 0.0,
@@ -176,12 +176,12 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        _manual_inspection(&result_img, "target/test_filter3x3.png")
+        output_test_image_for_manual_inspection(&result_img, "target/test_filter3x3.png")
     }
 
     #[test]
     fn test_flip_h() {
-        let img: DynamicImage = _setup();
+        let img: DynamicImage = setup_default_test_image();
         let operation = Operation::FlipHorizontal;
 
         let (xa, ya) = img.dimensions();
@@ -195,12 +195,12 @@ mod tests {
         assert_eq!(xa, xb);
         assert_eq!(ya, yb);
 
-        _manual_inspection(&img_result, "target/test_fliph.png")
+        output_test_image_for_manual_inspection(&img_result, "target/test_fliph.png")
     }
 
     #[test]
     fn test_flip_v() {
-        let img: DynamicImage = _setup();
+        let img: DynamicImage = setup_default_test_image();
         let operation = Operation::FlipVertical;
 
         let (xa, ya) = img.dimensions();
@@ -214,14 +214,14 @@ mod tests {
         assert_eq!(xa, xb);
         assert_eq!(ya, yb);
 
-        _manual_inspection(&img_result, "target/test_flipv.png")
+        output_test_image_for_manual_inspection(&img_result, "target/test_flipv.png")
     }
 
     #[test]
     fn test_gray_scale() {
         use image::Pixel;
 
-        let img: DynamicImage = _setup_with("resources/rainbow_8x6.bmp");
+        let img: DynamicImage = setup_test_image("resources/rainbow_8x6.bmp");
         let operation = Operation::GrayScale;
 
         let done = img.apply_operation(&operation);
@@ -245,13 +245,13 @@ mod tests {
             }
         }
 
-        _manual_inspection(&img_result, "target/test_gray_scale.png")
+        output_test_image_for_manual_inspection(&img_result, "target/test_gray_scale.png")
     }
 
     #[test]
     fn test_hue_rotate_neg() {
-        let img: DynamicImage = _setup();
-        let cmp: DynamicImage = _setup();
+        let img: DynamicImage = setup_default_test_image();
+        let cmp: DynamicImage = setup_default_test_image();
 
         let operation = Operation::HueRotate(-100);
 
@@ -262,13 +262,13 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        _manual_inspection(&result_img, "target/test_hue_rot_neg_100.png")
+        output_test_image_for_manual_inspection(&result_img, "target/test_hue_rot_neg_100.png")
     }
 
     #[test]
     fn test_hue_rotate_pos() {
-        let img: DynamicImage = _setup();
-        let cmp: DynamicImage = _setup();
+        let img: DynamicImage = setup_default_test_image();
+        let cmp: DynamicImage = setup_default_test_image();
 
         let operation = Operation::HueRotate(100);
 
@@ -279,13 +279,13 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        _manual_inspection(&result_img, "target/test_hue_rot_pos_100.png")
+        output_test_image_for_manual_inspection(&result_img, "target/test_hue_rot_pos_100.png")
     }
 
     #[test]
     fn test_hue_rotate_zero() {
-        let img: DynamicImage = _setup();
-        let cmp: DynamicImage = _setup();
+        let img: DynamicImage = setup_default_test_image();
+        let cmp: DynamicImage = setup_default_test_image();
 
         let operation = Operation::HueRotate(0);
 
@@ -296,13 +296,13 @@ mod tests {
 
         assert_eq!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        _manual_inspection(&result_img, "target/test_hue_rot_0.png")
+        output_test_image_for_manual_inspection(&result_img, "target/test_hue_rot_0.png")
     }
 
     #[test]
     fn test_hue_rotate_360() {
-        let img: DynamicImage = _setup();
-        let cmp: DynamicImage = _setup();
+        let img: DynamicImage = setup_default_test_image();
+        let cmp: DynamicImage = setup_default_test_image();
 
         let operation = Operation::HueRotate(360);
 
@@ -315,13 +315,13 @@ mod tests {
         // huerotate(0) should be huerotate(360), but this doesn't seem the case
         assert_eq!(cmp.huerotate(360).raw_pixels(), result_img.raw_pixels());
 
-        _manual_inspection(&result_img, "target/test_hue_rot_pos_360.png")
+        output_test_image_for_manual_inspection(&result_img, "target/test_hue_rot_pos_360.png")
     }
 
     #[test]
     fn test_hue_rotate_over_rotate_pos() {
-        let img: DynamicImage = _setup();
-        let cmp: DynamicImage = _setup();
+        let img: DynamicImage = setup_default_test_image();
+        let cmp: DynamicImage = setup_default_test_image();
 
         let operation = Operation::HueRotate(460);
 
@@ -332,13 +332,13 @@ mod tests {
 
         assert_ne!(cmp.huerotate(100).raw_pixels(), result_img.raw_pixels());
 
-        _manual_inspection(&result_img, "target/test_hue_rot_pos_460.png")
+        output_test_image_for_manual_inspection(&result_img, "target/test_hue_rot_pos_460.png")
     }
 
     #[test]
     fn test_invert() {
-        let img: DynamicImage = _setup();
-        let cmp: DynamicImage = _setup();
+        let img: DynamicImage = setup_default_test_image();
+        let cmp: DynamicImage = setup_default_test_image();
 
         let operation = Operation::Invert;
 
@@ -349,13 +349,13 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        _manual_inspection(&result_img, "target/test_invert.png")
+        output_test_image_for_manual_inspection(&result_img, "target/test_invert.png")
     }
 
     #[test]
     fn test_resize_down_gaussian() {
         // 217x447px => 100x200
-        let img: DynamicImage = _setup();
+        let img: DynamicImage = setup_default_test_image();
         let operation = Operation::Resize(100, 200);
 
         let (xa, ya) = img.dimensions();
@@ -373,13 +373,13 @@ mod tests {
         assert_eq!(xb, 100);
         assert_eq!(yb, 200);
 
-        _manual_inspection(&img_result, "target/test_scale_100x200.png")
+        output_test_image_for_manual_inspection(&img_result, "target/test_scale_100x200.png")
     }
 
     #[test]
     fn test_resize_up_gaussian() {
         // 217x447px => 300x500
-        let img: DynamicImage = _setup();
+        let img: DynamicImage = setup_default_test_image();
         let operation = Operation::Resize(300, 500);
 
         let (xa, ya) = img.dimensions();
@@ -397,12 +397,12 @@ mod tests {
         assert_eq!(xb, 300);
         assert_eq!(yb, 500);
 
-        _manual_inspection(&img_result, "target/test_scale_400x500.png")
+        output_test_image_for_manual_inspection(&img_result, "target/test_scale_400x500.png")
     }
 
     #[test]
     fn test_rotate90() {
-        let img: DynamicImage = _setup();
+        let img: DynamicImage = setup_default_test_image();
         let operation = Operation::Rotate90;
 
         let (xa, ya) = img.dimensions();
@@ -416,12 +416,12 @@ mod tests {
         assert_eq!(xa, yb);
         assert_eq!(xb, ya);
 
-        _manual_inspection(&img_result, "target/test_rotate90.png")
+        output_test_image_for_manual_inspection(&img_result, "target/test_rotate90.png")
     }
 
     #[test]
     fn test_rotate180() {
-        let img: DynamicImage = _setup();
+        let img: DynamicImage = setup_default_test_image();
         let operation = Operation::Rotate180;
 
         let (xa, ya) = img.dimensions();
@@ -435,12 +435,12 @@ mod tests {
         assert_eq!(xa, xb);
         assert_eq!(ya, yb);
 
-        _manual_inspection(&img_result, "target/test_rotate180.png")
+        output_test_image_for_manual_inspection(&img_result, "target/test_rotate180.png")
     }
 
     #[test]
     fn test_rotate270() {
-        let img: DynamicImage = _setup();
+        let img: DynamicImage = setup_default_test_image();
         let operation = Operation::Rotate270;
 
         let (xa, ya) = img.dimensions();
@@ -454,13 +454,13 @@ mod tests {
         assert_eq!(xa, yb);
         assert_eq!(xb, ya);
 
-        _manual_inspection(&img_result, "target/test_rotate270.png")
+        output_test_image_for_manual_inspection(&img_result, "target/test_rotate270.png")
     }
 
     #[test]
     fn test_unsharpen_pos() {
-        let img: DynamicImage = _setup();
-        let cmp: DynamicImage = _setup();
+        let img: DynamicImage = setup_default_test_image();
+        let cmp: DynamicImage = setup_default_test_image();
 
         let operation = Operation::Unsharpen(20.1, 20);
 
@@ -471,13 +471,13 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        _manual_inspection(&result_img, "target/test_unsharpen_20_1_20.png")
+        output_test_image_for_manual_inspection(&result_img, "target/test_unsharpen_20_1_20.png")
     }
 
     #[test]
     fn test_unsharpen_neg() {
-        let img: DynamicImage = _setup();
-        let cmp: DynamicImage = _setup();
+        let img: DynamicImage = setup_default_test_image();
+        let cmp: DynamicImage = setup_default_test_image();
 
         let operation = Operation::Unsharpen(-20.1, -20);
 
@@ -488,13 +488,13 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        _manual_inspection(&result_img, "target/test_unsharpen_neg20_1_neg20.png")
+        output_test_image_for_manual_inspection(&result_img, "target/test_unsharpen_neg20_1_neg20.png")
     }
 
     #[test]
     fn test_multi() {
         // 217x447px original
-        let img: DynamicImage = _setup();
+        let img: DynamicImage = setup_default_test_image();
         let operations = vec![
             Operation::Resize(80, 100),
             Operation::Blur(5.0),
@@ -519,7 +519,7 @@ mod tests {
         assert_eq!(xb, 100);
         assert_eq!(yb, 80);
 
-        _manual_inspection(&img_result, "target/test_multi.png")
+        output_test_image_for_manual_inspection(&img_result, "target/test_multi.png")
     }
 
 }
