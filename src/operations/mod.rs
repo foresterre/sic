@@ -72,6 +72,9 @@ mod tests {
 
         assert!(result.is_ok());
 
-        let _ = output_test_image_for_manual_inspection(&result.unwrap(), "target/parse_util_apply_all.png");
+        let _ = output_test_image_for_manual_inspection(
+            &result.unwrap(),
+            "target/parse_util_apply_all.png",
+        );
     }
 }

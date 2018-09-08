@@ -488,7 +488,10 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(&result_img, "target/test_unsharpen_neg20_1_neg20.png")
+        output_test_image_for_manual_inspection(
+            &result_img,
+            "target/test_unsharpen_neg20_1_neg20.png",
+        )
     }
 
     #[test]
