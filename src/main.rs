@@ -1,7 +1,7 @@
-extern crate arrayvec;
-extern crate clap;
-extern crate image;
-extern crate pest;
+
+
+use image;
+
 #[macro_use]
 extern crate pest_derive;
 
