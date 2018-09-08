@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+use std::hash::Hash;
+use std::cmp::Ord;
 
 // Experimental page structure:
 //
@@ -21,22 +23,21 @@ use std::collections::HashMap;
 //            - text: "https://example.com"
 //
 
-struct UserManual {
-    // name => page :todo
-    help_pages: HashMap<String, String>
+struct UserManual<StoreType> {
+    storage: StoreType,
 }
 
-trait Index<T> {
-    fn index() -> T;
-}
-
-impl UserManual {
-
-}
-
-struct Page {
-    name: str,
-    importance: u32, // pages are sorted by importance
+struct MetaPage<NameType, ImportanceType>
+    where NameType: Hash + Eq, ImportanceType: Ord {
+    name: NameType,
+    importance: ImportanceType,
 
 }
+
+struct Page<PageNameType, PageImportanceType, TextType> {
+    meta: MetaPage<PageNameType, PageImportanceType>,
+    paragraphs: Vec<TextType>
+}
+
+
 
