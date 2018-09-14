@@ -31,10 +31,11 @@ struct MetaPage<NameType, ImportanceType>
     where NameType: Hash + Eq, ImportanceType: Ord {
     name: NameType,
     importance: ImportanceType,
-
+    indexed: bool,
 }
 
-struct Page<PageNameType, PageImportanceType, TextType> {
+struct Page<PageNameType, PageImportanceType, TextType>
+    where PageNameType: Hash + Eq, PageImportanceType: Ord {
     meta: MetaPage<PageNameType, PageImportanceType>,
     paragraphs: Vec<TextType>
 }
