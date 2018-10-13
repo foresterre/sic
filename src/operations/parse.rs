@@ -32,7 +32,8 @@ pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Operations, Stri
                 x.and_then(|ux| y.map(|uy| Operation::Unsharpen(ux, uy)))
             }
             _ => Err("Parse failed: Operation doesn't exist".to_string()),
-        }).collect::<Result<Operations, String>>()
+        })
+        .collect::<Result<Operations, String>>()
 }
 
 // The code below, should work for parsing the 9 elements of a 3x3 fp32 triplet structure, but
@@ -220,7 +221,8 @@ mod tests {
         let pairs = SICParser::parse(
             Rule::main,
             "filter3x3 0 0.1 0.2 | 1.3 1.4 1.5 | 2.6 2.7 2.8",
-        ).unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        )
+        .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![Operation::Filter3x3(ArrayVec::from([
                 0.0, 0.1, 0.2, 1.3, 1.4, 1.5, 2.6, 2.7, 2.8
@@ -318,7 +320,8 @@ mod tests {
         let pairs = SICParser::parse(
             Rule::main,
             "filter3x3 1.9 2 3 | 4 5.9 6 | 7 8 9.9\nfilter3x3 10.9 2 3 4 11.9 6 7 8 12.9",
-        ).unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        )
+        .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
 
         assert_eq!(
             Ok(vec![
@@ -587,7 +590,8 @@ mod tests {
         let pairs = SICParser::parse(
             Rule::main,
             "fliph    ; flipv   ;   \t\t resize 100 200; blur 10;",
-        ).unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        )
+        .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![
                 Operation::FlipHorizontal,
