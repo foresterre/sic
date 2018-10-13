@@ -1,11 +1,9 @@
-use image;
-
-#[macro_use]
-extern crate pest_derive;
-
 use std::path::Path;
 
 use clap::{App, Arg};
+use image;
+#[macro_use]
+extern crate pest_derive;
 
 use crate::config::{
     Config, HelpDisplayProcessor, LicenseDisplayProcessor, ProcessConfig, SelectedLicenses,
