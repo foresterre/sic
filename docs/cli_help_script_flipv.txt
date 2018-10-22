@@ -1,8 +1,5 @@
-User Manual
-===========
-
-Page: 'flipv'
-Category: 'script command'
+flipv
+=====
 
 Goal:
 -----

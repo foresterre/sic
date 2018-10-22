@@ -1,8 +1,5 @@
-User Manual
-===========
-
-Page: 'huerotate'
-Category: 'script command'
+huerotate
+=========
 
 Goal:
 -----

@@ -1,8 +1,5 @@
-User Manual
-===========
-
-Page: 'contrast'
-Category: 'script command'
+contrast
+========
 
 Goal:
 -----

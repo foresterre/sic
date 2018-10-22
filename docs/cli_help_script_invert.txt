@@ -1,8 +1,5 @@
-User Manual
-===========
-
-Page: 'invert'
-Category: 'script command'
+invert
+======
 
 Goal:
 -----

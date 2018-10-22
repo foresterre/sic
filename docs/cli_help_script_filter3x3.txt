@@ -1,8 +1,5 @@
-User Manual
+filter3x3
 ===========
-
-Page: 'filter3x3'
-Category: 'script command'
 
 Goal:
 -----

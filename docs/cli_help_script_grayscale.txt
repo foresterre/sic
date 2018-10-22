@@ -1,8 +1,5 @@
-User Manual
-===========
-
-Page: 'grayscale'
-Category: 'script command'
+grayscale
+=========
 
 Goal:
 -----
