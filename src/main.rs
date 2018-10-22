@@ -6,7 +6,7 @@ use image;
 extern crate pest_derive;
 
 use crate::config::{
-    Config, HelpDisplayProcessor, LicenseDisplayProcessor, ProcessConfig, SelectedLicenses,
+    Config, HelpDisplayProcessor, LicenseDisplayProcessor, ProcessWithConfig, SelectedLicenses,
 };
 
 mod config;
@@ -90,8 +90,22 @@ fn main() -> Result<(), String> {
         output_file: None,
     };
 
-    LicenseDisplayProcessor::act_on_config(&options);
-    HelpDisplayProcessor::act_on_config(&options);
+
+
+    let license_display_processor = LicenseDisplayProcessor::new();
+    license_display_processor.act(&options);
+
+    let help_display_processor = HelpDisplayProcessor::new();
+    help_display_processor.act(&options);
+
+    // struct ImageOperationProcessorInput = &image_buffer, script
+    //ImageOperationProcessor<>::act(&options, ImageOperationProcessorInput) as associated type? or generic?]
+
+    // or struct ImageOperationProcessor<T> where T: ConstraintX + ConstraintX {}
+    // trait ConstraintX
+    // trait ConstraintY
+
+    // experiment!
 
     let input = matches
         .value_of("input_file")

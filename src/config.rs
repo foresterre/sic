@@ -23,8 +23,8 @@ pub struct Config {
     pub output_file: Option<String>,
 }
 
-pub trait ProcessConfig<T> {
-    fn act_on_config(config: &Config) -> T;
+pub trait ProcessWithConfig<T> {
+    fn act(&self, config: &Config) -> T;
 }
 
 const SIC_LICENSE: &str = include_str!("../LICENSE");
@@ -38,6 +38,11 @@ pub enum SelectedLicenses {
 pub struct LicenseDisplayProcessor;
 
 impl LicenseDisplayProcessor {
+    pub fn new() -> LicenseDisplayProcessor {
+        LicenseDisplayProcessor {}
+    }
+
+
     fn print_licenses(slice: &[SelectedLicenses]) {
         for item in slice {
             match item {
@@ -54,8 +59,8 @@ impl LicenseDisplayProcessor {
     }
 }
 
-impl ProcessConfig<()> for LicenseDisplayProcessor {
-    fn act_on_config(config: &Config) -> () {
+impl ProcessWithConfig<()> for LicenseDisplayProcessor {
+    fn act(&self, config: &Config) -> () {
         LicenseDisplayProcessor::print_licenses(&config.licenses);
     }
 }
@@ -64,6 +69,10 @@ impl ProcessConfig<()> for LicenseDisplayProcessor {
 pub struct HelpDisplayProcessor;
 
 impl HelpDisplayProcessor {
+    pub fn new() -> HelpDisplayProcessor {
+        HelpDisplayProcessor {}
+    }
+
     fn print_help(help: &HelpIndex, topic: &str) {
         let page = help.get_topic(&*topic.to_lowercase());
 
@@ -74,8 +83,8 @@ impl HelpDisplayProcessor {
     }
 }
 
-impl ProcessConfig<()> for HelpDisplayProcessor {
-    fn act_on_config(config: &Config) -> () {
+impl ProcessWithConfig<()> for HelpDisplayProcessor {
+    fn act(&self, config: &Config) -> () {
         if let Some(topic) = &config.user_manual {
             let help = HelpIndex::new();
 
