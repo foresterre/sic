@@ -42,7 +42,6 @@ impl LicenseDisplayProcessor {
         LicenseDisplayProcessor {}
     }
 
-
     fn print_licenses(slice: &[SelectedLicenses]) {
         for item in slice {
             match item {

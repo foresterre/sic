@@ -90,8 +90,6 @@ fn main() -> Result<(), String> {
         output_file: None,
     };
 
-
-
     let license_display_processor = LicenseDisplayProcessor::new();
     license_display_processor.act(&options);
 
