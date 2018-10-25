@@ -95,8 +95,8 @@ impl ProcessWithConfig<()> for HelpDisplayProcessor {
             } else {
                 HelpDisplayProcessor::print_help(&help, &topic);
             }
-        }
 
-        process::exit(0);
+            process::exit(0);
+        }
     }
 }

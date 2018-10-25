@@ -96,15 +96,6 @@ fn main() -> Result<(), String> {
     let help_display_processor = HelpDisplayProcessor::new();
     help_display_processor.act(&options);
 
-    // struct ImageOperationProcessorInput = &image_buffer, script
-    //ImageOperationProcessor<>::act(&options, ImageOperationProcessorInput) as associated type? or generic?]
-
-    // or struct ImageOperationProcessor<T> where T: ConstraintX + ConstraintX {}
-    // trait ConstraintX
-    // trait ConstraintY
-
-    // experiment!
-
     let input = matches
         .value_of("input_file")
         .ok_or_else(|| String::from("An INPUT was expected, but none was given."))
@@ -119,7 +110,13 @@ fn main() -> Result<(), String> {
             println!("Preparing to apply image operations: `{}`", script);
             image_buffer.map_err(|err| err.to_string()).and_then(|img| {
                 println!("Applying image operations.");
-                operations::parse_and_apply_script(img, script)
+
+                let mut mut_img = img;
+
+                match operations::parse_and_apply_script(&mut mut_img, script) {
+                    Ok(_) => Ok(mut_img),
+                    Err(err) => Err(err),
+                }
             })
         }
         None => image_buffer,
