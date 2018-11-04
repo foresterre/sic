@@ -5,6 +5,8 @@ use crate::operations;
 use crate::operations::operations::apply_operations_on_image;
 use crate::operations::Operations;
 
+// Currently uses String instead of &str for easier initial development (i.e. no manual lifetimes).
+// It should be replaced by &str where possible.
 pub struct Config {
     // Display license of this software or its dependencies.
     pub licenses: Vec<SelectedLicenses>,
@@ -19,11 +21,9 @@ pub struct Config {
 
     // Format to which an image will be converted (enforced).
     pub forced_output_format: Option<String>,
-
     // Options because they are not required if certain options (such as `--license`) are chosen.
     // This should be handled by Clap, but Option was chosen out of a defensive strategy nonetheless.
-    pub input_file: Option<String>,
-    pub output_file: Option<String>,
+    // TODO: input_file, output_file are excluded from Config? Should they be included?
 }
 
 pub trait ProcessWithConfig<T> {

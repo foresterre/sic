@@ -86,10 +86,9 @@ fn main() -> Result<(), String> {
 
         script: matches.value_of("script").map(|it: &str| String::from(it)),
 
-        forced_output_format: None,
-
-        input_file: None,
-        output_file: None,
+        forced_output_format: matches
+            .value_of("forced_output_format")
+            .map(|it: &str| String::from(it)),
     };
 
     let license_display_processor = LicenseDisplayProcessor::new();
@@ -114,8 +113,8 @@ fn main() -> Result<(), String> {
         .value_of("output_file")
         .ok_or_else(|| String::from("An OUTPUT was expected, but none was given."))?;
 
-    match matches.value_of("forced_output_format") {
-        Some(format) => conversion::convert_image_forced(buffer, output, format),
+    match options.forced_output_format {
+        Some(format) => conversion::convert_image_forced(buffer, output, &format),
         None => conversion::convert_image_unforced(buffer, output),
     }
 }
