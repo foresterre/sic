@@ -26,10 +26,12 @@ pub struct Config {
     // TODO: input_file, output_file are excluded from Config? Should they be included?
 }
 
+/// Linear application pipeline trait for immutable references.
 pub trait ProcessWithConfig<T> {
     fn process(&self, config: &Config) -> T;
 }
 
+/// Linear application pipeline trait for mutable references.
 pub trait ProcessMutWithConfig<T> {
     fn process_mut(&mut self, config: &Config) -> T;
 }
@@ -135,8 +137,13 @@ impl<'a> ImageOperationsProcessor<'a> {
 
 impl<'a> ProcessMutWithConfig<Result<(), String>> for ImageOperationsProcessor<'a> {
     fn process_mut(&mut self, config: &Config) -> Result<(), String> {
-        let operations = self.parse_script(config);
+        // If we don't have the script option defined, do nothing.
+        if config.script.is_some() {
+            let operations = self.parse_script(config);
 
-        self.apply_operations(&operations?)
+            self.apply_operations(&operations?)
+        } else {
+            Ok(())
+        }
     }
 }
