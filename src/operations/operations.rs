@@ -6,6 +6,7 @@ pub trait ApplyOperation<O, T, E> {
     fn apply_operation(&self, operation: &O) -> Result<T, E>;
 }
 
+// TODO take &mut DynImage as param?
 impl ApplyOperation<Operation, DynamicImage, String> for DynamicImage {
     fn apply_operation(&self, operation: &Operation) -> Result<DynamicImage, String> {
         match *operation {
@@ -20,6 +21,7 @@ impl ApplyOperation<Operation, DynamicImage, String> for DynamicImage {
             Operation::FlipVertical => Ok(self.flipv()),
             Operation::GrayScale => Ok(self.grayscale()),
             Operation::HueRotate(degree) => Ok(self.huerotate(degree)),
+            // TODO this is rather sub optimal with the double clone
             Operation::Invert => {
                 let ref mut img = self.clone();
                 image::DynamicImage::invert(img);

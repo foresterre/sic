@@ -1,14 +1,12 @@
 use arrayvec::ArrayVec;
-use image::DynamicImage;
 use pest::Parser;
 
-use crate::operations::operations::apply_operations_on_image;
 use crate::operations::parse::parse_image_operations;
 
 #[cfg(test)]
 mod test_setup;
 
-mod operations;
+pub mod operations;
 mod parse;
 
 // ensure grammar refreshes on compile
@@ -39,19 +37,17 @@ pub enum Operation {
 
 pub type Operations = Vec<Operation>;
 
-pub fn parse_and_apply_script(image: &mut DynamicImage, script: &str) -> Result<(), String> {
+pub fn parse_script(script: &str) -> Result<Operations, String> {
     let parsed_script = SICParser::parse(PARSER_RULE, script);
 
     parsed_script
         .map_err(|err| format!("Unable to parse sic image operations script: {:?}", err))
         .and_then(|pairs| parse_image_operations(pairs))
-        .and_then(|operations| apply_operations_on_image(image, &operations))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::operations::test_setup::*;
 
     #[test]
     fn test_too_many_args() {
@@ -64,14 +60,22 @@ mod tests {
     }
 
     #[test]
-    fn test_multi_parse_and_apply_script() {
-        let mut image = setup_default_test_image();
-        let script: &str = "fliph; resize 100 100; blur 3;";
+    fn test_parsed() {
+        let input = "blur 15; flipv";
+        let parsed = parse_script(input);
 
-        let result = parse_and_apply_script(&mut image, script);
-
-        assert!(result.is_ok());
-
-        let _ = output_test_image_for_manual_inspection(&image, "target/parse_util_apply_all.png");
+        assert_eq!(
+            parsed,
+            Ok(vec![Operation::Blur(15.0), Operation::FlipVertical])
+        );
     }
+
+    #[test]
+    fn test_parsed_fail() {
+        let input = "blur 15.7.; flipv";
+        let parsed = parse_script(input);
+
+        assert!(parsed.is_err());
+    }
+
 }

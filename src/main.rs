@@ -1,3 +1,4 @@
+#[deny(missing_docs)]
 use std::path::Path;
 
 use clap::{App, Arg};
@@ -6,7 +7,8 @@ use image;
 extern crate pest_derive;
 
 use crate::config::{
-    Config, HelpDisplayProcessor, LicenseDisplayProcessor, ProcessWithConfig, SelectedLicenses,
+    Config, HelpDisplayProcessor, ImageOperationsProcessor, LicenseDisplayProcessor,
+    ProcessMutWithConfig, ProcessWithConfig, SelectedLicenses,
 };
 
 mod config;
@@ -91,48 +93,29 @@ fn main() -> Result<(), String> {
     };
 
     let license_display_processor = LicenseDisplayProcessor::new();
-    license_display_processor.act(&options);
+    license_display_processor.process(&options);
 
     let help_display_processor = HelpDisplayProcessor::new();
-    help_display_processor.act(&options);
+    help_display_processor.process(&options);
 
     let input = matches
         .value_of("input_file")
         .ok_or_else(|| String::from("An INPUT was expected, but none was given."))
         .map(|input_str| Path::new(input_str));
 
-    let image_buffer: Result<image::DynamicImage, String> =
-        input.and_then(|path| image::open(path).map_err(|err| err.to_string()));
+    // open image, -> DynamicImage
+    let mut buffer = input.and_then(|path| image::open(path).map_err(|err| err.to_string()))?;
 
     // perform image operations
-    let operated_buffer = match matches.value_of("script") {
-        Some(script) => {
-            println!("Preparing to apply image operations: `{}`", script);
-            image_buffer.map_err(|err| err.to_string()).and_then(|img| {
-                println!("Applying image operations.");
-
-                let mut mut_img = img;
-
-                match operations::parse_and_apply_script(&mut mut_img, script) {
-                    Ok(_) => Ok(mut_img),
-                    Err(err) => Err(err),
-                }
-            })
-        }
-        None => image_buffer,
-    };
+    let mut image_operations_processor = ImageOperationsProcessor::new(&mut buffer);
+    let _ = image_operations_processor.process_mut(&options)?;
 
     let output = matches
         .value_of("output_file")
         .ok_or_else(|| String::from("An OUTPUT was expected, but none was given."))?;
 
-    // encode
-    let encoded = operated_buffer.and_then(|img| {
-        matches.value_of("forced_output_format").map_or_else(
-            || conversion::convert_image_unforced(&img, output),
-            |format| conversion::convert_image_forced(&img, output, format),
-        )
-    });
-
-    encoded
+    match matches.value_of("forced_output_format") {
+        Some(format) => conversion::convert_image_forced(buffer, output, format),
+        None => conversion::convert_image_unforced(buffer, output),
+    }
 }

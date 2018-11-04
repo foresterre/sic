@@ -22,7 +22,7 @@ pub fn image_format_from_str(format: &str) -> Result<image::ImageOutputFormat, S
 
 /// Converts an image (`input`) to a certain `format` regardless of the extension of the `output` file path.
 pub fn convert_image_forced(
-    img: &image::DynamicImage,
+    img: image::DynamicImage,
     output: &str,
     format: &str,
 ) -> Result<(), String> {
@@ -37,7 +37,7 @@ pub fn convert_image_forced(
 }
 
 /// Converts an image (`input`) to a certain `format` based on the extension of the `output` file path.
-pub fn convert_image_unforced(img: &image::DynamicImage, output: &str) -> Result<(), String> {
+pub fn convert_image_unforced(img: image::DynamicImage, output: &str) -> Result<(), String> {
     img.save(output).map_err(|err| err.to_string())
 }
 

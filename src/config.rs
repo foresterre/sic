@@ -1,6 +1,9 @@
 use std::process;
 
 use crate::help::HelpIndex;
+use crate::operations;
+use crate::operations::operations::apply_operations_on_image;
+use crate::operations::Operations;
 
 pub struct Config {
     // Display license of this software or its dependencies.
@@ -24,7 +27,11 @@ pub struct Config {
 }
 
 pub trait ProcessWithConfig<T> {
-    fn act(&self, config: &Config) -> T;
+    fn process(&self, config: &Config) -> T;
+}
+
+pub trait ProcessMutWithConfig<T> {
+    fn process_mut(&mut self, config: &Config) -> T;
 }
 
 const SIC_LICENSE: &str = include_str!("../LICENSE");
@@ -59,7 +66,7 @@ impl LicenseDisplayProcessor {
 }
 
 impl ProcessWithConfig<()> for LicenseDisplayProcessor {
-    fn act(&self, config: &Config) -> () {
+    fn process(&self, config: &Config) -> () {
         LicenseDisplayProcessor::print_licenses(&config.licenses);
     }
 }
@@ -83,7 +90,7 @@ impl HelpDisplayProcessor {
 }
 
 impl ProcessWithConfig<()> for HelpDisplayProcessor {
-    fn act(&self, config: &Config) -> () {
+    fn process(&self, config: &Config) -> () {
         if let Some(topic) = &config.user_manual {
             let help = HelpIndex::new();
 
@@ -98,5 +105,38 @@ impl ProcessWithConfig<()> for HelpDisplayProcessor {
 
             process::exit(0);
         }
+    }
+}
+
+pub struct ImageOperationsProcessor<'a> {
+    buffer: &'a mut image::DynamicImage,
+}
+
+impl<'a> ImageOperationsProcessor<'a> {
+    pub fn new(buffer: &'a mut image::DynamicImage) -> ImageOperationsProcessor {
+        ImageOperationsProcessor { buffer }
+    }
+
+    fn parse_script(&self, config: &Config) -> Result<Operations, String> {
+        println!("Parsing image operations script.");
+
+        match &config.script {
+            Some(it) => operations::parse_script(&it),
+            None => Err("Script unavailable.".into()),
+        }
+    }
+
+    fn apply_operations(&mut self, ops: &Operations) -> Result<(), String> {
+        println!("Applying image operations.");
+
+        apply_operations_on_image(&mut self.buffer, ops)
+    }
+}
+
+impl<'a> ProcessMutWithConfig<Result<(), String>> for ImageOperationsProcessor<'a> {
+    fn process_mut(&mut self, config: &Config) -> Result<(), String> {
+        let operations = self.parse_script(config);
+
+        self.apply_operations(&operations?)
     }
 }
