@@ -1,14 +1,14 @@
 use arrayvec::ArrayVec;
 use pest::iterators::{Pair, Pairs};
 
-use super::{Operation, Operations, Rule};
+use super::{Operation, Rule};
 
 // This function parses Operations from the Pest parsed syntax, as defined by
 // [grammar.pest].
 // It returns an error (Err) in case of any parse failure.
 // The error currently contains a String, but this will need to be reworked to proper error types.
 // The function is supposed to never panic.
-pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Operations, String> {
+pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Vec<Operation>, String> {
     pairs
         .map(|pair| match pair.as_rule() {
             Rule::blur => parse_unop_f32(pair).map(Operation::Blur),
@@ -33,7 +33,7 @@ pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Operations, Stri
             }
             _ => Err("Parse failed: Operation doesn't exist".to_string()),
         })
-        .collect::<Result<Operations, String>>()
+        .collect::<Result<Vec<_>, String>>()
 }
 
 // The code below, should work for parsing the 9 elements of a 3x3 fp32 triplet structure, but

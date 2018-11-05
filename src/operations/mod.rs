@@ -35,9 +35,7 @@ pub enum Operation {
     Unsharpen(f32, i32),
 }
 
-pub type Operations = Vec<Operation>;
-
-pub fn parse_script(script: &str) -> Result<Operations, String> {
+pub fn parse_script(script: &str) -> Result<Vec<Operation>, String> {
     let parsed_script = SICParser::parse(PARSER_RULE, script);
 
     parsed_script
