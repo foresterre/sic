@@ -1,4 +1,3 @@
-#[deny(missing_docs)]
 use std::path::Path;
 
 use clap::{App, Arg};
@@ -80,15 +79,13 @@ fn main() -> Result<(), String> {
             _ => vec![],
         },
 
-        user_manual: matches
-            .value_of("user_manual")
-            .map(|it: &str| String::from(it)),
+        user_manual: matches.value_of("user_manual").map(|it| it.to_string()),
 
-        script: matches.value_of("script").map(|it: &str| String::from(it)),
+        script: matches.value_of("script").map(|it| it.to_string()),
 
         forced_output_format: matches
             .value_of("forced_output_format")
-            .map(|it: &str| String::from(it)),
+            .map(|it| it.to_string()),
     };
 
     let license_display_processor = LicenseDisplayProcessor::new();
@@ -107,14 +104,14 @@ fn main() -> Result<(), String> {
 
     // perform image operations
     let mut image_operations_processor = ImageOperationsProcessor::new(&mut buffer);
-    let _ = image_operations_processor.process_mut(&options)?;
+    image_operations_processor.process_mut(&options)?;
 
     let output = matches
         .value_of("output_file")
         .ok_or_else(|| String::from("An OUTPUT was expected, but none was given."))?;
 
     match options.forced_output_format {
-        Some(format) => conversion::convert_image_forced(buffer, output, &format),
-        None => conversion::convert_image_unforced(buffer, output),
+        Some(format) => conversion::convert_image_forced(&buffer, output, &format),
+        None => conversion::convert_image_unforced(&buffer, output),
     }
 }

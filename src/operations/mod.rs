@@ -6,8 +6,8 @@ use crate::operations::parse::parse_image_operations;
 #[cfg(test)]
 mod test_setup;
 
-pub mod operations;
 mod parse;
+pub mod transformations;
 
 // ensure grammar refreshes on compile
 const _GRAMMAR: &str = include_str!("grammar.pest");
@@ -42,7 +42,7 @@ pub fn parse_script(script: &str) -> Result<Operations, String> {
 
     parsed_script
         .map_err(|err| format!("Unable to parse sic image operations script: {:?}", err))
-        .and_then(|pairs| parse_image_operations(pairs))
+        .and_then(parse_image_operations)
 }
 
 #[cfg(test)]

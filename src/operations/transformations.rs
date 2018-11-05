@@ -23,7 +23,7 @@ impl ApplyOperation<Operation, DynamicImage, String> for DynamicImage {
             Operation::HueRotate(degree) => Ok(self.huerotate(degree)),
             // TODO this is rather sub optimal with the double clone
             Operation::Invert => {
-                let ref mut img = self.clone();
+                let img = &mut self.clone();
                 image::DynamicImage::invert(img);
                 let res = img.clone();
                 Ok(res)

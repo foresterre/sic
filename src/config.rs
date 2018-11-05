@@ -2,8 +2,8 @@ use std::process;
 
 use crate::help::HelpIndex;
 use crate::operations;
-use crate::operations::operations::apply_operations_on_image;
-use crate::operations::Operations;
+use crate::operations::transformations::apply_operations_on_image;
+use crate::operations::Operation;
 
 // Currently uses String instead of &str for easier initial development (i.e. no manual lifetimes).
 // It should be replaced by &str where possible.
@@ -68,7 +68,7 @@ impl LicenseDisplayProcessor {
 }
 
 impl ProcessWithConfig<()> for LicenseDisplayProcessor {
-    fn process(&self, config: &Config) -> () {
+    fn process(&self, config: &Config) {
         LicenseDisplayProcessor::print_licenses(&config.licenses);
     }
 }
@@ -92,7 +92,7 @@ impl HelpDisplayProcessor {
 }
 
 impl ProcessWithConfig<()> for HelpDisplayProcessor {
-    fn process(&self, config: &Config) -> () {
+    fn process(&self, config: &Config) {
         if let Some(topic) = &config.user_manual {
             let help = HelpIndex::new();
 
@@ -119,7 +119,7 @@ impl<'a> ImageOperationsProcessor<'a> {
         ImageOperationsProcessor { buffer }
     }
 
-    fn parse_script(&self, config: &Config) -> Result<Operations, String> {
+    fn parse_script(&self, config: &Config) -> Result<Vec<Operation>, String> {
         println!("Parsing image operations script.");
 
         match &config.script {
@@ -128,7 +128,7 @@ impl<'a> ImageOperationsProcessor<'a> {
         }
     }
 
-    fn apply_operations(&mut self, ops: &Operations) -> Result<(), String> {
+    fn apply_operations(&mut self, ops: &[Operation]) -> Result<(), String> {
         println!("Applying image operations.");
 
         apply_operations_on_image(&mut self.buffer, ops)

@@ -11,14 +11,14 @@ use super::{Operation, Operations, Rule};
 pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Operations, String> {
     pairs
         .map(|pair| match pair.as_rule() {
-            Rule::blur => parse_unop_f32(pair).map(|u| Operation::Blur(u)),
-            Rule::brighten => parse_unop_i32(pair).map(|i| Operation::Brighten(i)),
-            Rule::contrast => parse_unop_f32(pair).map(|f| Operation::Contrast(f)),
-            Rule::filter3x3 => parse_triplet3x_f32(pair).map(|it| Operation::Filter3x3(it)),
+            Rule::blur => parse_unop_f32(pair).map(Operation::Blur),
+            Rule::brighten => parse_unop_i32(pair).map(Operation::Brighten),
+            Rule::contrast => parse_unop_f32(pair).map(Operation::Contrast),
+            Rule::filter3x3 => parse_triplet3x_f32(pair).map(Operation::Filter3x3),
             Rule::flip_horizontal => Ok(Operation::FlipHorizontal),
             Rule::flip_vertical => Ok(Operation::FlipVertical),
             Rule::grayscale => Ok(Operation::GrayScale),
-            Rule::huerotate => parse_unop_i32(pair).map(|i| Operation::HueRotate(i)),
+            Rule::huerotate => parse_unop_i32(pair).map(Operation::HueRotate),
             Rule::invert => Ok(Operation::Invert),
             Rule::resize => {
                 let (x, y) = parse_binop_u32(pair);
@@ -52,7 +52,7 @@ fn parse_triplet3x_f32(pair: Pair<'_, Rule>) -> Result<ArrayVec<[f32; 9]>, Strin
             .map(|val| val.as_str())
             .and_then(|it: &str| it.parse::<f32>().map_err(|err| err.to_string()));
 
-        if let Some(number) = ith_number.ok() {
+        if let Ok(number) = ith_number {
             let push_result = array.try_push(number);
 
             if push_result.is_err() {
@@ -96,7 +96,7 @@ fn parse_unop_f32(pair: Pair<'_, Rule>) -> Result<f32, String> {
 fn parse_unop_i32(pair: Pair<'_, Rule>) -> Result<i32, String> {
     pair.into_inner()
         .next()
-        .ok_or_else(|| format!("Unable to parse UnOp::i32, Expected 2 arguments."))
+        .ok_or_else(|| "Unable to parse UnOp::i32, Expected 2 arguments.".to_string())
         .map(|val| val.as_str())
         .and_then(|it: &str| it.parse::<i32>().map_err(|err| err.to_string()))
 }
