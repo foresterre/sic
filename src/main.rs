@@ -8,6 +8,7 @@ extern crate pest_derive;
 use crate::config::{
     Config, HelpDisplayProcessor, ImageOperationsProcessor, LicenseDisplayProcessor,
     ProcessMutWithConfig, ProcessWithConfig, SelectedLicenses,
+    FormatEncodingSettings, PNMEncodingSettings
 };
 
 mod config;
@@ -53,13 +54,19 @@ fn main() -> Result<(), String> {
             .help(HELP_OPERATIONS_AVAILABLE)
             .value_name("SCRIPT")
             .takes_value(true))
+        .arg(Arg::with_name("pnm_encoding_ascii")
+            .long("pnm-encoding-ascii"))
+        .arg(Arg::with_name("pnm_encoding_subtype")
+            .long("pnm-encoding-subtype")
+            .value_name("SUBTYPE")
+            .takes_value(true))
         .arg(Arg::with_name("input_file")
             .help("Sets the input file")
             .value_name("INPUT_FILE")
             .required_unless_one(&["license", "dep_licenses", "user_manual"])
             .index(1))
         .arg(Arg::with_name("output_file")
-            .help("Sets the output file")
+            .help("Sets the desired output file")
             .value_name("OUTPUT_FILE")
             .required_unless_one(&["license", "dep_licenses", "user_manual"])
             .index(2))
@@ -79,13 +86,20 @@ fn main() -> Result<(), String> {
             _ => vec![],
         },
 
-        user_manual: matches.value_of("user_manual").map(|it| it.to_string()),
+        user_manual: matches.value_of("user_manual").map(String::from),
 
-        script: matches.value_of("script").map(|it| it.to_string()),
+        script: matches.value_of("script").map(String::from),
 
         forced_output_format: matches
             .value_of("forced_output_format")
             .map(|it| it.to_string()),
+
+        encoding_settings: FormatEncodingSettings {
+            pnm_settings: PNMEncodingSettings {
+                ascii: matches.is_present("pnm_encoding_ascii"),
+                subtype: matches.value_of("pnm_encoding_subtype").map(String::from),
+            },
+        },
     };
 
     let license_display_processor = LicenseDisplayProcessor::new();

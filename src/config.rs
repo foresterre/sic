@@ -21,9 +21,28 @@ pub struct Config {
 
     // Format to which an image will be converted (enforced).
     pub forced_output_format: Option<String>,
-    // Options because they are not required if certain options (such as `--license`) are chosen.
-    // This should be handled by Clap, but Option was chosen out of a defensive strategy nonetheless.
-    // TODO: input_file, output_file are excluded from Config? Should they be included?
+
+    pub encoding_settings: FormatEncodingSettings,
+
+}
+
+pub struct FormatEncodingSettings {
+    pub pnm_settings: PNMEncodingSettings,
+}
+
+pub struct PNMEncodingSettings {
+    // This option defines whether PNM encoding will use a binary or a ascii based encoding.
+    // The default encoding is 'binary' (false).
+    pub ascii: bool,
+
+    // Setting which defines the subtype of the PNM image type.
+    // Valid options are:
+    // - "bitmap" (aka: pbm)
+    // - "graymap" (aka: pgm)
+    // - "pixmap" (aka: ppm)
+    // - "arbitrarymap" (aka: pam)
+    // These options are possibly lossy.
+    pub subtype: Option<String>,
 }
 
 /// Linear application pipeline trait for immutable references.
