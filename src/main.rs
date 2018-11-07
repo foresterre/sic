@@ -92,7 +92,7 @@ fn main() -> Result<(), String> {
 
         forced_output_format: matches
             .value_of("forced_output_format")
-            .map(|it| it.to_string()),
+            .map(String::from),
 
         encoding_settings: FormatEncodingSettings {
             pnm_settings: PNMEncodingSettings {
