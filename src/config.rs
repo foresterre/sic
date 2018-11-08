@@ -94,7 +94,7 @@ impl PNMEncodingSettings {
         let res_subtype = if !subtype.0 {
             PNMEncodingSettings::PNM_ENCODING_SUBTYPE_DEFAULT
         } else {
-            match subtype.1 { 
+            match subtype.1 {
                 Some("bitmap") => PNMEncodingSubtype::Bitmap,
                 Some("graymap") => PNMEncodingSubtype::Graymap,
                 Some("pixmap") => PNMEncodingSubtype::Pixmap,
