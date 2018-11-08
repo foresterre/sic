@@ -23,13 +23,50 @@ pub struct Config {
     pub forced_output_format: Option<String>,
 
     pub encoding_settings: FormatEncodingSettings,
-
 }
 
 pub struct FormatEncodingSettings {
+    pub jpeg_settings: JPEGEncodingSettings,
+
     pub pnm_settings: PNMEncodingSettings,
 }
 
+pub struct JPEGEncodingSettings {
+    // Valid values are actually 1...100 (inclusive)
+    pub quality: u8,
+}
+
+impl JPEGEncodingSettings {
+    const JPEG_ENCODING_QUALITY_DEFAULT: u8 = 80;
+
+    // Param:
+    // * quality: (present?, value)
+    // Can panic on invalid settings
+    pub fn new(quality: (bool, Option<&str>)) -> JPEGEncodingSettings {
+        let proposed_quality = match quality.1 {
+            Some(v) => v.parse::<u8>(),
+            None if !quality.0 => Ok(JPEGEncodingSettings::JPEG_ENCODING_QUALITY_DEFAULT),
+            None => panic!("JPEG Encoding Settings error: Unreachable"),
+        };
+
+        const ALLOWED_RANGE: std::ops::Range<u8> = 1..100;
+
+        let res_quality: u8 = match proposed_quality {
+            Ok(v) if ALLOWED_RANGE.contains(&v) => v,
+            Ok(_) => panic!("JPEG Encoding Settings error: --jpeg-encoding-quality requires a number between 1 and 100. (type 2: value not in range)"),
+            Err(_) => panic!("JPEG Encoding Settings error: --jpeg-encoding-quality requires a number between 1 and 100. (type 1: not a valid number)"),
+        };
+
+        // result
+        JPEGEncodingSettings {
+            quality: res_quality,
+        }
+    }
+}
+
+// Subtype + ascii combined create an image::PNMSubtype;
+// see https://docs.rs/image/0.19.0/image/pnm/enum.PNMSubtype.html
+// Ascii option can not be used with ArbitraryMap
 pub struct PNMEncodingSettings {
     // This option defines whether PNM encoding will use a binary or a ascii based encoding.
     // The default encoding is 'binary' (false).
@@ -42,7 +79,43 @@ pub struct PNMEncodingSettings {
     // - "pixmap" (aka: ppm)
     // - "arbitrarymap" (aka: pam)
     // These options are possibly lossy.
-    pub subtype: Option<String>,
+    pub subtype: PNMEncodingSubtype,
+}
+
+impl PNMEncodingSettings {
+    const PNM_ENCODING_SUBTYPE_DEFAULT: PNMEncodingSubtype = PNMEncodingSubtype::Pixmap;
+
+    // Param:
+    //  * as_ascii: present?  ; flags can only be present or not present
+    //  * subtype: (present?, value)
+    // Can panic on invalid settings
+    pub fn new(as_ascii: bool, subtype: (bool, Option<&str>)) -> PNMEncodingSettings {
+        // option subtype not present
+        let res_subtype = if !subtype.0 {
+            PNMEncodingSettings::PNM_ENCODING_SUBTYPE_DEFAULT
+        } else {
+            match subtype.1 { 
+                Some("bitmap") => PNMEncodingSubtype::Bitmap,
+                Some("graymap") => PNMEncodingSubtype::Graymap,
+                Some("pixmap") => PNMEncodingSubtype::Pixmap,
+                Some("arbitrarymap") if !as_ascii => PNMEncodingSubtype::ArbitraryMap,
+                Some("arbitrarymap") => panic!("PNM Encoding Settings error: the option --pnm-encoding-subtype 'arbitrarymap' can not be used when used with --pnm-encoding-ascii."),
+                _ => panic!("PNM Encoding Settings error: The provided subtype is not a valid option.")
+            }
+        };
+
+        PNMEncodingSettings {
+            ascii: as_ascii,
+            subtype: res_subtype,
+        }
+    }
+}
+
+pub enum PNMEncodingSubtype {
+    Bitmap,
+    Graymap,
+    Pixmap,
+    ArbitraryMap,
 }
 
 /// Linear application pipeline trait for immutable references.

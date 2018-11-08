@@ -1,3 +1,5 @@
+#![feature(range_contains)]
+
 use std::path::Path;
 
 use clap::{App, Arg};
@@ -6,9 +8,9 @@ use image;
 extern crate pest_derive;
 
 use crate::config::{
-    Config, HelpDisplayProcessor, ImageOperationsProcessor, LicenseDisplayProcessor,
-    ProcessMutWithConfig, ProcessWithConfig, SelectedLicenses,
-    FormatEncodingSettings, PNMEncodingSettings
+    Config, FormatEncodingSettings, HelpDisplayProcessor, ImageOperationsProcessor,
+    JPEGEncodingSettings, LicenseDisplayProcessor, PNMEncodingSettings, ProcessMutWithConfig,
+    ProcessWithConfig, SelectedLicenses,
 };
 
 mod config;
@@ -72,6 +74,7 @@ fn main() -> Result<(), String> {
             .index(2))
         .get_matches();
 
+    // Here any option will panic when invalid.
     let options = Config {
         licenses: match (
             matches.is_present("license"),
@@ -90,15 +93,24 @@ fn main() -> Result<(), String> {
 
         script: matches.value_of("script").map(String::from),
 
-        forced_output_format: matches
-            .value_of("forced_output_format")
-            .map(String::from),
+        forced_output_format: matches.value_of("forced_output_format").map(String::from),
 
         encoding_settings: FormatEncodingSettings {
-            pnm_settings: PNMEncodingSettings {
-                ascii: matches.is_present("pnm_encoding_ascii"),
-                subtype: matches.value_of("pnm_encoding_subtype").map(String::from),
-            },
+            // 3 possibilities:
+            //   - present + i (1 ... 100)
+            //   - present + i !(1 ... 100)
+            //   - not present (take default)
+            jpeg_settings: JPEGEncodingSettings::new((
+                matches.is_present("jpeg_encoding_quality"),
+                matches.value_of("jpeg_encoding_quality"),
+            )),
+            pnm_settings: PNMEncodingSettings::new(
+                matches.is_present("pnm_encoding_ascii"),
+                (
+                    matches.is_present("pnm_encoding_subtype"),
+                    matches.value_of("pnm_encoding_subtype"),
+                ),
+            ),
         },
     };
 
