@@ -1,0 +1,23 @@
+compat: ('sic_cli_runner_proto', '0.1.0');
+
+# install sic
+expectTrue:  is_exitcode(0) for `cargo install --path . --force`;
+
+# .pbm & bitmap
+expectTrue:  is_exitcode(0) for `sic resources/bwlines.png target/out.pbm --pnm-encoding-bitmap-ascii`;
+expectTrue:  is_exitcode(0) for `sic resources/bwlines.png target/out.pbm --pnm-encoding-bitmap-binary`;
+
+# .pgm & graymap
+expectTrue:  is_exitcode(0) for `sic resources/bwlines.png target/out.pgm --pnm-encoding-graymap-ascii`;
+expectTrue:  is_exitcode(0) for `sic resources/bwlines.png target/out.pgm --pnm-encoding-graymap-binary`;
+
+# .ppm & pixmap
+expectTrue:  is_exitcode(0) for `sic resources/rainbow_8x6.bmp target/out.ppm --pnm-encoding-pixmap-ascii`;
+expectTrue:  is_exitcode(0) for `sic resources/rainbow_8x6.bmp target/out.ppm --pnm-encoding-pixmap-binary`;
+
+# .pam & arbitrarymap
+expectTrue:  is_exitcode(0) for `sic resources/bwlines.png target/out.pam --pnm-encoding-arbitrarymap`;
+
+# other
+expectTrue:  is_exitcode(0) for `sic resources/bwlines.png target/out.pnm --pnm-encoding-pixmap-binary`; # currently fails because currently the options for encodings are not yet implemented
+expectFalse: is_exitcode(0) for `sic resources/bwlines.png target/out.pgm --pnm-encoding-pixmap-binary`; # --pnm-encoding-pixmap-binary not expected for .pgm (graymap) extension
