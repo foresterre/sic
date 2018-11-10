@@ -60,12 +60,20 @@ fn main() -> Result<(), String> {
             .long("jpeg-encoding-quality")
             .value_name("QUALITY")
             .takes_value(true))
-        .arg(Arg::with_name("pnm_encoding_ascii")
-            .long("pnm-encoding-ascii"))
-        .arg(Arg::with_name("pnm_encoding_subtype")
-            .long("pnm-encoding-subtype")
-            .value_name("SUBTYPE")
-            .takes_value(true))
+        .arg(Arg::with_name("pnm_encoding_bitmap_ascii")
+            .long("pnm-encoding-bitmap-ascii"))
+        .arg(Arg::with_name("pnm_encoding_graymap_ascii")
+            .long("pnm-encoding-graymap-ascii"))
+        .arg(Arg::with_name("pnm_encoding_pixmap_ascii")
+            .long("pnm-encoding-pixmap-ascii"))
+        .arg(Arg::with_name("pnm_encoding_bitmap_binary")
+            .long("pnm-encoding-bitmap-binary"))
+        .arg(Arg::with_name("pnm_encoding_graymap_binary")
+            .long("pnm-encoding-graymap-binary"))
+        .arg(Arg::with_name("pnm_encoding_pixmap_binary")
+            .long("pnm-encoding-pixmap-binary"))
+        .arg(Arg::with_name("pnm_encoding_arbitrarymap")
+            .long("pnm-encoding-arbitrarymap"))    
         .arg(Arg::with_name("input_file")
             .help("Sets the input file")
             .value_name("INPUT_FILE")
@@ -108,13 +116,15 @@ fn main() -> Result<(), String> {
                 matches.is_present("jpeg_encoding_quality"),
                 matches.value_of("jpeg_encoding_quality"),
             )),
-            pnm_settings: PNMEncodingSettings::new(
-                matches.is_present("pnm_encoding_ascii"),
-                (
-                    matches.is_present("pnm_encoding_subtype"),
-                    matches.value_of("pnm_encoding_subtype"),
-                ),
-            ),
+            pnm_settings: PNMEncodingSettings::new(&[
+                matches.is_present("pnm_encoding_bitmap_ascii"),
+                matches.is_present("pnm_encoding_graymap_ascii"),
+                matches.is_present("pnm_encoding_pixmap_ascii"),
+                matches.is_present("pnm_encoding_bitmap_binary"),
+                matches.is_present("pnm_encoding_graymap_binary"),
+                matches.is_present("pnm_encoding_pixmap_binary"),
+                matches.is_present("pnm_encoding_arbitrarymap"),
+            ]),
         },
     };
 
