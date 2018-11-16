@@ -303,11 +303,7 @@ impl EncodingFormatDecider {
 
 impl ProcessWithConfig<Result<image::ImageOutputFormat, String>> for EncodingFormatDecider {
     fn process(&self, config: &Config) -> Result<image::ImageOutputFormat, String> {
-        let res = EncodingFormatDecider::compute_format(&config);
-
-        println!("res: {:?}", res);
-
-        res
+        EncodingFormatDecider::compute_format(&config)
     }
 }
 
