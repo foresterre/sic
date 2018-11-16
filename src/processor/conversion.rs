@@ -40,9 +40,9 @@ mod tests {
     use crate::processor::mod_test_includes::*;
 
     const INPUT: &str = "rainbow_8x6.bmp";
-    const OUTPUT: &str = "conversion_rainbow_8x6.bmp";
+    const OUTPUT: &str = "conversion_rainbow_8x6.png";
 
-    fn setup_dummy_config() -> Config {
+    fn setup_dummy_config(output: &str) -> Config {
         Config {
             licenses: vec![],
             user_manual: None,
@@ -56,7 +56,7 @@ mod tests {
             },
 
             output: String::from(
-                setup_output_path(OUTPUT)
+                setup_output_path(output)
                     .to_str()
                     .expect("Path given is no good!"),
             ),
@@ -65,18 +65,68 @@ mod tests {
 
     #[test]
     fn will_output_file_be_created() {
-        let buffer = image::open(setup_test_image(INPUT)).expect("Can't open test file");
+        let our_output = &format!("will_output_file_be_created{}", OUTPUT); // this is required because tests are run in parallel, and the creation, or deletion can collide.
+
+        let buffer = image::open(setup_test_image(INPUT)).expect("Can't open test file.");
         let example_output_format = image::ImageOutputFormat::PNG;
-        let settings = setup_dummy_config();
+        let settings = setup_dummy_config(our_output);
 
         let conversion_processor = ConversionProcessor::new(&buffer, example_output_format);
         conversion_processor
             .process(&settings)
-            .expect("Unable to save file to the test computer");
+            .expect("Unable to save file to the test computer.");
 
-        assert!(setup_output_path(OUTPUT).exists());
+        assert!(setup_output_path(our_output).exists());
 
-        clean_up_output_path(OUTPUT);
+        clean_up_output_path(our_output);
     }
 
+    #[test]
+    fn has_png_extension() {
+        let our_output = &format!("has_png_extension{}", OUTPUT);
+
+        let buffer = image::open(setup_test_image(INPUT)).expect("Can't open test file.");
+        let example_output_format = image::ImageOutputFormat::PNG;
+        let settings = setup_dummy_config(our_output);
+
+        let conversion_processor = ConversionProcessor::new(&buffer, example_output_format);
+        conversion_processor
+            .process(&settings)
+            .expect("Unable to save file to the test computer.");
+
+        assert_eq!(
+            Some(std::ffi::OsStr::new("png")),
+            setup_output_path(our_output).extension()
+        );
+
+        clean_up_output_path(our_output);
+    }
+
+    #[test]
+    fn is_png_file() {
+        use std::io::Read;
+        let our_output = &format!("is_png_file{}", OUTPUT);
+
+        let buffer = image::open(setup_test_image(INPUT)).expect("Can't open test file.");
+        let example_output_format = image::ImageOutputFormat::PNG;
+        let settings = setup_dummy_config(our_output);
+
+        let conversion_processor = ConversionProcessor::new(&buffer, example_output_format);
+        conversion_processor
+            .process(&settings)
+            .expect("Unable to save file to the test computer.");
+
+        let mut file = std::fs::File::open(setup_output_path(our_output))
+            .expect("Unable to find file we made.");
+        let mut bytes = vec![];
+        file.read_to_end(&mut bytes)
+            .expect("Unable to finish reading our test image.");
+
+        assert_eq!(
+            image::ImageFormat::PNG,
+            image::guess_format(&bytes).expect("Format could not be guessed.")
+        );
+
+        clean_up_output_path(our_output);
+    }
 }
