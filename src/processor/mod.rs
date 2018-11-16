@@ -6,6 +6,9 @@ pub(crate) mod help_display;
 pub(crate) mod image_operations;
 pub(crate) mod license_display;
 
+#[cfg(test)]
+pub(in crate::processor) mod mod_test_includes;
+
 // Process With Config
 // Design perspective
 //
