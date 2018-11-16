@@ -101,10 +101,10 @@ fn main() -> Result<(), String> {
             //   - present + i (1 ... 100)
             //   - present + i !(1 ... 100)
             //   - not present (take default)
-            jpeg_settings: JPEGEncodingSettings::new((
+            jpeg_settings: JPEGEncodingSettings::new_result((
                 matches.is_present("jpeg_encoding_quality"),
                 matches.value_of("jpeg_encoding_quality"),
-            )),
+            ))?,
             pnm_settings: PNMEncodingSettings::new(matches.is_present("pnm_encoding_ascii")),
         },
 

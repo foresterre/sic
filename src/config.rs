@@ -48,26 +48,27 @@ impl JPEGEncodingSettings {
 
     // Param:
     // * quality: (present?, value)
-    // Can panic on invalid settings
-    pub fn new(quality: (bool, Option<&str>)) -> JPEGEncodingSettings {
+    pub fn new_result(quality: (bool, Option<&str>)) -> Result<JPEGEncodingSettings, String> {
         let proposed_quality = match quality.1 {
-            Some(v) => v.parse::<u8>(),
+            Some(v) => v
+                .parse::<u8>()
+                .map_err(|_| "JPEG Encoding Settings error: QUALITY is not a valid number.".into()),
             None if !quality.0 => Ok(JPEGEncodingSettings::JPEG_ENCODING_QUALITY_DEFAULT),
-            None => panic!("JPEG Encoding Settings error: Unreachable"),
+            None => Err("JPEG Encoding Settings error: Unreachable".into()),
         };
 
-        const ALLOWED_RANGE: std::ops::RangeInclusive<u8> = 1..=100;
+        fn within_range(v: u8) -> Result<JPEGEncodingSettings, String> {
+            const ALLOWED_RANGE: std::ops::RangeInclusive<u8> = 1..=100;
+            if ALLOWED_RANGE.contains(&v) {
+                let res = JPEGEncodingSettings { quality: v };
 
-        let res_quality: u8 = match proposed_quality {
-            Ok(v) if ALLOWED_RANGE.contains(&v) => v,
-            Ok(_) => panic!("JPEG Encoding Settings error: --jpeg-encoding-quality requires a number between 1 and 100. (type 2: value not in range)"),
-            Err(_) => panic!("JPEG Encoding Settings error: --jpeg-encoding-quality requires a number between 1 and 100. (type 1: not a valid number)"),
-        };
-
-        // result
-        JPEGEncodingSettings {
-            quality: res_quality,
+                Ok(res)
+            } else {
+                Err("JPEG Encoding Settings error: --jpeg-encoding-quality requires a number between 1 and 100.".into())
+            }
         }
+
+        proposed_quality.and_then(within_range)
     }
 }
 
