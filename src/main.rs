@@ -57,6 +57,7 @@ fn main() -> Result<(), String> {
             .takes_value(true))
         .arg(Arg::with_name("jpeg_encoding_quality")
             .long("jpeg-encoding-quality")
+            .help("Set the jpeg quality to QUALITY. Will only be used when the output format is determined to be jpeg.")
             .value_name("QUALITY")
             .takes_value(true))
         .arg(Arg::with_name("pnm_encoding_ascii")
