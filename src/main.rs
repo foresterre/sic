@@ -8,14 +8,19 @@ use image;
 extern crate pest_derive;
 
 use crate::config::{
-    Config, ConversionProcessor, EncodingFormatDecider, FormatEncodingSettings,
-    HelpDisplayProcessor, ImageOperationsProcessor, JPEGEncodingSettings, LicenseDisplayProcessor,
-    PNMEncodingSettings, ProcessMutWithConfig, ProcessWithConfig, SelectedLicenses,
+    Config, FormatEncodingSettings, JPEGEncodingSettings, PNMEncodingSettings, SelectedLicenses,
 };
+use crate::processor::conversion::ConversionProcessor;
+use crate::processor::encoding_format::EncodingFormatDecider;
+use crate::processor::help_display::HelpDisplayProcessor;
+use crate::processor::image_operations::ImageOperationsProcessor;
+use crate::processor::license_display::LicenseDisplayProcessor;
+use crate::processor::{ProcessMutWithConfig, ProcessWithConfig};
 
 mod config;
 mod help;
 mod operations;
+mod processor;
 
 const HELP_OPERATIONS_AVAILABLE: &str = include_str!("../docs/cli_help_script.txt");
 
