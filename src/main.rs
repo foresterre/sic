@@ -8,13 +8,12 @@ use image;
 extern crate pest_derive;
 
 use crate::config::{
-    Config, FormatEncodingSettings, HelpDisplayProcessor, ImageOperationsProcessor,
-    JPEGEncodingSettings, LicenseDisplayProcessor, PNMEncodingSettings, ProcessMutWithConfig,
-    ProcessWithConfig, SelectedLicenses,
+    Config, ConversionProcessor, EncodingFormatDecider, FormatEncodingSettings,
+    HelpDisplayProcessor, ImageOperationsProcessor, JPEGEncodingSettings, LicenseDisplayProcessor,
+    PNMEncodingSettings, ProcessMutWithConfig, ProcessWithConfig, SelectedLicenses,
 };
 
 mod config;
-mod conversion;
 mod help;
 mod operations;
 
@@ -60,20 +59,9 @@ fn main() -> Result<(), String> {
             .long("jpeg-encoding-quality")
             .value_name("QUALITY")
             .takes_value(true))
-        .arg(Arg::with_name("pnm_encoding_bitmap_ascii")
-            .long("pnm-encoding-bitmap-ascii"))
-        .arg(Arg::with_name("pnm_encoding_graymap_ascii")
-            .long("pnm-encoding-graymap-ascii"))
-        .arg(Arg::with_name("pnm_encoding_pixmap_ascii")
-            .long("pnm-encoding-pixmap-ascii"))
-        .arg(Arg::with_name("pnm_encoding_bitmap_binary")
-            .long("pnm-encoding-bitmap-binary"))
-        .arg(Arg::with_name("pnm_encoding_graymap_binary")
-            .long("pnm-encoding-graymap-binary"))
-        .arg(Arg::with_name("pnm_encoding_pixmap_binary")
-            .long("pnm-encoding-pixmap-binary"))
-        .arg(Arg::with_name("pnm_encoding_arbitrarymap")
-            .long("pnm-encoding-arbitrarymap"))    
+        .arg(Arg::with_name("pnm_encoding_ascii")
+            .long("pnm-encoding-ascii")
+            .help("Use ascii based encoding when using a PNM image output format (pbm, pgm or ppm). Doesn't apply to 'pam' (PNM ArbitraryMap)."))  
         .arg(Arg::with_name("input_file")
             .help("Sets the input file")
             .value_name("INPUT_FILE")
@@ -116,16 +104,13 @@ fn main() -> Result<(), String> {
                 matches.is_present("jpeg_encoding_quality"),
                 matches.value_of("jpeg_encoding_quality"),
             )),
-            pnm_settings: PNMEncodingSettings::new(&[
-                matches.is_present("pnm_encoding_bitmap_ascii"),
-                matches.is_present("pnm_encoding_graymap_ascii"),
-                matches.is_present("pnm_encoding_pixmap_ascii"),
-                matches.is_present("pnm_encoding_bitmap_binary"),
-                matches.is_present("pnm_encoding_graymap_binary"),
-                matches.is_present("pnm_encoding_pixmap_binary"),
-                matches.is_present("pnm_encoding_arbitrarymap"),
-            ]),
+            pnm_settings: PNMEncodingSettings::new(matches.is_present("pnm_encoding_ascii")),
         },
+
+        output: matches
+            .value_of("output_file")
+            .expect("An OUTPUT was expected, but none was given.")
+            .into(),
     };
 
     let license_display_processor = LicenseDisplayProcessor::new();
@@ -146,12 +131,9 @@ fn main() -> Result<(), String> {
     let mut image_operations_processor = ImageOperationsProcessor::new(&mut buffer);
     image_operations_processor.process_mut(&options)?;
 
-    let output = matches
-        .value_of("output_file")
-        .ok_or_else(|| String::from("An OUTPUT was expected, but none was given."))?;
+    let output_format_processor = EncodingFormatDecider::new();
+    let output_format = output_format_processor.process(&options);
 
-    match options.forced_output_format {
-        Some(format) => conversion::convert_image_forced(&buffer, output, &format),
-        None => conversion::convert_image_unforced(&buffer, output),
-    }
+    let conversion_processor = ConversionProcessor::new(&buffer, output_format?);
+    conversion_processor.process(&options)
 }
