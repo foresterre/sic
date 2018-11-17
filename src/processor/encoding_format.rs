@@ -101,3 +101,61 @@ impl ProcessWithConfig<Result<image::ImageOutputFormat, String>> for EncodingFor
         EncodingFormatDecider::compute_format(&config)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::{
+        Config, FormatEncodingSettings, JPEGEncodingSettings, PNMEncodingSettings,
+    };
+    use crate::processor::mod_test_includes::*;
+
+    const INPUT: &str = "rainbow_8x6.bmp";
+    const OUTPUT_NO_EXT: &str = "encoding_rainbow_8x6";
+
+    fn setup_dummy_config(output: &str, ext: &str) -> Config {
+        Config {
+            licenses: vec![],
+            user_manual: None,
+            script: None,
+            forced_output_format: None,
+
+            encoding_settings: FormatEncodingSettings {
+                jpeg_settings: JPEGEncodingSettings::new_result((false, None))
+                    .expect("Invalid jpeg settings"),
+                pnm_settings: PNMEncodingSettings::new(false),
+            },
+
+            output: String::from(
+                setup_output_path(&format!("{}.{}", output, ext))
+                    .to_str()
+                    .expect("Path given is no good!"),
+            ),
+        }
+    }
+
+    fn test_with_extension(ext: &str) {
+
+    }
+
+
+    fn test_with_force_format(f: &str) {
+        
+    }
+
+    #[test]
+    fn which_encoding_bmp_extension() {
+        let our_output = &format!("encoding_processing_{}", OUTPUT_NO_EXT); // this is required because tests are run in parallel, and the creation, or deletion can collide with other image file of the same name.
+
+        let settings = setup_dummy_config(our_output, ext);
+
+        let conversion_processor = EncodingFormatDecider::new();
+        let result = conversion_processor
+            .process(&settings)
+            .expect("Unable to save file to the test computer.");
+
+        // TODO
+        assert_eq!(image::ImageOutputFormat::BMP, result);
+        
+    }
+}

@@ -31,19 +31,19 @@ fn main() -> Result<(), String> {
         .about("Converts an image from one format to another.\n\n\
                 Supported input formats are described BMP, GIF, ICO, JPEG, PNG, PPM (limitations may apply). \n\n\
                 The image conversion is actually done by the awesome 'image' crate [1]. \n\
-                Sic itself is a small command line frontend which supports a small part of the \
-                conversion operations supported by the 'image' library. \n\n\
+                Sic itself is a small command line frontend which supports a part of the \
+                operations supported by the 'image' library. \n\n\
                 [1] image crate by PistonDevelopers: https://github.com/PistonDevelopers/image \n\n\
                 ")
         .arg(Arg::with_name("forced_output_format")
             .short("f")
             .long("force-format")
             .value_name("FORMAT")
-            .help("Output formats supported: JPEG, PNG, GIF, ICO, PPM")
+            .help("Output formats supported: BMP, GIF, JPEG, PNG, ICO, PBM, PGM, PPM, PAM.")
             .takes_value(true))
         .arg(Arg::with_name("license")
             .long("license")
-            .help("Displays the license of the `sic` software.")
+            .help("Displays the license of this piece of software (`sic`).")
             .takes_value(false))
         .arg(Arg::with_name("dep_licenses")
             .long("dep-licenses")
