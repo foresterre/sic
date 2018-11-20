@@ -110,20 +110,45 @@ mod tests {
     };
     use crate::processor::mod_test_includes::*;
 
-    const INPUT: &str = "rainbow_8x6.bmp";
-    const OUTPUT_NO_EXT: &str = "encoding_rainbow_8x6";
+    const OUTPUT_NO_EXT: &str = "dont_care";
+    const INPUT_FORMATS: &[&str] = &[
+        "bmp", "gif", "ico", "jpg", "jpeg", "png", "pbm", "pgm", "ppm", "pam",
+    ];
+    const EXPECTED_VALUES: &[image::ImageOutputFormat] = &[
+        image::ImageOutputFormat::BMP,
+        image::ImageOutputFormat::GIF,
+        image::ImageOutputFormat::ICO,
+        image::ImageOutputFormat::JPEG(80),
+        image::ImageOutputFormat::JPEG(80),
+        image::ImageOutputFormat::PNG,
+        image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::Bitmap(
+            image::pnm::SampleEncoding::Binary,
+        )),
+        image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::Graymap(
+            image::pnm::SampleEncoding::Binary,
+        )),
+        image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::Pixmap(
+            image::pnm::SampleEncoding::Binary,
+        )),
+        image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::ArbitraryMap),
+    ];
 
-    fn setup_dummy_config(output: &str, ext: &str) -> Config {
+    fn setup_dummy_config(
+        output: &str,
+        ext: &str,
+        force_format: Option<String>,
+        pnm_ascii: bool,
+    ) -> Config {
         Config {
             licenses: vec![],
             user_manual: None,
             script: None,
-            forced_output_format: None,
+            forced_output_format: force_format,
 
             encoding_settings: FormatEncodingSettings {
                 jpeg_settings: JPEGEncodingSettings::new_result((false, None))
                     .expect("Invalid jpeg settings"),
-                pnm_settings: PNMEncodingSettings::new(false),
+                pnm_settings: PNMEncodingSettings::new(pnm_ascii),
             },
 
             output: String::from(
@@ -134,28 +159,172 @@ mod tests {
         }
     }
 
-    fn test_with_extension(ext: &str) {
+    fn test_with_extension(ext: &str, expected: &image::ImageOutputFormat) {
+        let output_name = &format!("encoding_processing_w_ext_{}", OUTPUT_NO_EXT);
 
-    }
-
-
-    fn test_with_force_format(f: &str) {
-        
-    }
-
-    #[test]
-    fn which_encoding_bmp_extension() {
-        let our_output = &format!("encoding_processing_{}", OUTPUT_NO_EXT); // this is required because tests are run in parallel, and the creation, or deletion can collide with other image file of the same name.
-
-        let settings = setup_dummy_config(our_output, ext);
+        let settings = setup_dummy_config(output_name, ext, None, false);
 
         let conversion_processor = EncodingFormatDecider::new();
         let result = conversion_processor
             .process(&settings)
             .expect("Unable to save file to the test computer.");
 
-        // TODO
-        assert_eq!(image::ImageOutputFormat::BMP, result);
-        
+        assert_eq!(*expected, result);
     }
+
+    fn test_with_force_format(format: &str, expected: &image::ImageOutputFormat) {
+        let output_name = &format!("encoding_processing_w_ff_{}", OUTPUT_NO_EXT);
+
+        let settings = setup_dummy_config(output_name, "", Some(String::from(format)), false);
+
+        let conversion_processor = EncodingFormatDecider::new();
+        let result = conversion_processor
+            .process(&settings)
+            .expect("Unable to save file to the test computer.");
+
+        assert_eq!(*expected, result);
+    }
+
+    #[test]
+    fn test_with_extensions_with_defaults() {
+        let zipped = INPUT_FORMATS.iter().zip(EXPECTED_VALUES.iter());
+
+        for (ext, exp) in zipped {
+            println!("testing `test_with_extension`: {}", ext);
+            test_with_extension(ext, exp);
+        }
+    }
+
+    #[test]
+    fn test_with_force_formats_with_defaults() {
+        let zipped = INPUT_FORMATS.iter().zip(EXPECTED_VALUES.iter());
+
+        for (format, exp) in zipped {
+            println!("testing `test_with_force_format`: {}", format);
+            test_with_force_format(format, exp);
+        }
+    }
+
+    #[test]
+    fn test_with_extension_jpg_and_force_format_png() {
+        let output_name = &format!("encoding_processing_w_ext_and_ff_{}", OUTPUT_NO_EXT);
+
+        let settings = setup_dummy_config(output_name, "jpg", Some(String::from("png")), false);
+
+        let conversion_processor = EncodingFormatDecider::new();
+        let result = conversion_processor
+            .process(&settings)
+            .expect("Unable to save file to the test computer.");
+
+        assert_eq!(image::ImageOutputFormat::PNG, result);
+    }
+
+    #[test]
+    fn test_with_extension_and_ascii_pbm() {
+        let output_name = &format!("encoding_processing_ascii_pbm_{}", OUTPUT_NO_EXT);
+
+        let settings = setup_dummy_config(output_name, "pbm", None, true);
+
+        let conversion_processor = EncodingFormatDecider::new();
+        let result = conversion_processor
+            .process(&settings)
+            .expect("Unable to save file to the test computer.");
+
+        assert_eq!(
+            image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::Bitmap(
+                image::pnm::SampleEncoding::Ascii,
+            )),
+            result
+        );
+    }
+
+    #[test]
+    fn test_with_extension_and_ascii_pgm() {
+        let output_name = &format!("encoding_processing_ascii_pgm_{}", OUTPUT_NO_EXT);
+
+        let settings = setup_dummy_config(output_name, "pgm", None, true);
+
+        let conversion_processor = EncodingFormatDecider::new();
+        let result = conversion_processor
+            .process(&settings)
+            .expect("Unable to save file to the test computer.");
+
+        assert_eq!(
+            image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::Graymap(
+                image::pnm::SampleEncoding::Ascii,
+            )),
+            result
+        );
+    }
+
+    #[test]
+    fn test_with_extension_and_ascii_ppm() {
+        let output_name = &format!("encoding_processing_ascii_ppm_{}", OUTPUT_NO_EXT);
+
+        let settings = setup_dummy_config(output_name, "ppm", None, true);
+
+        let conversion_processor = EncodingFormatDecider::new();
+        let result = conversion_processor
+            .process(&settings)
+            .expect("Unable to save file to the test computer.");
+
+        assert_eq!(
+            image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::Pixmap(
+                image::pnm::SampleEncoding::Ascii,
+            )),
+            result
+        );
+    }
+
+    #[test]
+    fn test_with_extension_and_ascii_pam_doesnt_care() {
+        // PAM is not influenced by the PNM ascii setting
+        let output_name = &format!(
+            "encoding_processing_ascii_pam_doesnt_care_{}",
+            OUTPUT_NO_EXT
+        );
+
+        let settings = setup_dummy_config(output_name, "pam", None, true);
+
+        let conversion_processor = EncodingFormatDecider::new();
+        let result = conversion_processor
+            .process(&settings)
+            .expect("Unable to save file to the test computer.");
+
+        assert_eq!(
+            image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::ArbitraryMap),
+            result
+        );
+    }
+
+    #[test]
+    fn test_jpeg_custom_quality() {
+        let jpeg_conf = Config {
+            licenses: vec![],
+            user_manual: None,
+            script: None,
+            forced_output_format: None,
+
+            encoding_settings: FormatEncodingSettings {
+                jpeg_settings: JPEGEncodingSettings::new_result((true, Some("40")))
+                    .expect("Invalid jpeg settings"),
+                pnm_settings: PNMEncodingSettings::new(false),
+            },
+
+            output: String::from(
+                setup_output_path("encoding_processing_jpeg_quality_valid.jpg")
+                    .to_str()
+                    .expect("Path given is no good!"),
+            ),
+        };
+
+        let conversion_processor = EncodingFormatDecider::new();
+        let result = conversion_processor
+            .process(&jpeg_conf)
+            .expect("Unable to save file to the test computer.");
+
+        assert_eq!(image::ImageOutputFormat::JPEG(40), result);
+    }
+
+    // TODO{}: test bad cases, edges
 }
