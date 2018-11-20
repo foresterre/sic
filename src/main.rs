@@ -67,7 +67,10 @@ fn main() -> Result<(), String> {
             .takes_value(true))
         .arg(Arg::with_name("pnm_encoding_ascii")
             .long("pnm-encoding-ascii")
-            .help("Use ascii based encoding when using a PNM image output format (pbm, pgm or ppm). Doesn't apply to 'pam' (PNM ArbitraryMap)."))  
+            .help("Use ascii based encoding when using a PNM image output format (pbm, pgm or ppm). Doesn't apply to 'pam' (PNM ArbitraryMap)."))
+        .arg(Arg::with_name("disable_automatic_color_type_adjustment")
+            .long("disable-automatic-color-type-adjustment")
+            .help("Some image output formats do not support the color type of the image buffer prior to encoding. By default sic tries to adjust the color type. If this flag is provided, sic will not try to adjust the color type."))
         .arg(Arg::with_name("input_file")
             .help("Sets the input file")
             .value_name("INPUT_FILE")
@@ -100,6 +103,9 @@ fn main() -> Result<(), String> {
         script: matches.value_of("script").map(String::from),
 
         forced_output_format: matches.value_of("forced_output_format").map(String::from),
+
+        disable_automatic_color_type_adjustment: matches
+            .is_present("disable_automatic_color_type_adjustment"),
 
         encoding_settings: FormatEncodingSettings {
             // 3 possibilities:

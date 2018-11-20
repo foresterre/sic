@@ -144,6 +144,7 @@ mod tests {
             user_manual: None,
             script: None,
             forced_output_format: force_format,
+            disable_automatic_color_type_adjustment: false,
 
             encoding_settings: FormatEncodingSettings {
                 jpeg_settings: JPEGEncodingSettings::new_result((false, None))
@@ -304,6 +305,7 @@ mod tests {
             user_manual: None,
             script: None,
             forced_output_format: None,
+            disable_automatic_color_type_adjustment: false,
 
             encoding_settings: FormatEncodingSettings {
                 jpeg_settings: JPEGEncodingSettings::new_result((true, Some("40")))
@@ -334,6 +336,7 @@ mod tests {
             user_manual: None,
             script: None,
             forced_output_format: None,
+            disable_automatic_color_type_adjustment: false,
 
             encoding_settings: FormatEncodingSettings {
                 jpeg_settings: JPEGEncodingSettings { quality: 90 },
@@ -361,6 +364,7 @@ mod tests {
             user_manual: None,
             script: None,
             forced_output_format: None,
+            disable_automatic_color_type_adjustment: false,
 
             encoding_settings: FormatEncodingSettings {
                 jpeg_settings: JPEGEncodingSettings { quality: 90 },
@@ -388,6 +392,7 @@ mod tests {
             user_manual: None,
             script: None,
             forced_output_format: Some("OiOi".into()), // unsupported format
+            disable_automatic_color_type_adjustment: false,
 
             encoding_settings: FormatEncodingSettings {
                 jpeg_settings: JPEGEncodingSettings { quality: 90 },
@@ -415,6 +420,7 @@ mod tests {
             user_manual: None,
             script: None,
             forced_output_format: Some("OiOi".into()), // unsupported format
+            disable_automatic_color_type_adjustment: false,
 
             encoding_settings: FormatEncodingSettings {
                 jpeg_settings: JPEGEncodingSettings { quality: 90 },

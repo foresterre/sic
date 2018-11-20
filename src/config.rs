@@ -16,6 +16,9 @@ pub struct Config {
     // Format to which an image will be converted (enforced).
     pub forced_output_format: Option<String>,
 
+    // --disable-automatic-color-type-adjustment
+    pub disable_automatic_color_type_adjustment: bool,
+
     pub encoding_settings: FormatEncodingSettings,
 
     // output path
