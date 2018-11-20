@@ -167,7 +167,7 @@ mod tests {
         let conversion_processor = EncodingFormatDecider::new();
         let result = conversion_processor
             .process(&settings)
-            .expect("Unable to save file to the test computer.");
+            .expect("Failed to compute image format.");
 
         assert_eq!(*expected, result);
     }
@@ -180,7 +180,7 @@ mod tests {
         let conversion_processor = EncodingFormatDecider::new();
         let result = conversion_processor
             .process(&settings)
-            .expect("Unable to save file to the test computer.");
+            .expect("Failed to compute image format.");
 
         assert_eq!(*expected, result);
     }
@@ -214,7 +214,7 @@ mod tests {
         let conversion_processor = EncodingFormatDecider::new();
         let result = conversion_processor
             .process(&settings)
-            .expect("Unable to save file to the test computer.");
+            .expect("Failed to compute image format.");
 
         assert_eq!(image::ImageOutputFormat::PNG, result);
     }
@@ -228,7 +228,7 @@ mod tests {
         let conversion_processor = EncodingFormatDecider::new();
         let result = conversion_processor
             .process(&settings)
-            .expect("Unable to save file to the test computer.");
+            .expect("Failed to compute image format.");
 
         assert_eq!(
             image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::Bitmap(
@@ -247,7 +247,7 @@ mod tests {
         let conversion_processor = EncodingFormatDecider::new();
         let result = conversion_processor
             .process(&settings)
-            .expect("Unable to save file to the test computer.");
+            .expect("Failed to compute image format.");
 
         assert_eq!(
             image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::Graymap(
@@ -266,7 +266,7 @@ mod tests {
         let conversion_processor = EncodingFormatDecider::new();
         let result = conversion_processor
             .process(&settings)
-            .expect("Unable to save file to the test computer.");
+            .expect("Failed to compute image format.");
 
         assert_eq!(
             image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::Pixmap(
@@ -289,7 +289,7 @@ mod tests {
         let conversion_processor = EncodingFormatDecider::new();
         let result = conversion_processor
             .process(&settings)
-            .expect("Unable to save file to the test computer.");
+            .expect("Failed to compute image format.");
 
         assert_eq!(
             image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::ArbitraryMap),
@@ -321,7 +321,7 @@ mod tests {
         let conversion_processor = EncodingFormatDecider::new();
         let result = conversion_processor
             .process(&jpeg_conf)
-            .expect("Unable to save file to the test computer.");
+            .expect("Failed to compute image format.");
 
         assert_eq!(image::ImageOutputFormat::JPEG(40), result);
     }
@@ -350,7 +350,7 @@ mod tests {
         let conversion_processor = EncodingFormatDecider::new();
         let _ = conversion_processor
             .process(&jpeg_conf)
-            .expect("Unable to save file to the test computer.");
+            .expect("Failed to compute image format.");
     }
 
     #[should_panic]
@@ -377,7 +377,7 @@ mod tests {
         let conversion_processor = EncodingFormatDecider::new();
         let _ = conversion_processor
             .process(&jpeg_conf)
-            .expect("Unable to save file to the test computer.");
+            .expect("Failed to compute image format.");
     }
 
     #[should_panic]
