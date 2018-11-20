@@ -326,5 +326,113 @@ mod tests {
         assert_eq!(image::ImageOutputFormat::JPEG(40), result);
     }
 
+    #[should_panic]
+    #[test]
+    fn test_output_unsupported_extension() {
+        let jpeg_conf = Config {
+            licenses: vec![],
+            user_manual: None,
+            script: None,
+            forced_output_format: None,
+
+            encoding_settings: FormatEncodingSettings {
+                jpeg_settings: JPEGEncodingSettings { quality: 90 },
+                pnm_settings: PNMEncodingSettings::new(false),
+            },
+
+            output: String::from(
+                setup_output_path("encoding_processing_invalid.😉")
+                    .to_str()
+                    .expect("Path given is no good!"),
+            ),
+        };
+
+        let conversion_processor = EncodingFormatDecider::new();
+        let _ = conversion_processor
+            .process(&jpeg_conf)
+            .expect("Unable to save file to the test computer.");
+    }
+
+    #[should_panic]
+    #[test]
+    fn test_output_no_ext_or_ff() {
+        let jpeg_conf = Config {
+            licenses: vec![],
+            user_manual: None,
+            script: None,
+            forced_output_format: None,
+
+            encoding_settings: FormatEncodingSettings {
+                jpeg_settings: JPEGEncodingSettings { quality: 90 },
+                pnm_settings: PNMEncodingSettings::new(false),
+            },
+
+            output: String::from(
+                setup_output_path("encoding_processing_invalid.")
+                    .to_str()
+                    .expect("Path given is no good!"),
+            ),
+        };
+
+        let conversion_processor = EncodingFormatDecider::new();
+        let _ = conversion_processor
+            .process(&jpeg_conf)
+            .expect("Unable to save file to the test computer.");
+    }
+
+    #[should_panic]
+    #[test]
+    fn test_output_unsupported_ff_with_ext() {
+        let jpeg_conf = Config {
+            licenses: vec![],
+            user_manual: None,
+            script: None,
+            forced_output_format: Some("OiOi".into()), // unsupported format
+
+            encoding_settings: FormatEncodingSettings {
+                jpeg_settings: JPEGEncodingSettings { quality: 90 },
+                pnm_settings: PNMEncodingSettings::new(false),
+            },
+
+            output: String::from(
+                setup_output_path("encoding_processing_invalid.jpg")
+                    .to_str()
+                    .expect("Path given is no good!"),
+            ),
+        };
+
+        let conversion_processor = EncodingFormatDecider::new();
+        let _ = conversion_processor
+            .process(&jpeg_conf)
+            .expect("Unable to save file to the test computer");
+    }
+
+    #[should_panic]
+    #[test]
+    fn test_output_unsupported_ff_without_ext() {
+        let jpeg_conf = Config {
+            licenses: vec![],
+            user_manual: None,
+            script: None,
+            forced_output_format: Some("OiOi".into()), // unsupported format
+
+            encoding_settings: FormatEncodingSettings {
+                jpeg_settings: JPEGEncodingSettings { quality: 90 },
+                pnm_settings: PNMEncodingSettings::new(false),
+            },
+
+            output: String::from(
+                setup_output_path("encoding_processing_invalid")
+                    .to_str()
+                    .expect("Path given is no good!"),
+            ),
+        };
+
+        let conversion_processor = EncodingFormatDecider::new();
+        let _ = conversion_processor
+            .process(&jpeg_conf)
+            .expect("Unable to save file to the test computer");
+    }
+
     // TODO{}: test bad cases, edges
 }
