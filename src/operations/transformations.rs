@@ -6,6 +6,7 @@ pub trait ApplyOperation<O, T, E> {
     fn apply_operation(&self, operation: &O) -> Result<T, E>;
 }
 
+// TODO take &mut DynImage as param?
 impl ApplyOperation<Operation, DynamicImage, String> for DynamicImage {
     fn apply_operation(&self, operation: &Operation) -> Result<DynamicImage, String> {
         match *operation {
@@ -14,14 +15,15 @@ impl ApplyOperation<Operation, DynamicImage, String> for DynamicImage {
             Operation::Contrast(c) => Ok(self.adjust_contrast(c)),
             // We need to ensure here that Filter3x3's `it` (&[f32]) has length 9.
             // Otherwise it will panic, see: https://docs.rs/image/0.19.0/src/image/dynimage.rs.html#349
-            // This check happens already within the `parse` module.
+            // This check already happens within the `parse` module.
             Operation::Filter3x3(ref it) => Ok(self.filter3x3(&it)),
             Operation::FlipHorizontal => Ok(self.fliph()),
             Operation::FlipVertical => Ok(self.flipv()),
             Operation::GrayScale => Ok(self.grayscale()),
             Operation::HueRotate(degree) => Ok(self.huerotate(degree)),
+            // TODO this is rather sub optimal with the double clone
             Operation::Invert => {
-                let ref mut img = self.clone();
+                let img = &mut self.clone();
                 image::DynamicImage::invert(img);
                 let res = img.clone();
                 Ok(res)
@@ -38,24 +40,15 @@ impl ApplyOperation<Operation, DynamicImage, String> for DynamicImage {
 }
 
 pub fn apply_operations_on_image(
-    image: DynamicImage,
+    image: &mut DynamicImage,
     operations: &[Operation],
-) -> Result<DynamicImage, String> {
+) -> Result<(), String> {
     // this should be possible clean and nice and functional, but right now, I can't come up with it.
-
-    let mut mut_img: DynamicImage = image;
-
     for op in operations.iter() {
-        let op_status = mut_img.apply_operation(op);
-
-        if op_status.is_err() {
-            return op_status.map_err(|err| err.to_string());
-        } else {
-            mut_img = op_status.unwrap();
-        }
+        *image = image.apply_operation(op)?;
     }
 
-    Ok(mut_img)
+    Ok(())
 }
 
 #[cfg(test)]
@@ -497,7 +490,7 @@ mod tests {
     #[test]
     fn test_multi() {
         // 217x447px original
-        let img: DynamicImage = setup_default_test_image();
+        let mut img: DynamicImage = setup_default_test_image();
         let operations = vec![
             Operation::Resize(80, 100),
             Operation::Blur(5.0),
@@ -511,18 +504,17 @@ mod tests {
         assert_eq!(ya, 447);
         assert_eq!(xa, 217);
 
-        let done = apply_operations_on_image(img, &operations);
+        let done = apply_operations_on_image(&mut img, &operations);
 
         assert!(done.is_ok());
 
-        let img_result = done.unwrap();
-        let (xb, yb) = img_result.dimensions();
+        let (xb, yb) = img.dimensions();
 
         // dim original => 80x100 => 100x80
         assert_eq!(xb, 100);
         assert_eq!(yb, 80);
 
-        output_test_image_for_manual_inspection(&img_result, "target/test_multi.png")
+        output_test_image_for_manual_inspection(&img, "target/test_multi.png")
     }
 
 }

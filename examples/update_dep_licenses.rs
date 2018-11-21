@@ -78,7 +78,8 @@ fn main() {
         .output()
         .expect(
             "Unable to read `cargo bom` output; `cargo-bom` and `cargo` should be in your path!",
-        ).stdout;
+        )
+        .stdout;
 
     write_file(DEP_LICENSES_PATH, &dep_licenses_in_bytes);
 

@@ -1,24 +1,24 @@
 use arrayvec::ArrayVec;
 use pest::iterators::{Pair, Pairs};
 
-use super::{Operation, Operations, Rule};
+use super::{Operation, Rule};
 
 // This function parses Operations from the Pest parsed syntax, as defined by
 // [grammar.pest].
 // It returns an error (Err) in case of any parse failure.
 // The error currently contains a String, but this will need to be reworked to proper error types.
 // The function is supposed to never panic.
-pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Operations, String> {
+pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Vec<Operation>, String> {
     pairs
         .map(|pair| match pair.as_rule() {
-            Rule::blur => parse_unop_f32(pair).map(|u| Operation::Blur(u)),
-            Rule::brighten => parse_unop_i32(pair).map(|i| Operation::Brighten(i)),
-            Rule::contrast => parse_unop_f32(pair).map(|f| Operation::Contrast(f)),
-            Rule::filter3x3 => parse_triplet3x_f32(pair).map(|it| Operation::Filter3x3(it)),
+            Rule::blur => parse_unop_f32(pair).map(Operation::Blur),
+            Rule::brighten => parse_unop_i32(pair).map(Operation::Brighten),
+            Rule::contrast => parse_unop_f32(pair).map(Operation::Contrast),
+            Rule::filter3x3 => parse_triplet3x_f32(pair).map(Operation::Filter3x3),
             Rule::flip_horizontal => Ok(Operation::FlipHorizontal),
             Rule::flip_vertical => Ok(Operation::FlipVertical),
             Rule::grayscale => Ok(Operation::GrayScale),
-            Rule::huerotate => parse_unop_i32(pair).map(|i| Operation::HueRotate(i)),
+            Rule::huerotate => parse_unop_i32(pair).map(Operation::HueRotate),
             Rule::invert => Ok(Operation::Invert),
             Rule::resize => {
                 let (x, y) = parse_binop_u32(pair);
@@ -32,7 +32,8 @@ pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Operations, Stri
                 x.and_then(|ux| y.map(|uy| Operation::Unsharpen(ux, uy)))
             }
             _ => Err("Parse failed: Operation doesn't exist".to_string()),
-        }).collect::<Result<Operations, String>>()
+        })
+        .collect::<Result<Vec<_>, String>>()
 }
 
 // The code below, should work for parsing the 9 elements of a 3x3 fp32 triplet structure, but
@@ -51,7 +52,7 @@ fn parse_triplet3x_f32(pair: Pair<'_, Rule>) -> Result<ArrayVec<[f32; 9]>, Strin
             .map(|val| val.as_str())
             .and_then(|it: &str| it.parse::<f32>().map_err(|err| err.to_string()));
 
-        if let Some(number) = ith_number.ok() {
+        if let Ok(number) = ith_number {
             let push_result = array.try_push(number);
 
             if push_result.is_err() {
@@ -95,7 +96,7 @@ fn parse_unop_f32(pair: Pair<'_, Rule>) -> Result<f32, String> {
 fn parse_unop_i32(pair: Pair<'_, Rule>) -> Result<i32, String> {
     pair.into_inner()
         .next()
-        .ok_or_else(|| format!("Unable to parse UnOp::i32, Expected 2 arguments."))
+        .ok_or_else(|| "Unable to parse UnOp::i32, Expected 2 arguments.".to_string())
         .map(|val| val.as_str())
         .and_then(|it: &str| it.parse::<i32>().map_err(|err| err.to_string()))
 }
@@ -220,7 +221,8 @@ mod tests {
         let pairs = SICParser::parse(
             Rule::main,
             "filter3x3 0 0.1 0.2 | 1.3 1.4 1.5 | 2.6 2.7 2.8",
-        ).unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        )
+        .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![Operation::Filter3x3(ArrayVec::from([
                 0.0, 0.1, 0.2, 1.3, 1.4, 1.5, 2.6, 2.7, 2.8
@@ -318,7 +320,8 @@ mod tests {
         let pairs = SICParser::parse(
             Rule::main,
             "filter3x3 1.9 2 3 | 4 5.9 6 | 7 8 9.9\nfilter3x3 10.9 2 3 4 11.9 6 7 8 12.9",
-        ).unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        )
+        .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
 
         assert_eq!(
             Ok(vec![
@@ -587,7 +590,8 @@ mod tests {
         let pairs = SICParser::parse(
             Rule::main,
             "fliph    ; flipv   ;   \t\t resize 100 200; blur 10;",
-        ).unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        )
+        .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![
                 Operation::FlipHorizontal,

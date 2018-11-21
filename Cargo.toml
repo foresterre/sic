@@ -28,3 +28,6 @@ pest_derive = "1.0.7"
 [[bin]]
 name = "sic"
 path = "src/main.rs"
+
+[profile.release]
+panic = "abort"

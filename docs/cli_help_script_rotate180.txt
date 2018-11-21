@@ -1,8 +1,5 @@
-User Manual
-===========
-
-Page: 'rotate180'
-Category: 'script command'
+rotate180
+=========
 
 Goal:
 -----

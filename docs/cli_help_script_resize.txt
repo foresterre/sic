@@ -1,8 +1,5 @@
-User Manual
-===========
-
-Page: 'resize'
-Category: 'script command'
+resize
+======
 
 Goal:
 -----

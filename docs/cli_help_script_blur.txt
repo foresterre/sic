@@ -1,8 +1,5 @@
-User Manual
-===========
-
-Page: 'blur'
-Category: 'script command'
+blur
+====
 
 Goal:
 -----

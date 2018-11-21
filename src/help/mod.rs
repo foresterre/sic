@@ -11,7 +11,7 @@ use std::hash::{Hash, Hasher};
 // (for example) from the file name.
 // Or a similar option, include a 'docs.json' like file which specifies the meta data for the
 // docs to be included.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum HelpTopicKind {
     Script,
 
@@ -34,7 +34,7 @@ pub enum HelpTopicKind {
 }
 
 impl HelpTopicKind {
-    pub fn name(&self) -> String {
+    pub fn name(self) -> String {
         let text = match self {
             HelpTopicKind::Script => "script",
             HelpTopicKind::Blur => "blur",
@@ -78,7 +78,7 @@ impl HelpTopicKind {
         }
     }
 
-    pub fn text(&self) -> String {
+    pub fn text(self) -> String {
         let help_page = match self {
             HelpTopicKind::Script => include_str!("../../docs/cli_help_script.txt"),
             HelpTopicKind::Blur => include_str!("../../docs/cli_help_script_blur.txt"),
@@ -140,21 +140,21 @@ impl HelpIndex {
         let mut dict = HashMap::new();
 
         // ugh.
-        insert_help_entry(&mut dict, &mut HelpTopicKind::Script);
-        insert_help_entry(&mut dict, &mut HelpTopicKind::Blur);
-        insert_help_entry(&mut dict, &mut HelpTopicKind::Brighten);
-        insert_help_entry(&mut dict, &mut HelpTopicKind::Contrast);
-        insert_help_entry(&mut dict, &mut HelpTopicKind::Filter3x3);
-        insert_help_entry(&mut dict, &mut HelpTopicKind::FlipH);
-        insert_help_entry(&mut dict, &mut HelpTopicKind::FlipV);
-        insert_help_entry(&mut dict, &mut HelpTopicKind::GrayScale);
-        insert_help_entry(&mut dict, &mut HelpTopicKind::HueRotate);
-        insert_help_entry(&mut dict, &mut HelpTopicKind::Invert);
-        insert_help_entry(&mut dict, &mut HelpTopicKind::Resize);
-        insert_help_entry(&mut dict, &mut HelpTopicKind::Rotate90);
-        insert_help_entry(&mut dict, &mut HelpTopicKind::Rotate180);
-        insert_help_entry(&mut dict, &mut HelpTopicKind::Rotate270);
-        insert_help_entry(&mut dict, &mut HelpTopicKind::Unsharpen);
+        insert_help_entry(&mut dict, HelpTopicKind::Script);
+        insert_help_entry(&mut dict, HelpTopicKind::Blur);
+        insert_help_entry(&mut dict, HelpTopicKind::Brighten);
+        insert_help_entry(&mut dict, HelpTopicKind::Contrast);
+        insert_help_entry(&mut dict, HelpTopicKind::Filter3x3);
+        insert_help_entry(&mut dict, HelpTopicKind::FlipH);
+        insert_help_entry(&mut dict, HelpTopicKind::FlipV);
+        insert_help_entry(&mut dict, HelpTopicKind::GrayScale);
+        insert_help_entry(&mut dict, HelpTopicKind::HueRotate);
+        insert_help_entry(&mut dict, HelpTopicKind::Invert);
+        insert_help_entry(&mut dict, HelpTopicKind::Resize);
+        insert_help_entry(&mut dict, HelpTopicKind::Rotate90);
+        insert_help_entry(&mut dict, HelpTopicKind::Rotate180);
+        insert_help_entry(&mut dict, HelpTopicKind::Rotate270);
+        insert_help_entry(&mut dict, HelpTopicKind::Unsharpen);
 
         HelpIndex { index: dict }
     }
@@ -177,12 +177,12 @@ impl HelpIndex {
 }
 
 // Dislike the cloning here, this should be possible in a different way (?)
-fn insert_help_entry(dict: &mut HashMap<HelpTopicKind, HelpTopic>, kind: &mut HelpTopicKind) {
+fn insert_help_entry(dict: &mut HashMap<HelpTopicKind, HelpTopic>, kind: HelpTopicKind) {
     dict.insert(
-        kind.clone(),
+        kind,
         HelpTopic {
-            name: String::from(kind.name()),
-            help_text: String::from(kind.text()),
+            name: kind.name(),
+            help_text: kind.text(),
         },
     );
 }

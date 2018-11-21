@@ -1,8 +1,5 @@
-User Manual
-===========
-
-Page: 'brighten'
-Category: 'script command'
+brighten
+========
 
 Goal:
 -----

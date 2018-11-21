@@ -1,8 +1,5 @@
-User Manual
-===========
-
-Page: 'script'
-Category: 'cli option'
+cli option: script
+==================
 
 Goal:
 -----
@@ -50,3 +47,9 @@ Example 1: sic input.png output.png --script "resize 250 250; blur 5; huerotate 
 Example 2: sic input.png output.jpg --script "flipv resize 10 5 blur 100 grayscale"
 Example 3: sic input.png output.jpg --script "filter3x3 1.0 0.9 0.8 | 0.7 0.6 0.5 | 0.4 0.3 0.2; flipv; invert"
 
+
+Help pages
+==========
+
+Each script command has a help page which might provide some additional information.
+Display the help page by running `sic -H <script-operation>` where `<script-operation>` are the operations listed in the table above.
