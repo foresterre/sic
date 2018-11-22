@@ -4,10 +4,10 @@ use pest::Parser;
 use crate::operations::parse::parse_image_operations;
 
 #[cfg(test)]
-mod test_setup;
+mod mod_test_includes;
 
 mod parse;
-pub mod transformations;
+pub(crate) mod transformations;
 
 // ensure grammar refreshes on compile
 const _GRAMMAR: &str = include_str!("grammar.pest");

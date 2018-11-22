@@ -10,6 +10,7 @@ use super::{Operation, Rule};
 // The function is supposed to never panic.
 pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Vec<Operation>, String> {
     pairs
+        .filter(|pair| pair.as_rule() != Rule::EOI)
         .map(|pair| match pair.as_rule() {
             Rule::blur => parse_unop_f32(pair).map(Operation::Blur),
             Rule::brighten => parse_unop_i32(pair).map(Operation::Brighten),
@@ -34,52 +35,6 @@ pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Vec<Operation>, 
             _ => Err("Parse failed: Operation doesn't exist".to_string()),
         })
         .collect::<Result<Vec<_>, String>>()
-}
-
-// The code below, should work for parsing the 9 elements of a 3x3 fp32 triplet structure, but
-// let's be honest; this code can't be called beautiful. This should be refactored.
-fn parse_triplet3x_f32(pair: Pair<'_, Rule>) -> Result<ArrayVec<[f32; 9]>, String> {
-    const SIZE: usize = 9;
-
-    let mut inner = pair.into_inner();
-
-    let mut array = ArrayVec::<[f32; 9]>::new();
-
-    for i in 0..SIZE {
-        let ith_number = inner
-            .next()
-            .ok_or_else(|| format!("Unable to parse {}, arguments #: {}", inner, i))
-            .map(|val| val.as_str())
-            .and_then(|it: &str| it.parse::<f32>().map_err(|err| err.to_string()));
-
-        if let Ok(number) = ith_number {
-            let push_result = array.try_push(number);
-
-            if push_result.is_err() {
-                return Err(format!(
-                    "Unable to complete parsing of {}; failed to push {}-th value.",
-                    inner, i
-                ));
-            }
-        } else {
-            return Err(format!(
-                "Unable to parse fp32_3x3 structure. Remainder: {}",
-                inner
-            ));
-        }
-    }
-
-    let result_len = array.len();
-
-    // should never happen (that is, even be possible, if above is correct)
-    if result_len == SIZE {
-        Ok(array)
-    } else {
-        Err(format!(
-            "Unable to parse fp32_3x3 structure; should be size {}, but was {}.",
-            SIZE, result_len
-        ))
-    }
 }
 
 // generalizing this to T1/T2 would be nice, but gave me a lot of headaches. Using this for now.
@@ -139,6 +94,52 @@ fn parse_binop_f32_i32(pair: Pair<'_, Rule>) -> (Result<f32, String>, Result<i32
     let y = y_text.and_then(|it: &str| it.parse::<i32>().map_err(|err| err.to_string()));
 
     (x, y)
+}
+
+// The code below, should work for parsing the 9 elements of a 3x3 fp32 triplet structure, but
+// let's be honest; this code can't be called beautiful. This should be refactored.
+fn parse_triplet3x_f32(pair: Pair<'_, Rule>) -> Result<ArrayVec<[f32; 9]>, String> {
+    const SIZE: usize = 9;
+
+    let mut inner = pair.into_inner();
+
+    let mut array = ArrayVec::<[f32; 9]>::new();
+
+    for i in 0..SIZE {
+        let ith_number = inner
+            .next()
+            .ok_or_else(|| format!("Unable to parse {}, arguments #: {}", inner, i))
+            .map(|val| val.as_str())
+            .and_then(|it: &str| it.parse::<f32>().map_err(|err| err.to_string()));
+
+        if let Ok(number) = ith_number {
+            let push_result = array.try_push(number);
+
+            if push_result.is_err() {
+                return Err(format!(
+                    "Unable to complete parsing of {}; failed to push {}-th value.",
+                    inner, i
+                ));
+            }
+        } else {
+            return Err(format!(
+                "Unable to parse fp32_3x3 structure. Remainder: {}",
+                inner
+            ));
+        }
+    }
+
+    let result_len = array.len();
+
+    // should never happen (that is, even be possible, if above is correct)
+    if result_len == SIZE {
+        Ok(array)
+    } else {
+        Err(format!(
+            "Unable to parse fp32_3x3 structure; should be size {}, but was {}.",
+            SIZE, result_len
+        ))
+    }
 }
 
 #[cfg(test)]
