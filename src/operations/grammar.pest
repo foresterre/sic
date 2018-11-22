@@ -1,11 +1,9 @@
 whitespace = _{ (" " | "\t" | "\n" | "\r\n")+ }
 sep = _{ ";" }
 
-digit = { '0'..'9' }
-
-fp = @{ int ~ ("." ~ digit+)? }
-uint = @{ digit+ }
-int  = @{ "-"? ~ digit+ }
+fp = @{ int ~ ("." ~ ASCII_DIGIT+)? }
+uint = @{ ASCII_DIGIT+ }
+int  = @{ "-"? ~ ASCII_DIGIT+ }
 
 triplet_sep = _{ whitespace ~ "|" ~ whitespace }
 triplet_fp3 = _{ fp ~ whitespace ~ fp ~ whitespace ~ fp }
@@ -30,8 +28,8 @@ rotate270 = { ^"rotate270" }
 unsharpen = ${ ^"unsharpen" ~ whitespace ~ fp ~ whitespace ~ int }
 
 
-operation_sequence = _{ (operation ~ sep?)+ }
+operation_sequence = _{ (operation ~ whitespace? ~ sep? ~ whitespace?)+ }
 
 operation = _{ blur | brighten | contrast | filter3x3 | flip_horizontal | flip_vertical | grayscale | huerotate | invert | resize | rotate90 | rotate180 | rotate270 | unsharpen }
 
-main = _{ soi ~ operation_sequence ~ eoi }
+main = _{ SOI ~ operation_sequence ~ EOI }

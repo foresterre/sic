@@ -22,8 +22,8 @@ output-test-images = []
 arrayvec = "0.4.7"
 clap = "2.32.0"
 image = "0.20.1"
-pest = "1.0.6"
-pest_derive = "1.0.7"
+pest = "2.0.2"
+pest_derive = "2.0.1"
 
 [[bin]]
 name = "sic"
