@@ -21,8 +21,8 @@ pub struct Config {
 
     pub encoding_settings: FormatEncodingSettings,
 
-    // output path
-    pub output: String,
+    // output path, err as String
+    pub output: Option<String>,
 }
 
 #[derive(Debug)]

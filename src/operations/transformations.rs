@@ -54,9 +54,9 @@ pub fn apply_operations_on_image(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::operations::mod_test_includes::*;
     use arrayvec::ArrayVec;
     use image::GenericImageView;
-    use crate::operations::mod_test_includes::*;
 
     #[test]
     fn test_blur() {
