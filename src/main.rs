@@ -2,7 +2,7 @@
 
 use std::path::Path;
 
-use clap::{App, Arg};
+use clap::{App, Arg, ArgMatches};
 use image;
 #[macro_use]
 extern crate pest_derive;
@@ -24,8 +24,8 @@ mod processor;
 
 const HELP_OPERATIONS_AVAILABLE: &str = include_str!("../docs/cli_help_script.txt");
 
-fn main() -> Result<(), String> {
-    let matches = App::new("Simple Image Converter")
+fn get_app() -> App<'static, 'static> {
+    App::new("Simple Image Converter")
         .version("0.7.2")
         .author("Martijn Gribnau <garm@ilumeo.com>")
         .about("Converts an image from one format to another.\n\n\
@@ -81,9 +81,14 @@ fn main() -> Result<(), String> {
             .value_name("OUTPUT_FILE")
             .required_unless_one(&["license", "dep_licenses", "user_manual"])
             .index(2))
-        .get_matches();
+}
 
-    // Here any option will panic when invalid.
+/// The run function runs the sic application, taking the matches found by Clap.
+/// This function is separated from the main() function so that it can be used more easily in test cases.
+/// This function consumes the matches provided.
+fn run(matches: ArgMatches) -> Result<(), String> {
+    // Here any option should not panic when invalid.
+    // Previously, it was allowed to panic within Config, but this is no longer the case.
     let options = Config {
         licenses: match (
             matches.is_present("license"),
@@ -145,4 +150,10 @@ fn main() -> Result<(), String> {
 
     let conversion_processor = ConversionProcessor::new(&buffer, output_format?);
     conversion_processor.process(&options)
+}
+
+fn main() -> Result<(), String> {
+    let matches = get_app().get_matches();
+
+    run(matches)
 }
