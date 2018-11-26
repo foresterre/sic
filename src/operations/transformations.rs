@@ -54,8 +54,8 @@ pub fn apply_operations_on_image(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::operations::mod_test_includes::*;
     use arrayvec::ArrayVec;
+    use crate::operations::mod_test_includes::*;
     use image::GenericImageView;
 
     #[test]
