@@ -89,7 +89,6 @@ fn get_app() -> App<'static, 'static> {
 fn run(matches: ArgMatches) -> Result<(), String> {
     // Here any option should not panic when invalid.
     // Previously, it was allowed to panic within Config, but this is no longer the case.
-    //
     let options = Config {
         licenses: match (
             matches.is_present("license"),
