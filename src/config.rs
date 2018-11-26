@@ -22,7 +22,7 @@ pub struct Config {
     pub encoding_settings: FormatEncodingSettings,
 
     // output path
-    pub output: String,
+    pub output: Option<String>,
 }
 
 #[derive(Debug)]

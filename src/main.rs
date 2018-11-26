@@ -119,10 +119,7 @@ fn main() -> Result<(), String> {
             pnm_settings: PNMEncodingSettings::new(matches.is_present("pnm_encoding_ascii")),
         },
 
-        output: matches
-            .value_of("output_file")
-            .expect("An OUTPUT was expected, but none was given.")
-            .into(),
+        output: matches.value_of("output_file").map(|v| v.into()),
     };
 
     let license_display_processor = LicenseDisplayProcessor::new();
