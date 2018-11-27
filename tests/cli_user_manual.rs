@@ -1,7 +1,5 @@
 use std::process::{Command, Output};
 
-use sic_lib::{get_app, run};
-
 // For the ProcessWithConfig, ProcessMutWithConfig where we exit early,
 // using std::process::exit(0), we can't test using something like:
 //
