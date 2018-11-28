@@ -3,8 +3,11 @@ use std::path::{Path, PathBuf};
 
 use sic_lib::{get_app, run};
 
+// Wish list for Rust tests: parameterized tests
+// Probably can be done with macro's too.
+
 // copied from sic_lib::processor::mod_test_includes
-// I prefered to not make that module public (2018-11-28)
+// I preferred to not make that module public (2018-11-28)
 // Originally named: setup_test_image.
 fn setup_input_path(test_image_path: &str) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -13,19 +16,19 @@ fn setup_input_path(test_image_path: &str) -> PathBuf {
 }
 
 // copied from sic_lib::processor::mod_test_includes
-// I prefered to not make that module public (2018-11-28)
+// I preferred to not make that module public (2018-11-28)
 fn setup_output_path(test_output_path: &str) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("target")
         .join(test_output_path)
 }
 
-fn path_buf_str<'a>(pb: &'a PathBuf) -> &'a str {
+fn path_buf_str(pb: &PathBuf) -> &str {
     pb.to_str().unwrap()
 }
 
 // copied from sic_lib::processor::mod_test_includes
-// I prefered to not make that module public (2018-11-28)
+// I preferred to not make that module public (2018-11-28)
 fn clean_up_output_path(test_output_path: &str) {
     std::fs::remove_file(setup_output_path(test_output_path))
         .expect("Unable to remove file after test.");
@@ -264,6 +267,240 @@ fn convert_to_pam_by_extension() {
         our_input.to_str().unwrap(),
         path_buf_str(&our_output),
     ];
+    let matches = get_app().get_matches_from(args);
+    let complete = run(matches);
+
+    assert_eq!(Ok(()), complete);
+    assert!(our_output.exists());
+    assert!(is_image_format(
+        path_buf_str(&our_output),
+        image::ImageFormat::PNM
+    ));
+
+    clean_up_output_path(path_buf_str(&our_output));
+}
+
+fn convert_to_x_by_ff_args<'a>(
+    which: &'a str,
+    input: &'a PathBuf,
+    output: &'a PathBuf,
+) -> Vec<&'a str> {
+    vec![
+        "sic",
+        "--force-format",
+        which,
+        path_buf_str(&input),
+        path_buf_str(&output),
+    ]
+}
+
+#[test]
+fn convert_to_bmp_by_ff() {
+    let which = "bmp";
+
+    let our_input = setup_input_path("palette_4x4.png");
+    let our_output = setup_output_path(&format!("out_01_{}", which));
+
+    let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
+
+    let matches = get_app().get_matches_from(args);
+    let complete = run(matches);
+
+    assert_eq!(Ok(()), complete);
+    assert!(our_output.exists());
+    assert!(is_image_format(
+        path_buf_str(&our_output),
+        image::ImageFormat::BMP
+    ));
+
+    clean_up_output_path(path_buf_str(&our_output));
+}
+
+#[test]
+fn convert_to_gif_by_ff() {
+    let which = "gif";
+
+    let our_input = setup_input_path("palette_4x4.png");
+    let our_output = setup_output_path(&format!("out_01_{}", which));
+
+    let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
+
+    let matches = get_app().get_matches_from(args);
+    let complete = run(matches);
+
+    assert_eq!(Ok(()), complete);
+    assert!(our_output.exists());
+    assert!(is_image_format(
+        path_buf_str(&our_output),
+        image::ImageFormat::GIF
+    ));
+
+    clean_up_output_path(path_buf_str(&our_output));
+}
+
+#[test]
+fn convert_to_ico_by_ff() {
+    let which = "ico";
+
+    let our_input = setup_input_path("palette_4x4.png");
+    let our_output = setup_output_path(&format!("out_01_{}", which));
+
+    let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
+
+    let matches = get_app().get_matches_from(args);
+    let complete = run(matches);
+
+    assert_eq!(Ok(()), complete);
+    assert!(our_output.exists());
+    assert!(is_image_format(
+        path_buf_str(&our_output),
+        image::ImageFormat::ICO
+    ));
+
+    clean_up_output_path(path_buf_str(&our_output));
+}
+
+#[test]
+fn convert_to_jpg_by_ff() {
+    let which = "jpg";
+
+    let our_input = setup_input_path("palette_4x4.png");
+    let our_output = setup_output_path(&format!("out_01_{}", which));
+
+    let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
+
+    let matches = get_app().get_matches_from(args);
+    let complete = run(matches);
+
+    assert_eq!(Ok(()), complete);
+    assert!(our_output.exists());
+    assert!(is_image_format(
+        path_buf_str(&our_output),
+        image::ImageFormat::JPEG
+    ));
+
+    clean_up_output_path(path_buf_str(&our_output));
+}
+
+#[test]
+fn convert_to_jpeg_by_ff() {
+    let which = "jpeg";
+
+    let our_input = setup_input_path("palette_4x4.png");
+    let our_output = setup_output_path(&format!("out_01_{}", which));
+
+    let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
+
+    let matches = get_app().get_matches_from(args);
+    let complete = run(matches);
+
+    assert_eq!(Ok(()), complete);
+    assert!(our_output.exists());
+    assert!(is_image_format(
+        path_buf_str(&our_output),
+        image::ImageFormat::JPEG
+    ));
+
+    clean_up_output_path(path_buf_str(&our_output));
+}
+
+#[test]
+fn convert_to_png_by_ff() {
+    let which = "png";
+
+    let our_input = setup_input_path("palette_4x4.png");
+    let our_output = setup_output_path(&format!("out_01_{}", which));
+
+    let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
+
+    let matches = get_app().get_matches_from(args);
+    let complete = run(matches);
+
+    assert_eq!(Ok(()), complete);
+    assert!(our_output.exists());
+    assert!(is_image_format(
+        path_buf_str(&our_output),
+        image::ImageFormat::PNG
+    ));
+
+    clean_up_output_path(path_buf_str(&our_output));
+}
+
+#[test]
+fn convert_to_pbm_by_ff() {
+    let which = "pbm";
+
+    let our_input = setup_input_path("palette_4x4.png");
+    let our_output = setup_output_path(&format!("out_01_{}", which));
+
+    let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
+
+    let matches = get_app().get_matches_from(args);
+    let complete = run(matches);
+
+    assert_eq!(Ok(()), complete);
+    assert!(our_output.exists());
+    assert!(is_image_format(
+        path_buf_str(&our_output),
+        image::ImageFormat::PNM
+    ));
+
+    clean_up_output_path(path_buf_str(&our_output));
+}
+
+#[test]
+fn convert_to_pgm_by_ff() {
+    let which = "pgm";
+
+    let our_input = setup_input_path("palette_4x4.png");
+    let our_output = setup_output_path(&format!("out_01_{}", which));
+
+    let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
+
+    let matches = get_app().get_matches_from(args);
+    let complete = run(matches);
+
+    assert_eq!(Ok(()), complete);
+    assert!(our_output.exists());
+    assert!(is_image_format(
+        path_buf_str(&our_output),
+        image::ImageFormat::PNM
+    ));
+
+    clean_up_output_path(path_buf_str(&our_output));
+}
+
+#[test]
+fn convert_to_ppm_by_ff() {
+    let which = "ppm";
+
+    let our_input = setup_input_path("palette_4x4.png");
+    let our_output = setup_output_path(&format!("out_01_{}", which));
+
+    let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
+
+    let matches = get_app().get_matches_from(args);
+    let complete = run(matches);
+
+    assert_eq!(Ok(()), complete);
+    assert!(our_output.exists());
+    assert!(is_image_format(
+        path_buf_str(&our_output),
+        image::ImageFormat::PNM
+    ));
+
+    clean_up_output_path(path_buf_str(&our_output));
+}
+
+#[test]
+fn convert_to_pam_by_ff() {
+    let which = "pam";
+
+    let our_input = setup_input_path("palette_4x4.png");
+    let our_output = setup_output_path(&format!("out_01_{}", which));
+
+    let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
+
     let matches = get_app().get_matches_from(args);
     let complete = run(matches);
 
