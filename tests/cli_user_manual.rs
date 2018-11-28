@@ -83,15 +83,29 @@ fn cli_help_page_starts_with_text<'a>(page: &'a str) -> String {
     h1.join("")
 }
 
+/// In a windows console, the \n will instead be \r\n, so we filter out the \r;
+/// now we can compare the expected result on both the *nix and Windows platforms.
+fn comparable_str_from_output(output: &Output) -> String {
+    if cfg!(windows) {
+        // hopefully this could be simpler somehow...
+        // how to convert a str to char?, or make a char
+        std::str::from_utf8(&output.stdout)
+            .unwrap()
+            .chars()
+            .filter(|f| *f != '\r')
+            .collect::<String>()
+    } else {
+        std::str::from_utf8(&output.stdout).unwrap().into()
+    }
+}
+
 #[test]
 fn cli_user_manual_run_with_command_blur() {
     let cmd = "brighten";
     let res = run_help_command(cmd);
 
     assert!(res.status.success());
-    assert!(std::str::from_utf8(&res.stdout)
-        .unwrap()
-        .starts_with(&cli_help_page_starts_with_text(cmd)));
+    assert!(comparable_str_from_output(&res).starts_with(&cli_help_page_starts_with_text(cmd)));
 }
 
 #[test]
@@ -100,9 +114,7 @@ fn cli_user_manual_run_with_command_brighten() {
     let res = run_help_command(cmd);
 
     assert!(res.status.success());
-    assert!(std::str::from_utf8(&res.stdout)
-        .unwrap()
-        .starts_with(&cli_help_page_starts_with_text(cmd)));
+    assert!(comparable_str_from_output(&res).starts_with(&cli_help_page_starts_with_text(cmd)));
 }
 
 #[test]
@@ -111,9 +123,7 @@ fn cli_user_manual_run_with_command_contrast() {
     let res = run_help_command(cmd);
 
     assert!(res.status.success());
-    assert!(std::str::from_utf8(&res.stdout)
-        .unwrap()
-        .starts_with(&cli_help_page_starts_with_text(cmd)));
+    assert!(comparable_str_from_output(&res).starts_with(&cli_help_page_starts_with_text(cmd)));
 }
 
 #[test]
@@ -122,9 +132,7 @@ fn cli_user_manual_run_with_command_filter3x3() {
     let res = run_help_command(cmd);
 
     assert!(res.status.success());
-    assert!(std::str::from_utf8(&res.stdout)
-        .unwrap()
-        .starts_with(&cli_help_page_starts_with_text(cmd)));
+    assert!(comparable_str_from_output(&res).starts_with(&cli_help_page_starts_with_text(cmd)));
 }
 
 #[test]
@@ -133,9 +141,7 @@ fn cli_user_manual_run_with_command_fliph() {
     let res = run_help_command(cmd);
 
     assert!(res.status.success());
-    assert!(std::str::from_utf8(&res.stdout)
-        .unwrap()
-        .starts_with(&cli_help_page_starts_with_text(cmd)));
+    assert!(comparable_str_from_output(&res).starts_with(&cli_help_page_starts_with_text(cmd)));
 }
 
 #[test]
@@ -144,9 +150,7 @@ fn cli_user_manual_run_with_command_flipv() {
     let res = run_help_command(cmd);
 
     assert!(res.status.success());
-    assert!(std::str::from_utf8(&res.stdout)
-        .unwrap()
-        .starts_with(&cli_help_page_starts_with_text(cmd)));
+    assert!(comparable_str_from_output(&res).starts_with(&cli_help_page_starts_with_text(cmd)));
 }
 
 #[test]
@@ -155,9 +159,7 @@ fn cli_user_manual_run_with_command_grayscale() {
     let res = run_help_command(cmd);
 
     assert!(res.status.success());
-    assert!(std::str::from_utf8(&res.stdout)
-        .unwrap()
-        .starts_with(&cli_help_page_starts_with_text(cmd)));
+    assert!(comparable_str_from_output(&res).starts_with(&cli_help_page_starts_with_text(cmd)));
 }
 
 #[test]
@@ -166,9 +168,7 @@ fn cli_user_manual_run_with_command_huerotate() {
     let res = run_help_command(cmd);
 
     assert!(res.status.success());
-    assert!(std::str::from_utf8(&res.stdout)
-        .unwrap()
-        .starts_with(&cli_help_page_starts_with_text(cmd)));
+    assert!(comparable_str_from_output(&res).starts_with(&cli_help_page_starts_with_text(cmd)));
 }
 
 #[test]
@@ -177,9 +177,7 @@ fn cli_user_manual_run_with_command_invert() {
     let res = run_help_command(cmd);
 
     assert!(res.status.success());
-    assert!(std::str::from_utf8(&res.stdout)
-        .unwrap()
-        .starts_with(&cli_help_page_starts_with_text(cmd)));
+    assert!(comparable_str_from_output(&res).starts_with(&cli_help_page_starts_with_text(cmd)));
 }
 
 #[test]
@@ -188,9 +186,7 @@ fn cli_user_manual_run_with_command_resize() {
     let res = run_help_command(cmd);
 
     assert!(res.status.success());
-    assert!(std::str::from_utf8(&res.stdout)
-        .unwrap()
-        .starts_with(&cli_help_page_starts_with_text(cmd)));
+    assert!(comparable_str_from_output(&res).starts_with(&cli_help_page_starts_with_text(cmd)));
 }
 
 #[test]
@@ -199,9 +195,7 @@ fn cli_user_manual_run_with_command_rotate90() {
     let res = run_help_command(cmd);
 
     assert!(res.status.success());
-    assert!(std::str::from_utf8(&res.stdout)
-        .unwrap()
-        .starts_with(&cli_help_page_starts_with_text(cmd)));
+    assert!(comparable_str_from_output(&res).starts_with(&cli_help_page_starts_with_text(cmd)));
 }
 
 #[test]
@@ -210,9 +204,7 @@ fn cli_user_manual_run_with_command_rotate180() {
     let res = run_help_command(cmd);
 
     assert!(res.status.success());
-    assert!(std::str::from_utf8(&res.stdout)
-        .unwrap()
-        .starts_with(&cli_help_page_starts_with_text(cmd)));
+    assert!(comparable_str_from_output(&res).starts_with(&cli_help_page_starts_with_text(cmd)));
 }
 
 #[test]
@@ -221,9 +213,7 @@ fn cli_user_manual_run_with_command_rotate270() {
     let res = run_help_command(cmd);
 
     assert!(res.status.success());
-    assert!(std::str::from_utf8(&res.stdout)
-        .unwrap()
-        .starts_with(&cli_help_page_starts_with_text(cmd)));
+    assert!(comparable_str_from_output(&res).starts_with(&cli_help_page_starts_with_text(cmd)));
 }
 
 #[test]
@@ -232,7 +222,5 @@ fn cli_user_manual_run_with_command_unsharpen() {
     let res = run_help_command(cmd);
 
     assert!(res.status.success());
-    assert!(std::str::from_utf8(&res.stdout)
-        .unwrap()
-        .starts_with(&cli_help_page_starts_with_text(cmd)));
+    assert!(comparable_str_from_output(&res).starts_with(&cli_help_page_starts_with_text(cmd)));
 }
