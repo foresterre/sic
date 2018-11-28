@@ -78,11 +78,7 @@ fn convert_to_gif_by_extension() {
     let our_input = setup_input_path("palette_4x4.png");
     let our_output = setup_output_path("out_01.gif");
 
-    let args = vec![
-        "sic",
-        our_input.to_str().unwrap(),
-        path_buf_str(&our_output),
-    ];
+    let args = vec!["sic", path_buf_str(&our_input), path_buf_str(&our_output)];
     let matches = get_app().get_matches_from(args);
     let complete = run(matches);
 
@@ -101,11 +97,7 @@ fn convert_to_jpg_by_extension() {
     let our_input = setup_input_path("palette_4x4.png");
     let our_output = setup_output_path("out_01.jpg");
 
-    let args = vec![
-        "sic",
-        our_input.to_str().unwrap(),
-        path_buf_str(&our_output),
-    ];
+    let args = vec!["sic", path_buf_str(&our_input), path_buf_str(&our_output)];
     let matches = get_app().get_matches_from(args);
     let complete = run(matches);
 
@@ -124,11 +116,7 @@ fn convert_to_jpeg_by_extension() {
     let our_input = setup_input_path("palette_4x4.png");
     let our_output = setup_output_path("out_01.jpeg");
 
-    let args = vec![
-        "sic",
-        our_input.to_str().unwrap(),
-        path_buf_str(&our_output),
-    ];
+    let args = vec!["sic", path_buf_str(&our_input), path_buf_str(&our_output)];
     let matches = get_app().get_matches_from(args);
     let complete = run(matches);
 
@@ -147,11 +135,7 @@ fn convert_to_png_by_extension() {
     let our_input = setup_input_path("rainbow_8x6.bmp");
     let our_output = setup_output_path("out_01.png");
 
-    let args = vec![
-        "sic",
-        our_input.to_str().unwrap(),
-        path_buf_str(&our_output),
-    ];
+    let args = vec!["sic", path_buf_str(&our_input), path_buf_str(&our_output)];
     let matches = get_app().get_matches_from(args);
     let complete = run(matches);
 
@@ -170,11 +154,7 @@ fn convert_to_ico_by_extension() {
     let our_input = setup_input_path("palette_4x4.png");
     let our_output = setup_output_path("out_01.ico");
 
-    let args = vec![
-        "sic",
-        our_input.to_str().unwrap(),
-        path_buf_str(&our_output),
-    ];
+    let args = vec!["sic", path_buf_str(&our_input), path_buf_str(&our_output)];
     let matches = get_app().get_matches_from(args);
     let complete = run(matches);
 
@@ -193,11 +173,7 @@ fn convert_to_pbm_by_extension() {
     let our_input = setup_input_path("palette_4x4.png");
     let our_output = setup_output_path("out_01.pbm");
 
-    let args = vec![
-        "sic",
-        our_input.to_str().unwrap(),
-        path_buf_str(&our_output),
-    ];
+    let args = vec!["sic", path_buf_str(&our_input), path_buf_str(&our_output)];
     let matches = get_app().get_matches_from(args);
     let complete = run(matches);
 
@@ -216,11 +192,7 @@ fn convert_to_pgm_by_extension() {
     let our_input = setup_input_path("palette_4x4.png");
     let our_output = setup_output_path("out_01.pgm");
 
-    let args = vec![
-        "sic",
-        our_input.to_str().unwrap(),
-        path_buf_str(&our_output),
-    ];
+    let args = vec!["sic", path_buf_str(&our_input), path_buf_str(&our_output)];
     let matches = get_app().get_matches_from(args);
     let complete = run(matches);
 
@@ -239,11 +211,7 @@ fn convert_to_ppm_by_extension() {
     let our_input = setup_input_path("palette_4x4.png");
     let our_output = setup_output_path("out_01.ppm");
 
-    let args = vec![
-        "sic",
-        our_input.to_str().unwrap(),
-        path_buf_str(&our_output),
-    ];
+    let args = vec!["sic", path_buf_str(&our_input), path_buf_str(&our_output)];
     let matches = get_app().get_matches_from(args);
     let complete = run(matches);
 
@@ -262,11 +230,7 @@ fn convert_to_pam_by_extension() {
     let our_input = setup_input_path("palette_4x4.png");
     let our_output = setup_output_path("out_01.pam");
 
-    let args = vec![
-        "sic",
-        our_input.to_str().unwrap(),
-        path_buf_str(&our_output),
-    ];
+    let args = vec!["sic", path_buf_str(&our_input), path_buf_str(&our_output)];
     let matches = get_app().get_matches_from(args);
     let complete = run(matches);
 
