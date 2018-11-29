@@ -478,6 +478,9 @@ fn convert_to_pam_by_ff() {
     clean_up_output_path(path_buf_str(&our_output));
 }
 
+// Try to determine that PBM, PGM, PPM in ascii mode (P1, P2, P3 resp.) are ascii encoded
+// and if they are 'binary' encoded (P4, P5, P6), they are obviously not ascii encoded.
+
 fn read_file_to_bytes<P: AsRef<Path>>(path: P) -> Vec<u8> {
     let mut f = std::fs::File::open(path).unwrap();
     let mut buffer = Vec::new();
@@ -685,4 +688,54 @@ fn convert_ppm_not_ascii() {
     assert!(!guess_is_ascii_encoded(&contents));
 
     clean_up_output_path(path_buf_str(&our_output));
+}
+
+// JPEG different quality
+// Currently just tested by default 80 ?!= not(80)
+// Can we do better?
+
+#[test]
+fn convert_jpeg_quality_different() {
+    let which = "jpeg";
+
+    let our_input = setup_input_path("palette_4x4.png");
+    let out1 = setup_output_path("out_02_jpeg_1.jpeg");
+    let out2 = setup_output_path("out_02_jpeg_2.jpeg");
+
+    let args1 = vec![
+        "sic",
+        "--force-format",
+        which,
+        path_buf_str(&our_input),
+        path_buf_str(&out1),
+    ];
+
+    let args2 = vec![
+        "sic",
+        "--jpeg-encoding-quality",
+        "81",
+        "--force-format",
+        which,
+        path_buf_str(&our_input),
+        path_buf_str(&out2),
+    ];
+
+    let matches1 = get_app().get_matches_from(args1);
+    let complete1 = run(matches1);
+
+    let matches2 = get_app().get_matches_from(args2);
+    let complete2 = run(matches2);
+
+    assert_eq!((Ok(()), Ok(())), (complete1, complete2));
+    assert!(out1.exists() && out2.exists());
+
+    // read file contents
+    let contents1 = read_file_to_bytes(path_buf_str(&out1));
+    let contents2 = read_file_to_bytes(path_buf_str(&out2));
+
+    assert_eq!(contents1, contents1);
+    assert_ne!(contents1, contents2);
+
+    clean_up_output_path(path_buf_str(&out1));
+    clean_up_output_path(path_buf_str(&out2));
 }
