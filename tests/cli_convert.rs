@@ -477,3 +477,212 @@ fn convert_to_pam_by_ff() {
 
     clean_up_output_path(path_buf_str(&our_output));
 }
+
+fn read_file_to_bytes<P: AsRef<Path>>(path: P) -> Vec<u8> {
+    let mut f = std::fs::File::open(path).unwrap();
+    let mut buffer = Vec::new();
+
+    // read the whole file
+    f.read_to_end(&mut buffer).unwrap();
+
+    buffer
+}
+
+fn guess_is_ascii_encoded(input: &[u8]) -> bool {
+    // The character P in ascii encoding
+    let is_ascii_p = |c: u8| c == 0x50;
+
+    // P1, P2, P3 are ascii
+    // Checks for numbers 1, 2, 3, binary known as: 0x31, 0x32, 0x33 respectively
+    let is_ascii_magic_number = |c| c == 0x31 || c == 0x32 || c == 0x33;
+
+    let mut iter = input.iter();
+    let first = iter.next().unwrap();
+    let second = iter.next().unwrap();
+
+    // check also to be sure that every character in the file can be ascii encoded
+    is_ascii_p(*first) && is_ascii_magic_number(*second) && iter.all(|c| *c <= 0x7F)
+}
+
+#[test]
+fn convert_pbm_ascii() {
+    let which = "pbm";
+
+    let our_input = setup_input_path("palette_4x4.png");
+    let our_output = setup_output_path(&format!("out_02a_{}", which));
+
+    let args = vec![
+        "sic",
+        "--pnm-encoding-ascii",
+        "--force-format",
+        which,
+        path_buf_str(&our_input),
+        path_buf_str(&our_output),
+    ];
+
+    let matches = get_app().get_matches_from(args);
+    let complete = run(matches);
+
+    assert_eq!(Ok(()), complete);
+    assert!(our_output.exists());
+
+    // read file contents
+    let contents = read_file_to_bytes(path_buf_str(&our_output));
+
+    // is it just ascii?
+    assert!(guess_is_ascii_encoded(&contents));
+
+    clean_up_output_path(path_buf_str(&our_output));
+}
+
+#[test]
+fn convert_pgm_ascii() {
+    let which = "pgm";
+
+    let our_input = setup_input_path("palette_4x4.png");
+    let our_output = setup_output_path(&format!("out_02a_{}", which));
+
+    let args = vec![
+        "sic",
+        "--pnm-encoding-ascii",
+        "--force-format",
+        which,
+        path_buf_str(&our_input),
+        path_buf_str(&our_output),
+    ];
+
+    let matches = get_app().get_matches_from(args);
+    let complete = run(matches);
+
+    assert_eq!(Ok(()), complete);
+    assert!(our_output.exists());
+
+    // read file contents
+    let contents = read_file_to_bytes(path_buf_str(&our_output));
+
+    // is it just ascii?
+    assert!(guess_is_ascii_encoded(&contents));
+
+    clean_up_output_path(path_buf_str(&our_output));
+}
+
+#[test]
+fn convert_ppm_ascii() {
+    let which = "ppm";
+
+    let our_input = setup_input_path("palette_4x4.png");
+    let our_output = setup_output_path(&format!("out_02a_{}", which));
+
+    let args = vec![
+        "sic",
+        "--pnm-encoding-ascii",
+        "--force-format",
+        which,
+        path_buf_str(&our_input),
+        path_buf_str(&our_output),
+    ];
+
+    let matches = get_app().get_matches_from(args);
+    let complete = run(matches);
+
+    assert_eq!(Ok(()), complete);
+    assert!(our_output.exists());
+
+    // read file contents
+    let contents = read_file_to_bytes(path_buf_str(&our_output));
+
+    // is it just ascii?
+    assert!(guess_is_ascii_encoded(&contents));
+
+    clean_up_output_path(path_buf_str(&our_output));
+}
+
+#[test]
+fn convert_pbm_not_ascii() {
+    let which = "pbm";
+
+    let our_input = setup_input_path("palette_4x4.png");
+    let our_output = setup_output_path(&format!("out_02b_{}", which));
+
+    let args = vec![
+        "sic",
+        "--force-format",
+        which,
+        path_buf_str(&our_input),
+        path_buf_str(&our_output),
+    ];
+
+    let matches = get_app().get_matches_from(args);
+    let complete = run(matches);
+
+    assert_eq!(Ok(()), complete);
+    assert!(our_output.exists());
+
+    // read file contents
+    let contents = read_file_to_bytes(path_buf_str(&our_output));
+
+    // is it just ascii?
+    assert!(!guess_is_ascii_encoded(&contents));
+
+    clean_up_output_path(path_buf_str(&our_output));
+}
+
+#[test]
+fn convert_pgm_not_ascii() {
+    let which = "pgm";
+
+    let our_input = setup_input_path("palette_4x4.png");
+    let our_output = setup_output_path(&format!("out_02b_{}", which));
+
+    let args = vec![
+        "sic",
+        "--force-format",
+        which,
+        path_buf_str(&our_input),
+        path_buf_str(&our_output),
+    ];
+
+    let matches = get_app().get_matches_from(args);
+    let complete = run(matches);
+
+    assert_eq!(Ok(()), complete);
+    assert!(our_output.exists());
+
+    // read file contents
+    let contents = read_file_to_bytes(path_buf_str(&our_output));
+
+    // is it just ascii?
+    assert!(!guess_is_ascii_encoded(&contents));
+
+    clean_up_output_path(path_buf_str(&our_output));
+}
+
+#[test]
+fn convert_ppm_not_ascii() {
+    let which = "ppm";
+
+    let our_input = setup_input_path("palette_4x4.png");
+    let our_output = setup_output_path(&format!("out_02b_{}", which));
+
+    let args = vec![
+        "sic",
+        "--force-format",
+        which,
+        path_buf_str(&our_input),
+        path_buf_str(&our_output),
+    ];
+
+    let matches = get_app().get_matches_from(args);
+    let complete = run(matches);
+
+    assert_eq!(Ok(()), complete);
+    assert!(our_output.exists());
+
+    // read file contents
+    let contents = read_file_to_bytes(path_buf_str(&our_output));
+
+    // is it just ascii?
+    assert!(!guess_is_ascii_encoded(&contents));
+
+    clean_up_output_path(path_buf_str(&our_output));
+}
