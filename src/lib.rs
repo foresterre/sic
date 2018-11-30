@@ -26,15 +26,18 @@ const HELP_OPERATIONS_AVAILABLE: &str = include_str!("../docs/cli_help_script.tx
 
 pub fn get_app() -> App<'static, 'static> {
     App::new("Simple Image Converter")
-        .version("0.7.2")
+        .version(env!("CARGO_PKG_VERSION"))
         .author("Martijn Gribnau <garm@ilumeo.com>")
         .about("Converts an image from one format to another.\n\n\
-                Supported input formats are described BMP, GIF, ICO, JPEG, PNG, PPM (limitations may apply). \n\n\
-                The image conversion is actually done by the awesome 'image' crate [1]. \n\
-                Sic itself is a small command line frontend which supports a part of the \
-                operations supported by the 'image' library. \n\n\
-                [1] image crate by PistonDevelopers: https://github.com/PistonDevelopers/image \n\n\
-                ")
+                Supported input formats are: PNG, JPEG, GIF, BMP, ICO, TIFF, WebP, PBM, PGM, PPM,\n\
+                PAM (limitations may apply, see [2]).\n\n\
+                The image conversion is actually done by the awesome 'image' library [1].\n\
+                Sic itself is a command line frontend which supports a growing portion of the\n\
+                operations supported by the 'image' library.\n\n\
+                Run `sic --help` for all available flags and options and `sic --user-manual <OPERATION>`\n\
+                for help on the image operations supported by the `--script \"<OPERATION(S)>\"`` option.\n\n\
+                [1] image library by PistonDevelopers: https://github.com/PistonDevelopers/image\n\
+                [2] https://github.com/PistonDevelopers/image/tree/13372d52ad7ca96da1bb1ca148c57d402bf4c8c0#21-supported-image-formats\n\n")
         .arg(Arg::with_name("forced_output_format")
             .short("f")
             .long("force-format")
