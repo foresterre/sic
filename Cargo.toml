@@ -10,7 +10,7 @@ readme = "README.md"
 exclude = [
     ".idea/*",
     ".vscode/*",
-    "imgconv.iml",
+    "*.iml",
 ]
 keywords = ["image", "converter", "cli", "front-end", "image-cli"]
 categories = ["multimedia::images", "command-line-utilities"]
