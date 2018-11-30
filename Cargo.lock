@@ -406,7 +406,7 @@ dependencies = [
 
 [[package]]
 name = "sic"
-version = "0.7.2"
+version = "0.8.0"
 dependencies = [
  "arrayvec 0.4.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.32.0 (registry+https://github.com/rust-lang/crates.io-index)",

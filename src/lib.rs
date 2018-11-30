@@ -26,20 +26,26 @@ const HELP_OPERATIONS_AVAILABLE: &str = include_str!("../docs/cli_help_script.tx
 
 pub fn get_app() -> App<'static, 'static> {
     App::new("Simple Image Converter")
-        .version("0.7.2")
+        .version(env!("CARGO_PKG_VERSION"))
         .author("Martijn Gribnau <garm@ilumeo.com>")
         .about("Converts an image from one format to another.\n\n\
-                Supported input formats are described BMP, GIF, ICO, JPEG, PNG, PPM (limitations may apply). \n\n\
-                The image conversion is actually done by the awesome 'image' crate [1]. \n\
-                Sic itself is a small command line frontend which supports a part of the \
-                operations supported by the 'image' library. \n\n\
-                [1] image crate by PistonDevelopers: https://github.com/PistonDevelopers/image \n\n\
-                ")
+                Supported input (decoding) formats are:  BMP, GIF, ICO, JPEG, PNG, PBM, PGM, PPM,\n\
+                PAM and TIFF and WebP.\n\
+                Supported output (encoding) formats are: BMP, GIF, ICO, JPEG, PNG, PBM, PGM, PPM \n\
+                and PAM.\n\
+                Some formats have some limitations, see: [2].\n\n\
+                The image conversion is actually done by the awesome 'image' library [1].\n\
+                Sic itself is a command line frontend which supports a growing portion of the\n\
+                operations supported by the 'image' library.\n\n\
+                Run `sic --help` for all available flags and options and `sic --user-manual <OPERATION>`\n\
+                for help on the image operations supported by the `--script \"<OPERATION(S)>\"`` option.\n\n\
+                [1] image library by PistonDevelopers: https://github.com/PistonDevelopers/image\n\
+                [2] https://github.com/PistonDevelopers/image/tree/13372d52ad7ca96da1bb1ca148c57d402bf4c8c0#21-supported-image-formats\n\n")
         .arg(Arg::with_name("forced_output_format")
             .short("f")
             .long("force-format")
             .value_name("FORMAT")
-            .help("Output formats supported: BMP, GIF, JPEG, PNG, ICO, PBM, PGM, PPM, PAM.")
+            .help("Output formats (FORMAT values) supported: BMP, GIF, ICO, JPEG, PNG, PBM, PGM, PPM and PAM. ")
             .takes_value(true))
         .arg(Arg::with_name("license")
             .long("license")
@@ -67,7 +73,7 @@ pub fn get_app() -> App<'static, 'static> {
             .takes_value(true))
         .arg(Arg::with_name("pnm_encoding_ascii")
             .long("pnm-encoding-ascii")
-            .help("Use ascii based encoding when using a PNM image output format (pbm, pgm or ppm). Doesn't apply to 'pam' (PNM ArbitraryMap)."))
+            .help("Use ascii based encoding when using a PNM image output format (pbm, pgm or ppm). Doesn't apply to 'pam' (PNM Arbitrary Map)."))
         .arg(Arg::with_name("disable_automatic_color_type_adjustment")
             .long("disable-automatic-color-type-adjustment")
             .help("Some image output formats do not support the color type of the image buffer prior to encoding. By default sic tries to adjust the color type. If this flag is provided, sic will not try to adjust the color type."))

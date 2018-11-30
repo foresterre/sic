@@ -1,7 +1,7 @@
 [package]
 edition = "2018"
 name = "sic"
-version = "0.7.2"
+version = "0.8.0"
 authors = ["Martijn Gribnau <garm@ilumeo.com>"]
 description = "`sic` stands for simple image converter and is a partial front-end for the `image` crate."
 license = "MIT"
@@ -10,7 +10,7 @@ readme = "README.md"
 exclude = [
     ".idea/*",
     ".vscode/*",
-    "imgconv.iml",
+    "*.iml",
 ]
 keywords = ["image", "converter", "cli", "front-end", "image-cli"]
 categories = ["multimedia::images", "command-line-utilities"]
