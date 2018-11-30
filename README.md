@@ -3,10 +3,15 @@
 Converts a single image from one format to another _(plus some other operations)_.
 
 The image conversion is actually done by the awesome [image](https://crates.io/crates/image) crate  :balloon:.
-`sic` is a small command line frontend which supports a portion of the conversion operations supported by the __image__ crate.
+`sic` is a small command line frontend which supports a (growing) portion of the conversion operations supported by the __image__ crate.
 
 It was initially created to try out another awesome Rust library:  [clap](https://crates.io/crates/clap) :tada:
 
+<br>
+
+_TravisCI (branch: master):_
+
+[![Build Status](https://travis-ci.org/foresterre/sic.svg?branch=master)](https://travis-ci.org/foresterre/sic)
 
 # Install
 
@@ -27,19 +32,27 @@ From the source of this repo:
 * In general: `sic <input> <output>`
 * Example: `sic input.png output.jpg`
 
+<br>
+
 **Covert an image from one format to another while not caring about the output file extension.**
-* In general `sic --force-format "<format>" <input> <output>` (or  `sic --force-format "<format>" <input> <output>`)
+* In general `sic --force-format "<format>" <input> <output>` (or  `sic -f "<format>" <input> <output>`)
 * Example `sic --force-format png input.bmp output.jpg` _(Note: `output.jpg` will have the PNG format even though the extension is `jpg`.)_
 
-_Note: supported forced formats currently are: bmp, gif, ico, jpg (always 80%), pnm (P6 only). Support for other versions of supported formats is planned._
+Supported image output formats are (as of 0.8.0): `bmp`, `gif`, `ico`, `jpg` (or `jpeg`), `png`, `pbm`, `pgm`, `ppm` and `pam`.
+The JPEG quality can optionally be set with `--jpeg-encoding-quality <value>` (value should be an integer from 1 up to (including) 100). Default value if not user overridden is 80.
+PNM (PBM, PGM, PPM) by default uses binary encoding (PNM P4, P5 and P6 respectively). To use ascii encoding, provide the following flag:
+`--pnm-encoding-ascii`. 
+
+<br>
 
 **Apply image operations to an image.**
 * In general: `sic --script "<operations>" <input> <output> `
-* Example `sic input.png output.jpg --script "flip_horizontal; blur 10; resize 250 250"`
+* Example `sic input.png output.jpg --script "fliph; blur 10; resize 250 250"`
 
 The separator `;` within the image operation script is optional. It exists to provide clarity.  
 
-_Note: `resize` applies a gaussian sampling filter on resizing. This is currently the only sampling filter available (i.e. not changeable, all resize operations will be done with the gaussian sampling filter)._
+_Note: `resize` applies a gaussian sampling filter on resizing. This is currently the only sampling filter available.
+Additional sampling filters are planned for version 0.9.0_
 
 Image operations availability:
 
@@ -49,7 +62,7 @@ Image operations availability:
 |blur               | `blur <uint>` [E-BLUR]                | Yes (0.5.0) 	    | Performs a Gaussian blur on the image ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.blur.html)) |
 |brighten           | `brighten <int>` [E-BRIGHTEN]         | Yes (0.7.0) 	    | |
 |contrast           | `contrast <fp>` [E-CONTRAST]          | Yes (0.7.0) 	    | |
-|crop               |                                       | No                | You can use `resize <uint> <uint>`` with values smaller or equal to the current image size for now. |
+|crop               |                                       | No                | Planned for 0.9.0 |
 |filter3x3          | `filter3x3 <args9>` [E-FILTER3X3]     | Yes (0.7.0)       | |
 |flip horizontal    | `fliph` [E-FLIPH]                     | Yes (0.5.0) 	    | Flips the image on the horizontal axis |
 |flip vertical      | `flipv` [E-FLIPV]                     | Yes (0.5.0) 	    | Flips the image on the horizontal axis |
@@ -62,12 +75,13 @@ Image operations availability:
 |rotate270          | `rotate270` [E-ROTATE270]             | Yes (0.7.0) 	    | |
 |unsharpen          | `unsharpen <fp> <int>` [E-UNSHARPEN]  | Yes (0.7.0) 	    | |
 
+
 _legend_:
 ```
 <uint> means any 32 bit unsigned integer is required as parameter input.
 <int> means any 32 bit signed integer is required as parameter input.
 <fp> means any 32 bit floating point number is required as parameter input.
-<args9> means `<fp> <fp> <fp> | <fp> <fp> <fp> | <fp> <fp> <fp>` where the `|` separator is optional. If the separator is used, white space should surround the separator. The separators can only be used like in the example, so one separator after each of the first two triplets.
+<args9> means `<fp> <fp> <fp> | <fp> <fp> <fp> | <fp> <fp> <fp>` where the `|` separator is optional. If the separator is used, white space should surround the separator. The separators can only be used like in the example, i.e. `triplet | triplet | triplet`.
 ```
 
 _Syntax examples:_
@@ -154,6 +168,18 @@ unsharpen -10.0 12;
 unsharpen 12.3 1;
 unsharpen 10 1;
 ```
+
+<br>
+
+**User manual**
+
+For additional information on available options and flags, run `sic --help`.
+Additional information on the available image operations can be found by running `sic --user-manual <topic>` (or `sic -H <topic>`).
+Available topics can be listed by running `sic --user-manual index`.
+
+The provided help pages in this command line accessible user manual are still a bit minimal. Additionally only the image operations
+are available and the layout is sub optimal for a command line. This is definitely something which is planned to be addressed in an upcoming release.   
+
 
 # Suggestions, Questions, Bugs
 
