@@ -11,13 +11,20 @@ impl EncodingFormatDecider {
         EncodingFormatDecider {}
     }
 
-    fn get_output_extension(config: &Config) -> Option<String> {
-        let path = &Path::new(&config.output);
-        let extension = path.extension();
+    // return: Ok: valid extension, err: invalid i.e. no extension or no valid output path
+    fn get_output_extension(config: &Config) -> Result<String, String> {
+        match &config.output {
+            Some(v) => {
+                let path = &Path::new(v);
+                let extension = path.extension();
 
-        extension
-            .and_then(|out| out.to_str())
-            .map(|v| v.to_lowercase())
+                extension
+                    .and_then(|out| out.to_str())
+                    .ok_or_else(|| "No extension was found".into())
+                    .map(|v| v.to_lowercase())
+            }
+            None => Err("No valid output path found (type: efd/ext)".into()),
+        }
     }
 
     fn sample_encoding(config: &Config) -> image::pnm::SampleEncoding {
@@ -33,7 +40,7 @@ impl EncodingFormatDecider {
         if let Some(v) = &config.forced_output_format {
             Ok(v.to_lowercase())
         } else {
-            EncodingFormatDecider::get_output_extension(config).ok_or_else(|| "Unable to determine a supported image format type from the image's file extension.".to_string())
+            EncodingFormatDecider::get_output_extension(config)
         }
     }
 
@@ -152,11 +159,9 @@ mod tests {
                 pnm_settings: PNMEncodingSettings::new(pnm_ascii),
             },
 
-            output: String::from(
-                setup_output_path(&format!("{}.{}", output, ext))
-                    .to_str()
-                    .expect("Path given is no good!"),
-            ),
+            output: setup_output_path(&format!("{}.{}", output, ext))
+                .to_str()
+                .map(|v| v.into()),
         }
     }
 
@@ -313,11 +318,9 @@ mod tests {
                 pnm_settings: PNMEncodingSettings::new(false),
             },
 
-            output: String::from(
-                setup_output_path("encoding_processing_jpeg_quality_valid.jpg")
-                    .to_str()
-                    .expect("Path given is no good!"),
-            ),
+            output: setup_output_path("encoding_processing_jpeg_quality_valid.jpg")
+                .to_str()
+                .map(|v| v.into()),
         };
 
         let conversion_processor = EncodingFormatDecider::new();
@@ -343,11 +346,9 @@ mod tests {
                 pnm_settings: PNMEncodingSettings::new(false),
             },
 
-            output: String::from(
-                setup_output_path("encoding_processing_invalid.😉")
-                    .to_str()
-                    .expect("Path given is no good!"),
-            ),
+            output: setup_output_path("encoding_processing_invalid.😉")
+                .to_str()
+                .map(|v| v.into()),
         };
 
         let conversion_processor = EncodingFormatDecider::new();
@@ -371,11 +372,9 @@ mod tests {
                 pnm_settings: PNMEncodingSettings::new(false),
             },
 
-            output: String::from(
-                setup_output_path("encoding_processing_invalid.")
-                    .to_str()
-                    .expect("Path given is no good!"),
-            ),
+            output: setup_output_path("encoding_processing_invalid.")
+                .to_str()
+                .map(|v| v.into()),
         };
 
         let conversion_processor = EncodingFormatDecider::new();
@@ -399,11 +398,9 @@ mod tests {
                 pnm_settings: PNMEncodingSettings::new(false),
             },
 
-            output: String::from(
-                setup_output_path("encoding_processing_invalid.jpg")
-                    .to_str()
-                    .expect("Path given is no good!"),
-            ),
+            output: setup_output_path("encoding_processing_invalid.jpg")
+                .to_str()
+                .map(|v| v.into()),
         };
 
         let conversion_processor = EncodingFormatDecider::new();
@@ -427,11 +424,9 @@ mod tests {
                 pnm_settings: PNMEncodingSettings::new(false),
             },
 
-            output: String::from(
-                setup_output_path("encoding_processing_invalid")
-                    .to_str()
-                    .expect("Path given is no good!"),
-            ),
+            output: setup_output_path("encoding_processing_invalid")
+                .to_str()
+                .map(|v| v.into()),
         };
 
         let conversion_processor = EncodingFormatDecider::new();

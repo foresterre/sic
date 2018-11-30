@@ -55,20 +55,25 @@ impl<'a> ConversionProcessor<'a> {
 
 impl<'a> ProcessWithConfig<Result<(), String>> for ConversionProcessor<'a> {
     fn process(&self, config: &Config) -> Result<(), String> {
-        let mut out = std::fs::File::create(&std::path::Path::new(&config.output))
-            .map_err(|err| err.to_string())?;
+        match &config.output {
+            Some(v) => {
+                let mut out = std::fs::File::create(&std::path::Path::new(v))
+                    .map_err(|err| err.to_string())?;
 
-        let output_format = self.output_format.clone();
+                let output_format = self.output_format.clone();
 
-        if let Some(buf) =
-            ConversionProcessor::preprocess_color_type(&config, &self.image, &output_format)
-        {
-            buf.write_to(&mut out, output_format)
-                .map_err(|err| err.to_string())
-        } else {
-            self.image
-                .write_to(&mut out, output_format)
-                .map_err(|err| err.to_string())
+                if let Some(buf) =
+                    ConversionProcessor::preprocess_color_type(&config, &self.image, &output_format)
+                {
+                    buf.write_to(&mut out, output_format)
+                        .map_err(|err| err.to_string())
+                } else {
+                    self.image
+                        .write_to(&mut out, output_format)
+                        .map_err(|err| err.to_string())
+                }
+            }
+            None => Err("No valid output path found (type: convproc)".into()),
         }
     }
 }
@@ -102,11 +107,7 @@ mod tests {
                 pnm_settings: PNMEncodingSettings::new(false),
             },
 
-            output: String::from(
-                setup_output_path(output)
-                    .to_str()
-                    .expect("Path given is no good!"),
-            ),
+            output: setup_output_path(output).to_str().map(|v| v.into()),
         }
     }
 
