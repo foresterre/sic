@@ -29,8 +29,11 @@ pub fn get_app() -> App<'static, 'static> {
         .version(env!("CARGO_PKG_VERSION"))
         .author("Martijn Gribnau <garm@ilumeo.com>")
         .about("Converts an image from one format to another.\n\n\
-                Supported input formats are: PNG, JPEG, GIF, BMP, ICO, TIFF, WebP, PBM, PGM, PPM,\n\
-                PAM (limitations may apply, see [2]).\n\n\
+                Supported input (decoding) formats are:  BMP, GIF, ICO, JPEG, PNG, PBM, PGM, PPM,\n\
+                PAM and TIFF and WebP.\n\
+                Supported output (encoding) formats are: BMP, GIF, ICO, JPEG, PNG, PBM, PGM, PPM \n\
+                and PAM.\n\
+                Some formats have some limitations, see: [2].\n\n\
                 The image conversion is actually done by the awesome 'image' library [1].\n\
                 Sic itself is a command line frontend which supports a growing portion of the\n\
                 operations supported by the 'image' library.\n\n\
@@ -42,7 +45,7 @@ pub fn get_app() -> App<'static, 'static> {
             .short("f")
             .long("force-format")
             .value_name("FORMAT")
-            .help("Output formats supported: BMP, GIF, JPEG, PNG, ICO, PBM, PGM, PPM, PAM.")
+            .help("Output formats (FORMAT values) supported: BMP, GIF, ICO, JPEG, PNG, PBM, PGM, PPM and PAM. ")
             .takes_value(true))
         .arg(Arg::with_name("license")
             .long("license")
@@ -70,7 +73,7 @@ pub fn get_app() -> App<'static, 'static> {
             .takes_value(true))
         .arg(Arg::with_name("pnm_encoding_ascii")
             .long("pnm-encoding-ascii")
-            .help("Use ascii based encoding when using a PNM image output format (pbm, pgm or ppm). Doesn't apply to 'pam' (PNM ArbitraryMap)."))
+            .help("Use ascii based encoding when using a PNM image output format (pbm, pgm or ppm). Doesn't apply to 'pam' (PNM Arbitrary Map)."))
         .arg(Arg::with_name("disable_automatic_color_type_adjustment")
             .long("disable-automatic-color-type-adjustment")
             .help("Some image output formats do not support the color type of the image buffer prior to encoding. By default sic tries to adjust the color type. If this flag is provided, sic will not try to adjust the color type."))
