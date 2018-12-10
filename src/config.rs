@@ -59,8 +59,9 @@ impl JPEGEncodingSettings {
         };
 
         fn within_range(v: u8) -> Result<JPEGEncodingSettings, String> {
-            const ALLOWED_RANGE: std::ops::RangeInclusive<u8> = 1..=100;
-            if ALLOWED_RANGE.contains(&v) {
+            // upper bound is exclusive with .. syntax.
+            const ALLOWED_RANGE: std::ops::Range<u8> = 1..101;
+            if v >= ALLOWED_RANGE.start && v <= ALLOWED_RANGE.end {
                 let res = JPEGEncodingSettings { quality: v };
 
                 Ok(res)

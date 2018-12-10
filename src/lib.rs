@@ -1,5 +1,3 @@
-#![feature(range_contains)]
-
 use std::path::Path;
 
 use clap::{App, Arg, ArgMatches};

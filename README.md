@@ -20,7 +20,8 @@ With [cargo](https://crates.io/crates/sic) install: `cargo install --force sic`
 Pre build binary: see [releases](https://github.com/foresterre/sic/releases)
 
 From the source of this repo:
-- Setup rust and cargo with (for example) [rustup](https://rustup.rs/), a `nightly` version is required.
+- Setup rust and cargo with (for example) [rustup](https://rustup.rs/) <br> 
+  _Rust version >= 1.31 with 'Rust edition 2018' is required._
 - Clone this repo: `git clone https://github.com/foresterre/sic.git`
 - Switch to this repo: `cd sic`
 - Build a release: `cargo build --release`

@@ -1,7 +1,12 @@
 language: rust
 rust:
+  - stable
   - nightly
 cache: cargo
 os:
   - linux
   - windows
+matrix:
+  allow_failures:
+    - rust: nightly
+  fast_finish: true
