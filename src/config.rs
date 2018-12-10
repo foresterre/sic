@@ -59,8 +59,11 @@ impl JPEGEncodingSettings {
         };
 
         fn within_range(v: u8) -> Result<JPEGEncodingSettings, String> {
-            const ALLOWED_RANGE: std::ops::RangeInclusive<u8> = 1..=100;
-            if ALLOWED_RANGE.contains(&v) {
+            // Upper bound is exclusive with .. syntax.
+            // When the `range_contains` feature will be stabilised Range.contains(&v)
+            // should be used instead.
+            const ALLOWED_RANGE: std::ops::Range<u8> = 1..101;
+            if v >= ALLOWED_RANGE.start && v < ALLOWED_RANGE.end {
                 let res = JPEGEncodingSettings { quality: v };
 
                 Ok(res)
@@ -82,5 +85,34 @@ pub struct PNMEncodingSettings {
 impl PNMEncodingSettings {
     pub fn new(ascii: bool) -> PNMEncodingSettings {
         PNMEncodingSettings { ascii }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn jpeg_in_quality_range_lower_bound_inside() {
+        let value: &str = "1";
+        assert!(JPEGEncodingSettings::new_result((true, Some(value))).is_ok())
+    }
+
+    #[test]
+    fn jpeg_in_quality_range_lower_bound_outside() {
+        let value: &str = "0";
+        assert!(JPEGEncodingSettings::new_result((true, Some(value))).is_err())
+    }
+
+    #[test]
+    fn jpeg_in_quality_range_upper_bound_inside() {
+        let value: &str = "100";
+        assert!(JPEGEncodingSettings::new_result((true, Some(value))).is_ok())
+    }
+
+    #[test]
+    fn jpeg_in_quality_range_upper_bound_outside() {
+        let value: &str = "101";
+        assert!(JPEGEncodingSettings::new_result((true, Some(value))).is_err())
     }
 }
