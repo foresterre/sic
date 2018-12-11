@@ -1,7 +1,7 @@
 [package]
 edition = "2018"
 name = "sic"
-version = "0.8.0"
+version = "0.8.1"
 authors = ["Martijn Gribnau <garm@ilumeo.com>"]
 description = "`sic` stands for simple image converter and is a partial front-end for the `image` crate."
 license = "MIT"
