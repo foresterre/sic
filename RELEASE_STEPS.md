@@ -52,6 +52,8 @@ Blocking:
 
 Same as above.
 
+- [ ] Completed!
+
 **Merge Release PR**
 
 If no blocking issues are detected and this checklist is complete,
