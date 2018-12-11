@@ -13,6 +13,29 @@ impl ApplyOperation<Operation, DynamicImage, String> for DynamicImage {
             Operation::Blur(sigma) => Ok(self.blur(sigma)),
             Operation::Brighten(amount) => Ok(self.brighten(amount)),
             Operation::Contrast(c) => Ok(self.adjust_contrast(c)),
+            Operation::Crop(lx, ly, rx, ry) => {
+
+                // TODO: here
+                // TODO: check oerder of Operation::Crop(1,2,3,4)
+
+                if rx <= lx || ry <= ly {
+                    return Err(format!("Operation crop: is {}<{} (top selection) and {}<{} (bottom selection)?", lx, rx, ly, ry));
+                }
+                else {
+                    let lxi = lx as i32;
+                    let rxi = rx as i32;
+                    let lyi = ly as i32;
+                    let ryi = ry as i32;
+                    println!("LEFT: {}-{}={}, and RIGHT: {}-{}={}", lxi, rxi, rxi-lxi, lyi, ryi, ryi-lyi);
+                }
+
+                let cropped = {
+                    let mut buffer = self.clone();
+                    buffer.crop(lx, ly, rx - lx, ry - ly)
+                };
+
+                Ok(cropped)
+            }
             // We need to ensure here that Filter3x3's `it` (&[f32]) has length 9.
             // Otherwise it will panic, see: https://docs.rs/image/0.19.0/src/image/dynimage.rs.html#349
             // This check already happens within the `parse` module.
@@ -23,10 +46,13 @@ impl ApplyOperation<Operation, DynamicImage, String> for DynamicImage {
             Operation::HueRotate(degree) => Ok(self.huerotate(degree)),
             // TODO this is rather sub optimal with the double clone
             Operation::Invert => {
-                let img = &mut self.clone();
-                image::DynamicImage::invert(img);
-                let res = img.clone();
-                Ok(res)
+                let inverted = {
+                    let mut buffer = self.clone();
+                    buffer.invert();
+                    buffer
+                };
+
+                Ok(inverted)
             }
             Operation::Resize(new_x, new_y) => {
                 Ok(self.resize_exact(new_x, new_y, FilterType::Gaussian))
@@ -151,6 +177,105 @@ mod tests {
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
         output_test_image_for_manual_inspection(&result_img, "target/test_contrast_pos_15_9.png")
+    }
+
+    #[test]
+    fn test_crop_ok_no_change() {
+        let img: DynamicImage = setup_test_image("resources/blackwhite_2x2.bmp");
+        let cmp: DynamicImage = setup_test_image("resources/blackwhite_2x2.bmp");
+
+        let operation = Operation::Crop(0, 0, 2, 2);
+
+        let done = img.apply_operation(&operation);
+        assert!(done.is_ok());
+
+        let result_img = done.unwrap();
+
+        assert_eq!(cmp.raw_pixels(), result_img.raw_pixels());
+
+        output_test_image_for_manual_inspection(&result_img, "target/test_crop_no_change.bmp")
+    }
+
+    #[test]
+    fn test_crop_ok_to_one_pixel() {
+        let img: DynamicImage = setup_test_image("resources/blackwhite_2x2.bmp");
+        let cmp: DynamicImage = setup_test_image("resources/blackwhite_2x2.bmp");
+
+        let operation = Operation::Crop(0, 0, 1, 1);
+
+        let done = img.apply_operation(&operation);
+        assert!(done.is_ok());
+
+        let result_img = done.unwrap();
+
+        assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
+
+        let result_dim = result_img.dimensions();
+        assert_eq!(1, result_dim.0);
+        assert_eq!(1, result_dim.1);
+
+        assert_eq!(image::Rgba([0, 0, 0, 255]), result_img.get_pixel(0, 0));
+
+        output_test_image_for_manual_inspection(&result_img, "target/test_crop_ok_to_one_pixel.bmp")
+    }
+
+    #[test]
+    fn test_crop_ok_to_half_horizontal() {
+        let img: DynamicImage = setup_test_image("resources/blackwhite_2x2.bmp");
+        let cmp: DynamicImage = setup_test_image("resources/blackwhite_2x2.bmp");
+
+        let operation = Operation::Crop(0, 0, 2, 1);
+
+        let done = img.apply_operation(&operation);
+        assert!(done.is_ok());
+
+        let result_img = done.unwrap();
+
+        assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
+
+        let result_dim = result_img.dimensions();
+        assert_eq!(2, result_dim.0);
+        assert_eq!(1, result_dim.1);
+
+        assert_eq!(image::Rgba([0, 0, 0, 255]), result_img.get_pixel(0, 0));
+        assert_eq!(image::Rgba([255, 255, 255, 255]), result_img.get_pixel(1, 0));
+
+        output_test_image_for_manual_inspection(&result_img, "target/test_crop_ok_to_half_horizontal.bmp")
+    }
+
+    #[test]
+    fn test_crop_err_lx_larger_than_rx() {
+        let img: DynamicImage = setup_test_image("resources/blackwhite_2x2.bmp");
+
+        // not rx >= lx
+        let operation = Operation::Crop(1, 0, 0, 0);
+
+        let done = img.apply_operation(&operation);
+        assert!(done.is_err());
+    }
+
+    #[test]
+    fn test_crop_err_ly_larger_than_ry() {
+        let img: DynamicImage = setup_test_image("resources/blackwhite_2x2.bmp");
+
+        // not rx >= lx
+        let operation = Operation::Crop(0, 1, 0, 0);
+
+        let done = img.apply_operation(&operation);
+        assert!(done.is_err());
+    }
+
+    #[test]
+    fn test_crop___DEBUG__() {
+        let img: DynamicImage = setup_test_image("resources/blackwhite_2x2.bmp");
+
+        // not rx >= lx
+        let operation = Operation::Crop(0, 0, 1, 1);
+
+        let done = img.apply_operation(&operation);
+        assert!(done.is_ok());
+
+        output_test_image_for_manual_inspection(&done.unwrap(), "target/__debug__.bmp")
     }
 
     #[test]
