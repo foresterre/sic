@@ -72,7 +72,7 @@ we can move on to the next step.
 - [ ] Add Windows and Linux (Ubuntu compiled) binaries to the release
     - compile with `cargo build --release`
 
-
+---
 
 [Release steps](https://github.com/foresterre/sic/blob/master/RELEASE_STEPS.md)
 
