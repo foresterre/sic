@@ -31,7 +31,7 @@ Blocking:
 
 **Verify**
 
-- [ ] Verify that each PR has run `cargo fmt`.
+- [ ] Verify formatting with `cargo +nightly fmt`.
 - [ ] Does `cargo test` succeed?
 - [ ] Verify image output of images produced with `cargo test --features output-test-images`.
 - [ ] Do all CI runs complete successfully?
