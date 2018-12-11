@@ -8,18 +8,18 @@ else which is noteworthy :).
 -->
 
 ### Changes from `current version` to `new version`:
-- ...
-- ...
-- ...
+- ... (issue: #X, PR: #Y)
+- ... (issue: #X, PR: #Y)
+- ... (issue: #X, PR: #Y)
 
 ---
 
 ### Problems encountered & their resolutions
 
 Blocking:
-- [ ] ...
-- [ ] ...
-- [ ] ...
+- [ ] ... (issue: #X, PR: #Y)
+- [ ] ... (issue: #X, PR: #Y)
+- [ ] ... (issue: #X, PR: #Y)
 
 ---
 
@@ -44,7 +44,7 @@ Blocking:
 - The Clap App version number in `src/main.rs` will be equal to the version number in `Cargo.toml`.
 
 
-**Update the dependency licenses to be included in the binary as per their licenses.**
+**Update the dependency licenses to be included in the binary as per their licenses**
 
 - [ ] Run `cargo run --example update_dep_licenses` to update the licenses of dependencies, which will be included in a binary build.
 
