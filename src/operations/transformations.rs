@@ -14,19 +14,28 @@ impl ApplyOperation<Operation, DynamicImage, String> for DynamicImage {
             Operation::Brighten(amount) => Ok(self.brighten(amount)),
             Operation::Contrast(c) => Ok(self.adjust_contrast(c)),
             Operation::Crop(lx, ly, rx, ry) => {
-
                 // TODO: here
                 // TODO: check oerder of Operation::Crop(1,2,3,4)
 
-                if rx <= lx || ry <= ly {
-                    return Err(format!("Operation crop: is {}<{} (top selection) and {}<{} (bottom selection)?", lx, rx, ly, ry));
-                }
-                else {
+                if rx > lx || ry > ly {
+                    return Err(format!(
+                        "Operation crop: is {}<{} (top selection) and {}<{} (bottom selection)?",
+                        lx, rx, ly, ry
+                    ));
+                } else {
                     let lxi = lx as i32;
                     let rxi = rx as i32;
                     let lyi = ly as i32;
                     let ryi = ry as i32;
-                    println!("LEFT: {}-{}={}, and RIGHT: {}-{}={}", lxi, rxi, rxi-lxi, lyi, ryi, ryi-lyi);
+                    println!(
+                        "LEFT: {}-{}={}, and RIGHT: {}-{}={}",
+                        lxi,
+                        rxi,
+                        rxi - lxi,
+                        lyi,
+                        ryi,
+                        ryi - lyi
+                    );
                 }
 
                 let cropped = {
@@ -238,9 +247,15 @@ mod tests {
         assert_eq!(1, result_dim.1);
 
         assert_eq!(image::Rgba([0, 0, 0, 255]), result_img.get_pixel(0, 0));
-        assert_eq!(image::Rgba([255, 255, 255, 255]), result_img.get_pixel(1, 0));
+        assert_eq!(
+            image::Rgba([255, 255, 255, 255]),
+            result_img.get_pixel(1, 0)
+        );
 
-        output_test_image_for_manual_inspection(&result_img, "target/test_crop_ok_to_half_horizontal.bmp")
+        output_test_image_for_manual_inspection(
+            &result_img,
+            "target/test_crop_ok_to_half_horizontal.bmp",
+        )
     }
 
     #[test]
