@@ -210,6 +210,16 @@ mod tests {
     }
 
     #[test]
+    fn test_crop_in_order_parse_correct() {
+        let pairs = SICParser::parse(Rule::main, "crop 1 2 3 4;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Operation::Crop(1, 2, 3, 4)]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
     fn test_crop_ones_parse_correct() {
         // Here we don't check that rX > lX and rY > lY
         // We only check that the values are uint and in range (u32)
