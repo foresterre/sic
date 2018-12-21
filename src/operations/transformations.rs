@@ -14,28 +14,12 @@ impl ApplyOperation<Operation, DynamicImage, String> for DynamicImage {
             Operation::Brighten(amount) => Ok(self.brighten(amount)),
             Operation::Contrast(c) => Ok(self.adjust_contrast(c)),
             Operation::Crop(lx, ly, rx, ry) => {
-                // TODO: here
-                // TODO: check oerder of Operation::Crop(1,2,3,4)
-
-                if rx > lx || ry > ly {
+                // verify that there is a positive bounding box selection
+                if (rx <= lx) || (ry <= ly) {
                     return Err(format!(
                         "Operation crop: is {}<{} (top selection) and {}<{} (bottom selection)?",
                         lx, rx, ly, ry
                     ));
-                } else {
-                    let lxi = lx as i32;
-                    let rxi = rx as i32;
-                    let lyi = ly as i32;
-                    let ryi = ry as i32;
-                    println!(
-                        "LEFT: {}-{}={}, and RIGHT: {}-{}={}",
-                        lxi,
-                        rxi,
-                        rxi - lxi,
-                        lyi,
-                        ryi,
-                        ryi - lyi
-                    );
                 }
 
                 let cropped = {
@@ -278,19 +262,6 @@ mod tests {
 
         let done = img.apply_operation(&operation);
         assert!(done.is_err());
-    }
-
-    #[test]
-    fn test_crop___DEBUG__() {
-        let img: DynamicImage = setup_test_image("resources/blackwhite_2x2.bmp");
-
-        // not rx >= lx
-        let operation = Operation::Crop(0, 0, 1, 1);
-
-        let done = img.apply_operation(&operation);
-        assert!(done.is_ok());
-
-        output_test_image_for_manual_inspection(&done.unwrap(), "target/__debug__.bmp")
     }
 
     #[test]
