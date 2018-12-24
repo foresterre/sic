@@ -15,6 +15,7 @@ f3x3_args_no_sep = _{ triplet_fp3 ~ whitespace ~ triplet_fp3  ~ whitespace ~ tri
 blur = ${ ^"blur" ~ whitespace ~ uint}
 brighten = ${ ^"brighten" ~ whitespace ~ int }
 contrast = ${ ^"contrast" ~ whitespace ~ fp }
+crop = ${ ^"crop" ~ whitespace ~ uint ~ whitespace ~ uint ~ whitespace ~ uint ~ whitespace ~ uint }
 filter3x3 = ${ ^"filter3x3" ~ whitespace ~ (f3x3_args_sep | f3x3_args_no_sep) }
 flip_horizontal = { ^"fliph" }
 flip_vertical = { ^"flipv"  }
@@ -30,6 +31,6 @@ unsharpen = ${ ^"unsharpen" ~ whitespace ~ fp ~ whitespace ~ int }
 
 operation_sequence = _{ (operation ~ whitespace? ~ sep? ~ whitespace?)+ }
 
-operation = _{ blur | brighten | contrast | filter3x3 | flip_horizontal | flip_vertical | grayscale | huerotate | invert | resize | rotate90 | rotate180 | rotate270 | unsharpen }
+operation = _{ blur | brighten | contrast | crop | filter3x3 | flip_horizontal | flip_vertical | grayscale | huerotate | invert | resize | rotate90 | rotate180 | rotate270 | unsharpen }
 
 main = _{ SOI ~ operation_sequence ~ EOI }

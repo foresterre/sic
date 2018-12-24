@@ -15,6 +15,7 @@ pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Vec<Operation>, 
             Rule::blur => parse_unop_f32(pair).map(Operation::Blur),
             Rule::brighten => parse_unop_i32(pair).map(Operation::Brighten),
             Rule::contrast => parse_unop_f32(pair).map(Operation::Contrast),
+            Rule::crop => parse_4_tuple_crop_result(parse_quad_op_u32(pair)),
             Rule::filter3x3 => parse_triplet3x_f32(pair).map(Operation::Filter3x3),
             Rule::flip_horizontal => Ok(Operation::FlipHorizontal),
             Rule::flip_vertical => Ok(Operation::FlipVertical),
@@ -96,6 +97,56 @@ fn parse_binop_f32_i32(pair: Pair<'_, Rule>) -> (Result<f32, String>, Result<i32
     (x, y)
 }
 
+type QuadOpU32 = (
+    Result<u32, String>,
+    Result<u32, String>,
+    Result<u32, String>,
+    Result<u32, String>,
+);
+
+// simplify tuple with individual error messages
+fn parse_4_tuple_crop_result(tuple: QuadOpU32) -> Result<Operation, String> {
+    let (xl, yl, xr, yr) = tuple;
+    xl.and_then(|lxu| {
+        yl.and_then(|lyu| xr.and_then(|rxu| yr.map(|ryu| Operation::Crop(lxu, lyu, rxu, ryu))))
+    })
+}
+
+fn parse_quad_op_u32(pair: Pair<'_, Rule>) -> QuadOpU32 {
+    let mut inner = pair.into_inner();
+
+    let left_top_corner_x = inner
+        .next()
+        .ok_or_else(|| "Unable to parse QuadOp::<u32, u32, u32, u32> (n=1)".to_string())
+        .map(|val| val.as_str())
+        .and_then(|it: &str| it.parse::<u32>().map_err(|err| err.to_string()));
+
+    let left_top_corner_y = inner
+        .next()
+        .ok_or_else(|| "Unable to parse QuadOp::<u32, u32, u32, u32> (n=2)".to_string())
+        .map(|val| val.as_str())
+        .and_then(|it: &str| it.parse::<u32>().map_err(|err| err.to_string()));
+
+    let right_bottom_corner_x = inner
+        .next()
+        .ok_or_else(|| "Unable to parse QuadOp::<u32, u32, u32, u32> (n=3)".to_string())
+        .map(|val| val.as_str())
+        .and_then(|it: &str| it.parse::<u32>().map_err(|err| err.to_string()));
+
+    let right_bottom_corner_y = inner
+        .next()
+        .ok_or_else(|| "Unable to parse QuadOp::<u32, u32, u32, u32> (n=3)".to_string())
+        .map(|val| val.as_str())
+        .and_then(|it: &str| it.parse::<u32>().map_err(|err| err.to_string()));
+
+    (
+        left_top_corner_x,
+        left_top_corner_y,
+        right_bottom_corner_x,
+        right_bottom_corner_y,
+    )
+}
+
 // The code below, should work for parsing the 9 elements of a 3x3 fp32 triplet structure, but
 // let's be honest; this code can't be called beautiful. This should be refactored.
 fn parse_triplet3x_f32(pair: Pair<'_, Rule>) -> Result<ArrayVec<[f32; 9]>, String> {
@@ -154,6 +205,99 @@ mod tests {
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![Operation::Blur(15.0)]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_crop_in_order_parse_correct() {
+        let pairs = SICParser::parse(Rule::main, "crop 1 2 3 4;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Operation::Crop(1, 2, 3, 4)]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_crop_ones_parse_correct() {
+        // Here we don't check that rX > lX and rY > lY
+        // We only check that the values are uint and in range (u32)
+        // lX = upper left X coordinate
+        // lY = upper left Y coordinate
+        // rX = bottom right X coordinate
+        // rY = bottom right Y coordinate
+
+        let pairs = SICParser::parse(Rule::main, "crop 1 1 1 1;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Operation::Crop(1, 1, 1, 1)]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_crop_zeros_parse_correct() {
+        let pairs = SICParser::parse(Rule::main, "crop 0 0 0 0;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Operation::Crop(0, 0, 0, 0)]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_crop_args_negative_parse_err() {
+        SICParser::parse(Rule::main, "crop -1 -1 -1 -1;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_crop_arg_negative_p1_parse_err() {
+        SICParser::parse(Rule::main, "crop -1 0 0 0;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_crop_arg_negative_p2_parse_err() {
+        SICParser::parse(Rule::main, "crop 0 -1 0 0;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_crop_arg_negative_p3_parse_err() {
+        SICParser::parse(Rule::main, "crop 0 0 -1 0;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_crop_arg_negative_p4_parse_err() {
+        SICParser::parse(Rule::main, "crop 0 0 0 -1;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+    }
+
+    #[test]
+    fn test_crop_arg_to_big_p4_parse_err() {
+        // 4294967296 == std::u32::MAX + 1
+        let pairs = SICParser::parse(Rule::main, "crop 0 0 0 4294967296")
+            .unwrap_or_else(|_| panic!("Unable to parse sic image operations script."));
+
+        assert!(parse_image_operations(pairs).is_err())
+    }
+
+    #[test]
+    fn test_crop_arg_just_in_range_p4_parse_ok() {
+        // 4294967296 == std::u32::MAX
+        let pairs = SICParser::parse(Rule::main, "crop 0 0 0 4294967295")
+            .unwrap_or_else(|_| panic!("Unable to parse sic image operations script."));
+
+        assert_eq!(
+            Ok(vec![Operation::Crop(0, 0, 0, std::u32::MAX)]),
             parse_image_operations(pairs)
         );
     }
