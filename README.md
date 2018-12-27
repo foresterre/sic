@@ -63,7 +63,7 @@ Image operations availability:
 |blur               | `blur <uint>` [E-BLUR]                | Yes (0.5.0) 	    | Performs a Gaussian blur on the image ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.blur.html)) |
 |brighten           | `brighten <int>` [E-BRIGHTEN]         | Yes (0.7.0) 	    | |
 |contrast           | `contrast <fp>` [E-CONTRAST]          | Yes (0.7.0) 	    | |
-|crop               |                                       | No                | Planned for 0.9.0 |
+|crop               |                                       | Yes               | Will be included in release version 0.9.0 |
 |filter3x3          | `filter3x3 <args9>` [E-FILTER3X3]     | Yes (0.7.0)       | |
 |flip horizontal    | `fliph` [E-FLIPH]                     | Yes (0.5.0) 	    | Flips the image on the horizontal axis |
 |flip vertical      | `flipv` [E-FLIPV]                     | Yes (0.5.0) 	    | Flips the image on the horizontal axis |
