@@ -4,6 +4,7 @@ use image::DynamicImage;
 use crate::config::FormatEncodingSettings;
 use crate::config::JPEGEncodingSettings;
 use crate::config::PNMEncodingSettings;
+use std::cell::RefCell;
 
 pub(crate) mod conversion;
 pub(crate) mod encoding_format;
@@ -56,15 +57,17 @@ enum Signal {
 }
 
 struct Pipeline {
-    buffer: Cell<DynamicImage>,
+    buffer: RefCell<DynamicImage>,
     pre_image_processing_steps: Vec<Box<Fn(&Config) -> Signal>>,
-    image_processing_steps: Vec<Box<Fn(&Cell<DynamicImage>, &Config) -> Signal>>,
+    image_processing_steps: Vec<Box<Fn(&RefCell<DynamicImage>, &Config) -> Signal>>,
     config: Config,
 }
 
 impl Pipeline {
     fn run(&mut self) -> Result<(), String> {
         // current code is written to be explicit; and as a proof of concept
+
+        // Part I: pre image processing
 
         // pop() pops from the back
         self.pre_image_processing_steps.reverse();
@@ -92,9 +95,36 @@ impl Pipeline {
 
         }
 
+        // Part II: image processing
+
+        self.image_processing_steps.reverse();
+
+        let mut current = None;
+
+        while !self.image_processing_steps.is_empty() {
+            current = self.image_processing_steps.pop();
+
+            match current {
+                Some(f) => {
+                    let func: Box<Fn(&RefCell<DynamicImage>, &Config) -> Signal> = f;
+
+                    match func(&self.buffer, &self.config) {
+                        Signal::Continue => (),
+                        Signal::Stop => return Ok(()),
+                        Signal::StopWithError(message) => return Err(message),
+                    }
+                }
+                None => return Ok(())
+            }
+        }
+
+
+
         // Completed all steps
         Ok(())
     }
+
+//    fn handle_signal(signal: Signal) ->
 
 
 }
@@ -117,14 +147,33 @@ fn __debug__() {
         Signal::Continue
     }
 
+    fn example_image_processing(cell: &RefCell<DynamicImage>, config: &Config) -> Signal {
+        use image::GenericImageView;
+
+        let mut buffer = cell.borrow_mut();
+
+        let dim = buffer.dimensions();
+        println!("{} x {}", dim.0, dim.1);
+
+        buffer.save("before.png");
+
+        *buffer = buffer.rotate90();
+        buffer.save("after.png");
+
+        Signal::Continue
+    }
+
     let mut pipeline = Pipeline {
-        buffer: Cell::new(DynamicImage::new_luma8(2, 2)),
+        buffer: RefCell::new(image::open("resources/rainbow_8x6.bmp").unwrap()),
         pre_image_processing_steps: vec![
             Box::new(example_continue),
-            Box::new(example_stop),
-            Box::new(example_stop_err)
+            Box::new(example_continue),
+            Box::new(example_continue),
+//            Box::new(example_stop_err)
         ],
-        image_processing_steps: vec![],
+        image_processing_steps: vec![
+            Box::new(example_image_processing)
+        ],
         config: Config {
             licenses: vec![],
             user_manual: None,
