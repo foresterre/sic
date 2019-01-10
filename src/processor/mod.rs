@@ -149,16 +149,17 @@ fn __debug__() {
 
     fn example_image_processing(cell: &RefCell<DynamicImage>, config: &Config) -> Signal {
         use image::GenericImageView;
+        use std::time::{SystemTime, UNIX_EPOCH};
+
 
         let mut buffer = cell.borrow_mut();
 
         let dim = buffer.dimensions();
         println!("{} x {}", dim.0, dim.1);
 
-        buffer.save("before.png");
-
+        buffer.save(format!("before_{}.png", SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs()));
         *buffer = buffer.rotate90();
-        buffer.save("after.png");
+        buffer.save(format!("after_{}.png", SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs()));
 
         Signal::Continue
     }
@@ -172,7 +173,8 @@ fn __debug__() {
 //            Box::new(example_stop_err)
         ],
         image_processing_steps: vec![
-            Box::new(example_image_processing)
+            Box::new(example_image_processing),
+            Box::new(example_image_processing),
         ],
         config: Config {
             licenses: vec![],
