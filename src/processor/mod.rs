@@ -57,8 +57,8 @@ enum Signal {
 
 struct Pipeline {
     buffer: Cell<DynamicImage>,
-    pre_image_transform_steps: Vec<Box<Fn(&Config) -> Signal>>,
-    image_transform_steps: Vec<Box<Fn(&Cell<DynamicImage>, &Config) -> Signal>>,
+    pre_image_processing_steps: Vec<Box<Fn(&Config) -> Signal>>,
+    image_processing_steps: Vec<Box<Fn(&Cell<DynamicImage>, &Config) -> Signal>>,
     config: Config,
 }
 
@@ -67,13 +67,13 @@ impl Pipeline {
         // current code is written to be explicit; and as a proof of concept
 
         // pop() pops from the back
-        self.pre_image_transform_steps.reverse();
+        self.pre_image_processing_steps.reverse();
 
         let mut step = 0;
         let mut current = None;
 
-        while !self.pre_image_transform_steps.is_empty() {
-            current = self.pre_image_transform_steps.pop();
+        while !self.pre_image_processing_steps.is_empty() {
+            current = self.pre_image_processing_steps.pop();
             step += 1;
 
             println!("step {}", step);
@@ -119,12 +119,12 @@ fn __debug__() {
 
     let mut pipeline = Pipeline {
         buffer: Cell::new(DynamicImage::new_luma8(2, 2)),
-        pre_image_transform_steps: vec![
+        pre_image_processing_steps: vec![
             Box::new(example_continue),
             Box::new(example_stop),
             Box::new(example_stop_err)
         ],
-        image_transform_steps: vec![],
+        image_processing_steps: vec![],
         config: Config {
             licenses: vec![],
             user_manual: None,
