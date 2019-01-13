@@ -48,11 +48,14 @@ pub trait ProcessMutWithConfig<T> {
 
 type Signal = Result<Success, Failure>;
 
+#[derive(PartialEq)]
 enum Failure {
     TodoError,
 }
 
+#[derive(PartialEq)]
 enum Success {
+    Empty,
     Continue,
     Stop,
 }
@@ -65,46 +68,69 @@ struct Pipeline {
 }
 
 impl Pipeline {
+
+    fn run_pre_image_phase(&mut self) -> Result<Success, Failure> {
+
+        fn step(f: Box<Fn(&Config) -> Signal>, config: &Config) -> Result<Success, Failure> {
+            f(config)
+        }
+
+        self.pre_image_processing_steps
+            .iter()
+            .try_fold(Success::Empty, |acc, box_fn| {
+
+                let result = box_fn(&self.config);
+
+                // TODO:
+                // bug: break early on stop signal
+                // - with try fold, can use a wrapper Result type like but maybe use an Into trait instead
+                // type StopEarlyWrapper = Result<Success, EitherErr<Stop, Failure>>
+
+                result
+            })
+    }
+
+//    fn run_pre_image_phase(&mut self) -> Result<(), String> {
+//        while !self.pre_image_processing_steps.is_empty() {
+//            let current = self.pre_image_processing_steps.pop();
+//
+//            match current {
+//                Some(f) => {
+//                    let func: Box<Fn(&Config) -> Signal> = f;
+//
+//                    match func(&self.config) {
+//                        Ok(Success::Continue) => (),
+//                        Ok(Success::Stop) => return Ok(()),
+//                        Err(Failure::TodoError) => return Err(":todo_p1:".to_string()),
+//                    };
+//                }
+//                None => return Ok(()),
+//            }
+//        }
+//        Ok(())
+//    }
+
     fn run(&mut self) -> Result<(), String> {
         // current code is written to be explicit; and as a proof of concept
 
         // Part I: pre image processing
+        let pre_image_phase = self.run_pre_image_phase();
 
-        let mut step = 0;
-
-        while !self.pre_image_processing_steps.is_empty() {
-            let current = self.pre_image_processing_steps.pop();
-
-            step += 1;
-            println!("step (stage I) {}", step);
-
-            match current {
-                Some(f) => {
-                    let func: Box<Fn(&Config) -> Signal> = f;
-
-                    match func(&self.config) {
-                        Ok(Success::Continue) => (),
-                        Ok(Success::Stop) => return Ok(()),
-                        Err(Failure::TodoError) => return Err(":todo_p1:".to_string()),
-                    }
-                }
-                None => return Ok(()),
-            };
+        match pre_image_phase {
+            Ok(joy) => (),
+            Err(_) => return Err("Failure in the pre imageops stage.".to_string())
         }
 
         // Part II: image processing
-
         while !self.image_processing_steps.is_empty() {
             let current = self.image_processing_steps.pop();
-
-            step += 1;
-            println!("step (stage II) {}", step);
 
             match current {
                 Some(f) => {
                     let func: Box<Fn(&RefCell<DynamicImage>, &Config) -> Signal> = f;
 
                     match func(&self.buffer, &self.config) {
+                        Ok(Success::Empty) => (),
                         Ok(Success::Continue) => (),
                         Ok(Success::Stop) => return Ok(()),
                         Err(Failure::TodoError) => return Err(":todo_p2:".to_string()),
@@ -205,10 +231,12 @@ fn __debug__() {
 
         // both provided in reverse
         pre_image_processing_steps: vec![
+            Box::new(example_stop_err),
             Box::new(example_continue),
             Box::new(example_continue),
             Box::new(example_continue),
-            //            Box::new(example_stop_err)
+            Box::new(example_stop),
+
         ],
         image_processing_steps: vec![
             Box::new(example_image_processing_2),
