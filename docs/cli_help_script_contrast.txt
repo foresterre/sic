@@ -15,9 +15,9 @@ A positive value for <int> means the contrast will be increased, and a negative 
 
 Usage example:
 --------------
-`sic input.png output.png --script "contrast 10;"`
+`sic input.png output.png --apply-operations "contrast 10;"`
 or
-`sic input.png output.png --script "contrast -10;"`
+`sic input.png output.png --apply-operations "contrast -10;"`
 
 See also:
 ---------

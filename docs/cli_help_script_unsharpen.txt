@@ -16,8 +16,8 @@ The first argument (<fp>) decides how much the image is blurred, and the second 
 
 Usage example:
 --------------
-`sic input.png output.png --script "unsharpen 10 5;"`
-or `sic input.png output.png --script "unsharpen 0.8 3;"`
+`sic input.png output.png --apply-operations "unsharpen 10 5;"`
+or `sic input.png output.png --apply-operations "unsharpen 0.8 3;"`
 
 
 See also:

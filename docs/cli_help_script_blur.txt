@@ -13,7 +13,7 @@ where <uint> means: any 32 bit unsigned integer is required as parameter input.
 
 Usage example:
 --------------
-`sic input.png output.png --script "blur 10;"`
+`sic input.png output.png --apply-operations "blur 10;"`
 
 See also:
 ---------

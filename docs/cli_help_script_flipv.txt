@@ -11,7 +11,7 @@ Syntax:
 
 Usage example:
 --------------
-`sic input.png output.png --script "flipv;"`
+`sic input.png output.png --apply-operations "flipv;"`
 
 See also:
 ---------

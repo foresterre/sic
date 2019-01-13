@@ -16,9 +16,9 @@ The actual rotation will be <int>%360 degrees.
 
 Usage example:
 --------------
-`sic input.png output.png --script "huerotate 10;"`
+`sic input.png output.png --apply-operations "huerotate 10;"`
 or
-`sic input.png output.png --script "huerotate -10;"`
+`sic input.png output.png --apply-operations "huerotate -10;"`
 
 See also:
 ---------
