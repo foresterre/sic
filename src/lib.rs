@@ -41,9 +41,10 @@ pub fn get_app() -> App<'static, 'static> {
                 [2] https://github.com/PistonDevelopers/image/tree/13372d52ad7ca96da1bb1ca148c57d402bf4c8c0#21-supported-image-formats\n\n")
         .arg(Arg::with_name("forced_output_format")
             .short("f")
-            .long("force-format")
+            .long("output-format")
             .value_name("FORMAT")
-            .help("Output formats (FORMAT values) supported: BMP, GIF, ICO, JPEG, PNG, PBM, PGM, PPM and PAM. ")
+            .help("Force the output image format to use FORMAT, regardless of the (if any) extension of the given output file path. \
+                Output formats (FORMAT values) supported: BMP, GIF, ICO, JPEG, PNG, PBM, PGM, PPM and PAM. ")
             .takes_value(true))
         .arg(Arg::with_name("license")
             .long("license")
