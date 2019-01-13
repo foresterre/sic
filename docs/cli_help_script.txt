@@ -1,4 +1,4 @@
-The cli option `--script <operations>` provides a declarative way to apply image operations on an image.
+The cli option `--apply-operations <operations>` (`-A <operations>`) provides a declarative way to apply image operations on an image.
 The order in which these operations are applied is left-to-right.
 
 Supported operations:
@@ -39,14 +39,14 @@ table legend:
 
 Operation separators (';') are optional.
 
-Example 1: sic input.png output.png --script "resize 250 250; blur 5; huerotate -30"
-Example 2: sic input.png output.jpg --script "flipv resize 10 5 blur 100 grayscale"
-Example 3: sic input.png output.jpg --script "filter3x3 1.0 0.9 0.8 | 0.7 0.6 0.5 | 0.4 0.3 0.2; flipv; invert"
+Example 1: sic input.png output.png --apply-operations "resize 250 250; blur 5; huerotate -30"
+Example 2: sic input.png output.jpg --apply-operations "flipv resize 10 5 blur 100 grayscale"
+Example 3: sic input.png output.jpg --apply-operations "filter3x3 1.0 0.9 0.8 | 0.7 0.6 0.5 | 0.4 0.3 0.2; flipv; invert"
 
 
 Help pages:
-* Each script command has a help page which might provide some additional information.
-* Display the help page by running `sic -H <script-operation>` where `<script-operation>` is an operation from the
+* Each image operation command has a help page which might provide some additional information.
+* Display the help page by running `sic -H <operation>` where `<operation>` is an operation from the
   operations column in the table above.
 
 ---

@@ -14,13 +14,13 @@ Syntax:
 
 where <uint> means: any 32 bit unsigned integer is required as parameter input.
 
-The first <uint> represents the projected width of the output image and the second <uint> argument represents the projected hieght of the output image.
+The first <uint> represents the projected width of the output image and the second <uint> argument represents the projected height of the output image.
 
 Usage example:
 --------------
-`sic input.png output.png --script "resize 10 10;"`
+`sic input.png output.png --apply-operations "resize 10 10;"`
 or
-`sic input.png output.png --script "resize 1920 1080;"`
+`sic input.png output.png --apply-operations "resize 1920 1080;"`
 
 See also:
 ---------

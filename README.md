@@ -47,8 +47,8 @@ PNM (PBM, PGM, PPM) by default uses binary encoding (PNM P4, P5 and P6 respectiv
 <br>
 
 **Apply image operations to an image.**
-* In general: `sic --script "<operations>" <input> <output> `
-* Example `sic input.png output.jpg --script "fliph; blur 10; resize 250 250"`
+* In general: `sic --apply-operations "<operations>" <input> <output> ` (shorthand: `-A`) 
+* Example `sic input.png output.jpg --apply-operations "fliph; blur 10; resize 250 250"`
 
 The separator `;` within the image operation script is optional. It exists to provide clarity.  
 
@@ -88,25 +88,25 @@ _legend_:
 _Syntax examples:_
 For each example: each of the lines are valid syntactically and the full examples are valid syntactically as well.
 
-[E-BLUR], Blur operation example script:
+[E-BLUR], Blur operation example:
 ```
 blur 10;
 ```
 
-[E-BRIGHTEN], Brighten operation example script:
+[E-BRIGHTEN], Brighten operation example:
 ```
 brighten 10;
 brighten -10;
 ```
 
-[E-CONTRAST], Contrast operation example script:
+[E-CONTRAST], Contrast operation example:
 ```
 contrast -10;
 contrast 10;
 contrast 1.35;
 ```
 
-[E-FILTER3X3] Filter3x3 operation example script:
+[E-FILTER3X3] Filter3x3 operation example:
 ```
 filter3x3 10.0 9.0 8.0 | 7.5 6.5 5.5 | 4 3 2;
 filter3x3 10.0 9.0 8.0 7.5 6.5 5.5 4 3 2;
@@ -114,55 +114,55 @@ filter3x3 10.0 9.0 8.0 7.5 6.5 5.5 4 3 2
 filter3x3 10.0 9.0 8.0 7.5 6.5 5.5 4 3 2 filter3x3 12.0 29.0 28 27.5 26 25.5 14 3 2
 ```
 
-[E-FLIPH]. Flip horizontal operation example script:
+[E-FLIPH]. Flip horizontal operation example:
 ```
 fliph;
 ```
 
-[E-FLIPV]. Flip vertical operation example script:
+[E-FLIPV]. Flip vertical operation example:
 ```
 flipv;
 ```
 
-[E-GRAYSCALE]. Gray scale operation example script:
+[E-GRAYSCALE]. Gray scale operation example:
 ```
 grayscale;
 ```
 
-[E-HUEROTATE]. Hue rotate operation example script:
+[E-HUEROTATE]. Hue rotate operation example:
 ```
 huerotate 10;
 huerotate -10;
 ```
 
-[E-INVERT]. Invert operation example script:
+[E-INVERT]. Invert operation example:
 ```
 invert;
 ```
 
-[E-RESIZE]. Resize operation example script:
+[E-RESIZE]. Resize operation example:
 ```
 resize 10 10;
 resize 1 1;
 resize 80 180;
 ```
 
-[E-ROTATE90]. Rotate 90 degree operation example script:
+[E-ROTATE90]. Rotate 90 degree operation example:
 ```
 rotate90;
 ```
 
-[E-ROTATE180]. Rotate 180 degree operation example script:
+[E-ROTATE180]. Rotate 180 degree operation example:
 ```
 rotate180;
 ```
 
-[E-ROTATE270]. Rotate 270 degree operation example script:
+[E-ROTATE270]. Rotate 270 degree operation example:
 ```
 rotate270;
 ```
 
-[E-UNSHARPEN]. Unsharpen operation example script:
+[E-UNSHARPEN]. Unsharpen operation example:
 ```
 unsharpen -12.3 -12;
 unsharpen -10.0 12;

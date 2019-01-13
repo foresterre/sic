@@ -15,9 +15,9 @@ A positive value for <int> means the brightness will be increased, and a negativ
 
 Usage example:
 --------------
-`sic input.png output.png --script "brighten 10;"`
+`sic input.png output.png --apply-operations "brighten 10;"`
 or
-`sic input.png output.png --script "brighten -10;"`
+`sic input.png output.png --apply-operations "brighten -10;"`
 
 See also:
 ---------
