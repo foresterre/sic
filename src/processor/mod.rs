@@ -1,9 +1,5 @@
 use crate::config::Config;
-use std::cell::Cell;
 use image::DynamicImage;
-use crate::config::FormatEncodingSettings;
-use crate::config::JPEGEncodingSettings;
-use crate::config::PNMEncodingSettings;
 use std::cell::RefCell;
 
 pub(crate) mod conversion;
@@ -50,10 +46,15 @@ pub trait ProcessMutWithConfig<T> {
 // ========== Prototype ============
 // =================================
 
-enum Signal {
+type Signal = Result<Success, Failure>;
+
+enum Failure {
+    TodoError,
+}
+
+enum Success {
     Continue,
     Stop,
-    StopWithError(String)
 }
 
 struct Pipeline {
@@ -73,10 +74,9 @@ impl Pipeline {
         self.pre_image_processing_steps.reverse();
 
         let mut step = 0;
-        let mut current = None;
 
         while !self.pre_image_processing_steps.is_empty() {
-            current = self.pre_image_processing_steps.pop();
+            let current = self.pre_image_processing_steps.pop();
             step += 1;
 
             println!("step {}", step);
@@ -85,83 +85,98 @@ impl Pipeline {
                     let func: Box<Fn(&Config) -> Signal> = f;
 
                     match func(&self.config) {
-                        Signal::Continue => (),
-                        Signal::Stop => return Ok(()),
-                        Signal::StopWithError(message) => return Err(message),
+                        Ok(Success::Continue) => (),
+                        Ok(Success::Stop) => return Ok(()),
+                        Err(Failure::TodoError) => return Err(":todo_p1:".to_string()),
                     }
-                },
+                }
                 None => return Ok(()),
             };
-
         }
 
         // Part II: image processing
 
         self.image_processing_steps.reverse();
 
-        let mut current = None;
-
         while !self.image_processing_steps.is_empty() {
-            current = self.image_processing_steps.pop();
+            let current = self.image_processing_steps.pop();
 
             match current {
                 Some(f) => {
                     let func: Box<Fn(&RefCell<DynamicImage>, &Config) -> Signal> = f;
 
                     match func(&self.buffer, &self.config) {
-                        Signal::Continue => (),
-                        Signal::Stop => return Ok(()),
-                        Signal::StopWithError(message) => return Err(message),
+                        Ok(Success::Continue) => (),
+                        Ok(Success::Stop) => return Ok(()),
+                        Err(Failure::TodoError) => return Err(":todo_p2:".to_string()),
                     }
                 }
-                None => return Ok(())
+                None => return Ok(()),
             }
         }
-
-
 
         // Completed all steps
         Ok(())
     }
 
-//    fn handle_signal(signal: Signal) ->
-
-
+    //    fn handle_signal(signal: Signal) ->
 }
-
 
 #[test]
 fn __debug__() {
+    use crate::config::FormatEncodingSettings;
+    use crate::config::JPEGEncodingSettings;
+    use crate::config::PNMEncodingSettings;
+
     fn example_stop_err(config: &Config) -> Signal {
         println!("stop with err");
-        Signal::StopWithError("stop with err".to_string())
+        Err(Failure::TodoError)
     }
 
     fn example_stop(config: &Config) -> Signal {
         println!("stop");
-        Signal::Stop
+        Ok(Success::Stop)
     }
 
     fn example_continue(config: &Config) -> Signal {
         println!("continue");
-        Signal::Continue
+        Ok(Success::Continue)
     }
 
     fn example_image_processing(cell: &RefCell<DynamicImage>, config: &Config) -> Signal {
         use image::GenericImageView;
         use std::time::{SystemTime, UNIX_EPOCH};
 
-
         let mut buffer = cell.borrow_mut();
 
         let dim = buffer.dimensions();
         println!("{} x {}", dim.0, dim.1);
 
-        buffer.save(format!("before_{}.png", SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs()));
-        *buffer = buffer.rotate90();
-        buffer.save(format!("after_{}.png", SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs()));
+        match buffer.save(format!(
+            "before_{}.png",
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_secs()
+        )) {
+            Ok(_) => (),
+            Err(_) => return Err(Failure::TodoError)
+        }
 
-        Signal::Continue
+        *buffer = buffer.rotate90();
+
+        match buffer.save(format!(
+            "after_{}.png",
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_secs()
+        )) {
+            Ok(_) => (),
+            Err(_) => return Err(Failure::TodoError),
+        }
+
+        Ok(Success::Continue)
     }
 
     let mut pipeline = Pipeline {
@@ -170,7 +185,7 @@ fn __debug__() {
             Box::new(example_continue),
             Box::new(example_continue),
             Box::new(example_continue),
-//            Box::new(example_stop_err)
+            //            Box::new(example_stop_err)
         ],
         image_processing_steps: vec![
             Box::new(example_image_processing),
@@ -183,19 +198,14 @@ fn __debug__() {
             forced_output_format: None,
             disable_automatic_color_type_adjustment: false,
             encoding_settings: FormatEncodingSettings {
-                jpeg_settings: JPEGEncodingSettings {
-                    quality: 80,
-                },
-                pnm_settings: PNMEncodingSettings {
-                    ascii: true,
-                }
+                jpeg_settings: JPEGEncodingSettings { quality: 80 },
+                pnm_settings: PNMEncodingSettings { ascii: true },
             },
             output: Some("hello_world".to_string()),
-        }
+        },
     };
 
     let r = pipeline.run();
-
 
     assert_eq!(Ok(()), r);
 }
