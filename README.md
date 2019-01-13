@@ -36,8 +36,8 @@ From the source of this repo:
 <br>
 
 **Covert an image from one format to another while not caring about the output file extension.**
-* In general `sic --force-format "<format>" <input> <output>` (or  `sic -f "<format>" <input> <output>`)
-* Example `sic --force-format png input.bmp output.jpg` _(Note: `output.jpg` will have the PNG format even though the extension is `jpg`.)_
+* In general `sic --output-format "<format>" <input> <output>` (or  `sic -f "<format>" <input> <output>`)
+* Example `sic --output-format png input.bmp output.jpg` _(Note: `output.jpg` will have the PNG format even though the extension is `jpg`.)_
 
 Supported image output formats are (as of 0.8.0): `bmp`, `gif`, `ico`, `jpg` (or `jpeg`), `png`, `pbm`, `pgm`, `ppm` and `pam`.
 The JPEG quality can optionally be set with `--jpeg-encoding-quality <value>` (value should be an integer from 1 up to (including) 100). Default value if not user overridden is 80.

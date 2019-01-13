@@ -251,7 +251,7 @@ fn convert_to_x_by_ff_args<'a>(
 ) -> Vec<&'a str> {
     vec![
         "sic",
-        "--force-format",
+        "--output-format",
         which,
         path_buf_str(&input),
         path_buf_str(&output),
@@ -517,7 +517,7 @@ fn convert_pbm_ascii() {
     let args = vec![
         "sic",
         "--pnm-encoding-ascii",
-        "--force-format",
+        "--output-format",
         which,
         path_buf_str(&our_input),
         path_buf_str(&our_output),
@@ -548,7 +548,7 @@ fn convert_pgm_ascii() {
     let args = vec![
         "sic",
         "--pnm-encoding-ascii",
-        "--force-format",
+        "--output-format",
         which,
         path_buf_str(&our_input),
         path_buf_str(&our_output),
@@ -579,7 +579,7 @@ fn convert_ppm_ascii() {
     let args = vec![
         "sic",
         "--pnm-encoding-ascii",
-        "--force-format",
+        "--output-format",
         which,
         path_buf_str(&our_input),
         path_buf_str(&our_output),
@@ -609,7 +609,7 @@ fn convert_pbm_not_ascii() {
 
     let args = vec![
         "sic",
-        "--force-format",
+        "--output-format",
         which,
         path_buf_str(&our_input),
         path_buf_str(&our_output),
@@ -639,7 +639,7 @@ fn convert_pgm_not_ascii() {
 
     let args = vec![
         "sic",
-        "--force-format",
+        "--output-format",
         which,
         path_buf_str(&our_input),
         path_buf_str(&our_output),
@@ -669,7 +669,7 @@ fn convert_ppm_not_ascii() {
 
     let args = vec![
         "sic",
-        "--force-format",
+        "--output-format",
         which,
         path_buf_str(&our_input),
         path_buf_str(&our_output),
@@ -704,7 +704,7 @@ fn convert_jpeg_quality_different() {
 
     let args1 = vec![
         "sic",
-        "--force-format",
+        "--output-format",
         which,
         path_buf_str(&our_input),
         path_buf_str(&out1),
@@ -714,7 +714,7 @@ fn convert_jpeg_quality_different() {
         "sic",
         "--jpeg-encoding-quality",
         "81",
-        "--force-format",
+        "--output-format",
         which,
         path_buf_str(&our_input),
         path_buf_str(&out2),
