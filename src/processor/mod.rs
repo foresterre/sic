@@ -70,16 +70,14 @@ impl Pipeline {
 
         // Part I: pre image processing
 
-        // pop() pops from the back
-        self.pre_image_processing_steps.reverse();
-
         let mut step = 0;
 
         while !self.pre_image_processing_steps.is_empty() {
             let current = self.pre_image_processing_steps.pop();
-            step += 1;
 
-            println!("step {}", step);
+            step += 1;
+            println!("step (stage I) {}", step);
+
             match current {
                 Some(f) => {
                     let func: Box<Fn(&Config) -> Signal> = f;
@@ -96,10 +94,11 @@ impl Pipeline {
 
         // Part II: image processing
 
-        self.image_processing_steps.reverse();
-
         while !self.image_processing_steps.is_empty() {
             let current = self.image_processing_steps.pop();
+
+            step += 1;
+            println!("step (stage II) {}", step);
 
             match current {
                 Some(f) => {
@@ -152,26 +151,48 @@ fn __debug__() {
         let dim = buffer.dimensions();
         println!("{} x {}", dim.0, dim.1);
 
-        match buffer.save(format!(
-            "before_{}.png",
-            SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .unwrap()
-                .as_secs()
-        )) {
+        let id = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+
+        match buffer.save(format!("a_{}.png", id)) {
             Ok(_) => (),
             Err(_) => return Err(Failure::TodoError)
         }
 
         *buffer = buffer.rotate90();
 
-        match buffer.save(format!(
-            "after_{}.png",
-            SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .unwrap()
-                .as_secs()
-        )) {
+        match buffer.save(format!("b_{}.png", id)) {
+            Ok(_) => (),
+            Err(_) => return Err(Failure::TodoError),
+        }
+
+        Ok(Success::Continue)
+    }
+
+    fn example_image_processing_2(cell: &RefCell<DynamicImage>, config: &Config) -> Signal {
+        use image::GenericImageView;
+        use std::time::{SystemTime, UNIX_EPOCH};
+
+        let mut buffer = cell.borrow_mut();
+
+        let dim = buffer.dimensions();
+        println!("{} x {}", dim.0, dim.1);
+
+        let id = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs() + 1;
+
+        match buffer.save(format!("a_{}.png", id)) {
+            Ok(_) => (),
+            Err(_) => return Err(Failure::TodoError)
+        }
+
+        *buffer = buffer.grayscale();
+
+        match buffer.save(format!("b_{}.png", id)) {
             Ok(_) => (),
             Err(_) => return Err(Failure::TodoError),
         }
@@ -181,6 +202,8 @@ fn __debug__() {
 
     let mut pipeline = Pipeline {
         buffer: RefCell::new(image::open("resources/rainbow_8x6.bmp").unwrap()),
+
+        // both provided in reverse
         pre_image_processing_steps: vec![
             Box::new(example_continue),
             Box::new(example_continue),
@@ -188,7 +211,7 @@ fn __debug__() {
             //            Box::new(example_stop_err)
         ],
         image_processing_steps: vec![
-            Box::new(example_image_processing),
+            Box::new(example_image_processing_2),
             Box::new(example_image_processing),
         ],
         config: Config {
