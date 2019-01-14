@@ -91,12 +91,7 @@ impl Pipeline {
         let step = self.pre_image_processing_steps
             .iter()
             .try_fold(Success::Empty, |acc, box_fn| {
-
                 let result = box_fn(&self.config);
-
-                // TODO:
-                // bug: break early on stop signal
-                // - with try fold, can use a wrapper Result type like but maybe use an Into trait instead
                 make_stop_early_wrapper(result)
             });
 
