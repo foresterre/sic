@@ -48,12 +48,12 @@ pub trait ProcessMutWithConfig<T> {
 
 type Signal = Result<Success, Failure>;
 
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 enum Failure {
     TodoError,
 }
 
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 enum Success {
     Empty,
     Continue,
@@ -67,15 +67,28 @@ struct Pipeline {
     config: Config,
 }
 
+fn make_stop_early_wrapper(result: Result<Success, Failure>) -> Result<Success, Result<Success, Failure>> {
+    match result {
+        Ok(Success::Stop) => Err(Ok(Success::Stop)),
+        Ok(ok) => Ok(ok),
+        Err(e) => Err(Err(e)),
+
+    }
+}
+
+fn flatten_stop_early_wrapper(wrapper: Result<Success, Result<Success, Failure>>) -> Result<Success, Failure> {
+    match wrapper {
+        Ok(ok) => Ok(ok),
+        Err(Ok(ok)) => Ok(ok),
+        Err(Err(e)) => Err(e),
+    }
+}
+
 impl Pipeline {
 
     fn run_pre_image_phase(&mut self) -> Result<Success, Failure> {
 
-        fn step(f: Box<Fn(&Config) -> Signal>, config: &Config) -> Result<Success, Failure> {
-            f(config)
-        }
-
-        self.pre_image_processing_steps
+        let step = self.pre_image_processing_steps
             .iter()
             .try_fold(Success::Empty, |acc, box_fn| {
 
@@ -84,42 +97,32 @@ impl Pipeline {
                 // TODO:
                 // bug: break early on stop signal
                 // - with try fold, can use a wrapper Result type like but maybe use an Into trait instead
-                // type StopEarlyWrapper = Result<Success, EitherErr<Stop, Failure>>
+                make_stop_early_wrapper(result)
+            });
 
-                result
-            })
+        let result = flatten_stop_early_wrapper(step);
+
+        println!("result: {:?}", result);
+
+        result
     }
 
-//    fn run_pre_image_phase(&mut self) -> Result<(), String> {
-//        while !self.pre_image_processing_steps.is_empty() {
-//            let current = self.pre_image_processing_steps.pop();
-//
-//            match current {
-//                Some(f) => {
-//                    let func: Box<Fn(&Config) -> Signal> = f;
-//
-//                    match func(&self.config) {
-//                        Ok(Success::Continue) => (),
-//                        Ok(Success::Stop) => return Ok(()),
-//                        Err(Failure::TodoError) => return Err(":todo_p1:".to_string()),
-//                    };
-//                }
-//                None => return Ok(()),
-//            }
-//        }
-//        Ok(())
-//    }
 
     fn run(&mut self) -> Result<(), String> {
         // current code is written to be explicit; and as a proof of concept
+
+        println!("\n>>> Stage I\n");
 
         // Part I: pre image processing
         let pre_image_phase = self.run_pre_image_phase();
 
         match pre_image_phase {
+            Ok(Success::Stop) => return Ok(()),
             Ok(joy) => (),
             Err(_) => return Err("Failure in the pre imageops stage.".to_string())
         }
+
+        println!("\n>>> Stage II\n");
 
         // Part II: image processing
         while !self.image_processing_steps.is_empty() {
@@ -143,8 +146,6 @@ impl Pipeline {
         // Completed all steps
         Ok(())
     }
-
-    //    fn handle_signal(signal: Signal) ->
 }
 
 #[test]
@@ -155,20 +156,25 @@ fn __debug__() {
 
     fn example_stop_err(config: &Config) -> Signal {
         println!("stop with err");
+        println!("...");
         Err(Failure::TodoError)
     }
 
     fn example_stop(config: &Config) -> Signal {
         println!("stop");
+        println!("...");
         Ok(Success::Stop)
     }
 
     fn example_continue(config: &Config) -> Signal {
         println!("continue");
+        println!("...");
         Ok(Success::Continue)
     }
 
     fn example_image_processing(cell: &RefCell<DynamicImage>, config: &Config) -> Signal {
+        println!("continue: image processing 1");
+
         use image::GenericImageView;
         use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -194,10 +200,14 @@ fn __debug__() {
             Err(_) => return Err(Failure::TodoError),
         }
 
+        println!("...");
         Ok(Success::Continue)
     }
 
     fn example_image_processing_2(cell: &RefCell<DynamicImage>, config: &Config) -> Signal {
+        println!("continue: image processing 2");
+
+
         use image::GenericImageView;
         use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -223,17 +233,20 @@ fn __debug__() {
             Err(_) => return Err(Failure::TodoError),
         }
 
+
+        println!("...");
         Ok(Success::Continue)
     }
 
     let mut pipeline = Pipeline {
         buffer: RefCell::new(image::open("resources/rainbow_8x6.bmp").unwrap()),
 
-        // both provided in reverse
         pre_image_processing_steps: vec![
-            Box::new(example_stop_err),
+//            Box::new(example_stop),
+//            Box::new(example_stop_err),
             Box::new(example_continue),
             Box::new(example_continue),
+//            Box::new(example_stop_err),
             Box::new(example_continue),
             Box::new(example_stop),
 
@@ -259,4 +272,5 @@ fn __debug__() {
     let r = pipeline.run();
 
     assert_eq!(Ok(()), r);
+    assert!(false);
 }
