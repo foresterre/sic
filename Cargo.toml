@@ -17,6 +17,8 @@ categories = ["multimedia::images", "command-line-utilities"]
 
 [features]
 output-test-images = []
+# output pipeline test images
+debug-pipeline = []
 
 [dependencies]
 arrayvec = "0.4.7"

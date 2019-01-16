@@ -17,7 +17,7 @@ pub(in crate::processor) mod mod_test_includes;
 // Current requirements:
 // - Have a standard trait which can be used to create a pipeline for sic
 //   - It actually has two traits, one which takes &self and one which takes &mut self.
-//   - Perhaps a future trait should neccesarily not take self?
+//   - Perhaps a future trait should necessarily not take self?
 // - Be straightforward to implement
 // - Be minimal, so it gives some order to sic, but not require too much time, because
 //   it is not the main purpose of this patch (Issue#11, PR#60).
@@ -46,6 +46,12 @@ pub trait ProcessMutWithConfig<T> {
 // ========== Prototype ============
 // =================================
 
+// TODO Let pipeline execute run something more useful (for example the last state) to test on.
+//      Right now can just see (from a test) that something executed with Ok or Err.
+// TODO Add iterator trait implementations for single steps, such that single
+//                    steps can be checked separately.
+// TODO Add post stage.
+
 type Signal = Result<Success, Failure>;
 
 #[derive(Debug, PartialEq)]
@@ -60,23 +66,45 @@ enum Failure {
     TodoError,
 }
 
+/// A 3-stage dynamic linear image pipeline.
 struct Pipeline {
+    /// Image buffer
     buffer: RefCell<DynamicImage>,
-    pre_image_processing_steps: Vec<Box<Fn(&Config) -> Signal>>,
-    image_processing_steps: Vec<Box<Fn(&RefCell<DynamicImage>, &Config) -> Signal>>,
+
+    /// Pre or pre image processing stage: handle cli actions unrelated to image processing itself;
+    ///   or preparations which do not need access to the image buffer.
+    /// Examples: Display a built in manual or generate auto completions.
+    pre_stage: Vec<Box<Fn(&Config) -> Signal>>,
+
+    /// Mid or image processing stage: apply image operations.
+    /// Examples: Gray scale image and flip image.
+    mid_stage: Vec<Box<Fn(&RefCell<DynamicImage>, &Config) -> Signal>>,
+
+    /// Post or post image processing stage: handle operations which should happen
+    ///   when the image processing is complete, i.e. the image buffer itself should not
+    ///   be modified anymore.
+    /// Examples: Decide on which format to use and save buffer to file.
+    post_stage: Vec<Box<Fn(DynamicImage, &Config) -> Signal>>,
+
+    /// Configuration based on cli options and flags.
     config: Config,
 }
 
-fn make_stop_early_wrapper(result: Result<Success, Failure>) -> Result<Success, Result<Success, Failure>> {
+// Wrap a stop early Ok result in an Err so that try_fold will stop early.
+fn make_stop_early_wrapper(
+    result: Result<Success, Failure>,
+) -> Result<Success, Result<Success, Failure>> {
     match result {
         Ok(Success::Stop) => Err(Ok(Success::Stop)),
         Ok(ok) => Ok(ok),
         Err(e) => Err(Err(e)),
-
     }
 }
 
-fn flatten_stop_early_wrapper(wrapper: Result<Success, Result<Success, Failure>>) -> Result<Success, Failure> {
+// Unwrap a stop early wrapped <Err(Ok(_))> result.
+fn flatten_stop_early_wrapper(
+    wrapper: Result<Success, Result<Success, Failure>>,
+) -> Result<Success, Failure> {
     match wrapper {
         Ok(ok) => Ok(ok),
         Err(Ok(ok)) => Ok(ok),
@@ -85,10 +113,10 @@ fn flatten_stop_early_wrapper(wrapper: Result<Success, Result<Success, Failure>>
 }
 
 impl Pipeline {
-
-    fn run_pre_image_phase(&mut self) -> Result<Success, Failure> {
-
-        let step = self.pre_image_processing_steps
+    /// Run just the 'pre stage'.
+    fn process_pre_stage(&mut self) -> Result<Success, Failure> {
+        let step = self
+            .pre_stage
             .iter()
             .try_fold(Success::Empty, |acc, box_fn| {
                 let result = box_fn(&self.config);
@@ -102,8 +130,10 @@ impl Pipeline {
         result
     }
 
-    fn run_image_phase(&mut self) -> Result<Success, Failure> {
-        let step = self.image_processing_steps
+    /// Run just the 'mid stage'.
+    fn process_mid_stage(&mut self) -> Result<Success, Failure> {
+        let step = self
+            .mid_stage
             .iter()
             .try_fold(Success::Empty, |acc, box_fn| {
                 let result = box_fn(&self.buffer, &self.config);
@@ -117,181 +147,275 @@ impl Pipeline {
         result
     }
 
-//    fn stage2() -> {
-//        while !self.image_processing_steps.is_empty() {
-//            let current = self.image_processing_steps.pop();
-//
-//            match current {
-//                Some(f) => {
-//                    let func: Box<Fn(&RefCell<DynamicImage>, &Config) -> Signal> = f;
-//
-//                    match func(&self.buffer, &self.config) {
-//                        Ok(Success::Empty) => (),
-//                        Ok(Success::Continue) => (),
-//                        Ok(Success::Stop) => return Ok(()),
-//                        Err(Failure::TodoError) => return Err(":todo_p2:".to_string()),
-//                    }
-//                }
-//                None => return Ok(()),
-//            }
-//        }
-//    }
-
-
-    fn run(&mut self) -> Result<(), String> {
+    /// Run all pipeline stages
+    fn execute(&mut self) -> Result<(), String> {
         // current code is written to be explicit; and as a proof of concept
 
         println!("\n>>> Stage I\n");
 
         // Part I: pre image processing
-        let pre_image_phase = self.run_pre_image_phase();
+        let pre_image_phase = self.process_pre_stage();
 
         match pre_image_phase {
             Ok(Success::Stop) => return Ok(()),
             Ok(joy) => (),
-            Err(_) => return Err("Failure in the pre imageops stage.".to_string())
+            Err(_) => return Err("Failure in the pre imageops stage.".to_string()),
         }
 
         println!("\n>>> Stage II\n");
 
         // Part II: image processing
-        let image_phase = self.run_image_phase();
+        let image_phase = self.process_mid_stage();
 
         match image_phase {
             Ok(Success::Stop) => return Ok(()),
             Ok(joy) => (),
-            Err(_) => return Err("Failure in the imageops stage.".to_string())
+            Err(_) => return Err("Failure in the imageops stage.".to_string()),
         }
 
         // Completed all steps
         Ok(())
     }
 }
-
-#[test]
-fn __debug__() {
+#[cfg(test)]
+mod tests {
+    use super::*;
     use crate::config::FormatEncodingSettings;
     use crate::config::JPEGEncodingSettings;
     use crate::config::PNMEncodingSettings;
 
-    fn example_stop_err(config: &Config) -> Signal {
-        println!("stop with err");
-        println!("...");
-        Err(Failure::TodoError)
+    fn success_box() -> Box<Fn(&Config) -> Signal> {
+        Box::new(|config: &Config| Ok(Success::Continue))
     }
 
-    fn example_stop(config: &Config) -> Signal {
-        println!("stop");
-        println!("...");
-        Ok(Success::Stop)
+    fn stop_box() -> Box<Fn(&Config) -> Signal> {
+        Box::new(|config: &Config| Ok(Success::Stop))
     }
 
-    fn example_continue(config: &Config) -> Signal {
-        println!("continue");
-        println!("...");
-        Ok(Success::Continue)
+    fn error_box() -> Box<Fn(&Config) -> Signal> {
+        Box::new(|config: &Config| Err(Failure::TodoError))
     }
 
-    fn example_image_processing(cell: &RefCell<DynamicImage>, config: &Config) -> Signal {
-        println!("continue: image processing 1");
+    // helper
+    fn process_rot90_continue() -> Box<Fn(&RefCell<DynamicImage>, &Config) -> Signal> {
+        Box::new(|cell: &RefCell<DynamicImage>, config: &Config| {
+            println!("continue: image processing 1");
 
-        use image::GenericImageView;
-        use std::time::{SystemTime, UNIX_EPOCH};
+            use image::GenericImageView;
+            use std::time::{SystemTime, UNIX_EPOCH};
 
-        let mut buffer = cell.borrow_mut();
+            let mut buffer = cell.borrow_mut();
 
-        let dim = buffer.dimensions();
-        println!("{} x {}", dim.0, dim.1);
+            let dim = buffer.dimensions();
+            println!("{} x {}", dim.0, dim.1);
 
-        let id = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs();
+            let _id = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_secs();
 
-        match buffer.save(format!("a_{}.png", id)) {
-            Ok(_) => (),
-            Err(_) => return Err(Failure::TodoError)
-        }
+            if cfg!(feature = "debug-pipeline") {
+                match buffer.save(format!("aaa$rot90_{}_a.png", _id)) {
+                    Ok(_) => (),
+                    Err(_) => return Err(Failure::TodoError),
+                }
+            }
 
-        *buffer = buffer.rotate90();
+            *buffer = buffer.rotate90();
 
-        match buffer.save(format!("b_{}.png", id)) {
-            Ok(_) => (),
-            Err(_) => return Err(Failure::TodoError),
-        }
+            if cfg!(feature = "debug-pipeline") {
+                match buffer.save(format!("aaa$rot90_{}_b.png", _id)) {
+                    Ok(_) => (),
+                    Err(_) => return Err(Failure::TodoError),
+                }
+            }
 
-        println!("...");
-        Ok(Success::Stop)
+            println!("...");
+            Ok(Success::Continue)
+        })
     }
 
-    fn example_image_processing_2(cell: &RefCell<DynamicImage>, config: &Config) -> Signal {
-        println!("continue: image processing 2");
+    // helper
+    fn process_grayscale_continue() -> Box<Fn(&RefCell<DynamicImage>, &Config) -> Signal> {
+        Box::new(|cell: &RefCell<DynamicImage>, config: &Config| {
+            println!("continue: image processing 2");
 
+            use image::GenericImageView;
+            use std::time::{SystemTime, UNIX_EPOCH};
 
-        use image::GenericImageView;
-        use std::time::{SystemTime, UNIX_EPOCH};
+            let mut buffer = cell.borrow_mut();
 
-        let mut buffer = cell.borrow_mut();
+            let dim = buffer.dimensions();
+            println!("{} x {}", dim.0, dim.1);
 
-        let dim = buffer.dimensions();
-        println!("{} x {}", dim.0, dim.1);
+            let _id = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_secs()
+                + 1;
 
-        let id = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs() + 1;
+            if cfg!(feature = "debug-pipeline") {
+                match buffer.save(format!("aaa$grayscale_{}_a.png", _id)) {
+                    Ok(_) => (),
+                    Err(_) => return Err(Failure::TodoError),
+                }
+            }
 
-        match buffer.save(format!("a_{}.png", id)) {
-            Ok(_) => (),
-            Err(_) => return Err(Failure::TodoError)
-        }
+            *buffer = buffer.grayscale();
 
-        *buffer = buffer.grayscale();
+            if cfg!(feature = "debug-pipeline") {
+                match buffer.save(format!("aaa$grayscale_{}_b.png", _id)) {
+                    Ok(_) => (),
+                    Err(_) => return Err(Failure::TodoError),
+                }
+            }
 
-        match buffer.save(format!("b_{}.png", id)) {
-            Ok(_) => (),
-            Err(_) => return Err(Failure::TodoError),
-        }
-
-
-        println!("...");
-        Ok(Success::Continue)
+            println!("...");
+            Ok(Success::Continue)
+        })
     }
 
-    let mut pipeline = Pipeline {
-        buffer: RefCell::new(image::open("resources/rainbow_8x6.bmp").unwrap()),
+    fn make_pipeline(
+        pre: Vec<Box<Fn(&Config) -> Signal>>,
+        mid: Vec<Box<Fn(&RefCell<DynamicImage>, &Config) -> Signal>>,
+    ) -> Pipeline {
+        Pipeline {
+            buffer: RefCell::new(image::open("resources/rainbow_8x6.bmp").unwrap()),
 
-        pre_image_processing_steps: vec![
-//            Box::new(example_stop),
-//            Box::new(example_stop_err),
-            Box::new(example_continue),
-            Box::new(example_continue),
-//            Box::new(example_stop_err),
-            Box::new(example_continue),
-//            Box::new(example_stop),
-
-        ],
-        image_processing_steps: vec![
-            Box::new(example_image_processing),
-            Box::new(example_image_processing_2),
-
-        ],
-        config: Config {
-            licenses: vec![],
-            user_manual: None,
-            script: None,
-            forced_output_format: None,
-            disable_automatic_color_type_adjustment: false,
-            encoding_settings: FormatEncodingSettings {
-                jpeg_settings: JPEGEncodingSettings { quality: 80 },
-                pnm_settings: PNMEncodingSettings { ascii: true },
+            pre_stage: pre,
+            mid_stage: mid,
+            post_stage: vec![],
+            config: Config {
+                licenses: vec![],
+                user_manual: None,
+                script: None,
+                forced_output_format: None,
+                disable_automatic_color_type_adjustment: false,
+                encoding_settings: FormatEncodingSettings {
+                    jpeg_settings: JPEGEncodingSettings { quality: 80 },
+                    pnm_settings: PNMEncodingSettings { ascii: true },
+                },
+                output: Some("hello_world".to_string()),
             },
-            output: Some("hello_world".to_string()),
-        },
-    };
+        }
+    }
 
-    let r = pipeline.run();
+    // tests below are formatted `<tested pre stage state>__<tested mid stage state>`.
 
-    assert_eq!(Ok(()), r);
-    assert!(false);
+    #[test]
+    fn pre_stage_empty() {
+        let pre = vec![];
+        let mid = vec![];
+
+        let mut pipeline = make_pipeline(pre, mid);
+        let result = pipeline.process_pre_stage();
+
+        assert_eq!(Ok(Success::Empty), result);
+    }
+
+    #[test]
+    fn pre_stage_ok_stop_at_once() {
+        let pre = vec![stop_box()];
+        let mid = vec![];
+
+        let mut pipeline = make_pipeline(pre, mid);
+        let result = pipeline.process_pre_stage();
+
+        assert_eq!(Ok(Success::Stop), result);
+    }
+
+    #[test]
+    fn pre_stage_ok_stop_after_a_while() {
+        let pre = vec![
+            success_box(),
+            success_box(),
+            success_box(),
+            success_box(),
+            stop_box(),
+        ];
+        let mid = vec![];
+
+        let mut pipeline = make_pipeline(pre, mid);
+        let result = pipeline.process_pre_stage();
+
+        assert_eq!(Ok(Success::Stop), result);
+    }
+
+    #[test]
+    fn pre_stage_ok_stop_after_a_while_with_steps_left() {
+        let pre = vec![
+            success_box(),
+            success_box(),
+            success_box(),
+            stop_box(),    // returned Signal
+            success_box(), // not executed
+            success_box(), // not executed
+        ];
+        let mid = vec![];
+
+        let mut pipeline = make_pipeline(pre, mid);
+        let result = pipeline.process_pre_stage();
+
+        assert_eq!(Ok(Success::Stop), result);
+    }
+
+    #[test]
+    fn pre_stage_ok_stop_before_err() {
+        let pre = vec![
+            success_box(),
+            success_box(),
+            success_box(),
+            stop_box(),  // returned Signal
+            error_box(), // not executed
+        ];
+        let mid = vec![];
+
+        let mut pipeline = make_pipeline(pre, mid);
+        let result = pipeline.process_pre_stage();
+
+        assert_eq!(Ok(Success::Stop), result);
+    }
+
+    #[test]
+    fn pre_stage_err_before_stop() {
+        let pre = vec![error_box(), stop_box()];
+        let mid = vec![];
+
+        let mut pipeline = make_pipeline(pre, mid);
+        let result = pipeline.process_pre_stage();
+
+        assert_eq!(Err(Failure::TodoError), result);
+    }
+
+    #[test]
+    fn pre_stage_err() {
+        let pre = vec![error_box()];
+        let mid = vec![];
+
+        let mut pipeline = make_pipeline(pre, mid);
+        let result = pipeline.process_pre_stage();
+
+        assert_eq!(Err(Failure::TodoError), result);
+    }
+
+    #[test]
+    fn __debug__() {
+        let mut pipeline = make_pipeline(
+            vec![
+            //            Box::new(example_stop),
+            //            Box::new(example_stop_err),
+            //            Box::new(minimal_continue),
+            //            Box::new(minimal_continue),
+            ////            Box::new(example_stop_err),
+            //            Box::new(minimal_continue),
+            //            Box::new(example_stop),
+                    ],
+            vec![process_rot90_continue(), process_grayscale_continue()],
+        );
+
+        let r = pipeline.execute();
+
+        assert_eq!(Ok(()), r);
+        //        assert!(false);
+    }
 }
