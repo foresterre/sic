@@ -66,6 +66,20 @@ enum Failure {
     TodoError,
 }
 
+#[derive(Debug, PartialEq)]
+enum FinalStageSuccess {
+    Pre(Success),
+    Mid(Success),
+    Post(Success),
+}
+
+#[derive(Debug, PartialEq)]
+enum FinalStageFailure {
+    Pre(Failure),
+    Mid(Failure),
+    Post(Failure),
+}
+
 /// A 3-stage dynamic linear image pipeline.
 struct Pipeline {
     /// Image buffer
@@ -148,7 +162,7 @@ impl Pipeline {
     }
 
     /// Run all pipeline stages
-    fn execute(&mut self) -> Result<(), String> {
+    fn execute(&mut self) -> Result<FinalStageSuccess, FinalStageFailure> {
         // current code is written to be explicit; and as a proof of concept
 
         println!("\n>>> Stage I\n");
@@ -157,9 +171,9 @@ impl Pipeline {
         let pre_image_phase = self.process_pre_stage();
 
         match pre_image_phase {
-            Ok(Success::Stop) => return Ok(()),
-            Ok(joy) => (),
-            Err(_) => return Err("Failure in the pre imageops stage.".to_string()),
+            Ok(Success::Stop) => return Ok(FinalStageSuccess::Pre(Success::Stop)),
+            Ok(_) => (),
+            Err(e) => return Err(FinalStageFailure::Pre(e)),
         }
 
         println!("\n>>> Stage II\n");
@@ -168,13 +182,10 @@ impl Pipeline {
         let image_phase = self.process_mid_stage();
 
         match image_phase {
-            Ok(Success::Stop) => return Ok(()),
-            Ok(joy) => (),
-            Err(_) => return Err("Failure in the imageops stage.".to_string()),
+            Ok(Success::Stop) => Ok(FinalStageSuccess::Mid(Success::Stop)),
+            Ok(joy) => Ok(FinalStageSuccess::Mid(joy)),
+            Err(e) => Err(FinalStageFailure::Mid(e)),
         }
-
-        // Completed all steps
-        Ok(())
     }
 }
 #[cfg(test)]
@@ -415,7 +426,7 @@ mod tests {
 
         let r = pipeline.execute();
 
-        assert_eq!(Ok(()), r);
+        assert!(r.is_ok());
         //        assert!(false);
     }
 }
