@@ -672,11 +672,11 @@ mod tests {
     fn pre_stage_empty_impl() {
         let mut pre = Vec::new();
 //        pre.push(Box::new(success_impl));
-        pre.push(success_impl);
+        pre.push(success_impl());
 
         let mut mid = Vec::new();
 //        mid.push(Box::new(success_mid_impl));
-        mid.push(success_mid_impl);
+        mid.push(success_mid_impl());
 
         let mut pipeline: LinearSingleImagePipeline = make_pipeline_impl();
 
