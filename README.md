@@ -50,7 +50,8 @@ PNM (PBM, PGM, PPM) by default uses binary encoding (PNM P4, P5 and P6 respectiv
 * In general: `sic --apply-operations "<operations>" <input> <output> ` (shorthand: `-A`) 
 * Example `sic input.png output.jpg --apply-operations "fliph; blur 10; resize 250 250"`
 
-The separator `;` within the image operation script is optional. It exists to provide clarity.  
+The separator `;` within the image operation script is required between multiple operations. 
+It exists to provide improved readability and clarity.  
 
 _Note: `resize` applies a gaussian sampling filter on resizing. This is currently the only sampling filter available.
 Additional sampling filters are planned for version 0.9.0_
@@ -111,7 +112,7 @@ contrast 1.35;
 filter3x3 10.0 9.0 8.0 | 7.5 6.5 5.5 | 4 3 2;
 filter3x3 10.0 9.0 8.0 7.5 6.5 5.5 4 3 2;
 filter3x3 10.0 9.0 8.0 7.5 6.5 5.5 4 3 2
-filter3x3 10.0 9.0 8.0 7.5 6.5 5.5 4 3 2 filter3x3 12.0 29.0 28 27.5 26 25.5 14 3 2
+filter3x3 10.0 9.0 8.0 7.5 6.5 5.5 4 3 2; filter3x3 12.0 29.0 28 27.5 26 25.5 14 3 2
 ```
 
 [E-FLIPH]. Flip horizontal operation example:
