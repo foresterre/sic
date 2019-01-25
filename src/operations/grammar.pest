@@ -27,12 +27,26 @@ rotate180 = { ^"rotate180" }
 rotate270 = { ^"rotate270" }
 unsharpen = ${ ^"unsharpen" ~ WHITESPACE ~ fp ~ WHITESPACE ~ int }
 
-operation = _{ blur | brighten | contrast | crop | filter3x3 | flip_horizontal | flip_vertical | grayscale | huerotate | invert | resize | rotate90 | rotate180 | rotate270 | unsharpen }
+operation = _{
+    blur
+    | brighten
+    | contrast
+    | crop
+    | filter3x3
+    | flip_horizontal
+    | flip_vertical
+    | grayscale
+    | huerotate
+    | invert
+    | resize
+    | rotate90
+    | rotate180
+    | rotate270
+    | unsharpen
+}
 
-seq = _{
+sequence = _{
 	operation ~ ( (NEWLINE* ~ EOI) | (sep ~ NEWLINE+) | sep)
 }
 
-sequences = _{ seq* }
-
-main = _{ SOI ~ sequences ~ EOI }
+main = _{ SOI ~ sequence* ~ EOI }
