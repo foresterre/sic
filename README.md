@@ -111,8 +111,7 @@ contrast 1.35;
 ```
 filter3x3 10.0 9.0 8.0 | 7.5 6.5 5.5 | 4 3 2;
 filter3x3 10.0 9.0 8.0 7.5 6.5 5.5 4 3 2;
-filter3x3 10.0 9.0 8.0 7.5 6.5 5.5 4 3 2
-filter3x3 10.0 9.0 8.0 7.5 6.5 5.5 4 3 2; filter3x3 12.0 29.0 28 27.5 26 25.5 14 3 2
+filter3x3 12.0 29.0 28 27.5 26 25.5 14 3 2
 ```
 
 [E-FLIPH]. Flip horizontal operation example:
