@@ -9,8 +9,6 @@ mod mod_test_includes;
 mod parse;
 pub(crate) mod transformations;
 
-// ensure grammar refreshes on compile
-const _GRAMMAR: &str = include_str!("grammar.pest");
 const PARSER_RULE: Rule = Rule::main;
 
 #[derive(Parser)]
