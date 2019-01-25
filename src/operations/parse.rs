@@ -200,6 +200,108 @@ mod tests {
     use pest::Parser;
 
     #[test]
+    fn test_parse_next_line_versions_fin_with_eoi() {
+        let pairs = SICParser::parse(Rule::main, "blur 1;\nbrighten 2")
+            .unwrap_or_else(|e| panic!("error: {:?}", e));
+
+        assert_eq!(
+            Ok(vec![Operation::Blur(1.0), Operation::Brighten(2)]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_parse_next_line_versions_fin_with_sep_eoi() {
+        let pairs = SICParser::parse(Rule::main, "blur 1;\nbrighten 2;")
+            .unwrap_or_else(|e| panic!("error: {:?}", e));
+
+        assert_eq!(
+            Ok(vec![Operation::Blur(1.0), Operation::Brighten(2)]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_parse_next_line_versions_fin_with_sep_with_trailing_spaces_eoi() {
+        let pairs = SICParser::parse(Rule::main, "blur 1;\nbrighten 2;    ")
+            .unwrap_or_else(|e| panic!("error: {:?}", e));
+
+        assert_eq!(
+            Ok(vec![Operation::Blur(1.0), Operation::Brighten(2)]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_parse_single_line_versions_fin_with_eoi() {
+        let pairs = SICParser::parse(Rule::main, "blur 1; brighten 2")
+            .unwrap_or_else(|e| panic!("error: {:?}", e));
+
+        assert_eq!(
+            Ok(vec![Operation::Blur(1.0), Operation::Brighten(2)]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_parse_single_line_versions_fin_with_eoi_2() {
+        let pairs = SICParser::parse(Rule::main, "blur 1;brighten 2")
+            .unwrap_or_else(|e| panic!("error: {:?}", e));
+
+        assert_eq!(
+            Ok(vec![Operation::Blur(1.0), Operation::Brighten(2)]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_parse_single_line_versions_fin_with_sep_with_trailing_spaces_eoi() {
+        let pairs = SICParser::parse(Rule::main, "blur 1; brighten 2;   ")
+            .unwrap_or_else(|e| panic!("error: {:?}", e));
+
+        assert_eq!(
+            Ok(vec![Operation::Blur(1.0), Operation::Brighten(2)]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_parse_single_line_versions_require_sep() {
+        SICParser::parse(Rule::main, "blur 4 blur 3").unwrap_or_else(|e| panic!("error: {:?}", e));
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_parse_single_line_versions_require_sep_2() {
+        SICParser::parse(Rule::main, "blur 4\nblur 3").unwrap_or_else(|e| panic!("error: {:?}", e));
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_parse_single_line_versions_require_sep_3() {
+        SICParser::parse(Rule::main, "blur 4 blur 3;").unwrap_or_else(|e| panic!("error: {:?}", e));
+    }
+
+    #[test]
+    fn test_parse_single_line_versions_fin_with_sep_eoi() {
+        let pairs = SICParser::parse(Rule::main, "blur 1;brighten 2;")
+            .unwrap_or_else(|e| panic!("error: {:?}", e));
+
+        assert_eq!(
+            Ok(vec![Operation::Blur(1.0), Operation::Brighten(2)]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_parse_require_space_between_operation_id_and_value() {
+        SICParser::parse(Rule::main, "blur1; brighten 2")
+            .unwrap_or_else(|e| panic!("error: {:?}", e));
+    }
+
+    #[test]
     fn test_blur_single_stmt_parse_correct() {
         let pairs = SICParser::parse(Rule::main, "blur 15;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
@@ -414,57 +516,63 @@ mod tests {
 
     #[test]
     fn test_filter3x3_triplets_f3_sep_newline() {
-        let pairs = SICParser::parse(Rule::main, "filter3x3\n0 0 0\n1 1 1\n2 2 3.0;")
-            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
-        assert_eq!(
-            Ok(vec![Operation::Filter3x3(ArrayVec::from([
-                0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 2.0, 2.0, 3.0
-            ]))]),
-            parse_image_operations(pairs)
-        );
+        let pairs = SICParser::parse(Rule::main, "filter3x3\n0 0 0\n1 1 1\n2 2 3.0;");
+
+        assert!(pairs.is_err())
     }
 
-    #[test]
-    fn test_filter3x3_triplets_f3_weird_spacing() {
-        let pairs = SICParser::parse(Rule::main, "filter3x3\t\t\r\n\n0\n0.0\t0\n1 1.0 1\n2.0 2 3")
-            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
-        assert_eq!(
-            Ok(vec![Operation::Filter3x3(ArrayVec::from([
-                0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 2.0, 2.0, 3.0
-            ]))]),
-            parse_image_operations(pairs)
-        );
-    }
+    // START_TODO
+    // TODO{}: arbitrary whitespace within commands and command arguments. Should it be allowed?
+    // related to the following two test cases.
+
+    //    #[test]
+    //    fn test_filter3x3_triplets_f3_weird_spacing() {
+    //        let pairs = SICParser::parse(
+    //            Rule::main,
+    //            "blur 3",
+    //        )
+    //        .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+    //        assert_eq!(
+    //            Ok(vec![Operation::Blur(3.0)]),
+    //            parse_image_operations(pairs)
+    //        );
+    //    }
+
+    //    #[test]
+    //    fn test_filter3x3_triplets_f3_weird_spacing() {
+    //        let pairs = SICParser::parse(
+    //            Rule::main,
+    //            "filter3x3 0  0.0 0 1 1.0 1 2.0 2   3",
+    //        )
+    //        .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+    //        assert_eq!(
+    //            Ok(vec![Operation::Filter3x3(ArrayVec::from([
+    //                0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 2.0, 2.0, 3.0
+    //            ]))]),
+    //            parse_image_operations(pairs)
+    //        );
+    //    }
+    // END_TODO
 
     #[test]
     fn test_filter3x3_triplets_f3_tabbed_spacing() {
-        let pairs = SICParser::parse(Rule::main, "filter3x3 0 0 0\t1 1 1\t2 2 3;")
-            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
-        assert_eq!(
-            Ok(vec![Operation::Filter3x3(ArrayVec::from([
-                0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 2.0, 2.0, 3.0
-            ]))]),
-            parse_image_operations(pairs)
-        );
+        let pairs = SICParser::parse(Rule::main, "filter3x3 0 0 0\t1 1 1\t2 2 3;");
+
+        assert!(pairs.is_err())
     }
 
     #[test]
     fn test_filter3x3_triplets_f3_indented_newlines() {
-        let pairs = SICParser::parse(Rule::main, "filter3x3\n\t0 0 0\n\t1 1 1\n\t2 2 3")
-            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
-        assert_eq!(
-            Ok(vec![Operation::Filter3x3(ArrayVec::from([
-                0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 2.0, 2.0, 3.0
-            ]))]),
-            parse_image_operations(pairs)
-        );
+        let pairs = SICParser::parse(Rule::main, "filter3x3\n\t0 0 0\n\t1 1 1\n\t2 2 3");
+
+        assert!(pairs.is_err())
     }
 
     #[test]
     fn test_filter3x3_duo_filter3x3() {
         let pairs = SICParser::parse(
             Rule::main,
-            "filter3x3 1.9 2 3 | 4 5.9 6 | 7 8 9.9\nfilter3x3 10.9 2 3 4 11.9 6 7 8 12.9",
+            "filter3x3 1.9 2 3 | 4 5.9 6 | 7 8 9.9;\nfilter3x3 10.9 2 3 4 11.9 6 7 8 12.9",
         )
         .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
 
@@ -734,7 +842,7 @@ mod tests {
     fn test_multi_whitespace_2() {
         let pairs = SICParser::parse(
             Rule::main,
-            "fliph    ; flipv   ;   \t\t resize 100 200; blur 10;",
+            "fliph    ; flipv   ;      resize 100 200; blur 10;",
         )
         .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
@@ -750,7 +858,7 @@ mod tests {
 
     #[test]
     fn test_multi_whitespace_3() {
-        let pairs = SICParser::parse(Rule::main, "fliph;\nflipv;\nresize 100 200;\n\tblur 10;")
+        let pairs = SICParser::parse(Rule::main, "fliph;\nflipv;\nresize 100 200;\nblur 10;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![
@@ -779,8 +887,8 @@ mod tests {
     }
 
     #[test]
-    fn test_multi_sep_optional() {
-        let pairs = SICParser::parse(Rule::main, "fliph flipv; resize 100 200 blur 10")
+    fn test_multi_sep() {
+        let pairs = SICParser::parse(Rule::main, "fliph; flipv;  resize 100 200;\nblur 10")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![
