@@ -19,11 +19,10 @@ categories = ["multimedia::images", "command-line-utilities"]
 output-test-images = []
 
 [dependencies]
-arrayvec = "0.4.7"
 clap = "2.32.0"
-image = "0.20.1"
 pest = "2.0.2"
 pest_derive = "2.0.1"
+combostew = { path = "../combostew" }
 
 [[bin]]
 name = "sic"

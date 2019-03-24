@@ -12,7 +12,7 @@ fn cli_license_full() {
     let res = run_license_command();
 
     let parts = vec![
-        "Simple Image Converter license: \n\n",
+        "sic image tools license:\n\n",
         include_str!("../LICENSE"),
         "\n\n\n",
     ];

@@ -1,4 +1,4 @@
-use image::DynamicImage;
+use combostew::image::DynamicImage;
 
 #[cfg(test)]
 const DEFAULT_TEST_IMAGE_PATH: &str = "resources/unsplash_763569_cropped.jpg";
@@ -6,7 +6,7 @@ const DEFAULT_TEST_IMAGE_PATH: &str = "resources/unsplash_763569_cropped.jpg";
 #[cfg(test)]
 pub fn setup_test_image(image: &str) -> DynamicImage {
     use std::path::Path;
-    image::open(&Path::new(image)).unwrap()
+    combostew::image::open(&Path::new(image)).unwrap()
 }
 
 #[cfg(test)]
