@@ -135,8 +135,14 @@ pub struct HelpIndex {
     index: HashMap<HelpTopicKind, HelpTopic>,
 }
 
+impl Default for HelpIndex {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl HelpIndex {
-    pub fn new() -> HelpIndex {
+    fn new() -> HelpIndex {
         let mut dict = HashMap::new();
 
         // ugh.
@@ -168,7 +174,7 @@ impl HelpIndex {
         let mut options = self
             .index
             .values()
-            .map(|v| v.get_name())
+            .map(HelpTopic::get_name)
             .collect::<Vec<_>>();
 
         options.sort_unstable();

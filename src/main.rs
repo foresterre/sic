@@ -75,6 +75,8 @@ fn sic_config(
 }
 
 fn run_display_help(config: &Config) -> Result<(), String> {
-    let help = HelpDisplayProcessor::new();
-    Ok(help.process(config))
+    let help = HelpDisplayProcessor::default();
+    help.process(config);
+
+    Ok(())
 }

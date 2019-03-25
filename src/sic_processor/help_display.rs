@@ -7,14 +7,10 @@ use crate::app_config::manual_arg;
 use crate::help::HelpIndex;
 
 // TODO{foresterre}: User manual should be refactored later.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct HelpDisplayProcessor;
 
 impl HelpDisplayProcessor {
-    pub fn new() -> HelpDisplayProcessor {
-        HelpDisplayProcessor {}
-    }
-
     fn print_help(help: &HelpIndex, topic: &str) {
         let page = help.get_topic(&*topic.to_lowercase());
 
@@ -28,7 +24,7 @@ impl HelpDisplayProcessor {
 impl ProcessWithConfig<()> for HelpDisplayProcessor {
     fn process(&self, config: &Config) {
         if let Some(topic) = manual_arg(&config.application_specific) {
-            let help = HelpIndex::new();
+            let help = HelpIndex::default();
 
             if topic == "index" {
                 println!(
