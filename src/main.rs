@@ -1,7 +1,7 @@
 use clap::{App, Arg, ArgMatches};
 use combostew::config::{Config, ConfigItem};
 use combostew::operations::Operation;
-use combostew::{get_app_skeleton, get_default_config, run, run_display_licenses};
+use combostew::{get_default_config, run, run_display_licenses};
 use sic_lib::get_tool_name;
 
 use combostew::processor::ProcessWithConfig;
@@ -36,13 +36,12 @@ fn main() -> Result<(), String> {
                 Vec::new()
             };
 
-        // TODO: work in progress
         run(&matches, &mut ops, &options)
     }
 }
 
 fn sic_app() -> App<'static, 'static> {
-    get_app_skeleton(get_tool_name())
+    sic_lib::sic_app_skeleton(get_tool_name())
         .arg(Arg::with_name("user_manual")
             .long("user-manual")
             .short("H")
