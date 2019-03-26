@@ -1,18 +1,16 @@
 use std::process;
 
-use crate::config::Config;
+use combostew::config::Config;
+use combostew::processor::ProcessWithConfig;
+
+use crate::app_config::manual_arg;
 use crate::help::HelpIndex;
-use crate::processor::ProcessWithConfig;
 
 // TODO{foresterre}: User manual should be refactored later.
-#[derive(Debug)]
-pub(crate) struct HelpDisplayProcessor;
+#[derive(Debug, Default)]
+pub struct HelpDisplayProcessor;
 
 impl HelpDisplayProcessor {
-    pub fn new() -> HelpDisplayProcessor {
-        HelpDisplayProcessor {}
-    }
-
     fn print_help(help: &HelpIndex, topic: &str) {
         let page = help.get_topic(&*topic.to_lowercase());
 
@@ -25,8 +23,8 @@ impl HelpDisplayProcessor {
 
 impl ProcessWithConfig<()> for HelpDisplayProcessor {
     fn process(&self, config: &Config) {
-        if let Some(topic) = &config.user_manual {
-            let help = HelpIndex::new();
+        if let Some(topic) = manual_arg(&config.application_specific) {
+            let help = HelpIndex::default();
 
             if topic == "index" {
                 println!(
@@ -37,6 +35,7 @@ impl ProcessWithConfig<()> for HelpDisplayProcessor {
                 HelpDisplayProcessor::print_help(&help, &topic);
             }
 
+            // TODO: return Result
             process::exit(0);
         }
     }

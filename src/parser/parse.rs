@@ -1,4 +1,3 @@
-use arrayvec::ArrayVec;
 use pest::iterators::{Pair, Pairs};
 
 use super::{Operation, Rule};
@@ -149,54 +148,75 @@ fn parse_quad_op_u32(pair: Pair<'_, Rule>) -> QuadOpU32 {
 
 // The code below, should work for parsing the 9 elements of a 3x3 fp32 triplet structure, but
 // let's be honest; this code can't be called beautiful. This should be refactored.
-fn parse_triplet3x_f32(pair: Pair<'_, Rule>) -> Result<ArrayVec<[f32; 9]>, String> {
-    const SIZE: usize = 9;
-
+fn parse_triplet3x_f32(pair: Pair<'_, Rule>) -> Result<[f32; 9], String> {
     let mut inner = pair.into_inner();
 
-    let mut array = ArrayVec::<[f32; 9]>::new();
+    fn parse_fp32(it: &str) -> Result<f32, String> {
+        it.parse::<f32>().map_err(|err| err.to_string())
+    }
 
-    for i in 0..SIZE {
-        let ith_number = inner
+    fn err(inner: &str, i: u32) -> String {
+        format!("Unable to parse {}, arguments #: {}", inner, i)
+    }
+
+    // A bit packed, but type of Pair<?> is unclear, therefor we map to &str first.
+    // Since arrays are limited and no collect exists for an array, we create the array from individually
+    // constructed elements.
+    let arr: [f32; 9] = [
+        inner
             .next()
-            .ok_or_else(|| format!("Unable to parse {}, arguments #: {}", inner, i))
-            .map(|val| val.as_str())
-            .and_then(|it: &str| it.parse::<f32>().map_err(|err| err.to_string()));
+            .ok_or_else(|| err(&inner.to_string(), 1))
+            .map(|pair| pair.as_str())
+            .and_then(parse_fp32)?,
+        inner
+            .next()
+            .ok_or_else(|| err(&inner.to_string(), 2))
+            .map(|pair| pair.as_str())
+            .and_then(parse_fp32)?,
+        inner
+            .next()
+            .ok_or_else(|| err(&inner.to_string(), 3))
+            .map(|pair| pair.as_str())
+            .and_then(parse_fp32)?,
+        inner
+            .next()
+            .ok_or_else(|| err(&inner.to_string(), 4))
+            .map(|pair| pair.as_str())
+            .and_then(parse_fp32)?,
+        inner
+            .next()
+            .ok_or_else(|| err(&inner.to_string(), 5))
+            .map(|pair| pair.as_str())
+            .and_then(parse_fp32)?,
+        inner
+            .next()
+            .ok_or_else(|| err(&inner.to_string(), 6))
+            .map(|pair| pair.as_str())
+            .and_then(parse_fp32)?,
+        inner
+            .next()
+            .ok_or_else(|| err(&inner.to_string(), 7))
+            .map(|pair| pair.as_str())
+            .and_then(parse_fp32)?,
+        inner
+            .next()
+            .ok_or_else(|| err(&inner.to_string(), 8))
+            .map(|pair| pair.as_str())
+            .and_then(parse_fp32)?,
+        inner
+            .next()
+            .ok_or_else(|| err(&inner.to_string(), 9))
+            .map(|pair| pair.as_str())
+            .and_then(parse_fp32)?,
+    ];
 
-        if let Ok(number) = ith_number {
-            let push_result = array.try_push(number);
-
-            if push_result.is_err() {
-                return Err(format!(
-                    "Unable to complete parsing of {}; failed to push {}-th value.",
-                    inner, i
-                ));
-            }
-        } else {
-            return Err(format!(
-                "Unable to parse fp32_3x3 structure. Remainder: {}",
-                inner
-            ));
-        }
-    }
-
-    let result_len = array.len();
-
-    // should never happen (that is, even be possible, if above is correct)
-    if result_len == SIZE {
-        Ok(array)
-    } else {
-        Err(format!(
-            "Unable to parse fp32_3x3 structure; should be size {}, but was {}.",
-            SIZE, result_len
-        ))
-    }
+    Ok(arr)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::operations::SICParser;
+    use crate::parser::SICParser;
     use pest::Parser;
 
     #[test]
@@ -471,9 +491,9 @@ mod tests {
         )
         .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Operation::Filter3x3(ArrayVec::from([
+            Ok(vec![Operation::Filter3x3([
                 0.0, 0.1, 0.2, 1.3, 1.4, 1.5, 2.6, 2.7, 2.8
-            ]))]),
+            ])]),
             parse_image_operations(pairs)
         );
     }
@@ -483,9 +503,9 @@ mod tests {
         let pairs = SICParser::parse(Rule::main, "filter3x3 0 0 0 | 1 1 1 | 2 2 2")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Operation::Filter3x3(ArrayVec::from([
+            Ok(vec![Operation::Filter3x3([
                 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0
-            ]))]),
+            ])]),
             parse_image_operations(pairs)
         );
     }
@@ -495,9 +515,9 @@ mod tests {
         let pairs = SICParser::parse(Rule::main, "filter3x3 0 0 0 1 1 1 2 2 3.0")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Operation::Filter3x3(ArrayVec::from([
+            Ok(vec![Operation::Filter3x3([
                 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 2.0, 2.0, 3.0
-            ]))]),
+            ])]),
             parse_image_operations(pairs)
         );
     }
@@ -507,9 +527,9 @@ mod tests {
         let pairs = SICParser::parse(Rule::main, "filter3x3 0 0 0 1 1 1 2 2 3.0;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Operation::Filter3x3(ArrayVec::from([
+            Ok(vec![Operation::Filter3x3([
                 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 2.0, 2.0, 3.0
-            ]))]),
+            ])]),
             parse_image_operations(pairs)
         );
     }
@@ -578,12 +598,8 @@ mod tests {
 
         assert_eq!(
             Ok(vec![
-                Operation::Filter3x3(ArrayVec::from([
-                    1.9, 2.0, 3.0, 4.0, 5.9, 6.0, 7.0, 8.0, 9.9
-                ])),
-                Operation::Filter3x3(ArrayVec::from([
-                    10.9, 2.0, 3.0, 4.0, 11.9, 6.0, 7.0, 8.0, 12.9
-                ])),
+                Operation::Filter3x3([1.9, 2.0, 3.0, 4.0, 5.9, 6.0, 7.0, 8.0, 9.9]),
+                Operation::Filter3x3([10.9, 2.0, 3.0, 4.0, 11.9, 6.0, 7.0, 8.0, 12.9]),
             ]),
             parse_image_operations(pairs)
         );

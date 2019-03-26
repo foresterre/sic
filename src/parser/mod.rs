@@ -1,38 +1,14 @@
-use arrayvec::ArrayVec;
+use crate::parser::parse::parse_image_operations;
+use combostew::operations::Operation;
 use pest::Parser;
 
-use crate::operations::parse::parse_image_operations;
-
-#[cfg(test)]
-mod mod_test_includes;
-
 mod parse;
-pub(crate) mod transformations;
 
 const PARSER_RULE: Rule = Rule::main;
 
 #[derive(Parser)]
-#[grammar = "operations/grammar.pest"]
+#[grammar = "parser/grammar.pest"]
 struct SICParser;
-
-#[derive(Debug, PartialEq)]
-pub enum Operation {
-    Blur(f32),
-    Brighten(i32),
-    Contrast(f32),
-    Crop(u32, u32, u32, u32),
-    Filter3x3(ArrayVec<[f32; 9]>),
-    FlipHorizontal,
-    FlipVertical,
-    GrayScale,
-    HueRotate(i32),
-    Invert,
-    Resize(u32, u32),
-    Rotate90,
-    Rotate180,
-    Rotate270,
-    Unsharpen(f32, i32),
-}
 
 pub fn parse_script(script: &str) -> Result<Vec<Operation>, String> {
     let parsed_script = SICParser::parse(PARSER_RULE, script);
