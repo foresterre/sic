@@ -7,16 +7,13 @@ fn run_license_command() -> Output {
         .expect("Running test failed")
 }
 
+// This test just ensures the license is included within the binary.
 #[test]
-fn cli_license_full() {
+fn cli_license_starts_with() {
     let res = run_license_command();
 
-    let parts = vec![
-        "sic image tools license:\n\n",
-        include_str!("../LICENSE"),
-        "\n\n\n",
-    ];
+    let begin_text = "sic image tools license:";
 
     assert!(res.status.success());
-    assert_eq!(&parts.join(""), std::str::from_utf8(&res.stdout).unwrap());
+    assert!(std::str::from_utf8(&res.stdout).unwrap().starts_with(begin_text));
 }
