@@ -1,7 +1,7 @@
 use clap::{App, Arg, ArgMatches};
 use combostew::config::{Config, ConfigItem};
 use combostew::operations::Operation;
-use combostew::{get_default_config, run, run_display_licenses};
+use combostew_cli::{get_default_config, run, run_display_licenses};
 use sic_lib::get_tool_name;
 
 use combostew::processor::ProcessWithConfig;

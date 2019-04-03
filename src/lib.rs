@@ -2,7 +2,7 @@
 extern crate pest_derive;
 
 use clap::App;
-use combostew::get_app_skeleton;
+use combostew_cli::get_app_skeleton;
 
 pub mod app_config;
 pub mod help;
