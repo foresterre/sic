@@ -15,5 +15,7 @@ fn cli_license_starts_with() {
     let begin_text = "sic image tools license:";
 
     assert!(res.status.success());
-    assert!(std::str::from_utf8(&res.stdout).unwrap().starts_with(begin_text));
+    assert!(std::str::from_utf8(&res.stdout)
+        .unwrap()
+        .starts_with(begin_text));
 }
