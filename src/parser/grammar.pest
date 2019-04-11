@@ -4,7 +4,7 @@ sep = _{ ";" }
 fp = @{ int ~ ("." ~ ASCII_DIGIT+)? }
 uint = @{ ASCII_DIGIT+ }
 int  = @{ "-"? ~ ASCII_DIGIT+ }
-string = @{ ASCII_ALPHANUMERIC }
+string = @{ ASCII_ALPHANUMERIC+ }
 
 triplet_sep = _{ WHITESPACE ~ "|" ~ WHITESPACE }
 triplet_fp3 = _{ fp ~ WHITESPACE ~ fp ~ WHITESPACE ~ fp }
