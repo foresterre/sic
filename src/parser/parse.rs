@@ -31,7 +31,8 @@ pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Vec<Operation>, 
             Rule::unsharpen => {
                 let (x, y) = parse_binop_f32_i32(pair);
                 x.and_then(|ux| y.map(|uy| Operation::Unsharpen(ux, uy)))
-            }
+            },
+            Rule::setopt => Err("TODO combostew support".to_string()),
             _ => Err("Parse failed: Operation doesn't exist".to_string()),
         })
         .collect::<Result<Vec<_>, String>>()
