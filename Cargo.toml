@@ -22,8 +22,7 @@ output-test-images = []
 clap = "2.32.0"
 pest = "2.0.2"
 pest_derive = "2.0.1"
-combostew = "0.2.0"
-combostew_cli = "0.1.0"
+combostew = {path="../combostew"}
 
 [[bin]]
 name = "sic"
