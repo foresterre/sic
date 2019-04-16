@@ -240,7 +240,10 @@ mod tests {
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![Statement::Operation(Operation::Blur(1.0)), Statement::Operation(Operation::Brighten(2))]),
+            Ok(vec![
+                Statement::Operation(Operation::Blur(1.0)),
+                Statement::Operation(Operation::Brighten(2))
+            ]),
             parse_image_operations(pairs)
         );
     }
@@ -251,7 +254,10 @@ mod tests {
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![Statement::Operation(Operation::Blur(1.0)), Statement::Operation(Operation::Brighten(2))]),
+            Ok(vec![
+                Statement::Operation(Operation::Blur(1.0)),
+                Statement::Operation(Operation::Brighten(2))
+            ]),
             parse_image_operations(pairs)
         );
     }
@@ -262,7 +268,10 @@ mod tests {
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![Statement::Operation(Operation::Blur(1.0)), Statement::Operation(Operation::Brighten(2))]),
+            Ok(vec![
+                Statement::Operation(Operation::Blur(1.0)),
+                Statement::Operation(Operation::Brighten(2))
+            ]),
             parse_image_operations(pairs)
         );
     }
@@ -273,7 +282,10 @@ mod tests {
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![Statement::Operation(Operation::Blur(1.0)), Statement::Operation(Operation::Brighten(2))]),
+            Ok(vec![
+                Statement::Operation(Operation::Blur(1.0)),
+                Statement::Operation(Operation::Brighten(2))
+            ]),
             parse_image_operations(pairs)
         );
     }
@@ -284,7 +296,10 @@ mod tests {
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![Statement::Operation(Operation::Blur(1.0)), Statement::Operation(Operation::Brighten(2))]),
+            Ok(vec![
+                Statement::Operation(Operation::Blur(1.0)),
+                Statement::Operation(Operation::Brighten(2))
+            ]),
             parse_image_operations(pairs)
         );
     }
@@ -295,7 +310,10 @@ mod tests {
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![Statement::Operation(Operation::Blur(1.0)), Statement::Operation(Operation::Brighten(2))]),
+            Ok(vec![
+                Statement::Operation(Operation::Blur(1.0)),
+                Statement::Operation(Operation::Brighten(2))
+            ]),
             parse_image_operations(pairs)
         );
     }
@@ -324,7 +342,10 @@ mod tests {
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![Statement::Operation(Operation::Blur(1.0)), Statement::Operation(Operation::Brighten(2))]),
+            Ok(vec![
+                Statement::Operation(Operation::Blur(1.0)),
+                Statement::Operation(Operation::Brighten(2))
+            ]),
             parse_image_operations(pairs)
         );
     }
@@ -434,7 +455,12 @@ mod tests {
             .unwrap_or_else(|_| panic!("Unable to parse sic image operations script."));
 
         assert_eq!(
-            Ok(vec![Statement::Operation(Operation::Crop(0, 0, 0, std::u32::MAX))]),
+            Ok(vec![Statement::Operation(Operation::Crop(
+                0,
+                0,
+                0,
+                std::u32::MAX
+            ))]),
             parse_image_operations(pairs)
         );
     }
@@ -504,7 +530,7 @@ mod tests {
             Rule::main,
             "filter3x3 0 0.1 0.2 | 1.3 1.4 1.5 | 2.6 2.7 2.8",
         )
-            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![Statement::Operation(Operation::Filter3x3([
                 0.0, 0.1, 0.2, 1.3, 1.4, 1.5, 2.6, 2.7, 2.8
@@ -609,12 +635,16 @@ mod tests {
             Rule::main,
             "filter3x3 1.9 2 3 | 4 5.9 6 | 7 8 9.9;\nfilter3x3 10.9 2 3 4 11.9 6 7 8 12.9",
         )
-            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
 
         assert_eq!(
             Ok(vec![
-                Statement::Operation(Operation::Filter3x3([1.9, 2.0, 3.0, 4.0, 5.9, 6.0, 7.0, 8.0, 9.9])),
-                Statement::Operation(Operation::Filter3x3([10.9, 2.0, 3.0, 4.0, 11.9, 6.0, 7.0, 8.0, 12.9])),
+                Statement::Operation(Operation::Filter3x3([
+                    1.9, 2.0, 3.0, 4.0, 5.9, 6.0, 7.0, 8.0, 9.9
+                ])),
+                Statement::Operation(Operation::Filter3x3([
+                    10.9, 2.0, 3.0, 4.0, 11.9, 6.0, 7.0, 8.0, 12.9
+                ])),
             ]),
             parse_image_operations(pairs)
         );
@@ -748,7 +778,10 @@ mod tests {
     fn test_invert_single_stmt_parse_correct() {
         let pairs = SICParser::parse(Rule::main, "invert;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
-        assert_eq!(Ok(vec![Statement::Operation(Operation::Invert)]), parse_image_operations(pairs));
+        assert_eq!(
+            Ok(vec![Statement::Operation(Operation::Invert)]),
+            parse_image_operations(pairs)
+        );
     }
 
     #[test]
@@ -765,7 +798,10 @@ mod tests {
     fn test_rotate90_single_stmt_parse_correct() {
         let pairs = SICParser::parse(Rule::main, "rotate90;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
-        assert_eq!(Ok(vec![Statement::Operation(Operation::Rotate90)]), parse_image_operations(pairs));
+        assert_eq!(
+            Ok(vec![Statement::Operation(Operation::Rotate90)]),
+            parse_image_operations(pairs)
+        );
     }
 
     #[test]
@@ -875,7 +911,7 @@ mod tests {
             Rule::main,
             "fliph    ; flipv   ;      resize 100 200; blur 10;",
         )
-            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![
                 Statement::Operation(Operation::FlipHorizontal),
@@ -933,4 +969,3 @@ mod tests {
     }
 
 }
-
