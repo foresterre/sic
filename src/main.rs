@@ -6,11 +6,11 @@ use combostew::processor::license_display::LicenseDisplayProcessor;
 use combostew::processor::ProcessWithConfig;
 
 use combostew::io::{export, import};
-use sic_lib::app_cli::get_default_config;
 use sic_lib::app_config::script_arg;
 use sic_lib::get_tool_name;
 use sic_lib::parser;
 use sic_lib::sic_processor::help_display::HelpDisplayProcessor;
+use sic_lib::app_cli::get_app_config;
 
 fn main() -> Result<(), String> {
     let app = sic_lib::app_cli::sic_app();
@@ -44,7 +44,7 @@ fn sic_config(
     matches: &ArgMatches,
     app_specific_config: Vec<ConfigItem>,
 ) -> Result<Config, String> {
-    get_default_config(matches, get_tool_name(), app_specific_config)
+    get_app_config(matches, get_tool_name(), app_specific_config)
 }
 
 /// The run function runs the sic application, taking the matches found by Clap.
@@ -79,7 +79,7 @@ pub fn run_display_licenses(
     tool_name: &'static str,
     app_config: Vec<ConfigItem>,
 ) -> Result<(), String> {
-    let options = get_default_config(&matches, tool_name, app_config)?;
+    let options = get_app_config(&matches, tool_name, app_config)?;
 
     let license_display_processor = LicenseDisplayProcessor::default();
 
