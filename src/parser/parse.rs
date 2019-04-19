@@ -42,11 +42,9 @@ pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Program, String>
                 let (x, y) = parse_binop_f32_i32(pair);
                 x.and_then(|ux| y.map(|uy| Statement::Operation(Operation::Unsharpen(ux, uy))))
             }
-            Rule::setopt => {
-                parse_setopt(pair.into_inner().next().ok_or_else(|| {
-                    "Unable to parse setopt. error: 1 setopt expected.".to_string()
-                })?)
-            }
+            Rule::setopt => parse_setopt(pair.into_inner().next().ok_or_else(|| {
+                "Unable to parse setopt. Error: expected a single setopt inner element.".to_string()
+            })?),
             _ => Err("Parse failed: Operation doesn't exist".to_string()),
         })
         .collect::<Result<Vec<_>, String>>()
@@ -54,11 +52,13 @@ pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Program, String>
 
 fn parse_setopt(pair: Pair<'_, Rule>) -> Result<Statement, String> {
     let environment_item = match pair.as_rule() {
-        Rule::opt_resize_sampling_filter => {
-            println!("setopt pair: {:?}", pair);
-            parse_opt_resize_sampling_filter(pair)?
+        Rule::opt_resize_sampling_filter => parse_opt_resize_sampling_filter(pair)?,
+        _ => {
+            return Err(format!(
+                "Unable to parse setopt. Error on element: {}",
+                pair
+            ));
         }
-        _ => return Err(format!("Unable to parse setopt. error on: {}", pair)),
     };
 
     Ok(Statement::RegisterEnvironmentItem(environment_item))
@@ -70,7 +70,7 @@ fn parse_opt_resize_sampling_filter(pair: Pair<'_, Rule>) -> Result<EnvironmentI
         .next()
         .ok_or_else(|| {
             format!(
-                "Unable to parse opt_resize_sampling_filter option. [{}]",
+                "Unable to parse opt_resize_sampling_filter option. Error on element: {}",
                 inner
             )
         })
