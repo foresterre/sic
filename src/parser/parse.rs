@@ -1,4 +1,4 @@
-use combostew::operations::engine::{Program, Statement};
+use combostew::operations::engine::{EnvironmentItem, FilterTypeWrap, Program, Statement};
 use combostew::operations::Operation;
 use pest::iterators::{Pair, Pairs};
 
@@ -42,10 +42,43 @@ pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Program, String>
                 let (x, y) = parse_binop_f32_i32(pair);
                 x.and_then(|ux| y.map(|uy| Statement::Operation(Operation::Unsharpen(ux, uy))))
             }
-            Rule::setopt => Err("TODO combostew support".to_string()),
+            Rule::setopt => {
+                parse_setopt(pair.into_inner().next().ok_or_else(|| {
+                    "Unable to parse setopt. error: 1 setopt expected.".to_string()
+                })?)
+            }
             _ => Err("Parse failed: Operation doesn't exist".to_string()),
         })
         .collect::<Result<Vec<_>, String>>()
+}
+
+fn parse_setopt(pair: Pair<'_, Rule>) -> Result<Statement, String> {
+    let environment_item = match pair.as_rule() {
+        Rule::opt_resize_sampling_filter => {
+            println!("setopt pair: {:?}", pair);
+            parse_opt_resize_sampling_filter(pair)?
+        }
+        _ => return Err(format!("Unable to parse setopt. error on: {}", pair)),
+    };
+
+    Ok(Statement::RegisterEnvironmentItem(environment_item))
+}
+
+fn parse_opt_resize_sampling_filter(pair: Pair<'_, Rule>) -> Result<EnvironmentItem, String> {
+    let mut inner = pair.into_inner();
+    inner
+        .next()
+        .ok_or_else(|| {
+            format!(
+                "Unable to parse opt_resize_sampling_filter option. [{}]",
+                inner
+            )
+        })
+        .map(|val| val.as_str())
+        .and_then(|val| {
+            FilterTypeWrap::try_from_str(val).map_err(|err| format!("Unable to parse: {}", err))
+        })
+        .map(EnvironmentItem::OptResizeSamplingFilter)
 }
 
 // generalizing this to T1/T2 would be nice, but gave me a lot of headaches. Using this for now.
@@ -232,6 +265,8 @@ fn parse_triplet3x_f32(pair: Pair<'_, Rule>) -> Result<[f32; 9], String> {
 mod tests {
     use super::*;
     use crate::parser::SICParser;
+    use combostew::image;
+    use combostew::operations::engine::{EnvironmentItem, FilterTypeWrap};
     use pest::Parser;
 
     #[test]
@@ -963,6 +998,134 @@ mod tests {
                 Statement::Operation(Operation::FlipVertical),
                 Statement::Operation(Operation::Resize(100, 200)),
                 Statement::Operation(Operation::Blur(10.0))
+            ]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_parse_setopt_resize_sampling_filter_catmullrom() {
+        let pairs = SICParser::parse(Rule::main, "setopt resize sampling_filter CatmullRom;")
+            .unwrap_or_else(|e| panic!("error: {:?}", e));
+
+        assert_eq!(
+            Ok(vec![Statement::RegisterEnvironmentItem(
+                EnvironmentItem::OptResizeSamplingFilter(FilterTypeWrap::Inner(
+                    image::FilterType::CatmullRom
+                ))
+            )]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_parse_setopt_resize_sampling_filter_gaussian() {
+        let pairs = SICParser::parse(Rule::main, "setopt resize sampling_filter GAUSSIAN;")
+            .unwrap_or_else(|e| panic!("error: {:?}", e));
+
+        assert_eq!(
+            Ok(vec![Statement::RegisterEnvironmentItem(
+                EnvironmentItem::OptResizeSamplingFilter(FilterTypeWrap::Inner(
+                    image::FilterType::Gaussian
+                ))
+            ),]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_parse_setopt_resize_sampling_filter_lanczos3() {
+        let pairs = SICParser::parse(Rule::main, "setopt resize sampling_filter Lanczos3;")
+            .unwrap_or_else(|e| panic!("error: {:?}", e));
+
+        assert_eq!(
+            Ok(vec![Statement::RegisterEnvironmentItem(
+                EnvironmentItem::OptResizeSamplingFilter(FilterTypeWrap::Inner(
+                    image::FilterType::Lanczos3
+                ))
+            ),]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_parse_setopt_resize_sampling_filter_nearest() {
+        let pairs = SICParser::parse(Rule::main, "setopt resize sampling_filter nearest;")
+            .unwrap_or_else(|e| panic!("error: {:?}", e));
+
+        assert_eq!(
+            Ok(vec![Statement::RegisterEnvironmentItem(
+                EnvironmentItem::OptResizeSamplingFilter(FilterTypeWrap::Inner(
+                    image::FilterType::Nearest
+                ))
+            ),]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_parse_setopt_resize_sampling_filter_triangle() {
+        let pairs = SICParser::parse(Rule::main, "setopt resize sampling_filter triangle;")
+            .unwrap_or_else(|e| panic!("error: {:?}", e));
+
+        assert_eq!(
+            Ok(vec![Statement::RegisterEnvironmentItem(
+                EnvironmentItem::OptResizeSamplingFilter(FilterTypeWrap::Inner(
+                    image::FilterType::Triangle
+                ))
+            ),]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_parse_setopt_resize_sampling_filter_with_resize() {
+        let pairs = SICParser::parse(
+            Rule::main,
+            "setopt   resize  sampling_filter   GAUSSIAN;\nresize 100 200",
+        )
+        .unwrap_or_else(|e| panic!("error: {:?}", e));
+
+        assert_eq!(
+            Ok(vec![
+                Statement::RegisterEnvironmentItem(EnvironmentItem::OptResizeSamplingFilter(
+                    FilterTypeWrap::Inner(image::FilterType::Gaussian)
+                )),
+                Statement::Operation(Operation::Resize(100, 200))
+            ]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_parse_setopt_resize_sampling_filter_multi() {
+        let pairs = SICParser::parse(
+            Rule::main,
+            "setopt resize sampling_filter catmullrom;\
+             setopt resize sampling_filter gaussian;\
+             setopt resize sampling_filter lanczos3;\
+             setopt resize sampling_filter nearest;\
+             setopt resize sampling_filter triangle;",
+        )
+        .unwrap_or_else(|e| panic!("error: {:?}", e));
+
+        assert_eq!(
+            Ok(vec![
+                Statement::RegisterEnvironmentItem(EnvironmentItem::OptResizeSamplingFilter(
+                    FilterTypeWrap::Inner(image::FilterType::CatmullRom)
+                )),
+                Statement::RegisterEnvironmentItem(EnvironmentItem::OptResizeSamplingFilter(
+                    FilterTypeWrap::Inner(image::FilterType::Gaussian)
+                )),
+                Statement::RegisterEnvironmentItem(EnvironmentItem::OptResizeSamplingFilter(
+                    FilterTypeWrap::Inner(image::FilterType::Lanczos3)
+                )),
+                Statement::RegisterEnvironmentItem(EnvironmentItem::OptResizeSamplingFilter(
+                    FilterTypeWrap::Inner(image::FilterType::Nearest)
+                )),
+                Statement::RegisterEnvironmentItem(EnvironmentItem::OptResizeSamplingFilter(
+                    FilterTypeWrap::Inner(image::FilterType::Triangle)
+                )),
             ]),
             parse_image_operations(pairs)
         );

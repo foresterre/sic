@@ -1,4 +1,4 @@
-WHITESPACE = _{ " " }
+WHITESPACE = _{ " "+ }
 sep = _{ ";" }
 
 fp = @{ int ~ ("." ~ ASCII_DIGIT+)? }
@@ -28,12 +28,13 @@ rotate180 = { ^"rotate180" }
 rotate270 = { ^"rotate270" }
 unsharpen = ${ ^"unsharpen" ~ WHITESPACE ~ fp ~ WHITESPACE ~ int }
 
-opt_resize_sampling_filter = { ^"resize sampling_filter" ~ WHITESPACE ~ string }
+opt_resize_sampling_filter = ${ ^"resize" ~ WHITESPACE ~ ^"sampling_filter" ~ WHITESPACE ~ string }
 
 opt_available = _{
 	opt_resize_sampling_filter
     // |
 }
+
 setopt = ${^"setopt" ~ WHITESPACE ~ opt_available}
 
 flag_resize_keep_aspect_ratio = { ^"resize keep_aspect_ratio" }
@@ -42,6 +43,7 @@ flags_available = _{
 	flag_resize_keep_aspect_ratio
     // |
 }
+
 setflag = ${^"setflag" ~ WHITESPACE ~ flags_available}
 
 
