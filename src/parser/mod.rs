@@ -1,6 +1,7 @@
-use crate::parser::parse::parse_image_operations;
-use combostew::operations::Operation;
+use combostew::operations::engine::Program;
 use pest::Parser;
+
+use crate::parser::parse::parse_image_operations;
 
 mod parse;
 
@@ -10,7 +11,7 @@ const PARSER_RULE: Rule = Rule::main;
 #[grammar = "parser/grammar.pest"]
 struct SICParser;
 
-pub fn parse_script(script: &str) -> Result<Vec<Operation>, String> {
+pub fn parse_script(script: &str) -> Result<Program, String> {
     let parsed_script = SICParser::parse(PARSER_RULE, script);
 
     parsed_script
@@ -20,6 +21,9 @@ pub fn parse_script(script: &str) -> Result<Vec<Operation>, String> {
 
 #[cfg(test)]
 mod tests {
+    use combostew::operations::engine::Statement;
+    use combostew::operations::Operation;
+
     use super::*;
 
     #[test]
@@ -37,9 +41,14 @@ mod tests {
         let input = "blur 15; flipv";
         let parsed = parse_script(input);
 
+        assert!(parsed.is_ok());
+
         assert_eq!(
-            parsed,
-            Ok(vec![Operation::Blur(15.0), Operation::FlipVertical])
+            parsed.unwrap(),
+            vec![
+                Statement::Operation(Operation::Blur(15.0)),
+                Statement::Operation(Operation::FlipVertical)
+            ]
         );
     }
 
