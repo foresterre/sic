@@ -1,6 +1,5 @@
-use crate::app_cli::get_app_config;
 use clap::ArgMatches;
-use combostew::config::{Config, ConfigItem};
+use combostew::config::Config;
 use combostew::io::{export, import};
 use combostew::operations::engine::{ImageEngine, Program};
 use combostew::processor::ProcessWithConfig;
@@ -32,17 +31,11 @@ pub fn run(matches: &ArgMatches, program: Program, options: &Config) -> Result<(
     export(out, &format_decider, &options)
 }
 
-pub fn run_display_licenses(
-    matches: &ArgMatches,
-    tool_name: &'static str,
-    app_config: Vec<ConfigItem>,
-) -> Result<(), String> {
-    let options = get_app_config(&matches, tool_name, app_config)?;
-
+pub fn run_display_licenses(config: &Config) -> Result<(), String> {
     let license_display_processor =
         combostew::processor::license_display::LicenseDisplayProcessor::default();
 
-    license_display_processor.process(&options);
+    license_display_processor.process(&config);
 
     Ok(())
 }

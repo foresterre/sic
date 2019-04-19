@@ -146,3 +146,14 @@ pub fn get_app_config(
 
     Ok(res)
 }
+
+fn sic_custom_app_config(matches: &ArgMatches) -> Vec<ConfigItem> {
+    vec![
+        ConfigItem::OptionStringItem(matches.value_of("script").map(String::from)),
+        ConfigItem::OptionStringItem(matches.value_of("user_manual").map(String::from)),
+    ]
+}
+
+pub fn sic_config(matches: &ArgMatches) -> Result<Config, String> {
+    get_app_config(matches, get_tool_name(), sic_custom_app_config(matches))
+}
