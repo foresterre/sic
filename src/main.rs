@@ -1,16 +1,12 @@
 use clap::ArgMatches;
 use combostew::config::{Config, ConfigItem};
-use combostew::operations::engine::{ImageEngine, Program};
-use combostew::processor::encoding_format::EncodingFormatDecider;
-use combostew::processor::license_display::LicenseDisplayProcessor;
-use combostew::processor::ProcessWithConfig;
 
-use combostew::io::{export, import};
+use combostew::operations::engine::Program;
+use sic_lib::app_cli::get_app_config;
 use sic_lib::app_config::script_arg;
+use sic_lib::app_run::{run, run_display_help, run_display_licenses};
 use sic_lib::get_tool_name;
 use sic_lib::parser;
-use sic_lib::sic_processor::help_display::HelpDisplayProcessor;
-use sic_lib::app_cli::get_app_config;
 
 fn main() -> Result<(), String> {
     let app = sic_lib::app_cli::sic_app();
@@ -45,52 +41,4 @@ fn sic_config(
     app_specific_config: Vec<ConfigItem>,
 ) -> Result<Config, String> {
     get_app_config(matches, get_tool_name(), app_specific_config)
-}
-
-/// The run function runs the sic application, taking the matches found by Clap.
-/// This function is separated from the main() function so that it can be used more easily in test cases.
-/// This function consumes the matches provided.
-pub fn run(matches: &ArgMatches, program: Program, options: &Config) -> Result<(), String> {
-    if options.output.is_none() {
-        eprintln!(
-            "The default output format is BMP. Use --output-format <FORMAT> to specify \
-             a different output format."
-        );
-    }
-
-    // "input_file" is sic specific.
-    let img = import(
-        matches
-            .value_of("input")
-            .or_else(|| matches.value_of("input_file")),
-    )?;
-
-    let mut image_engine = ImageEngine::new(img);
-    let out = image_engine
-        .ignite(program)
-        .map_err(|err| err.to_string())?;
-
-    let format_decider = EncodingFormatDecider::default();
-    export(out, &format_decider, &options)
-}
-
-pub fn run_display_licenses(
-    matches: &ArgMatches,
-    tool_name: &'static str,
-    app_config: Vec<ConfigItem>,
-) -> Result<(), String> {
-    let options = get_app_config(&matches, tool_name, app_config)?;
-
-    let license_display_processor = LicenseDisplayProcessor::default();
-
-    license_display_processor.process(&options);
-
-    Ok(())
-}
-
-fn run_display_help(config: &Config) -> Result<(), String> {
-    let help = HelpDisplayProcessor::default();
-    help.process(config);
-
-    Ok(())
 }
