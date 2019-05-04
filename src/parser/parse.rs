@@ -43,20 +43,23 @@ pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Program, String>
                 let (x, y) = parse_binop_f32_i32(pair);
                 x.and_then(|ux| y.map(|uy| Statement::Operation(Operation::Unsharpen(ux, uy))))
             }
-            Rule::setopt => parse_set(pair.into_inner().next().ok_or_else(|| {
-                "Unable to parse set. Error: expected a single set inner element.".to_string()
+            Rule::setopt => parse_set_environment(pair.into_inner().next().ok_or_else(|| {
+                "Unable to parse `set` environment command. Error: expected a single `set` inner element.".to_string()
             })?),
             _ => Err("Parse failed: Operation doesn't exist".to_string()),
         })
         .collect::<Result<Vec<_>, String>>()
 }
 
-fn parse_set(pair: Pair<'_, Rule>) -> Result<Statement, String> {
+fn parse_set_environment(pair: Pair<'_, Rule>) -> Result<Statement, String> {
     let environment_item = match pair.as_rule() {
         Rule::set_resize_sampling_filter => parse_set_resize_sampling_filter(pair)?,
         Rule::set_resize_preserve_aspect_ratio => EnvironmentItem::PreserveAspectRatio,
         _ => {
-            return Err(format!("Unable to parse set. Error on element: {}", pair));
+            return Err(format!(
+                "Unable to parse `set` environment command. Error on element: {}",
+                pair
+            ));
         }
     };
 
@@ -1150,14 +1153,13 @@ mod tests {
     }
 
     #[test]
+    #[should_panic]
     fn test_parse_setopt_resize_preserve_aspect_ratio_no_value() {
         let pairs = SICParser::parse(
             Rule::main,
             "set resize preserve_aspect_ratio true;\nresize 100 200",
         )
         .unwrap_or_else(|e| panic!("error: {:?}", e));
-
-        assert!(parse_image_operations(pairs).is_err());
     }
 
 }
