@@ -1132,4 +1132,32 @@ mod tests {
         );
     }
 
+    #[test]
+    fn test_parse_setopt_resize_preserve_aspect_ratio() {
+        let pairs = SICParser::parse(
+            Rule::main,
+            "set resize preserve_aspect_ratio;\nresize 100 200",
+        )
+        .unwrap_or_else(|e| panic!("error: {:?}", e));
+
+        assert_eq!(
+            Ok(vec![
+                Statement::RegisterEnvironmentItem(EnvironmentItem::PreserveAspectRatio),
+                Statement::Operation(Operation::Resize(100, 200))
+            ]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_parse_setopt_resize_preserve_aspect_ratio_no_value() {
+        let pairs = SICParser::parse(
+            Rule::main,
+            "set resize preserve_aspect_ratio true;\nresize 100 200",
+        )
+        .unwrap_or_else(|e| panic!("error: {:?}", e));
+
+        assert!(parse_image_operations(pairs).is_err());
+    }
+
 }
