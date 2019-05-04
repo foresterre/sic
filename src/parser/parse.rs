@@ -1,4 +1,5 @@
-use combostew::operations::engine::{EnvironmentItem, FilterTypeWrap, Program, Statement};
+use combostew::operations::engine::{EnvironmentItem, Program, Statement};
+use combostew::operations::wrapper::filter_type::FilterTypeWrap;
 use combostew::operations::Operation;
 use pest::iterators::{Pair, Pairs};
 
@@ -42,35 +43,33 @@ pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Program, String>
                 let (x, y) = parse_binop_f32_i32(pair);
                 x.and_then(|ux| y.map(|uy| Statement::Operation(Operation::Unsharpen(ux, uy))))
             }
-            Rule::setopt => parse_setopt(pair.into_inner().next().ok_or_else(|| {
-                "Unable to parse setopt. Error: expected a single setopt inner element.".to_string()
+            Rule::setopt => parse_set(pair.into_inner().next().ok_or_else(|| {
+                "Unable to parse set. Error: expected a single set inner element.".to_string()
             })?),
             _ => Err("Parse failed: Operation doesn't exist".to_string()),
         })
         .collect::<Result<Vec<_>, String>>()
 }
 
-fn parse_setopt(pair: Pair<'_, Rule>) -> Result<Statement, String> {
+fn parse_set(pair: Pair<'_, Rule>) -> Result<Statement, String> {
     let environment_item = match pair.as_rule() {
-        Rule::opt_resize_sampling_filter => parse_opt_resize_sampling_filter(pair)?,
+        Rule::set_resize_sampling_filter => parse_set_resize_sampling_filter(pair)?,
+        Rule::set_resize_preserve_aspect_ratio => EnvironmentItem::PreserveAspectRatio,
         _ => {
-            return Err(format!(
-                "Unable to parse setopt. Error on element: {}",
-                pair
-            ));
+            return Err(format!("Unable to parse set. Error on element: {}", pair));
         }
     };
 
     Ok(Statement::RegisterEnvironmentItem(environment_item))
 }
 
-fn parse_opt_resize_sampling_filter(pair: Pair<'_, Rule>) -> Result<EnvironmentItem, String> {
+fn parse_set_resize_sampling_filter(pair: Pair<'_, Rule>) -> Result<EnvironmentItem, String> {
     let mut inner = pair.into_inner();
     inner
         .next()
         .ok_or_else(|| {
             format!(
-                "Unable to parse opt_resize_sampling_filter option. Error on element: {}",
+                "Unable to parse set_resize_sampling_filter option. Error on element: {}",
                 inner
             )
         })
@@ -263,11 +262,13 @@ fn parse_triplet3x_f32(pair: Pair<'_, Rule>) -> Result<[f32; 9], String> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::parser::SICParser;
     use combostew::image;
-    use combostew::operations::engine::{EnvironmentItem, FilterTypeWrap};
+    use combostew::operations::engine::EnvironmentItem;
     use pest::Parser;
+
+    use crate::parser::SICParser;
+
+    use super::*;
 
     #[test]
     fn test_parse_next_line_versions_fin_with_eoi() {
@@ -1005,7 +1006,7 @@ mod tests {
 
     #[test]
     fn test_parse_setopt_resize_sampling_filter_catmullrom() {
-        let pairs = SICParser::parse(Rule::main, "setopt resize sampling_filter CatmullRom;")
+        let pairs = SICParser::parse(Rule::main, "set resize sampling_filter CatmullRom;")
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
@@ -1020,7 +1021,7 @@ mod tests {
 
     #[test]
     fn test_parse_setopt_resize_sampling_filter_gaussian() {
-        let pairs = SICParser::parse(Rule::main, "setopt resize sampling_filter GAUSSIAN;")
+        let pairs = SICParser::parse(Rule::main, "set resize sampling_filter GAUSSIAN;")
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
@@ -1035,7 +1036,7 @@ mod tests {
 
     #[test]
     fn test_parse_setopt_resize_sampling_filter_lanczos3() {
-        let pairs = SICParser::parse(Rule::main, "setopt resize sampling_filter Lanczos3;")
+        let pairs = SICParser::parse(Rule::main, "set resize sampling_filter Lanczos3;")
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
@@ -1050,7 +1051,7 @@ mod tests {
 
     #[test]
     fn test_parse_setopt_resize_sampling_filter_nearest() {
-        let pairs = SICParser::parse(Rule::main, "setopt resize sampling_filter nearest;")
+        let pairs = SICParser::parse(Rule::main, "set resize sampling_filter nearest;")
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
@@ -1065,7 +1066,7 @@ mod tests {
 
     #[test]
     fn test_parse_setopt_resize_sampling_filter_triangle() {
-        let pairs = SICParser::parse(Rule::main, "setopt resize sampling_filter triangle;")
+        let pairs = SICParser::parse(Rule::main, "set resize sampling_filter triangle;")
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
@@ -1082,7 +1083,7 @@ mod tests {
     fn test_parse_setopt_resize_sampling_filter_with_resize() {
         let pairs = SICParser::parse(
             Rule::main,
-            "setopt   resize  sampling_filter   GAUSSIAN;\nresize 100 200",
+            "set   resize  sampling_filter   GAUSSIAN;\nresize 100 200",
         )
         .unwrap_or_else(|e| panic!("error: {:?}", e));
 
@@ -1101,11 +1102,11 @@ mod tests {
     fn test_parse_setopt_resize_sampling_filter_multi() {
         let pairs = SICParser::parse(
             Rule::main,
-            "setopt resize sampling_filter catmullrom;\
-             setopt resize sampling_filter gaussian;\
-             setopt resize sampling_filter lanczos3;\
-             setopt resize sampling_filter nearest;\
-             setopt resize sampling_filter triangle;",
+            "set resize sampling_filter catmullrom;\
+             set resize sampling_filter gaussian;\
+             set resize sampling_filter lanczos3;\
+             set resize sampling_filter nearest;\
+             set resize sampling_filter triangle;",
         )
         .unwrap_or_else(|e| panic!("error: {:?}", e));
 

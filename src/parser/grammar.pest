@@ -28,29 +28,18 @@ rotate180 = { ^"rotate180" }
 rotate270 = { ^"rotate270" }
 unsharpen = ${ ^"unsharpen" ~ WHITESPACE ~ fp ~ WHITESPACE ~ int }
 
-opt_resize_sampling_filter = ${ ^"resize" ~ WHITESPACE ~ ^"sampling_filter" ~ WHITESPACE ~ string }
+env_resize_sampling_filter_name = _{^"resize" ~ WHITESPACE ~ ^"sampling_filter"}
+env_resize_preserve_aspect_ratio_name = _{^"resize" ~ WHITESPACE ~ ^"preserve_aspect_ratio"}
 
-opt_available = _{
-	opt_resize_sampling_filter
-    // |
+set_resize_sampling_filter = ${env_resize_sampling_filter_name ~ WHITESPACE ~ string }
+set_resize_preserve_aspect_ratio = ${ env_resize_preserve_aspect_ratio_name }
+
+setenv_available = _{
+	set_resize_sampling_filter
+    | set_resize_preserve_aspect_ratio
 }
 
-setopt = ${^"setopt" ~ WHITESPACE ~ opt_available}
-
-flag_resize_keep_aspect_ratio = { ^"resize keep_aspect_ratio" }
-
-flags_available = _{
-	flag_resize_keep_aspect_ratio
-    // |
-}
-
-setflag = ${^"setflag" ~ WHITESPACE ~ flags_available}
-
-
-setoptflag = _{
-	setopt
-    | setflag
-}
+setopt = ${^"set" ~ WHITESPACE ~ setenv_available}
 
 operation = _{
     blur
@@ -71,7 +60,7 @@ operation = _{
 }
 
 sequence = _{
-	(operation | setoptflag) ~ ( (NEWLINE* ~ EOI) | (sep ~ NEWLINE+) | sep)
+	(operation | setopt) ~ ( (NEWLINE* ~ EOI) | (sep ~ NEWLINE+) | sep)
 }
 
 main = _{ SOI ~ sequence* ~ EOI }
