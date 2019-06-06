@@ -1,4 +1,4 @@
-use combostew::operations::engine::{EnvironmentItem, Program, Statement};
+use combostew::operations::engine::{EnvironmentItem, EnvironmentKind, Program, Statement};
 use combostew::operations::wrapper::filter_type::FilterTypeWrap;
 use combostew::operations::Operation;
 use pest::iterators::{Pair, Pairs};
@@ -46,6 +46,10 @@ pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Program, String>
             Rule::setopt => parse_set_environment(pair.into_inner().next().ok_or_else(|| {
                 "Unable to parse `set` environment command. Error: expected a single `set` inner element.".to_string()
             })?),
+            // this is called 'del' for users
+            Rule::unsetopt => parse_unset_environment(pair.into_inner().next().ok_or_else(|| {
+                "Unable to parse `del` environment command. Error: expected a single `del` inner element.".to_string()
+            })?),
             _ => Err("Parse failed: Operation doesn't exist".to_string()),
         })
         .collect::<Result<Vec<_>, String>>()
@@ -68,11 +72,17 @@ fn parse_set_environment(pair: Pair<'_, Rule>) -> Result<Statement, String> {
 
 fn parse_set_resize_sampling_filter(pair: Pair<'_, Rule>) -> Result<EnvironmentItem, String> {
     let mut inner = pair.into_inner();
+
+    // skip over the compound atomic 'env_available' rule
+    inner
+        .next()
+        .ok_or_else(|| "Unable to parse the 'set_resize_sampling_filter' option. No options exist for the command. ")?;
+
     inner
         .next()
         .ok_or_else(|| {
             format!(
-                "Unable to parse set_resize_sampling_filter option. Error on element: {}",
+                "Unable to parse the 'set_resize_sampling_filter' option. Error on element: {}",
                 inner
             )
         })
@@ -81,6 +91,23 @@ fn parse_set_resize_sampling_filter(pair: Pair<'_, Rule>) -> Result<EnvironmentI
             FilterTypeWrap::try_from_str(val).map_err(|err| format!("Unable to parse: {}", err))
         })
         .map(EnvironmentItem::OptResizeSamplingFilter)
+}
+
+fn parse_unset_environment(pair: Pair<'_, Rule>) -> Result<Statement, String> {
+    let environment_item = match pair.as_rule() {
+        Rule::env_resize_sampling_filter_name => EnvironmentKind::OptResizeSamplingFilter,
+        Rule::env_resize_preserve_aspect_ratio_name => {
+            EnvironmentKind::OptResizePreserveAspectRatio
+        }
+        _ => {
+            return Err(format!(
+                "Unable to parse `del` environment command. Error on element: {}",
+                pair
+            ));
+        }
+    };
+
+    Ok(Statement::DeregisterEnvironmentItem(environment_item))
 }
 
 // generalizing this to T1/T2 would be nice, but gave me a lot of headaches. Using this for now.
@@ -498,7 +525,7 @@ mod tests {
                 0,
                 0,
                 0,
-                std::u32::MAX
+                std::u32::MAX,
             ))]),
             parse_image_operations(pairs)
         );
@@ -1155,11 +1182,62 @@ mod tests {
     #[test]
     #[should_panic]
     fn test_parse_setopt_resize_preserve_aspect_ratio_no_value() {
-        let pairs = SICParser::parse(
+        SICParser::parse(
             Rule::main,
             "set resize preserve_aspect_ratio true;\nresize 100 200",
         )
         .unwrap_or_else(|e| panic!("error: {:?}", e));
     }
 
+    #[test]
+    fn test_parse_delopt_resize_sampling_filter_single() {
+        let pairs = SICParser::parse(Rule::main, "del resize sampling_filter;")
+            .unwrap_or_else(|e| panic!("error: {:?}", e));
+
+        assert_eq!(
+            Ok(vec![Statement::DeregisterEnvironmentItem(
+                EnvironmentKind::OptResizeSamplingFilter
+            ),]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_parse_set_and_del_opt_resize_sampling_filter_multi() {
+        let pairs = SICParser::parse(
+            Rule::main,
+            "set resize sampling_filter catmullrom;\
+             set resize sampling_filter gaussian;\
+             del resize sampling_filter;\
+             del resize sampling_filter;",
+        )
+        .unwrap_or_else(|e| panic!("error: {:?}", e));
+
+        assert_eq!(
+            Ok(vec![
+                Statement::RegisterEnvironmentItem(EnvironmentItem::OptResizeSamplingFilter(
+                    FilterTypeWrap::Inner(image::FilterType::CatmullRom)
+                )),
+                Statement::RegisterEnvironmentItem(EnvironmentItem::OptResizeSamplingFilter(
+                    FilterTypeWrap::Inner(image::FilterType::Gaussian)
+                )),
+                Statement::DeregisterEnvironmentItem(EnvironmentKind::OptResizeSamplingFilter),
+                Statement::DeregisterEnvironmentItem(EnvironmentKind::OptResizeSamplingFilter),
+            ]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_parse_delopt_resize_preserve_aspect_ratio_single() {
+        let pairs = SICParser::parse(Rule::main, "del resize preserve_aspect_ratio;")
+            .unwrap_or_else(|e| panic!("error: {:?}", e));
+
+        assert_eq!(
+            Ok(vec![Statement::DeregisterEnvironmentItem(
+                EnvironmentKind::OptResizePreserveAspectRatio
+            ),]),
+            parse_image_operations(pairs)
+        );
+    }
 }
