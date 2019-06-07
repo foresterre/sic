@@ -1,4 +1,4 @@
-use clap::{App, Arg, ArgMatches};
+use clap::{App, Arg, ArgMatches, AppSettings};
 use combostew::config::{
     Config, ConfigItem, FormatEncodingSettings, JPEGEncodingSettings, PNMEncodingSettings,
     SelectedLicenses,
@@ -30,6 +30,9 @@ pub fn sic_app() -> App<'static, 'static> {
                 ")
         .after_help("For more information, visit: https://github.com/foresterre/sic")
         .author("Martijn Gribnau <garm@ilumeo.com>")
+
+        // Settings
+        .setting(AppSettings::NextLineHelp)
 
         // Base arguments shared between `sic` and `stew`.
         .arg(Arg::with_name("forced_output_format")
@@ -80,7 +83,8 @@ pub fn sic_app() -> App<'static, 'static> {
             .takes_value(true))
         .arg(Arg::with_name("script")
             .long("apply-operations")
-            .short("A")
+            .short("x")
+            .alias("A")
             .help(HELP_OPERATIONS_AVAILABLE)
             .value_name("OPERATIONS")
             .takes_value(true))
