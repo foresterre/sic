@@ -1,22 +1,20 @@
-use std::fs::File;
-use std::io::Write;
 use std::path::Path;
 use std::process::Command;
 use std::str;
 
-const DEP_LICENSES_PATH: &str = "LICENSES_DEPENDENCIES";
+const DEP_LICENSES_PATH: &str = "thanks/dependency_licenses.txt";
 
 // The `update_dep_licenses` script is no longer a build.rs, mandatory pre-build script.
 // To solve issues with `cargo install` (1) and ensure that the licenses of dependencies are
 // included in a release binary, the licenses will now always be included.
-// This will be done by including a `LICENSES_DEPENDENCIES` file in the root of the repo.
+// This will be done by including a `dependency_licenses.txt` file in the root of the repo.
 // Every release, this file needs to be updated, and there this script comes into play.
 //
-// This script updates the `LICENSES_DEPENDENCIES` file by using cargo-bom to generate the
+// This script updates the `dependency_licenses.txt` file by using cargo-bom to generate the
 // dependencies, this project relies on.
 //
 // Usage:
-// To update the `LICENSES_DEPENDENCIES` file, run from the project root folder:
+// To update the `dependency_licenses.txt` file, run from the project root folder:
 // `cargo run --example update_dep_licenses`
 //
 // (1): https://github.com/foresterre/sic/issues/50
@@ -81,15 +79,8 @@ fn main() {
         )
         .stdout;
 
-    write_file(DEP_LICENSES_PATH, &dep_licenses_in_bytes);
+    std::fs::write(DEP_LICENSES_PATH, &dep_licenses_in_bytes)
+        .expect("Unable to write license texts to license file.");
 
     println!("Completed the update process of the dependency licenses file.");
-}
-
-fn write_file(path: &str, contents: &[u8]) {
-    // Truncates the file if it exists; else creates it.
-    let mut file = File::create(path).expect("Unable to create dependency license file.");
-
-    file.write_all(contents)
-        .expect("Unable to write license texts to license file.");
 }
