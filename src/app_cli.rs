@@ -1,4 +1,4 @@
-use clap::{App, Arg, ArgMatches, AppSettings};
+use clap::{App, AppSettings, Arg, ArgMatches};
 use combostew::config::{
     Config, ConfigItem, FormatEncodingSettings, JPEGEncodingSettings, PNMEncodingSettings,
     SelectedLicenses,
