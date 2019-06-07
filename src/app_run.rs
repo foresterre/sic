@@ -4,6 +4,9 @@ use combostew::io::{export, import};
 use combostew::operations::engine::{ImageEngine, Program};
 use combostew::processor::ProcessWithConfig;
 
+const LICENSE_SELF: &str = include_str!("../LICENSE");
+const LICENSE_DEPS: &str = include_str!("../thanks/dependency_licenses.txt");
+
 /// The run function runs the sic application, taking the matches found by Clap.
 /// This function is separated from the main() function so that it can be used more easily in test cases.
 /// This function consumes the matches provided.
@@ -33,7 +36,10 @@ pub fn run(matches: &ArgMatches, program: Program, options: &Config) -> Result<(
 
 pub fn run_display_licenses(config: &Config) -> Result<(), String> {
     let license_display_processor =
-        combostew::processor::license_display::LicenseDisplayProcessor::default();
+        combostew::processor::license_display::LicenseDisplayProcessor::new(
+            LICENSE_SELF,
+            LICENSE_DEPS,
+        );
 
     license_display_processor.process(&config);
 
