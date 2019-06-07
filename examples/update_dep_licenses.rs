@@ -2,7 +2,7 @@ use std::path::Path;
 use std::process::Command;
 use std::str;
 
-const DEP_LICENSES_PATH: &str = "dependency_licenses.txt";
+const DEP_LICENSES_PATH: &str = "thanks/dependency_licenses.txt";
 
 // The `update_dep_licenses` script is no longer a build.rs, mandatory pre-build script.
 // To solve issues with `cargo install` (1) and ensure that the licenses of dependencies are
