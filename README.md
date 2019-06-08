@@ -1,25 +1,22 @@
-# Simple Image Converter (sic)
-
-Converts a single image from one format to another _(plus some other operations)_.
-
-The image conversion is actually done by the awesome [image](https://crates.io/crates/image) crate  :balloon:.
-`sic` is a small command line frontend which supports a (growing) portion of the conversion operations supported by the __image__ crate.
-
-It was initially created to try out another awesome Rust library:  [clap](https://crates.io/crates/clap) :tada:
-
-<br>
-
-_TravisCI (branch: master):_
-
 [![Build Status](https://travis-ci.org/foresterre/sic.svg?branch=master)](https://travis-ci.org/foresterre/sic)
+
+# sic image cli
+
+Enables you to perform operations on images and convert images to a variety of image formats.
+'sic' or 'sic image cli' is a (partial) image crate cli front-end.
+
+The image conversion and operations are performed by the awesome [image](https://crates.io/crates/image) crate  :balloon:.
+It was initially created to try out another awesome Rust library:  [clap](https://crates.io/crates/clap) :tada:.
+
 
 # Install
 
-With [cargo](https://crates.io/crates/sic) install: `cargo install --force sic`
+Install with [cargo](https://crates.io/crates/sic): `cargo install sic`<br>
+Update with [cargo](https://crates.io/crates/sic): `cargo install --force sic`
 
-Pre build binary: see [releases](https://github.com/foresterre/sic/releases)
+Pre build binary: see [releases](https://github.com/foresterre/sic/releases).
 
-From the source of this repo:
+From the source:
 - Setup rust and cargo with (for example) [rustup](https://rustup.rs/) <br> 
   _Rust version >= 1.31 with 'Rust edition 2018' is required._
 - Clone this repo: `git clone https://github.com/foresterre/sic.git`
@@ -47,122 +44,133 @@ PNM (PBM, PGM, PPM) by default uses binary encoding (PNM P4, P5 and P6 respectiv
 <br>
 
 **Apply image operations to an image.**
-* In general: `sic --apply-operations "<operations>" <input> <output> ` (shorthand: `-A`) 
+* In general: `sic --apply-operations "<operations>" <input> <output> ` (shorthand: `-X` or `-A`) 
 * Example `sic input.png output.jpg --apply-operations "fliph; blur 10; resize 250 250"`
 
-The separator `;` within the image operation script is required between multiple operations. 
-It exists to provide improved readability and clarity.  
+When more than one image operation is provided, the separator `;` should be used 
+between each operation.
 
-_Note: `resize` applies a gaussian sampling filter on resizing. This is currently the only sampling filter available.
-Additional sampling filters are planned for version 0.9.0_
-
-Image operations availability:
-
+The available image operations are:
 
 |operations|syntax|available (from version)|description|
 |---|---|---|---|
-|blur               | `blur <uint>` [E-BLUR]                | Yes (0.5.0) 	    | Performs a Gaussian blur on the image ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.blur.html)) |
-|brighten           | `brighten <int>` [E-BRIGHTEN]         | Yes (0.7.0) 	    | |
-|contrast           | `contrast <fp>` [E-CONTRAST]          | Yes (0.7.0) 	    | |
-|crop               |                                       | Yes               | Will be included in release version 0.9.0 |
-|filter3x3          | `filter3x3 <args9>` [E-FILTER3X3]     | Yes (0.7.0)       | |
-|flip horizontal    | `fliph` [E-FLIPH]                     | Yes (0.5.0) 	    | Flips the image on the horizontal axis |
-|flip vertical      | `flipv` [E-FLIPV]                     | Yes (0.5.0) 	    | Flips the image on the horizontal axis |
-|gray scale         | `grayscale` [E-GRAYSCALE]             | Yes (0.7.0) 	    | |
-|hue rotate         | `huerotate <int>` [E-HUEROTATE]       | Yes (0.7.0) 	    | Rotate's the hue, argument is in degrees. Rotates `<int>%360` degrees. |
-|invert             | `invert` [E-INVERT]                   | Yes (0.7.0) 	    | |
-|resize             | `resize <uint> <uint>` [E-RESIZE]     | Yes (0.5.0) 	    | Resize the image using a Gaussian sampling filter ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.resize.html), [filter](https://docs.rs/image/0.19.0/image/enum.FilterType.html#variant.Gaussian)) |
-|rotate90           | `rotate90` [E-ROTATE90]               | Yes (0.7.0) 	    | |
-|rotate180          | `rotate180` [E-ROTATE180]             | Yes (0.7.0) 	    | |
-|rotate270          | `rotate270` [E-ROTATE270]             | Yes (0.7.0) 	    | |
-|unsharpen          | `unsharpen <fp> <int>` [E-UNSHARPEN]  | Yes (0.7.0) 	    | |
+|blur               | `blur <uint>`                         | Yes (0.5.0) 	    | Performs a Gaussian blur on the image ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.blur.html)). |
+|brighten           | `brighten <int>`                      | Yes (0.7.0) 	    | |
+|contrast           | `contrast <fp>`                       | Yes (0.7.0) 	    | |
+|crop               | `crop <int> <int> <int> <int>`        | Yes (0.9.0)       | Syntax: `crop <lx> <ly> <rx> <ry>`, where `lx` is top left corner x coordinate starting at 0, `ly` is the top left corner y coordinate starting at 0, `rx` is the  bottom right corner x coordinate and `ry` is the bottom right corner y coordinate. `rx` and `ry` should be larger than `lx` and `ly` respectively. |
+|filter3x3          | `filter3x3 <args9>`                   | Yes (0.7.0)       | |
+|flip horizontal    | `fliph`                               | Yes (0.5.0) 	    | Flips the image on the horizontal axis. |
+|flip vertical      | `flipv`                               | Yes (0.5.0) 	    | Flips the image on the vertical axis. |
+|gray scale         | `grayscale`                           | Yes (0.7.0) 	    | |
+|hue rotate         | `huerotate <int>`                     | Yes (0.7.0) 	    | Rotate's the hue, argument is in degrees. Rotates `<int>%360` degrees. |
+|invert             | `invert`                              | Yes (0.7.0) 	    | |
+|resize             | `resize <uint> <uint>`                | Yes (0.5.0) 	    | Resize the image using a selecteds sampling filter, which defaults to the Gaussian sampling filter. Use  |
+| >                 | `set resize preserve_aspect_ratio`    | Yes (0.9.0)       | Enables preservation of the aspect ratio. |
+| >                 | `set resize sampling_filter <value>`  | Yes (0.9.0)       | Valid `<value>` choices are `catmullrom`, `gaussian`,`lanczos3`,`nearest`,`triangle`. |
+|rotate90           | `rotate90`                            | Yes (0.7.0) 	    | |
+|rotate180          | `rotate180`                           | Yes (0.7.0) 	    | |
+|rotate270          | `rotate270`                           | Yes (0.7.0) 	    | |
+|unsharpen          | `unsharpen <fp> <int>`                | Yes (0.7.0) 	    | |
 
+For some operations, their behaviour can be (slightly) changed by choosing and enabling an option. These options can be overwritten and they can also be disabled.
+
+|environment operation|syntax|available (from version)|description|
+|---|---|---|---|
+|set environment option   | `set <operation> <option-of-operation> [<args 0..n>]` | Yes (0.9.0) | Enables the use of an option by an operation. Any operation which looks at this option will use the selected option value instead of the default value. Can be overwritten by calling `set` again for the same operation and option. |
+|unset environment option | `del <operation> <option-of-operation>`               | Yes (0.9.0) | Disables the use of an option by an operation. Any operation which looks at this option will use the default value instead. |
 
 _legend_:
 ```
 <uint> means any 32 bit unsigned integer is required as parameter input.
 <int> means any 32 bit signed integer is required as parameter input.
 <fp> means any 32 bit floating point number is required as parameter input.
-<args9> means `<fp> <fp> <fp> | <fp> <fp> <fp> | <fp> <fp> <fp>` where the `|` separator is optional. If the separator is used, white space should surround the separator. The separators can only be used like in the example, i.e. `triplet | triplet | triplet`.
+<value> means a pre defined value. 
+<args9> means `<fp> <fp> <fp> <fp> <fp> <fp> <fp> <fp> <fp>`.
 ```
 
 _Syntax examples:_
 For each example: each of the lines are valid syntactically and the full examples are valid syntactically as well.
 
-[E-BLUR], Blur operation example:
+**blur** example:
 ```
 blur 10;
 ```
 
-[E-BRIGHTEN], Brighten operation example:
+**brighten** example:
 ```
 brighten 10;
 brighten -10;
 ```
 
-[E-CONTRAST], Contrast operation example:
+**contrast** example:
 ```
 contrast -10;
 contrast 10;
 contrast 1.35;
 ```
 
-[E-FILTER3X3] Filter3x3 operation example:
+**crop** example:
+```
+crop 0 0 100 100;
+crop 25 50 45 65;
+```
+
+**filter3x3** example:
 ```
 filter3x3 10.0 9.0 8.0 | 7.5 6.5 5.5 | 4 3 2;
 filter3x3 10.0 9.0 8.0 7.5 6.5 5.5 4 3 2;
 filter3x3 12.0 29.0 28 27.5 26 25.5 14 3 2
 ```
 
-[E-FLIPH]. Flip horizontal operation example:
+**flip horizontal** example:
 ```
 fliph;
 ```
 
-[E-FLIPV]. Flip vertical operation example:
+**flip vertical** example:
 ```
 flipv;
 ```
 
-[E-GRAYSCALE]. Gray scale operation example:
+**gray scale** example:
 ```
 grayscale;
 ```
 
-[E-HUEROTATE]. Hue rotate operation example:
+**hue rotate** example:
 ```
 huerotate 10;
 huerotate -10;
 ```
 
-[E-INVERT]. Invert operation example:
+**invert** example:
 ```
 invert;
 ```
 
-[E-RESIZE]. Resize operation example:
+**resize** example:
 ```
 resize 10 10;
 resize 1 1;
 resize 80 180;
 ```
 
-[E-ROTATE90]. Rotate 90 degree operation example:
+**rotate 90 degree** example:
 ```
 rotate90;
 ```
 
-[E-ROTATE180]. Rotate 180 degree operation example:
+**rotate 180 degree** example:
 ```
 rotate180;
 ```
 
-[E-ROTATE270]. Rotate 270 degree operation example:
+**rotate 270 degree** example:
 ```
 rotate270;
 ```
 
-[E-UNSHARPEN]. Unsharpen operation example:
+**unsharpen** example:
 ```
 unsharpen -12.3 -12;
 unsharpen -10.0 12;
