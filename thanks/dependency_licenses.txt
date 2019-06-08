@@ -12,7 +12,7 @@ byteorder                     | 1.3.1    | Unlicense OR MIT
 cfg-if                        | 0.1.9    | Apache-2.0, MIT
 clap                          | 2.33.0   | MIT
 color_quant                   | 1.0.1    | MIT
-combostew                     | 0.2.0    | MIT
+combostew                     | 0.3.0    | MIT
 crossbeam-deque               | 0.2.0    | Apache-2.0, MIT
 crossbeam-epoch               | 0.3.1    | Apache-2.0, MIT
 crossbeam-utils               | 0.2.2    | Apache-2.0, MIT
@@ -1837,7 +1837,7 @@ SOFTWARE.
 
 -----END color_quant 1.0.1 LICENSES-----
 
------BEGIN combostew 0.2.0 LICENSES-----
+-----BEGIN combostew 0.3.0 LICENSES-----
 MIT License
 
 Copyright (c) 2017, 2018, 2019 Martijn Gribnau
@@ -1860,7 +1860,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
------END combostew 0.2.0 LICENSES-----
+-----END combostew 0.3.0 LICENSES-----
 
 -----BEGIN crossbeam-deque 0.2.0 LICENSES-----
                               Apache License
