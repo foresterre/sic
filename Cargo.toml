@@ -15,6 +15,11 @@ exclude = [
 keywords = ["image", "converter", "cli", "front-end", "image-cli"]
 categories = ["multimedia::images", "command-line-utilities"]
 
+[workspace]
+members = [
+  "combostew",
+]
+
 [features]
 output-test-images = []
 
@@ -22,7 +27,7 @@ output-test-images = []
 clap = "2.32.0"
 pest = "2.0.2"
 pest_derive = "2.0.1"
-combostew = "0.3.0"
+combostew = { version = "0.3.0", path = "combostew" }
 
 [[bin]]
 name = "sic"

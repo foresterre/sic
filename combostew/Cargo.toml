@@ -1,0 +1,29 @@
+[package]
+edition = "2018"
+name = "combostew"
+version = "0.3.0"
+authors = ["Martijn Gribnau <garm@ilumeo.com>"]
+description = """
+Combostew is an intermediate layer between the image crate and the 'sic' and 'stew' image tool front-ends.
+"""
+
+license = "MIT"
+repository = "https://github.com/foresterre/sic"
+readme = "README.md"
+exclude = [
+    ".idea/*",
+    ".vscode/*",
+    "*.iml",
+]
+keywords = ["image", "operations", "intermediate-layer"]
+categories = ["multimedia::images", "command-line-utilities"]
+
+[features]
+output-test-images = []
+
+[dependencies]
+image = "0.21.0"
+
+[lib]
+name = "combostew"
+path = "src/lib.rs"

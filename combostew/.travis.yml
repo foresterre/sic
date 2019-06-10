@@ -1,0 +1,8 @@
+language: rust
+rust:
+  - stable
+os:
+  - linux
+  - windows
+matrix:
+  fast_finish: true

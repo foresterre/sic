@@ -1,0 +1,18 @@
+
+**/target/
+**/*.rs.bk
+
+# intellij
+.idea/
+cmake-build-debug/
+*.iws
+.idea_modules/
+atlassian-ide-plugin.xml
+com_crashlytics_export_strings.xml
+crashlytics.properties
+crashlytics-build.properties
+fabric.properties
+*.iml
+
+# vscode
+.vscode/
