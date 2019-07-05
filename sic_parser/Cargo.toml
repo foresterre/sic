@@ -1,0 +1,10 @@
+[package]
+name = "sic_parser"
+version = "0.1.0"
+authors = ["Martijn Gribnau <garm@ilumeo.com>"]
+edition = "2018"
+
+[dependencies]
+sic_core = { path = "../sic_core" }
+pest = "2.0.2"
+pest_derive = "2.0.1"

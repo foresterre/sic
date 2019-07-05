@@ -1,8 +1,8 @@
-use combostew::operations::engine::Program;
+use sic_core::combostew::operations::engine::Program;
 use sic_lib::app::cli::sic_config;
 use sic_lib::app::custom_config::script_arg;
 use sic_lib::app::run_mode::{run, run_display_help, run_display_licenses};
-use sic_lib::parser;
+use sic_parser;
 
 fn main() -> Result<(), String> {
     let app = sic_lib::app::cli::cli();
@@ -19,7 +19,7 @@ fn main() -> Result<(), String> {
         let options = sic_config(&matches)?;
 
         let ops: Program = if let Some(script) = script_arg(&options.application_specific) {
-            parser::parse_script(script)?
+            sic_parser::parse_script(script)?
         } else {
             Vec::new()
         };

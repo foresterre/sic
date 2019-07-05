@@ -1,15 +1,18 @@
-use combostew::operations::engine::Program;
+#[macro_use]
+extern crate pest_derive;
+
 use pest::Parser;
+use sic_core::combostew::operations::engine::Program;
 
-use crate::parser::parse::parse_image_operations;
+use crate::rule_parser::parse_image_operations;
 
-mod parse;
+pub mod rule_parser;
 
 const PARSER_RULE: Rule = Rule::main;
 
 #[derive(Parser)]
-#[grammar = "parser/grammar.pest"]
-struct SICParser;
+#[grammar = "grammar.pest"]
+pub struct SICParser;
 
 pub fn parse_script(script: &str) -> Result<Program, String> {
     let parsed_script = SICParser::parse(PARSER_RULE, script);
@@ -21,8 +24,8 @@ pub fn parse_script(script: &str) -> Result<Program, String> {
 
 #[cfg(test)]
 mod tests {
-    use combostew::operations::engine::Statement;
-    use combostew::operations::Operation;
+    use sic_core::combostew::operations::engine::Statement;
+    use sic_core::combostew::operations::Operation;
 
     use super::*;
 

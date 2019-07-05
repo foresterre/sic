@@ -1,7 +1,7 @@
 use std::process;
 
-use combostew::config::Config;
-use combostew::processor::ProcessWithConfig;
+use sic_core::combostew::config::Config;
+use sic_core::combostew::processor::ProcessWithConfig;
 
 use crate::app::custom_config::manual_arg;
 use crate::help::HelpIndex;
