@@ -1,11 +1,11 @@
 use combostew::operations::engine::Program;
-use sic_lib::app_cli::sic_config;
-use sic_lib::app_custom_config::script_arg;
-use sic_lib::app_run::{run, run_display_help, run_display_licenses};
+use sic_lib::app::cli::sic_config;
+use sic_lib::app::custom_config::script_arg;
+use sic_lib::app::run_mode::{run, run_display_help, run_display_licenses};
 use sic_lib::parser;
 
 fn main() -> Result<(), String> {
-    let app = sic_lib::app_cli::sic_app();
+    let app = sic_lib::app::cli::cli();
     let matches = app.get_matches();
 
     let license_display = matches.is_present("license") || matches.is_present("dep_licenses");
