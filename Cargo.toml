@@ -15,14 +15,16 @@ exclude = [
 keywords = ["image", "converter", "cli", "front-end", "image-cli"]
 categories = ["multimedia::images", "command-line-utilities"]
 
-[features]
-output-test-images = []
+[workspace]
+members = [
+  "sic_core",
+  "sic_parser",
+]
 
 [dependencies]
 clap = "2.32.0"
-pest = "2.0.2"
-pest_derive = "2.0.1"
-combostew = "0.3.0"
+sic_core = { path = "sic_core" }
+sic_parser = { path = "sic_parser" }
 
 [[bin]]
 name = "sic"
@@ -31,6 +33,10 @@ path = "src/main.rs"
 [lib]
 name = "sic_lib"
 path = "src/lib.rs"
+
+[features]
+output-test-images = []
+
 
 [profile.release]
 panic = "abort"

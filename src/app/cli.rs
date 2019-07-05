@@ -1,5 +1,5 @@
 use clap::{App, AppSettings, Arg, ArgMatches};
-use combostew::config::{
+use sic_core::combostew::config::{
     Config, ConfigItem, FormatEncodingSettings, JPEGEncodingSettings, PNMEncodingSettings,
     SelectedLicenses,
 };

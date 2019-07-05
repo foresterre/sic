@@ -1,7 +1,9 @@
-use combostew::operations::engine::{EnvironmentItem, EnvironmentKind, Program, Statement};
-use combostew::operations::wrapper::filter_type::FilterTypeWrap;
-use combostew::operations::Operation;
 use pest::iterators::{Pair, Pairs};
+use sic_core::combostew::operations::engine::{
+    EnvironmentItem, EnvironmentKind, Program, Statement,
+};
+use sic_core::combostew::operations::wrapper::filter_type::FilterTypeWrap;
+use sic_core::combostew::operations::Operation;
 
 use super::Rule;
 
@@ -292,11 +294,10 @@ fn parse_triplet3x_f32(pair: Pair<'_, Rule>) -> Result<[f32; 9], String> {
 
 #[cfg(test)]
 mod tests {
-    use combostew::image;
-    use combostew::operations::engine::EnvironmentItem;
+    use crate::SICParser;
     use pest::Parser;
-
-    use crate::parser::SICParser;
+    use sic_core::combostew::image;
+    use sic_core::combostew::operations::engine::EnvironmentItem;
 
     use super::*;
 
@@ -647,39 +648,6 @@ mod tests {
 
         assert!(pairs.is_err())
     }
-
-    // START_TODO
-    // TODO{}: arbitrary whitespace within commands and command arguments. Should it be allowed?
-    // related to the following two test cases.
-
-    //    #[test]
-    //    fn test_filter3x3_triplets_f3_weird_spacing() {
-    //        let pairs = SICParser::parse(
-    //            Rule::main,
-    //            "blur 3",
-    //        )
-    //        .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
-    //        assert_eq!(
-    //            Ok(vec![Statement::Operation(Operation::Blur(3.0))]),
-    //            parse_image_operations(pairs)
-    //        );
-    //    }
-
-    //    #[test]
-    //    fn test_filter3x3_triplets_f3_weird_spacing() {
-    //        let pairs = SICParser::parse(
-    //            Rule::main,
-    //            "filter3x3 0  0.0 0 1 1.0 1 2.0 2   3",
-    //        )
-    //        .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
-    //        assert_eq!(
-    //            Ok(vec![Statement::Operation(Operation::Filter3x3)(ArrayVec::from([
-    //                0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 2.0, 2.0, 3.0
-    //            ]))]),
-    //            parse_image_operations(pairs)
-    //        );
-    //    }
-    // END_TODO
 
     #[test]
     fn test_filter3x3_triplets_f3_tabbed_spacing() {

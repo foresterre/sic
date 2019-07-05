@@ -1,8 +1,12 @@
 use clap::ArgMatches;
-use combostew::config::Config;
-use combostew::io::{export, import};
-use combostew::operations::engine::{ImageEngine, Program};
-use combostew::processor::ProcessWithConfig;
+use sic_core::combostew::config::Config;
+use sic_core::combostew::io::{export, import};
+use sic_core::combostew::operations::engine::{ImageEngine, Program};
+use sic_core::combostew::processor::encoding_format::EncodingFormatDecider;
+use sic_core::combostew::processor::license_display::LicenseDisplayProcessor;
+use sic_core::combostew::processor::ProcessWithConfig;
+
+use crate::sic_processor::help_display::HelpDisplayProcessor;
 
 const LICENSE_SELF: &str = include_str!("../../LICENSE");
 const LICENSE_DEPS: &str = include_str!("../../thanks/dependency_licenses.txt");
@@ -30,16 +34,12 @@ pub fn run(matches: &ArgMatches, program: Program, options: &Config) -> Result<(
         .ignite(program)
         .map_err(|err| err.to_string())?;
 
-    let format_decider = combostew::processor::encoding_format::EncodingFormatDecider::default();
+    let format_decider = EncodingFormatDecider::default();
     export(out, &format_decider, &options)
 }
 
 pub fn run_display_licenses(config: &Config) -> Result<(), String> {
-    let license_display_processor =
-        combostew::processor::license_display::LicenseDisplayProcessor::new(
-            LICENSE_SELF,
-            LICENSE_DEPS,
-        );
+    let license_display_processor = LicenseDisplayProcessor::new(LICENSE_SELF, LICENSE_DEPS);
 
     license_display_processor.process(&config);
 
@@ -47,7 +47,7 @@ pub fn run_display_licenses(config: &Config) -> Result<(), String> {
 }
 
 pub fn run_display_help(config: &Config) -> Result<(), String> {
-    let help = crate::sic_processor::help_display::HelpDisplayProcessor::default();
+    let help = HelpDisplayProcessor::default();
     help.process(config);
 
     Ok(())
