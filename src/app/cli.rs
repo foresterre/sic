@@ -8,14 +8,14 @@ use crate::get_tool_name;
 
 // NOTE: app skeleton used to be part of stew_cli.
 //  After using stew_cli for a while for both stew and sic, it became tedious.
-//  I prefer some duplication in the cli code over the tediousness.
+//  I prefer some duplication in the app code over the tediousness.
 
-const HELP_OPERATIONS_AVAILABLE: &str = include_str!("../docs/cli_help_script.txt");
+const HELP_OPERATIONS_AVAILABLE: &str = include_str!("../../docs/cli_help_script.txt");
 
-pub fn sic_app() -> App<'static, 'static> {
+pub fn cli() -> App<'static, 'static> {
     App::new(get_tool_name())
         .version(env!("CARGO_PKG_VERSION"))
-        .about("An image tool cli front-end which can convert images to different formats, and transform \
+        .about("An image tool app front-end which can convert images to different formats, and transform \
                 images by applying image operations.\n\n\
                 Supported input (decoding) formats are:  BMP, GIF, ICO, JPEG, PNG, PBM, PGM, PPM,\n\
                 PAM and TIFF and WebP.\n\

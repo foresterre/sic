@@ -3,7 +3,7 @@ use std::process;
 use combostew::config::Config;
 use combostew::processor::ProcessWithConfig;
 
-use crate::app_custom_config::manual_arg;
+use crate::app::custom_config::manual_arg;
 use crate::help::HelpIndex;
 
 // TODO{foresterre}: User manual should be refactored later.

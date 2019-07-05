@@ -3,8 +3,8 @@ use std::path::{Path, PathBuf};
 
 use combostew::image;
 
-use sic_lib::app_cli::{sic_app as get_app, sic_config};
-use sic_lib::app_run::run;
+use sic_lib::app::cli::{cli as get_app, sic_config};
+use sic_lib::app::run_mode::run;
 
 // Wish list for Rust tests: parameterized tests
 // Probably can be done with macro's too.
