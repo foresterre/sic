@@ -1,0 +1,7 @@
+[package]
+name = "sic_user_manual"
+version = "0.1.0"
+authors = ["Martijn Gribnau <garm@ilumeo.com>"]
+edition = "2018"
+
+[dependencies]

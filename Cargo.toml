@@ -19,12 +19,14 @@ categories = ["multimedia::images", "command-line-utilities"]
 members = [
   "sic_core",
   "sic_parser",
+  "sic_user_manual",
 ]
 
 [dependencies]
 clap = "2.32.0"
 sic_core = { path = "sic_core" }
 sic_parser = { path = "sic_parser" }
+sic_user_manual  = { path = "sic_user_manual" }
 
 [[bin]]
 name = "sic"
