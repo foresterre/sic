@@ -6,7 +6,7 @@ use sic_core::combostew::processor::encoding_format::EncodingFormatDecider;
 use sic_core::combostew::processor::license_display::LicenseDisplayProcessor;
 use sic_core::combostew::processor::ProcessWithConfig;
 
-use crate::sic_processor::help_display::HelpDisplayProcessor;
+use crate::user_manual::user_manual_printer::UserManualPrinter;
 
 const LICENSE_SELF: &str = include_str!("../../LICENSE");
 const LICENSE_DEPS: &str = include_str!("../../thanks/dependency_licenses.txt");
@@ -47,8 +47,7 @@ pub fn run_display_licenses(config: &Config) -> Result<(), String> {
 }
 
 pub fn run_display_help(config: &Config) -> Result<(), String> {
-    let help = HelpDisplayProcessor::default();
-    help.process(config);
+    let help = UserManualPrinter::default();
 
-    Ok(())
+    help.show(config).map(|_| ()).map_err(|err| err.to_string())
 }
