@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 
+// TODO{foresterre}: User manual should be refactored.
+pub mod user_manual_printer;
+
 // Probably should create a macro to generate various of the entries. Now, I've to manually
 // add a new topic to the name match function, and to the available topics list.
 // The Rust documentation advises to use an enum if you now your values in advance.

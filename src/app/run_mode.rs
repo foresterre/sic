@@ -5,8 +5,9 @@ use sic_core::combostew::operations::engine::{ImageEngine, Program};
 use sic_core::combostew::processor::encoding_format::EncodingFormatDecider;
 use sic_core::combostew::processor::license_display::LicenseDisplayProcessor;
 use sic_core::combostew::processor::ProcessWithConfig;
+use sic_user_manual::user_manual_printer::UserManualPrinter;
 
-use crate::sic_processor::help_display::HelpDisplayProcessor;
+use crate::app::custom_config::manual_arg;
 
 const LICENSE_SELF: &str = include_str!("../../LICENSE");
 const LICENSE_DEPS: &str = include_str!("../../thanks/dependency_licenses.txt");
@@ -47,8 +48,7 @@ pub fn run_display_licenses(config: &Config) -> Result<(), String> {
 }
 
 pub fn run_display_help(config: &Config) -> Result<(), String> {
-    let help = HelpDisplayProcessor::default();
-    help.process(config);
-
-    Ok(())
+    let help = UserManualPrinter::default();
+    let page = manual_arg(&config.application_specific);
+    help.show(page).map(|_| ()).map_err(|err| err.to_string())
 }

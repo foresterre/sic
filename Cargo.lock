@@ -433,6 +433,7 @@ dependencies = [
  "clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "sic_core 0.1.0",
  "sic_parser 0.1.0",
+ "sic_user_manual 0.1.0",
 ]
 
 [[package]]
@@ -450,6 +451,10 @@ dependencies = [
  "pest_derive 2.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "sic_core 0.1.0",
 ]
+
+[[package]]
+name = "sic_user_manual"
+version = "0.1.0"
 
 [[package]]
 name = "strsim"
