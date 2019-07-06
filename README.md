@@ -44,7 +44,7 @@ PNM (PBM, PGM, PPM) by default uses binary encoding (PNM P4, P5 and P6 respectiv
 <br>
 
 **Apply image operations to an image.**
-* In general: `sic --apply-operations "<operations>" <input> <output> ` (shorthand: `-X` or `-A`) 
+* In general: `sic --apply-operations "<operations>" <input> <output> ` (shorthand: `-x` or `-A`) 
 * Example `sic input.png output.jpg --apply-operations "fliph; blur 10; resize 250 250"`
 
 When more than one image operation is provided, the separator `;` should be used 
