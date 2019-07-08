@@ -6,5 +6,6 @@ edition = "2018"
 
 [dependencies]
 sic_core = { path = "../sic_core" }
+sic_image_engine = { path = "../sic_image_engine" }
 pest = "2.0.2"
 pest_derive = "2.0.1"

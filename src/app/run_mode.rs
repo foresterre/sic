@@ -1,10 +1,10 @@
 use clap::ArgMatches;
 use sic_core::combostew::config::Config;
 use sic_core::combostew::io::{export, import};
-use sic_core::combostew::operations::engine::{ImageEngine, Program};
 use sic_core::combostew::processor::encoding_format::EncodingFormatDecider;
 use sic_core::combostew::processor::license_display::LicenseDisplayProcessor;
 use sic_core::combostew::processor::ProcessWithConfig;
+use sic_image_engine::engine::{ImageEngine, Program};
 use sic_user_manual::user_manual_printer::UserManualPrinter;
 
 use crate::app::custom_config::manual_arg;

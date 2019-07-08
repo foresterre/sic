@@ -1,9 +1,7 @@
 use pest::iterators::{Pair, Pairs};
-use sic_core::combostew::operations::engine::{
-    EnvironmentItem, EnvironmentKind, Program, Statement,
-};
-use sic_core::combostew::operations::wrapper::filter_type::FilterTypeWrap;
-use sic_core::combostew::operations::Operation;
+use sic_image_engine::engine::{EnvironmentItem, EnvironmentKind, Program, Statement};
+use sic_image_engine::wrapper::filter_type::FilterTypeWrap;
+use sic_image_engine::Operation;
 
 use super::Rule;
 
@@ -297,7 +295,7 @@ mod tests {
     use crate::SICParser;
     use pest::Parser;
     use sic_core::combostew::image;
-    use sic_core::combostew::operations::engine::EnvironmentItem;
+    use sic_image_engine::engine::EnvironmentItem;
 
     use super::*;
 

@@ -1,4 +1,4 @@
-use sic_core::combostew::operations::engine::Program;
+use sic_image_engine::engine::Program;
 use sic_lib::app::cli::sic_config;
 use sic_lib::app::custom_config::script_arg;
 use sic_lib::app::run_mode::{run, run_display_help, run_display_licenses};
