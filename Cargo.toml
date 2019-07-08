@@ -20,11 +20,15 @@ members = [
   "sic_core",
   "sic_parser",
   "sic_user_manual",
+
+  # former combostew modules
+  "sic_image_engine"
 ]
 
 [dependencies]
 clap = "2.32.0"
 sic_core = { path = "sic_core" }
+sic_image_engine = { path = "sic_image_engine" }
 sic_parser = { path = "sic_parser" }
 sic_user_manual  = { path = "sic_user_manual" }
 

@@ -2,7 +2,7 @@
 extern crate pest_derive;
 
 use pest::Parser;
-use sic_core::combostew::operations::engine::Program;
+use sic_image_engine::engine::Program;
 
 use crate::rule_parser::parse_image_operations;
 
@@ -24,8 +24,8 @@ pub fn parse_script(script: &str) -> Result<Program, String> {
 
 #[cfg(test)]
 mod tests {
-    use sic_core::combostew::operations::engine::Statement;
-    use sic_core::combostew::operations::Operation;
+    use sic_image_engine::engine::Statement;
+    use sic_image_engine::Operation;
 
     use super::*;
 

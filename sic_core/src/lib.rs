@@ -2,3 +2,4 @@
 /// sic crate.
 /// The purpose of this re-export is to have equal versions for all sic sub crates.
 pub use combostew;
+pub use image;
