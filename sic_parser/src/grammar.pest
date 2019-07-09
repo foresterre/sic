@@ -12,7 +12,7 @@ triplet_fp3 = _{ fp ~ WHITESPACE ~ fp ~ WHITESPACE ~ fp }
 f3x3_args_sep = _{ triplet_fp3 ~ triplet_sep ~ triplet_fp3 ~ triplet_sep ~ triplet_fp3 }
 f3x3_args_no_sep = _{ triplet_fp3 ~ WHITESPACE ~ triplet_fp3 ~ WHITESPACE ~ triplet_fp3 }
 
-blur = ${ ^"blur" ~ WHITESPACE ~ uint}
+blur = ${ ^"blur" ~ WHITESPACE ~ fp }
 brighten = ${ ^"brighten" ~ WHITESPACE ~ int }
 contrast = ${ ^"contrast" ~ WHITESPACE ~ fp }
 crop = ${ ^"crop" ~ WHITESPACE ~ uint ~ WHITESPACE ~ uint ~ WHITESPACE ~ uint ~ WHITESPACE ~ uint }

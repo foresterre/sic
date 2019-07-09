@@ -423,13 +423,41 @@ mod tests {
     }
 
     #[test]
-    fn test_blur_single_stmt_parse_correct() {
+    fn test_blur_with_int_accept() {
         let pairs = SICParser::parse(Rule::main, "blur 15;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![Statement::Operation(Operation::Blur(15.0))]),
             parse_image_operations(pairs)
         );
+    }
+
+    // related issue: https://github.com/foresterre/sic/issues/130
+    #[test]
+    fn test_blur_with_fp_accept() {
+        let pairs = SICParser::parse(Rule::main, "blur 15.0;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Statement::Operation(Operation::Blur(15.0))]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_blur_with_fp_neg_accept() {
+        let pairs = SICParser::parse(Rule::main, "blur -15.0;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        assert_eq!(
+            Ok(vec![Statement::Operation(Operation::Blur(-15.0))]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_blur_with_fp_reject() {
+        SICParser::parse(Rule::main, "blur 15.;")
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
     }
 
     #[test]
