@@ -9,7 +9,7 @@ Syntax:
 -------
 `contrast <fp>`
 
-where <fp> means: any 32 bit floating point number is required as parameter input.
+where <fp> means: any 32 bit floating point number is required as argument.
 
 A positive value for <int> means the contrast will be increased, and a negative value for <int> means the contrast will be decreased.
 

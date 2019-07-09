@@ -10,7 +10,7 @@ Syntax:
 `filter3x3 <args9>`
 
 <args9> means `<fp> <fp> <fp> | <fp> <fp> <fp> | <fp> <fp> <fp>` where the `|` separator is optional. If the separator is used, white space should surround the separator. The separators can only be used like in the example, so one separator after each of the first two triplets.
-and <fp> means: any 32 bit floating point number is required as parameter input
+and <fp> means: any 32 bit floating point number is required as argument.
 
 Usage example:
 --------------

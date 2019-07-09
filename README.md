@@ -54,7 +54,7 @@ The available image operations are:
 
 |operations|syntax|available (from version)|description|
 |---|---|---|---|
-|blur               | `blur <uint>`                         | Yes (0.5.0) 	    | Performs a Gaussian blur on the image ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.blur.html)). |
+|blur               | `blur <fp>`                           | Yes (0.5.0) 	    | Performs a Gaussian blur on the image ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.blur.html)). An argument below `0.0`, will use `1.0` instead. |
 |brighten           | `brighten <int>`                      | Yes (0.7.0) 	    | |
 |contrast           | `contrast <fp>`                       | Yes (0.7.0) 	    | |
 |crop               | `crop <int> <int> <int> <int>`        | Yes (0.9.0)       | Syntax: `crop <lx> <ly> <rx> <ry>`, where `lx` is top left corner x coordinate starting at 0, `ly` is the top left corner y coordinate starting at 0, `rx` is the  bottom right corner x coordinate and `ry` is the bottom right corner y coordinate. `rx` and `ry` should be larger than `lx` and `ly` respectively. |
@@ -81,9 +81,9 @@ For some operations, their behaviour can be (slightly) changed by choosing and e
 
 _legend_:
 ```
-<uint> means any 32 bit unsigned integer is required as parameter input.
-<int> means any 32 bit signed integer is required as parameter input.
-<fp> means any 32 bit floating point number is required as parameter input.
+<uint> means any 32 bit unsigned integer is required as argument.
+<int> means any 32 bit signed integer is required as argument.
+<fp> means any 32 bit floating point number is required as argument.
 <value> means a pre defined value. 
 <args9> means `<fp> <fp> <fp> <fp> <fp> <fp> <fp> <fp> <fp>`.
 ```
@@ -94,6 +94,7 @@ For each example: each of the lines are valid syntactically and the full example
 **blur** example:
 ```
 blur 10;
+blur 
 ```
 
 **brighten** example:
