@@ -1,13 +1,13 @@
 use clap::ArgMatches;
-use sic_core::combostew::config::Config;
-use sic_core::combostew::io::{export, import};
-use sic_core::combostew::processor::encoding_format::EncodingFormatDecider;
-use sic_core::combostew::processor::license_display::LicenseDisplayProcessor;
-use sic_core::combostew::processor::ProcessWithConfig;
+use sic_config::Config;
+
 use sic_image_engine::engine::{ImageEngine, Program};
+use sic_io::encoding_format::EncodingFormatDecider;
+use sic_io::{export, import};
 use sic_user_manual::user_manual_printer::UserManualPrinter;
 
 use crate::app::custom_config::manual_arg;
+use crate::app::license_display::LicenseDisplayProcessor;
 
 const LICENSE_SELF: &str = include_str!("../../LICENSE");
 const LICENSE_DEPS: &str = include_str!("../../thanks/dependency_licenses.txt");

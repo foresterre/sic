@@ -1,4 +1,4 @@
-use sic_core::combostew::config::ConfigItem;
+use sic_config::ConfigItem;
 
 fn get_config_item(c: &ConfigItem) -> Option<&str> {
     match c {

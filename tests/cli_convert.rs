@@ -1,7 +1,7 @@
 use std::io::Read;
 use std::path::{Path, PathBuf};
 
-use sic_core::combostew::image;
+use sic_core::image;
 
 use sic_lib::app::cli::{cli as get_app, sic_config};
 use sic_lib::app::run_mode::run;
