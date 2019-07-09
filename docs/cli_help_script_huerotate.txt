@@ -9,7 +9,7 @@ Syntax:
 -------
 `huerotate <int>`
 
-where <int> means: any 32 bit signed integer is required as parameter input.
+where <int> means: any 32 bit signed integer is required as argument.
 
 The provided <int> argument decides how much degrees the hue will be rotated.
 The actual rotation will be <int>%360 degrees.

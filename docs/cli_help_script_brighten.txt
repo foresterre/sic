@@ -9,7 +9,7 @@ Syntax:
 -------
 `brighten <int>`
 
-where <int> means: any 32 bit signed integer is required as parameter input.
+where <int> means: any 32 bit signed integer is required as argument.
 
 A positive value for <int> means the brightness will be increased, and a negative value for <int> means the brightness will be decreased.
 

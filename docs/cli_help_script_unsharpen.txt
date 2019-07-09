@@ -9,8 +9,8 @@ Syntax:
 -------
 `unsharpen <fp> <int>`
 
-where <fp> means: any 32 bit floating point number is required as parameter input.
-and <int> means: any 32 bit signed integer is required as parameter input.
+where <fp> means: any 32 bit floating point number is required as argument.
+and <int> means: any 32 bit signed integer is required as argument.
 
 The first argument (<fp>) decides how much the image is blurred, and the second argument (<int>) defines the threshold of how much the image will be sharpened.
 

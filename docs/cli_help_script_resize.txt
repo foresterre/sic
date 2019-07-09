@@ -12,7 +12,7 @@ Syntax:
 -------
 `resize <uint> <uint>`
 
-where <uint> means: any 32 bit unsigned integer is required as parameter input.
+where <uint> means: any 32 bit unsigned integer is required as argument.
 
 The first <uint> represents the projected width of the output image and the second <uint> argument represents the projected height of the output image.
 
