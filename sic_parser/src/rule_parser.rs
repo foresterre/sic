@@ -294,7 +294,7 @@ fn parse_triplet3x_f32(pair: Pair<'_, Rule>) -> Result<[f32; 9], String> {
 mod tests {
     use crate::SICParser;
     use pest::Parser;
-    use sic_core::combostew::image;
+    use sic_core::image;
     use sic_image_engine::engine::EnvironmentItem;
 
     use super::*;

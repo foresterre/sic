@@ -1,8 +1,9 @@
 use clap::{App, AppSettings, Arg, ArgMatches};
-use sic_core::combostew::config::{
+use sic_config::{
     Config, ConfigItem, FormatEncodingSettings, JPEGEncodingSettings, PNMEncodingSettings,
     SelectedLicenses,
 };
+//use sic_config::*;
 
 use crate::get_tool_name;
 
