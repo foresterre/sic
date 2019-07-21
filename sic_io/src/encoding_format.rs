@@ -68,7 +68,7 @@ impl JPEGQuality {
     }
 
     /// Return the valid quality value.
-    pub fn as_u8(&self) -> u8 {
+    pub fn as_u8(self) -> u8 {
         self.quality
     }
 }
