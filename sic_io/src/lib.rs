@@ -3,11 +3,9 @@ use std::io::stdin;
 use std::io::Read;
 use std::path::Path;
 
-use sic_config::Config;
 use sic_core::image;
 
-use crate::conversion::ConversionProcessor;
-use crate::encoding_format::EncodingFormatDecider;
+use crate::conversion::{AutomaticColorTypeAdjustment, ConversionWriter};
 
 pub mod conversion;
 pub mod encoding_format;
@@ -68,13 +66,36 @@ fn import_from_file_sync<P: AsRef<Path>>(path: P) -> Result<image::DynamicImage,
     image::open(path).map_err(|err| err.to_string())
 }
 
-pub fn export(
+pub struct EmptyPath;
+
+impl AsRef<Path> for EmptyPath {
+    fn as_ref(&self) -> &Path {
+        Path::new("")
+    }
+}
+
+#[derive(Debug)]
+pub enum ExportMethod<P: AsRef<Path>> {
+    File(P),
+    StdoutBytes,
+}
+
+// enum variants on type aliases are currently experimental, so we use a function here instead.
+pub fn use_stdout_bytes_as_export_method() -> ExportMethod<EmptyPath> {
+    ExportMethod::StdoutBytes
+}
+
+#[derive(Debug)]
+pub struct ExportSettings {
+    pub adjust_color_type: AutomaticColorTypeAdjustment,
+}
+
+pub fn export<P: AsRef<Path>>(
     image: &image::DynamicImage,
-    format_decider: &EncodingFormatDecider,
-    config: &Config,
+    method: ExportMethod<P>,
+    format: image::ImageOutputFormat,
+    export_settings: ExportSettings,
 ) -> Result<(), String> {
-    format_decider.process(&config).and_then(|format| {
-        let conversion_processor = ConversionProcessor::new(&image, format);
-        conversion_processor.process(&config)
-    })
+    let writer = ConversionWriter::new(image);
+    writer.write(method, format, export_settings.adjust_color_type)
 }

@@ -1,124 +1,173 @@
 use std::path::Path;
 
-use sic_config::Config;
 use sic_core::image;
+use std::error::Error;
+
+use crate::ExportMethod;
 
 const DEFAULT_PIPED_OUTPUT_FORMAT: image::ImageOutputFormat = image::ImageOutputFormat::BMP;
 
-#[derive(Debug, Default)]
-pub struct EncodingFormatDecider;
+pub trait EncodingFormatByMethod {
+    /// Determine the encoding format based on the method of exporting.
+    fn by_method<P: AsRef<Path>>(
+        &self,
+        method: &ExportMethod<P>,
+    ) -> Result<image::ImageOutputFormat, Box<dyn Error>>;
+}
 
-impl EncodingFormatDecider {
-    pub fn process(&self, config: &Config) -> Result<image::ImageOutputFormat, String> {
-        EncodingFormatDecider::compute_format(&config)
+pub trait EncodingFormatByExtension {
+    /// Determine the encoding format based on the extension of a file path.
+    fn by_extension<P: AsRef<Path>>(
+        &self,
+        path: P,
+    ) -> Result<image::ImageOutputFormat, Box<dyn Error>>;
+}
+
+pub trait EncodingFormatByIdentifier {
+    /// Determine the encoding format based on the method of exporting.
+    /// Determine the encoding format based on a recognized given identifier.
+    fn by_identifier(&self, identifier: &str) -> Result<image::ImageOutputFormat, Box<dyn Error>>;
+}
+
+pub trait EncodingFormatJPEGQuality {
+    /// Returns a validated jpeg quality value.
+    /// If no such value exists, it will return an error instead.
+    fn jpeg_quality(&self) -> Result<JPEGQuality, Box<dyn Error>>;
+}
+
+pub trait EncodingFormatPNMSampleEncoding {
+    /// Returns a pnm sample encoding type.
+    /// If no such value exists, it will return an error instead.
+    fn pnm_encoding_type(&self) -> Result<image::pnm::SampleEncoding, Box<dyn Error>>;
+}
+
+/// This struct ensures no invalid JPEG qualities can be stored.
+/// Using this struct instead of `u8` directly should ensure no panics occur because of invalid
+/// quality values.
+#[derive(Debug, Clone, Copy, Ord, PartialOrd, Eq, PartialEq)]
+pub struct JPEGQuality {
+    quality: u8,
+}
+
+impl Default for JPEGQuality {
+    /// The default JPEG quality is `80`.
+    fn default() -> Self {
+        Self { quality: 80 }
     }
+}
 
-    // return: Ok: valid extension, err: invalid i.e. no extension or no valid output path
-    fn get_output_extension(config: &Config) -> Result<String, String> {
-        match &config.output {
-            Some(v) => {
-                let path = &Path::new(v);
-                let extension = path.extension();
-
-                extension
-                    .and_then(std::ffi::OsStr::to_str)
-                    .ok_or_else(|| "No extension was found".into())
-                    .map(str::to_lowercase)
-            }
-            None => Err("No valid output path found (type: efd/ext)".into()),
-        }
-    }
-
-    fn sample_encoding(config: &Config) -> image::pnm::SampleEncoding {
-        if config.encoding_settings.pnm_settings.ascii {
-            image::pnm::SampleEncoding::Ascii
+impl JPEGQuality {
+    /// Returns an Ok result if the quality requested is between 1 and 100 (inclusive).
+    pub fn try_from(quality: u8) -> Result<Self, Box<dyn Error>> {
+        if (1u8..=100u8).contains(&quality) {
+            Ok(JPEGQuality { quality })
         } else {
-            image::pnm::SampleEncoding::Binary
+            let message = "JPEG Quality should range between 1 and 100 (inclusive).";
+            Err(From::from(message.to_string()))
         }
     }
 
-    // <output format type as String, error message as String>
-    fn determine_format_string(config: &Config) -> Result<String, String> {
-        if let Some(v) = &config.forced_output_format {
-            Ok(v.to_lowercase())
-        } else {
-            EncodingFormatDecider::get_output_extension(config)
+    /// Return the valid quality value.
+    pub fn as_u8(&self) -> u8 {
+        self.quality
+    }
+}
+
+impl EncodingFormatByMethod for DetermineEncodingFormat {
+    /// Determine the encoding format based on the method of exporting.
+    /// For stdout, the default piped output format will be used.
+    ///     If another format is wanted the `by_identifier` function should be used instead.
+    /// For file, the format will be determined based on the output path extension.
+    fn by_method<P: AsRef<Path>>(
+        &self,
+        method: &ExportMethod<P>,
+    ) -> Result<image::ImageOutputFormat, Box<dyn Error>> {
+        match method {
+            ExportMethod::StdoutBytes => Ok(DEFAULT_PIPED_OUTPUT_FORMAT),
+            ExportMethod::File(path) => self.by_extension(path),
         }
     }
+}
 
-    fn determine_format_from_str(
-        config: &Config,
-        identifier: &str,
-    ) -> Result<image::ImageOutputFormat, String> {
+impl EncodingFormatByExtension for DetermineEncodingFormat {
+    /// Determines the encoding format based on the extension of the given path.
+    /// If the path has no extension, it will return an error.
+    /// The extension if existing is matched against the identifiers, which currently
+    /// are the extensions used.
+    fn by_extension<P: AsRef<Path>>(
+        &self,
+        path: P,
+    ) -> Result<image::ImageOutputFormat, Box<dyn Error>> {
+        let extension = path.as_ref().extension().and_then(|v| v.to_str());
+
+        match extension {
+            Some(some) => self.by_identifier(some),
+            None => Err(From::from({
+                let message = "Unable to determine output format from extension.";
+                message.to_string()
+            })),
+        }
+    }
+}
+
+impl EncodingFormatByIdentifier for DetermineEncodingFormat {
+    /// Determines an image output format based on a given `&str` identifier.
+    /// Identifiers are based on common output file extensions.
+    fn by_identifier(&self, identifier: &str) -> Result<image::ImageOutputFormat, Box<dyn Error>> {
         match identifier {
             "bmp" => Ok(image::ImageOutputFormat::BMP),
             "gif" => Ok(image::ImageOutputFormat::GIF),
             "ico" => Ok(image::ImageOutputFormat::ICO),
-            "jpeg" | "jpg" => Ok(image::ImageOutputFormat::JPEG(
-                config.encoding_settings.jpeg_settings.quality,
-            )),
+            "jpeg" | "jpg" => Ok(image::ImageOutputFormat::JPEG(self.jpeg_quality()?.as_u8())),
             "png" => Ok(image::ImageOutputFormat::PNG),
-            "pbm" => {
-                let sample_encoding = EncodingFormatDecider::sample_encoding(&config);
-
-                Ok(image::ImageOutputFormat::PNM(
-                    image::pnm::PNMSubtype::Bitmap(sample_encoding),
-                ))
-            }
-            "pgm" => {
-                let sample_encoding = EncodingFormatDecider::sample_encoding(&config);
-
-                Ok(image::ImageOutputFormat::PNM(
-                    image::pnm::PNMSubtype::Graymap(sample_encoding),
-                ))
-            }
-            "ppm" => {
-                let sample_encoding = EncodingFormatDecider::sample_encoding(&config);
-
-                Ok(image::ImageOutputFormat::PNM(
-                    image::pnm::PNMSubtype::Pixmap(sample_encoding),
-                ))
-            }
+            "pbm" => Ok(image::ImageOutputFormat::PNM(
+                image::pnm::PNMSubtype::Bitmap(self.pnm_encoding_type()?),
+            )),
+            "pgm" => Ok(image::ImageOutputFormat::PNM(
+                image::pnm::PNMSubtype::Graymap(self.pnm_encoding_type()?),
+            )),
+            "ppm" => Ok(image::ImageOutputFormat::PNM(
+                image::pnm::PNMSubtype::Pixmap(self.pnm_encoding_type()?),
+            )),
             "pam" => Ok(image::ImageOutputFormat::PNM(
                 image::pnm::PNMSubtype::ArbitraryMap,
             )),
-            _ => Err(format!(
+            _ => Err(From::from(format!(
                 "No supported image output format was found, input: {}.",
                 identifier
-            )),
+            ))),
         }
     }
+}
 
-    fn compute_format(config: &Config) -> Result<image::ImageOutputFormat, String> {
-        if config.output.is_none() && config.forced_output_format.is_none() {
-            return Ok(DEFAULT_PIPED_OUTPUT_FORMAT);
-        }
+pub struct DetermineEncodingFormat {
+    pub pnm_sample_encoding: Option<image::pnm::SampleEncoding>,
+    pub jpeg_quality: Option<JPEGQuality>,
+}
 
-        // 1. get the format type
-        //   a. if not -f or and we have an extension
-        //      use the extension to determine the type
-        //   b. if  -f v
-        //      use v to determine the type
-        //   c. else
-        //      unable to determine format error
-        let format = EncodingFormatDecider::determine_format_string(&config);
+impl EncodingFormatPNMSampleEncoding for DetermineEncodingFormat {
+    fn pnm_encoding_type(&self) -> Result<image::pnm::SampleEncoding, Box<dyn Error>> {
+        self.pnm_sample_encoding.ok_or_else(|| {
+            let message = "Using PNM requires the sample encoding to be set.";
+            From::from(message.to_string())
+        })
+    }
+}
 
-        // 2. match on additional options such as PNM's subtype or JPEG's quality
-        //    ensure that user set cases are above default cases
-        EncodingFormatDecider::determine_format_from_str(&config, &format?)
+impl EncodingFormatJPEGQuality for DetermineEncodingFormat {
+    fn jpeg_quality(&self) -> Result<JPEGQuality, Box<dyn Error>> {
+        self.jpeg_quality.ok_or_else(|| {
+            let message = "Using JPEG requires the JPEG quality to be set.";
+
+            From::from(message.to_string())
+        })
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use sic_config::{
-        Config, ConfigItem, FormatEncodingSettings, JPEGEncodingSettings, PNMEncodingSettings,
-    };
-    use sic_testing::*;
-
     use super::*;
 
-    const OUTPUT_NO_EXT: &str = "dont_care";
     const INPUT_FORMATS: &[&str] = &[
         "bmp", "gif", "ico", "jpg", "jpeg", "png", "pbm", "pgm", "ppm", "pam",
     ];
@@ -141,324 +190,279 @@ mod tests {
         image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::ArbitraryMap),
     ];
 
-    fn setup_dummy_config(
-        output: &str,
-        ext: &str,
-        force_format: Option<String>,
-        pnm_ascii: bool,
-    ) -> Config {
-        Config {
-            tool_name: env!("CARGO_PKG_NAME"),
-            licenses: vec![],
-            forced_output_format: force_format,
-            disable_automatic_color_type_adjustment: false,
-
-            encoding_settings: FormatEncodingSettings {
-                jpeg_settings: JPEGEncodingSettings::new_result((false, None))
-                    .expect("Invalid jpeg settings"),
-                pnm_settings: PNMEncodingSettings::new(pnm_ascii),
-            },
-
-            output: setup_output_path(&format!("{}.{}", output, ext))
-                .to_str()
-                .map(|v| v.into()),
-
-            application_specific: vec![
-                ConfigItem::OptionStringItem(None),
-                ConfigItem::OptionStringItem(None),
-            ],
+    fn setup_default_format_determiner() -> DetermineEncodingFormat {
+        DetermineEncodingFormat {
+            pnm_sample_encoding: Some(image::pnm::SampleEncoding::Binary),
+            jpeg_quality: Some(JPEGQuality::try_from(80).unwrap()),
         }
     }
 
-    fn test_with_extension(ext: &str, expected: &image::ImageOutputFormat) {
-        let output_name = &format!("encoding_processing_w_ext_{}", OUTPUT_NO_EXT);
+    //
+    fn test_with_method_path(ext: &str, expected: &image::ImageOutputFormat) {
+        let path = format!("w_path.{}", ext);
+        let method = ExportMethod::File(path);
 
-        let settings = setup_dummy_config(output_name, ext, None, false);
+        let format_determiner = setup_default_format_determiner();
+        let result = format_determiner.by_method(&method);
 
-        let conversion_processor = EncodingFormatDecider::default();
-        let result = conversion_processor
-            .process(&settings)
-            .expect("Failed to compute image format.");
-
-        assert_eq!(*expected, result);
-    }
-
-    fn test_with_force_format(format: &str, expected: &image::ImageOutputFormat) {
-        let output_name = &format!("encoding_processing_w_ff_{}", OUTPUT_NO_EXT);
-
-        let settings = setup_dummy_config(output_name, "", Some(String::from(format)), false);
-
-        let conversion_processor = EncodingFormatDecider::default();
-        let result = conversion_processor
-            .process(&settings)
-            .expect("Failed to compute image format.");
-
-        assert_eq!(*expected, result);
+        assert_eq!(result.unwrap(), *expected);
     }
 
     #[test]
-    fn test_with_extensions_with_defaults() {
+    fn method_path_with_defaults() {
         let zipped = INPUT_FORMATS.iter().zip(EXPECTED_VALUES.iter());
 
         for (ext, exp) in zipped {
-            println!("testing `test_with_extension`: {}", ext);
-            test_with_extension(ext, exp);
+            test_with_method_path(ext, exp);
         }
     }
 
+    //
+    fn test_with_extensions(ext: &str, expected: &image::ImageOutputFormat) {
+        let path = format!("w_ext.{}", ext);
+
+        let format_determiner = setup_default_format_determiner();
+        let result = format_determiner.by_extension(path.as_str());
+
+        assert_eq!(result.unwrap(), *expected);
+    }
+
     #[test]
-    fn test_with_force_formats_with_defaults() {
+    fn extension_with_defaults() {
         let zipped = INPUT_FORMATS.iter().zip(EXPECTED_VALUES.iter());
 
-        for (format, exp) in zipped {
-            println!("testing `test_with_force_format`: {}", format);
-            test_with_force_format(format, exp);
+        for (ext, exp) in zipped {
+            test_with_extensions(ext, exp);
         }
     }
 
+    //
     #[test]
-    fn test_with_extension_jpg_and_force_format_png() {
-        let output_name = &format!("encoding_processing_w_ext_and_ff_{}", OUTPUT_NO_EXT);
-
-        let settings = setup_dummy_config(output_name, "jpg", Some(String::from("png")), false);
-
-        let conversion_processor = EncodingFormatDecider::default();
-        let result = conversion_processor
-            .process(&settings)
-            .expect("Failed to compute image format.");
-
-        assert_eq!(image::ImageOutputFormat::PNG, result);
-    }
-
-    #[test]
-    fn test_with_extension_and_ascii_pbm() {
-        let output_name = &format!("encoding_processing_ascii_pbm_{}", OUTPUT_NO_EXT);
-
-        let settings = setup_dummy_config(output_name, "pbm", None, true);
-
-        let conversion_processor = EncodingFormatDecider::default();
-        let result = conversion_processor
-            .process(&settings)
-            .expect("Failed to compute image format.");
-
-        assert_eq!(
-            image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::Bitmap(
-                image::pnm::SampleEncoding::Ascii,
-            )),
-            result
-        );
-    }
-
-    #[test]
-    fn test_with_extension_and_ascii_pgm() {
-        let output_name = &format!("encoding_processing_ascii_pgm_{}", OUTPUT_NO_EXT);
-
-        let settings = setup_dummy_config(output_name, "pgm", None, true);
-
-        let conversion_processor = EncodingFormatDecider::default();
-        let result = conversion_processor
-            .process(&settings)
-            .expect("Failed to compute image format.");
-
-        assert_eq!(
-            image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::Graymap(
-                image::pnm::SampleEncoding::Ascii,
-            )),
-            result
-        );
-    }
-
-    #[test]
-    fn test_with_extension_and_ascii_ppm() {
-        let output_name = &format!("encoding_processing_ascii_ppm_{}", OUTPUT_NO_EXT);
-
-        let settings = setup_dummy_config(output_name, "ppm", None, true);
-
-        let conversion_processor = EncodingFormatDecider::default();
-        let result = conversion_processor
-            .process(&settings)
-            .expect("Failed to compute image format.");
-
-        assert_eq!(
-            image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::Pixmap(
-                image::pnm::SampleEncoding::Ascii,
-            )),
-            result
-        );
-    }
-
-    #[test]
-    fn test_with_extension_and_ascii_pam_doesnt_care() {
-        // PAM is not influenced by the PNM ascii setting
-        let output_name = &format!(
-            "encoding_processing_ascii_pam_doesnt_care_{}",
-            OUTPUT_NO_EXT
-        );
-
-        let settings = setup_dummy_config(output_name, "pam", None, true);
-
-        let conversion_processor = EncodingFormatDecider::default();
-        let result = conversion_processor
-            .process(&settings)
-            .expect("Failed to compute image format.");
-
-        assert_eq!(
-            image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::ArbitraryMap),
-            result
-        );
-    }
-
-    #[test]
-    fn test_jpeg_custom_quality() {
-        let jpeg_conf = Config {
-            tool_name: env!("CARGO_PKG_NAME"),
-            licenses: vec![],
-            forced_output_format: None,
-            disable_automatic_color_type_adjustment: false,
-
-            encoding_settings: FormatEncodingSettings {
-                jpeg_settings: JPEGEncodingSettings::new_result((true, Some("40")))
-                    .expect("Invalid jpeg settings"),
-                pnm_settings: PNMEncodingSettings::new(false),
-            },
-
-            output: setup_output_path("encoding_processing_jpeg_quality_valid.jpg")
-                .to_str()
-                .map(|v| v.into()),
-
-            application_specific: vec![
-                ConfigItem::OptionStringItem(None),
-                ConfigItem::OptionStringItem(None),
-            ],
-        };
-
-        let conversion_processor = EncodingFormatDecider::default();
-        let result = conversion_processor
-            .process(&jpeg_conf)
-            .expect("Failed to compute image format.");
-
-        assert_eq!(image::ImageOutputFormat::JPEG(40), result);
-    }
-
     #[should_panic]
-    #[test]
-    fn test_output_unsupported_extension() {
-        let jpeg_conf = Config {
-            tool_name: env!("CARGO_PKG_NAME"),
-            licenses: vec![],
-            forced_output_format: None,
-            disable_automatic_color_type_adjustment: false,
+    fn extension_unknown_extension() {
+        let path = format!("w_ext.h");
 
-            encoding_settings: FormatEncodingSettings {
-                jpeg_settings: JPEGEncodingSettings { quality: 90 },
-                pnm_settings: PNMEncodingSettings::new(false),
-            },
+        let format_determiner = setup_default_format_determiner();
+        let result = format_determiner.by_extension(path.as_str());
 
-            output: setup_output_path("encoding_processing_invalid.😉")
-                .to_str()
-                .map(|v| v.into()),
-
-            application_specific: vec![
-                ConfigItem::OptionStringItem(None),
-                ConfigItem::OptionStringItem(None),
-            ],
-        };
-
-        let conversion_processor = EncodingFormatDecider::default();
-        let _ = conversion_processor
-            .process(&jpeg_conf)
-            .expect("Failed to compute image format.");
+        result.unwrap();
     }
 
+    //
+    #[test]
     #[should_panic]
-    #[test]
-    fn test_output_no_ext_or_ff() {
-        let jpeg_conf = Config {
-            tool_name: env!("CARGO_PKG_NAME"),
-            licenses: vec![],
-            forced_output_format: None,
-            disable_automatic_color_type_adjustment: false,
+    fn extension_no_extension() {
+        let path = format!("png");
 
-            encoding_settings: FormatEncodingSettings {
-                jpeg_settings: JPEGEncodingSettings { quality: 90 },
-                pnm_settings: PNMEncodingSettings::new(false),
-            },
+        let format_determiner = setup_default_format_determiner();
+        let result = format_determiner.by_extension(path.as_str());
 
-            output: setup_output_path("encoding_processing_invalid.")
-                .to_str()
-                .map(|v| v.into()),
-
-            application_specific: vec![
-                ConfigItem::OptionStringItem(None),
-                ConfigItem::OptionStringItem(None),
-            ],
-        };
-
-        let conversion_processor = EncodingFormatDecider::default();
-        let _ = conversion_processor
-            .process(&jpeg_conf)
-            .expect("Failed to compute image format.");
+        result.unwrap();
     }
 
+    //
+    #[test]
     #[should_panic]
-    #[test]
-    fn test_output_unsupported_ff_with_ext() {
-        let jpeg_conf = Config {
-            tool_name: env!("CARGO_PKG_NAME"),
-            licenses: vec![],
-            forced_output_format: Some("OiOi".into()), // unsupported format
-            disable_automatic_color_type_adjustment: false,
+    fn extension_invalid_extension() {
+        let path = format!(".png");
 
-            encoding_settings: FormatEncodingSettings {
-                jpeg_settings: JPEGEncodingSettings { quality: 90 },
-                pnm_settings: PNMEncodingSettings::new(false),
-            },
+        let format_determiner = setup_default_format_determiner();
+        let result = format_determiner.by_extension(path.as_str());
 
-            output: setup_output_path("encoding_processing_invalid.jpg")
-                .to_str()
-                .map(|v| v.into()),
-
-            application_specific: vec![
-                ConfigItem::OptionStringItem(None),
-                ConfigItem::OptionStringItem(None),
-            ],
-        };
-
-        let conversion_processor = EncodingFormatDecider::default();
-        let _ = conversion_processor
-            .process(&jpeg_conf)
-            .expect("Unable to save file to the test computer");
+        result.unwrap();
     }
 
+    //
+    fn test_with_identifier(identifier: &str, expected: &image::ImageOutputFormat) {
+        let format_determiner = setup_default_format_determiner();
+        let result = format_determiner.by_identifier(identifier);
+
+        assert_eq!(result.unwrap(), *expected);
+    }
+
+    #[test]
+    fn identifier_with_defaults() {
+        let zipped = INPUT_FORMATS.iter().zip(EXPECTED_VALUES.iter());
+
+        for (id, exp) in zipped {
+            test_with_identifier(id, exp);
+        }
+    }
+
+    //
+    #[test]
     #[should_panic]
-    #[test]
-    fn test_output_unsupported_ff_without_ext() {
-        let jpeg_conf = Config {
-            tool_name: env!("CARGO_PKG_NAME"),
-            licenses: vec![],
-            forced_output_format: Some("OiOi".into()), // unsupported format
-            disable_automatic_color_type_adjustment: false,
+    fn identifier_unknown_identifier() {
+        let format_determiner = setup_default_format_determiner();
+        let result = format_determiner.by_identifier("");
 
-            encoding_settings: FormatEncodingSettings {
-                jpeg_settings: JPEGEncodingSettings { quality: 90 },
-                pnm_settings: PNMEncodingSettings::new(false),
-            },
-
-            output: setup_output_path("encoding_processing_invalid")
-                .to_str()
-                .map(|v| v.into()),
-
-            application_specific: vec![
-                ConfigItem::OptionStringItem(None),
-                ConfigItem::OptionStringItem(None),
-            ],
-        };
-
-        let conversion_processor = EncodingFormatDecider::default();
-        let _ = conversion_processor
-            .process(&jpeg_conf)
-            .expect("Unable to save file to the test computer");
+        result.unwrap();
     }
 
-    // TODO{}: test bad cases, edges
+    // non default: pnm ascii + "pbm"
+    #[test]
+    fn identifier_custom_pnm_sample_encoding_ascii_pbm() {
+        let format_determiner = DetermineEncodingFormat {
+            pnm_sample_encoding: Some(image::pnm::SampleEncoding::Ascii),
+            jpeg_quality: None,
+        };
+
+        let result = format_determiner.by_identifier("pbm").unwrap();
+        let expected = image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::Bitmap(
+            image::pnm::SampleEncoding::Ascii,
+        ));
+
+        assert_eq!(result, expected);
+    }
+
+    // non default: pnm ascii + "pgm"
+    #[test]
+    fn identifier_custom_pnm_sample_encoding_ascii_pgm() {
+        let format_determiner = DetermineEncodingFormat {
+            pnm_sample_encoding: Some(image::pnm::SampleEncoding::Ascii),
+            jpeg_quality: None,
+        };
+
+        let result = format_determiner.by_identifier("pgm").unwrap();
+        let expected = image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::Graymap(
+            image::pnm::SampleEncoding::Ascii,
+        ));
+
+        assert_eq!(result, expected);
+    }
+
+    // non default: pnm ascii + "ppm"
+    #[test]
+    fn identifier_custom_pnm_sample_encoding_ascii_ppm() {
+        let format_determiner = DetermineEncodingFormat {
+            pnm_sample_encoding: Some(image::pnm::SampleEncoding::Ascii),
+            jpeg_quality: None,
+        };
+
+        let result = format_determiner.by_identifier("ppm").unwrap();
+        let expected = image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::Pixmap(
+            image::pnm::SampleEncoding::Ascii,
+        ));
+
+        assert_eq!(result, expected);
+    }
+
+    // non default: jpeg custom, quality lower bound
+    #[test]
+    fn identifier_custom_jpeg_quality_in_range_lower() {
+        let format_determiner = DetermineEncodingFormat {
+            pnm_sample_encoding: None,
+            jpeg_quality: Some(JPEGQuality::try_from(1).unwrap()),
+        };
+
+        let result = format_determiner.by_identifier("jpg").unwrap();
+        let expected = image::ImageOutputFormat::JPEG(1);
+
+        assert_eq!(result, expected);
+    }
+
+    // non default: jpeg custom, quality upper bound
+    #[test]
+    fn identifier_custom_jpeg_quality_in_range_upper() {
+        let format_determiner = DetermineEncodingFormat {
+            pnm_sample_encoding: None,
+            jpeg_quality: Some(JPEGQuality::try_from(100).unwrap()),
+        };
+
+        let result = format_determiner.by_identifier("jpg").unwrap();
+        let expected = image::ImageOutputFormat::JPEG(100);
+
+        assert_eq!(result, expected);
+    }
+
+    // if we were to test 'identifier_custom_jpeg_quality_OUT_range_[lower/upper]'
+    //                                                    ^^^
+    // our DetermineEncodingFormat would fail on creation by JPEGQuality::try_from which fails
+    // on outbound ranges
+
+    //
+    #[test]
+    fn jpeg_quality_in_range_lower() {
+        let result = JPEGQuality::try_from(1).unwrap();
+        let expected = JPEGQuality { quality: 1 };
+
+        assert_eq!(result, expected);
+    }
+
+    //
+    #[test]
+    fn jpeg_quality_in_range_upper() {
+        let result = JPEGQuality::try_from(100).unwrap();
+        let expected = JPEGQuality { quality: 100 };
+
+        assert_eq!(result, expected);
+    }
+
+    //
+    #[test]
+    #[should_panic]
+    fn jpeg_quality_out_range_lower() {
+        let result = JPEGQuality::try_from(0).unwrap();
+        let expected = JPEGQuality { quality: 0 };
+
+        assert_eq!(result, expected);
+    }
+
+    //
+    #[test]
+    #[should_panic]
+    fn jpeg_quality_out_range_upper() {
+        let result = JPEGQuality::try_from(101).unwrap();
+        let expected = JPEGQuality { quality: 101 };
+
+        assert_eq!(result, expected);
+    }
+
+    // DetermineEncodingFormat has None, while Some required: pbm
+    #[test]
+    #[should_panic]
+    fn identifier_requires_pnm_sample_encoding_to_be_set_pbm() {
+        let format_determiner = DetermineEncodingFormat {
+            pnm_sample_encoding: None,
+            jpeg_quality: None,
+        };
+
+        format_determiner.by_identifier("pbm").unwrap();
+    }
+
+    // DetermineEncodingFormat has None, while Some required: pbm
+    #[test]
+    #[should_panic]
+    fn identifier_requires_pnm_sample_encoding_to_be_set_pgm() {
+        let format_determiner = DetermineEncodingFormat {
+            pnm_sample_encoding: None,
+            jpeg_quality: None,
+        };
+
+        format_determiner.by_identifier("pgm").unwrap();
+    }
+
+    // DetermineEncodingFormat has None, while Some required: ppm
+    #[test]
+    #[should_panic]
+    fn identifier_requires_pnm_sample_encoding_to_be_set_ppm() {
+        let format_determiner = DetermineEncodingFormat {
+            pnm_sample_encoding: None,
+            jpeg_quality: None,
+        };
+
+        format_determiner.by_identifier("ppm").unwrap();
+    }
+
+    // DetermineEncodingFormat has None, while Some required: jpg
+    #[test]
+    #[should_panic]
+    fn identifier_requires_pnm_sample_encoding_to_be_set_jpg() {
+        let format_determiner = DetermineEncodingFormat {
+            pnm_sample_encoding: None,
+            jpeg_quality: None,
+        };
+
+        format_determiner.by_identifier("jpg").unwrap();
+    }
 }
