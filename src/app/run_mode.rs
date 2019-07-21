@@ -43,7 +43,7 @@ pub fn run(matches: &ArgMatches, program: Program, options: &Config) -> Result<(
         .map_err(|err| err.to_string())?;
 
     let export_method =
-        determine_export_method(options.output.clone()).map_err(|err| err.to_string())?;
+        determine_export_method(options.output.as_ref()).map_err(|err| err.to_string())?;
 
     let encoding_format_determiner = DetermineEncodingFormat {
         pnm_sample_encoding: if options.encoding_settings.pnm_settings.ascii {
@@ -59,8 +59,7 @@ pub fn run(matches: &ArgMatches, program: Program, options: &Config) -> Result<(
         },
     };
 
-    let user_set_format = options.forced_output_format.clone();
-    let encoding_format = match user_set_format {
+    let encoding_format = match &options.forced_output_format {
         Some(format) => encoding_format_determiner.by_identifier(format.as_str()),
         None => encoding_format_determiner.by_method(&export_method),
     }
