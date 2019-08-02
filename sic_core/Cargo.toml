@@ -6,4 +6,4 @@ edition = "2018"
 
 [dependencies]
 #combostew = "0.3.0"
-image = "0.21.0"
+image = "0.22.1"
