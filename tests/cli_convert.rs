@@ -743,3 +743,70 @@ fn convert_jpeg_quality_different() {
     clean_up_output_path(path_buf_str(&out1));
     clean_up_output_path(path_buf_str(&out2));
 }
+
+#[test]
+fn convert_with_i_and_o_arguments() {
+    let which = "jpg";
+
+    let our_input = setup_input_path("palette_4x4.png");
+    let our_output = setup_output_path(&format!("out_01_i_o.{}", which));
+
+    let args = vec![
+        "sic",
+        "-i",
+        path_buf_str(&our_input),
+        "-o",
+        path_buf_str(&our_output),
+    ];
+
+    let matches = get_app().get_matches_from(args);
+    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
+
+    assert_eq!(Ok(()), complete);
+    assert!(our_output.exists());
+    assert!(is_image_format(
+        path_buf_str(&our_output),
+        image::ImageFormat::JPEG
+    ));
+
+    clean_up_output_path(path_buf_str(&our_output));
+}
+
+// A similar test with only a -i argument and no -o (but trying to use OUTPUT_FILE as argument)
+// The above will terminate because INPUT_FILE and OUTPUT_FILE are a positional arguments.
+// If only a single positional argument is given, it would be recognized as the INPUT_FILE
+// since that one is positioned on the first argument position.
+// We could work around this in the future, but perhaps favouring -i and -o for flexibility is
+// preferred.
+//let args = vec![
+//    "sic",
+//    "-i",
+//    path_buf_str(&our_input),
+//    path_buf_str(&our_output),
+//];
+#[test]
+fn convert_with_o_only_arguments() {
+    let which = "jpg";
+
+    let our_input = setup_input_path("palette_4x4.png");
+    let our_output = setup_output_path(&format!("out_01_o_no_i.{}", which));
+
+    let args = vec![
+        "sic",
+        path_buf_str(&our_input),
+        "-o",
+        path_buf_str(&our_output),
+    ];
+
+    let matches = get_app().get_matches_from(args);
+    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
+
+    assert_eq!(Ok(()), complete);
+    assert!(our_output.exists());
+    assert!(is_image_format(
+        path_buf_str(&our_output),
+        image::ImageFormat::JPEG
+    ));
+
+    clean_up_output_path(path_buf_str(&our_output));
+}
