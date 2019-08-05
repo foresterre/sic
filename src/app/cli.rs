@@ -1,15 +1,8 @@
 use clap::{App, AppSettings, Arg, ArgMatches};
-use sic_config::{
-    Config, ConfigItem, FormatEncodingSettings, JPEGEncodingSettings, PNMEncodingSettings,
-    SelectedLicenses,
-};
-//use sic_config::*;
 
+use crate::app::config::{validate_jpeg_quality, Config, ConfigBuilder, SelectedLicenses};
 use crate::get_tool_name;
-
-// NOTE: app skeleton used to be part of stew_cli.
-//  After using stew_cli for a while for both stew and sic, it became tedious.
-//  I prefer some duplication in the app code over the tediousness.
+use std::str::FromStr;
 
 const HELP_OPERATIONS_AVAILABLE: &str = include_str!("../../docs/cli_help_script.txt");
 
@@ -101,64 +94,72 @@ pub fn cli() -> App<'static, 'static> {
             .index(2))
 }
 
-// Here any option should not panic when invalid.
+// Here any argument should not panic when invalid.
 // Previously, it was allowed to panic within Config, but this is no longer the case.
-pub fn get_app_config(
-    matches: &ArgMatches,
-    tool_name: &'static str,
-    app_config: Vec<ConfigItem>,
-) -> Result<Config, String> {
-    let res: Config = Config {
-        tool_name,
-        licenses: match (
-            matches.is_present("license"),
-            matches.is_present("dep_licenses"),
-        ) {
-            (true, true) => vec![
-                SelectedLicenses::ThisSoftware,
-                SelectedLicenses::Dependencies,
-            ],
-            (true, _) => vec![SelectedLicenses::ThisSoftware],
-            (_, true) => vec![SelectedLicenses::Dependencies],
-            _ => vec![],
-        },
+pub fn build_app_config<'a>(matches: &'a ArgMatches) -> Result<Config<'a>, String> {
+    let mut builder = ConfigBuilder::new();
 
-        forced_output_format: matches.value_of("forced_output_format").map(String::from),
+    // next setting.
+    let texts_requested = (
+        matches.is_present("license"),
+        matches.is_present("dep_licenses"),
+    );
 
-        disable_automatic_color_type_adjustment: matches
-            .is_present("disable_automatic_color_type_adjustment"),
-
-        encoding_settings: FormatEncodingSettings {
-            // 3 possibilities:
-            //   - present + i (1 ... 100)
-            //   - present + i !(1 ... 100)
-            //   - not present (take default)
-            jpeg_settings: JPEGEncodingSettings::new_result((
-                matches.is_present("jpeg_encoding_quality"),
-                matches.value_of("jpeg_encoding_quality"),
-            ))?,
-            pnm_settings: PNMEncodingSettings::new(matches.is_present("pnm_encoding_ascii")),
-        },
-
-        // output_file is sic specific
-        output: matches
-            .value_of("output")
-            .or_else(|| matches.value_of("output_file"))
-            .map(|v| v.into()),
-
-        application_specific: app_config,
+    match texts_requested {
+        (true, false) => {
+            builder = builder.show_license_text_of(SelectedLicenses::ThisSoftware);
+        }
+        (false, true) => {
+            builder = builder.show_license_text_of(SelectedLicenses::Dependencies);
+        }
+        (true, true) => {
+            builder = builder.show_license_text_of(SelectedLicenses::ThisSoftwarePlusDependencies);
+        }
+        (false, false) => (),
     };
 
-    Ok(res)
-}
+    // next setting.
+    if let Some(format) = matches.value_of("forced_output_format") {
+        builder = builder.forced_output_format(format);
+    }
 
-fn sic_custom_app_config(matches: &ArgMatches) -> Vec<ConfigItem> {
-    vec![
-        ConfigItem::OptionStringItem(matches.value_of("script").map(String::from)),
-        ConfigItem::OptionStringItem(matches.value_of("user_manual").map(String::from)),
-    ]
-}
+    // next setting.
+    if matches.is_present("disable_automatic_color_type_adjustment") {
+        builder = builder.disable_automatic_color_type_adjustment(true);
+    }
 
-pub fn sic_config(matches: &ArgMatches) -> Result<Config, String> {
-    get_app_config(matches, get_tool_name(), sic_custom_app_config(matches))
+    // next setting.
+    if let Some(value) = matches.value_of("jpeg_encoding_quality") {
+        let requested_jpeg_quality = u8::from_str(value)
+            .map_err(|_| {
+                "JPEG Encoding quality should be a value between 1 and 100 (inclusive).".to_string()
+            })
+            .and_then(validate_jpeg_quality)?;
+        builder = builder.jpeg_quality(requested_jpeg_quality);
+    }
+
+    // next setting.
+    if matches.is_present("pnm_encoding_ascii") {
+        builder = builder.pnm_format_type(true);
+    }
+
+    // next setting.
+    if let Some(path) = matches
+        .value_of("output")
+        .or_else(|| matches.value_of("output_file"))
+    {
+        builder = builder.output_path(path);
+    }
+
+    // next setting.
+    if let Some(script) = matches.value_of("script") {
+        builder = builder.image_operations_script(script);
+    }
+
+    // next setting.
+    if let Some(topic) = matches.value_of("user_manual") {
+        builder = builder.image_operations_manual_keyword(topic);
+    }
+
+    Ok(builder.build())
 }

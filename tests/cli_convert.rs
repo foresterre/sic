@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 
 use sic_core::image;
 
-use sic_lib::app::cli::{cli as get_app, sic_config};
+use sic_lib::app::cli::{build_app_config, cli as get_app}; // build_app_config
 use sic_lib::app::run_mode::run;
 
 // Wish list for Rust tests: parameterized tests
@@ -64,7 +64,8 @@ fn convert_to_bmp_by_extension() {
         path_buf_str(&our_output),
     ];
     let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, vec![], &sic_config(&matches).unwrap());
+
+    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
 
     assert_eq!(Ok(()), complete);
     assert!(our_output.exists());
@@ -83,7 +84,7 @@ fn convert_to_gif_by_extension() {
 
     let args = vec!["sic", path_buf_str(&our_input), path_buf_str(&our_output)];
     let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, vec![], &sic_config(&matches).unwrap());
+    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
 
     assert_eq!(Ok(()), complete);
     assert!(our_output.exists());
@@ -102,7 +103,7 @@ fn convert_to_jpg_by_extension() {
 
     let args = vec!["sic", path_buf_str(&our_input), path_buf_str(&our_output)];
     let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, vec![], &sic_config(&matches).unwrap());
+    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
 
     assert_eq!(Ok(()), complete);
     assert!(our_output.exists());
@@ -121,7 +122,7 @@ fn convert_to_jpeg_by_extension() {
 
     let args = vec!["sic", path_buf_str(&our_input), path_buf_str(&our_output)];
     let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, vec![], &sic_config(&matches).unwrap());
+    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
 
     assert_eq!(Ok(()), complete);
     assert!(our_output.exists());
@@ -140,7 +141,7 @@ fn convert_to_png_by_extension() {
 
     let args = vec!["sic", path_buf_str(&our_input), path_buf_str(&our_output)];
     let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, vec![], &sic_config(&matches).unwrap());
+    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
 
     assert_eq!(Ok(()), complete);
     assert!(our_output.exists());
@@ -159,7 +160,7 @@ fn convert_to_ico_by_extension() {
 
     let args = vec!["sic", path_buf_str(&our_input), path_buf_str(&our_output)];
     let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, vec![], &sic_config(&matches).unwrap());
+    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
 
     assert_eq!(Ok(()), complete);
     assert!(our_output.exists());
@@ -178,7 +179,7 @@ fn convert_to_pbm_by_extension() {
 
     let args = vec!["sic", path_buf_str(&our_input), path_buf_str(&our_output)];
     let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, vec![], &sic_config(&matches).unwrap());
+    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
 
     assert_eq!(Ok(()), complete);
     assert!(our_output.exists());
@@ -197,7 +198,7 @@ fn convert_to_pgm_by_extension() {
 
     let args = vec!["sic", path_buf_str(&our_input), path_buf_str(&our_output)];
     let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, vec![], &sic_config(&matches).unwrap());
+    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
 
     assert_eq!(Ok(()), complete);
     assert!(our_output.exists());
@@ -216,7 +217,7 @@ fn convert_to_ppm_by_extension() {
 
     let args = vec!["sic", path_buf_str(&our_input), path_buf_str(&our_output)];
     let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, vec![], &sic_config(&matches).unwrap());
+    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
 
     assert_eq!(Ok(()), complete);
     assert!(our_output.exists());
@@ -235,7 +236,7 @@ fn convert_to_pam_by_extension() {
 
     let args = vec!["sic", path_buf_str(&our_input), path_buf_str(&our_output)];
     let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, vec![], &sic_config(&matches).unwrap());
+    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
 
     assert_eq!(Ok(()), complete);
     assert!(our_output.exists());
@@ -271,7 +272,7 @@ fn convert_to_bmp_by_ff() {
     let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
 
     let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, vec![], &sic_config(&matches).unwrap());
+    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
 
     assert_eq!(Ok(()), complete);
     assert!(our_output.exists());
@@ -293,7 +294,7 @@ fn convert_to_gif_by_ff() {
     let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
 
     let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, vec![], &sic_config(&matches).unwrap());
+    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
 
     assert_eq!(Ok(()), complete);
     assert!(our_output.exists());
@@ -315,7 +316,7 @@ fn convert_to_ico_by_ff() {
     let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
 
     let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, vec![], &sic_config(&matches).unwrap());
+    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
 
     assert_eq!(Ok(()), complete);
     assert!(our_output.exists());
@@ -337,7 +338,7 @@ fn convert_to_jpg_by_ff() {
     let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
 
     let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, vec![], &sic_config(&matches).unwrap());
+    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
 
     assert_eq!(Ok(()), complete);
     assert!(our_output.exists());
@@ -359,7 +360,7 @@ fn convert_to_jpeg_by_ff() {
     let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
 
     let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, vec![], &sic_config(&matches).unwrap());
+    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
 
     assert_eq!(Ok(()), complete);
     assert!(our_output.exists());
@@ -381,7 +382,7 @@ fn convert_to_png_by_ff() {
     let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
 
     let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, vec![], &sic_config(&matches).unwrap());
+    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
 
     assert_eq!(Ok(()), complete);
     assert!(our_output.exists());
@@ -403,7 +404,7 @@ fn convert_to_pbm_by_ff() {
     let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
 
     let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, vec![], &sic_config(&matches).unwrap());
+    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
 
     assert_eq!(Ok(()), complete);
     assert!(our_output.exists());
@@ -425,7 +426,7 @@ fn convert_to_pgm_by_ff() {
     let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
 
     let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, vec![], &sic_config(&matches).unwrap());
+    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
 
     assert_eq!(Ok(()), complete);
     assert!(our_output.exists());
@@ -447,7 +448,7 @@ fn convert_to_ppm_by_ff() {
     let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
 
     let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, vec![], &sic_config(&matches).unwrap());
+    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
 
     assert_eq!(Ok(()), complete);
     assert!(our_output.exists());
@@ -469,7 +470,7 @@ fn convert_to_pam_by_ff() {
     let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
 
     let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, vec![], &sic_config(&matches).unwrap());
+    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
 
     assert_eq!(Ok(()), complete);
     assert!(our_output.exists());
@@ -527,7 +528,7 @@ fn convert_pbm_ascii() {
     ];
 
     let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, vec![], &sic_config(&matches).unwrap());
+    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
 
     assert_eq!(Ok(()), complete);
     assert!(our_output.exists());
@@ -558,7 +559,7 @@ fn convert_pgm_ascii() {
     ];
 
     let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, vec![], &sic_config(&matches).unwrap());
+    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
 
     assert_eq!(Ok(()), complete);
     assert!(our_output.exists());
@@ -589,7 +590,7 @@ fn convert_ppm_ascii() {
     ];
 
     let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, vec![], &sic_config(&matches).unwrap());
+    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
 
     assert_eq!(Ok(()), complete);
     assert!(our_output.exists());
@@ -619,7 +620,7 @@ fn convert_pbm_not_ascii() {
     ];
 
     let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, vec![], &sic_config(&matches).unwrap());
+    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
 
     assert_eq!(Ok(()), complete);
     assert!(our_output.exists());
@@ -649,7 +650,7 @@ fn convert_pgm_not_ascii() {
     ];
 
     let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, vec![], &sic_config(&matches).unwrap());
+    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
 
     assert_eq!(Ok(()), complete);
     assert!(our_output.exists());
@@ -679,7 +680,7 @@ fn convert_ppm_not_ascii() {
     ];
 
     let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, vec![], &sic_config(&matches).unwrap());
+    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
 
     assert_eq!(Ok(()), complete);
     assert!(our_output.exists());
@@ -724,10 +725,10 @@ fn convert_jpeg_quality_different() {
     ];
 
     let matches1 = get_app().get_matches_from(args1);
-    let complete1 = run(&matches1, vec![], &sic_config(&matches1).unwrap());
+    let complete1 = run(&matches1, vec![], &build_app_config(&matches1).unwrap());
 
     let matches2 = get_app().get_matches_from(args2);
-    let complete2 = run(&matches2, vec![], &sic_config(&matches2).unwrap());
+    let complete2 = run(&matches2, vec![], &build_app_config(&matches2).unwrap());
 
     assert_eq!((Ok(()), Ok(())), (complete1, complete2));
     assert!(out1.exists() && out2.exists());

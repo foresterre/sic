@@ -2,7 +2,6 @@ use std::error::Error;
 use std::path::Path;
 
 use clap::ArgMatches;
-use sic_config::Config;
 use sic_core::image;
 use sic_image_engine::engine::{ImageEngine, Program};
 use sic_io::conversion::AutomaticColorTypeAdjustment;
@@ -13,7 +12,7 @@ use sic_io::{export, import, ExportMethod, ExportSettings};
 
 use sic_user_manual::user_manual_printer::UserManualPrinter;
 
-use crate::app::custom_config::manual_arg;
+use crate::app::config::Config;
 use crate::app::license_display::LicenseDisplayProcessor;
 
 const LICENSE_SELF: &str = include_str!("../../LICENSE");
@@ -46,13 +45,13 @@ pub fn run(matches: &ArgMatches, program: Program, options: &Config) -> Result<(
         determine_export_method(options.output.as_ref()).map_err(|err| err.to_string())?;
 
     let encoding_format_determiner = DetermineEncodingFormat {
-        pnm_sample_encoding: if options.encoding_settings.pnm_settings.ascii {
+        pnm_sample_encoding: if options.encoding_settings.pnm_use_ascii_format {
             Some(image::pnm::SampleEncoding::Ascii)
         } else {
             Some(image::pnm::SampleEncoding::Binary)
         },
         jpeg_quality: {
-            let quality = JPEGQuality::try_from(options.encoding_settings.jpeg_settings.quality)
+            let quality = JPEGQuality::try_from(options.encoding_settings.jpeg_quality)
                 .map_err(|err| err.to_string());
 
             Some(quality?)
@@ -60,7 +59,7 @@ pub fn run(matches: &ArgMatches, program: Program, options: &Config) -> Result<(
     };
 
     let encoding_format = match &options.forced_output_format {
-        Some(format) => encoding_format_determiner.by_identifier(format.as_str()),
+        Some(format) => encoding_format_determiner.by_identifier(format),
         None => encoding_format_determiner.by_method(&export_method),
     }
     .map_err(|err| err.to_string())?;
@@ -99,6 +98,6 @@ pub fn run_display_licenses(config: &Config) -> Result<(), String> {
 
 pub fn run_display_help(config: &Config) -> Result<(), String> {
     let help = UserManualPrinter::default();
-    let page = manual_arg(&config.application_specific);
+    let page = config.image_operations_manual_topic;
     help.show(page).map(|_| ()).map_err(|err| err.to_string())
 }
