@@ -431,17 +431,12 @@ name = "sic"
 version = "0.9.0"
 dependencies = [
  "clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sic_config 0.1.0",
  "sic_core 0.1.0",
  "sic_image_engine 0.1.0",
  "sic_io 0.2.0",
  "sic_parser 0.1.0",
  "sic_user_manual 0.1.0",
 ]
-
-[[package]]
-name = "sic_config"
-version = "0.1.0"
 
 [[package]]
 name = "sic_core"

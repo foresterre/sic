@@ -22,7 +22,6 @@ members = [
   "sic_user_manual",
 
   # former combostew modules
-  "sic_config",
   "sic_image_engine",
   "sic_io",
 
@@ -32,7 +31,6 @@ members = [
 [dependencies]
 clap = "2.32.0"
 sic_core = { path = "sic_core" }
-sic_config = { path = "sic_config" }
 sic_image_engine = { path = "sic_image_engine" }
 sic_io  = { path = "sic_io" }
 sic_parser = { path = "sic_parser" }
