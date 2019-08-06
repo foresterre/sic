@@ -5,7 +5,6 @@ use sic_core::image;
 
 use sic_lib::app::cli::{build_app_config, cli as get_app}; // build_app_config
 use sic_lib::app::run_mode::run;
-use std::process::{Child, Command};
 
 // Wish list for Rust tests: parameterized tests
 // Probably can be done with macro's too.
