@@ -80,14 +80,16 @@ pub fn cli() -> App<'static, 'static> {
             .value_name("FILE_INPUT")
             .takes_value(true)
             .help("Input image path. When using this option, input piped from stdin will be ignored.")
-            .required_unless_one(&[ARG_INPUT_FILE, ARG_LICENSE, ARG_DEP_LICENSES, ARG_USER_MANUAL]))
+            .required_unless_one(&[ARG_INPUT_FILE, ARG_LICENSE, ARG_DEP_LICENSES, ARG_USER_MANUAL])
+            .conflicts_with(ARG_INPUT_FILE))
         .arg(Arg::with_name(ARG_OUTPUT)
             .long("output")
             .short("o")
             .value_name("FILE_OUTPUT")
             .takes_value(true)
             .help("Output image path. When using this option, output won't be piped to stdout.")
-            .required_unless_one(&[ARG_OUTPUT_FILE, ARG_LICENSE, ARG_DEP_LICENSES, ARG_USER_MANUAL]))
+            .required_unless_one(&[ARG_OUTPUT_FILE, ARG_LICENSE, ARG_DEP_LICENSES, ARG_USER_MANUAL])
+            .conflicts_with(ARG_OUTPUT_FILE))
 
         // Selective arguments for `sic`.
         .arg(Arg::with_name(ARG_USER_MANUAL)
@@ -107,11 +109,13 @@ pub fn cli() -> App<'static, 'static> {
             .help("Sets the input file")
             .value_name("INPUT_FILE")
             .required_unless_one(&[ARG_INPUT, ARG_LICENSE, ARG_DEP_LICENSES, ARG_USER_MANUAL])
+            .conflicts_with(ARG_INPUT)
             .index(1))
         .arg(Arg::with_name(ARG_OUTPUT_FILE)
             .help("Sets the desired output file")
             .value_name("OUTPUT_FILE")
             .required_unless_one(&[ARG_OUTPUT, ARG_LICENSE, ARG_DEP_LICENSES, ARG_USER_MANUAL])
+            .conflicts_with(ARG_OUTPUT)
             .index(2))
 }
 
