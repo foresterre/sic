@@ -5,6 +5,7 @@ use sic_core::image;
 
 use sic_lib::app::cli::{build_app_config, cli as get_app}; // build_app_config
 use sic_lib::app::run_mode::run;
+use std::process::{Child, Command};
 
 // Wish list for Rust tests: parameterized tests
 // Probably can be done with macro's too.
@@ -744,69 +745,99 @@ fn convert_jpeg_quality_different() {
     clean_up_output_path(path_buf_str(&out2));
 }
 
-#[test]
-fn convert_with_i_and_o_arguments() {
-    let which = "jpg";
-
-    let our_input = setup_input_path("palette_4x4.png");
-    let our_output = setup_output_path(&format!("out_01_i_o.{}", which));
-
-    let args = vec![
-        "sic",
-        "-i",
-        path_buf_str(&our_input),
-        "-o",
-        path_buf_str(&our_output),
-    ];
-
-    let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
-
-    assert_eq!(Ok(()), complete);
-    assert!(our_output.exists());
-    assert!(is_image_format(
-        path_buf_str(&our_output),
-        image::ImageFormat::JPEG
-    ));
-
-    clean_up_output_path(path_buf_str(&our_output));
+#[derive(Copy, Clone)]
+enum RunWithIOArg {
+    BothIO,
+    NeitherIO,
+    OnlyI,
+    OnlyO,
 }
 
-// A similar test with only a -i argument and no -o (but trying to use OUTPUT_FILE as argument)
-// The above will terminate because INPUT_FILE and OUTPUT_FILE are a positional arguments.
-// If only a single positional argument is given, it would be recognized as the INPUT_FILE
-// since that one is positioned on the first argument position.
-// We could work around this in the future, but perhaps favouring -i and -o for flexibility is
-// preferred.
-//let args = vec![
-//    "sic",
-//    "-i",
-//    path_buf_str(&our_input),
-//    path_buf_str(&our_output),
-//];
+impl RunWithIOArg {
+    fn both(&self, input: &str, output: &str) -> Command {
+        let mut command = Command::new("cargo");
+        command.args(&["run", "--", "-i", input, "-o", output]);
+        command
+    }
+
+    fn neither(&self, input: &str, output: &str) -> Command {
+        let mut command = Command::new("cargo");
+        command.args(&["run", "--", input, output]);
+        command
+    }
+
+    fn only_i(&self, input: &str, output: &str) -> Command {
+        let mut command = Command::new("cargo");
+        command.args(&["run", "--", "-i", input, output]);
+        command
+    }
+
+    fn only_o(&self, input: &str, output: &str) -> Command {
+        let mut command = Command::new("cargo");
+        command.args(&["run", "--", "-o", output, input]);
+        command
+    }
+
+    fn start(&self, input: &str, output: &str) -> std::io::Result<Child> {
+        match self {
+            RunWithIOArg::BothIO => self.both(input, output).spawn(),
+            RunWithIOArg::OnlyI => self.only_i(input, output).spawn(),
+            RunWithIOArg::OnlyO => self.only_o(input, output).spawn(),
+            RunWithIOArg::NeitherIO => self.neither(input, output).spawn(),
+        }
+    }
+}
+
+// explicit (for a reader) negation
+fn not<T: Into<bool>>(t: T) -> bool {
+    let predicate: bool = t.into();
+    !predicate
+}
+
 #[test]
-fn convert_with_o_only_arguments() {
-    let which = "jpg";
+fn both_i_and_o_args() {
+    let kind = RunWithIOArg::BothIO;
+    let input = String::from(setup_input_path("palette_4x4.png").to_str().unwrap());
+    let output = String::from(setup_output_path("io.jpg").to_str().unwrap());
+    let result = kind.start(&input, &output).expect("process").wait();
 
-    let our_input = setup_input_path("palette_4x4.png");
-    let our_output = setup_output_path(&format!("out_01_o_no_i.{}", which));
+    assert!(result.is_ok());
+    assert!(result.unwrap().success());
+}
 
-    let args = vec![
-        "sic",
-        path_buf_str(&our_input),
-        "-o",
-        path_buf_str(&our_output),
-    ];
+#[test]
+fn neither_i_and_o_args() {
+    let kind = RunWithIOArg::NeitherIO;
+    let input = String::from(setup_input_path("palette_4x4.png").to_str().unwrap());
+    let output = String::from(setup_output_path("not_io.jpg").to_str().unwrap());
+    let result = kind.start(&input, &output).expect("process").wait();
 
-    let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, vec![], &build_app_config(&matches).unwrap());
+    assert!(result.is_ok());
+    assert!(result.unwrap().success());
+}
 
-    assert_eq!(Ok(()), complete);
-    assert!(our_output.exists());
-    assert!(is_image_format(
-        path_buf_str(&our_output),
-        image::ImageFormat::JPEG
-    ));
+#[test]
+fn only_i() {
+    let kind = RunWithIOArg::OnlyI;
+    let input = String::from(setup_input_path("palette_4x4.png").to_str().unwrap());
+    let output = String::from(setup_output_path("iii.jpg").to_str().unwrap());
+    let result = kind.start(&input, &output).expect("process").wait();
 
-    clean_up_output_path(path_buf_str(&our_output));
+    assert!(result.is_ok());
+
+    // expect a non zero exit status
+    assert!(not(result.unwrap().success()));
+}
+
+#[test]
+fn only_o() {
+    let kind = RunWithIOArg::OnlyO;
+    let input = String::from(setup_input_path("palette_4x4.png").to_str().unwrap());
+    let output = String::from(setup_output_path("ooo.jpg").to_str().unwrap());
+    let result = kind.start(&input, &output).expect("process").wait();
+
+    assert!(result.is_ok());
+
+    // expect a non zero exit status
+    assert!(not(result.unwrap().success()));
 }
