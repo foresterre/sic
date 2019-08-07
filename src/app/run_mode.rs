@@ -21,7 +21,7 @@ const LICENSE_DEPS: &str = include_str!("../../thanks/dependency_licenses.txt");
 /// The run function runs the sic application, taking the matches found by Clap.
 /// This function is separated from the main() function so that it can be used more easily in test cases.
 /// This function consumes the matches provided.
-pub fn run(matches: &ArgMatches, program: Program, options: &Config) -> Result<(), String> {
+pub fn run(matches: &ArgMatches, options: &Config) -> Result<(), String> {
     if options.output.is_none() {
         eprintln!(
             "The default output format is BMP. Use --output-format <FORMAT> to specify \
@@ -38,7 +38,7 @@ pub fn run(matches: &ArgMatches, program: Program, options: &Config) -> Result<(
 
     let mut image_engine = ImageEngine::new(img);
     let buffer = image_engine
-        .ignite(program)
+        .ignite(&options.image_operations_program)
         .map_err(|err| err.to_string())?;
 
     let export_method =

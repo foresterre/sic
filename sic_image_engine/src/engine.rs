@@ -96,7 +96,7 @@ impl ImageEngine {
         }
     }
 
-    pub fn ignite(&mut self, statements: Program) -> Result<&DynamicImage, Box<dyn Error>> {
+    pub fn ignite(&mut self, statements: &Program) -> Result<&DynamicImage, Box<dyn Error>> {
         for stmt in statements {
             match self.process_statement(stmt) {
                 Ok(_) => continue,
@@ -107,37 +107,37 @@ impl ImageEngine {
         Ok(&self.image)
     }
 
-    pub fn process_statement(&mut self, statement: Statement) -> Result<(), Box<dyn Error>> {
+    pub fn process_statement(&mut self, statement: &Statement) -> Result<(), Box<dyn Error>> {
         match statement {
             Statement::Operation(op) => self.process_operation(op),
-            Statement::RegisterEnvironmentItem(item) => self.process_register_env(item),
-            Statement::DeregisterEnvironmentItem(key) => self.process_deregister_env(key),
+            Statement::RegisterEnvironmentItem(item) => self.process_register_env(*item),
+            Statement::DeregisterEnvironmentItem(key) => self.process_deregister_env(*key),
         }
     }
 
-    pub fn process_operation(&mut self, operation: Operation) -> Result<(), Box<dyn Error>> {
+    pub fn process_operation(&mut self, operation: &Operation) -> Result<(), Box<dyn Error>> {
         match operation {
             Operation::Blur(sigma) => {
-                *self.image = self.image.blur(sigma);
+                *self.image = self.image.blur(*sigma);
                 Ok(())
             }
             Operation::Brighten(amount) => {
-                *self.image = self.image.brighten(amount);
+                *self.image = self.image.brighten(*amount);
                 Ok(())
             }
             Operation::Contrast(c) => {
-                *self.image = self.image.adjust_contrast(c);
+                *self.image = self.image.adjust_contrast(*c);
                 Ok(())
             }
             Operation::Crop(lx, ly, rx, ry) => {
                 // 1. verify that the top left anchor is smaller than the bottom right anchor
                 // 2. verify that the selection is within the bounds of the image
-                Verify::crop_selection_box_can_exist(lx, ly, rx, ry)
+                Verify::crop_selection_box_can_exist(*lx, *ly, *rx, *ry)
                     .and_then(|_| {
-                        Verify::crop_selection_within_image_bounds(&self.image, lx, ly, rx, ry)
+                        Verify::crop_selection_within_image_bounds(&self.image, *lx, *ly, *rx, *ry)
                     })
                     .map(|_| {
-                        *self.image = self.image.crop(lx, ly, rx - lx, ry - ly);
+                        *self.image = self.image.crop(*lx, *ly, rx - lx, ry - ly);
                     })
             }
             // We need to ensure here that Filter3x3's `it` (&[f32]) has length 9.
@@ -160,7 +160,7 @@ impl ImageEngine {
                 Ok(())
             }
             Operation::HueRotate(degree) => {
-                *self.image = self.image.huerotate(degree);
+                *self.image = self.image.huerotate(*degree);
                 Ok(())
             }
             Operation::Invert => {
@@ -182,9 +182,9 @@ impl ImageEngine {
                     .get(EnvironmentKind::OptResizePreserveAspectRatio)
                     .is_some()
                 {
-                    self.image.resize(new_x, new_y, filter)
+                    self.image.resize(*new_x, *new_y, filter)
                 } else {
-                    self.image.resize_exact(new_x, new_y, filter)
+                    self.image.resize_exact(*new_x, *new_y, filter)
                 };
 
                 Ok(())
@@ -202,7 +202,7 @@ impl ImageEngine {
                 Ok(())
             }
             Operation::Unsharpen(sigma, threshold) => {
-                *self.image = self.image.unsharpen(sigma, threshold);
+                *self.image = self.image.unsharpen(*sigma, *threshold);
                 Ok(())
             }
         }
@@ -377,14 +377,14 @@ mod tests {
 
         let mut engine = ImageEngine::new(img);
         let mut engine2 = engine.clone();
-        let cmp_left = engine.ignite(vec![
+        let cmp_left = engine.ignite(&vec![
             Statement::RegisterEnvironmentItem(EnvironmentItem::PreserveAspectRatio),
             Statement::Operation(Operation::Resize(100, 100)),
         ]);
 
         assert!(cmp_left.is_ok());
 
-        let cmp_right = engine2.ignite(vec![Statement::Operation(Operation::Resize(100, 100))]);
+        let cmp_right = engine2.ignite(&vec![Statement::Operation(Operation::Resize(100, 100))]);
 
         assert!(cmp_left.is_ok());
 
@@ -413,7 +413,7 @@ mod tests {
 
         let mut engine = ImageEngine::new(img);
         let mut engine2 = engine.clone();
-        let cmp_left = engine.ignite(vec![
+        let cmp_left = engine.ignite(&vec![
             Statement::RegisterEnvironmentItem(EnvironmentItem::OptResizeSamplingFilter(
                 FilterTypeWrap::Inner(FilterType::Nearest),
             )),
@@ -422,7 +422,7 @@ mod tests {
 
         assert!(cmp_left.is_ok());
 
-        let cmp_right = engine2.ignite(vec![Statement::Operation(Operation::Resize(100, 100))]);
+        let cmp_right = engine2.ignite(&vec![Statement::Operation(Operation::Resize(100, 100))]);
 
         assert!(cmp_left.is_ok());
 
@@ -449,7 +449,7 @@ mod tests {
         let mut engine = ImageEngine::new(img);
         let mut engine2 = engine.clone();
 
-        let cmp_left = engine.ignite(vec![
+        let cmp_left = engine.ignite(&vec![
             Statement::RegisterEnvironmentItem(EnvironmentItem::OptResizeSamplingFilter(
                 FilterTypeWrap::Inner(FilterType::Nearest),
             )),
@@ -459,7 +459,7 @@ mod tests {
 
         assert!(cmp_left.is_ok());
 
-        let cmp_right = engine2.ignite(vec![Statement::Operation(Operation::Resize(100, 100))]);
+        let cmp_right = engine2.ignite(&vec![Statement::Operation(Operation::Resize(100, 100))]);
 
         assert!(cmp_left.is_ok());
 
@@ -485,7 +485,7 @@ mod tests {
         let operation = Operation::Blur(10.0);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -500,7 +500,7 @@ mod tests {
         let operation = Operation::Brighten(25);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -518,7 +518,7 @@ mod tests {
         let operation = Operation::Brighten(0);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -537,7 +537,7 @@ mod tests {
         let operation = Operation::Brighten(-25);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -556,7 +556,7 @@ mod tests {
         let operation = Operation::Contrast(150.9);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -575,7 +575,7 @@ mod tests {
         let operation = Operation::Contrast(-150.9);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -594,7 +594,7 @@ mod tests {
         let operation = Operation::Crop(0, 0, 2, 2);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -613,7 +613,7 @@ mod tests {
         let operation = Operation::Crop(0, 0, 1, 1);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -641,7 +641,7 @@ mod tests {
         let operation = Operation::Crop(0, 0, 2, 1);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -670,7 +670,7 @@ mod tests {
         let operation = Operation::Crop(1, 0, 0, 0);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_err());
     }
@@ -683,7 +683,7 @@ mod tests {
         let operation = Operation::Crop(0, 1, 0, 0);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_err());
     }
@@ -695,7 +695,7 @@ mod tests {
         let operation = Operation::Crop(3, 0, 1, 1);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_err());
     }
@@ -707,7 +707,7 @@ mod tests {
         let operation = Operation::Crop(0, 3, 1, 1);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_err());
     }
@@ -719,7 +719,7 @@ mod tests {
         let operation = Operation::Crop(0, 0, 3, 1);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_err());
     }
@@ -731,7 +731,7 @@ mod tests {
         let operation = Operation::Crop(0, 0, 1, 3);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_err());
     }
@@ -744,7 +744,7 @@ mod tests {
         let operation = Operation::Filter3x3([1.0, 0.5, 0.0, 1.0, 0.5, 0.0, 1.0, 0.5, 0.0]);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -762,7 +762,7 @@ mod tests {
 
         let (xa, ya) = img.dimensions();
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -782,7 +782,7 @@ mod tests {
 
         let (xa, ya) = img.dimensions();
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -803,7 +803,7 @@ mod tests {
         let operation = Operation::GrayScale;
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -835,7 +835,7 @@ mod tests {
         let operation = Operation::HueRotate(-100);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -854,7 +854,7 @@ mod tests {
         let operation = Operation::HueRotate(100);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -873,7 +873,7 @@ mod tests {
         let operation = Operation::HueRotate(0);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -892,7 +892,7 @@ mod tests {
         let operation = Operation::HueRotate(360);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -913,7 +913,7 @@ mod tests {
         let operation = Operation::HueRotate(460);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -932,7 +932,7 @@ mod tests {
         let operation = Operation::Invert;
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -955,7 +955,7 @@ mod tests {
         assert_eq!(ya, 447);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -980,7 +980,7 @@ mod tests {
         assert_eq!(ya, 447);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -1000,7 +1000,7 @@ mod tests {
 
         let (xa, ya) = img.dimensions();
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -1020,7 +1020,7 @@ mod tests {
 
         let (xa, ya) = img.dimensions();
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -1040,7 +1040,7 @@ mod tests {
 
         let (xa, ya) = img.dimensions();
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -1061,7 +1061,7 @@ mod tests {
         let operation = Operation::Unsharpen(20.1, 20);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
         assert!(done.is_ok());
 
         let result_img = done.unwrap();
@@ -1079,7 +1079,7 @@ mod tests {
         let operation = Operation::Unsharpen(-20.1, -20);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(vec![Statement::Operation(operation)]);
+        let done = operator.ignite(&vec![Statement::Operation(operation)]);
         assert!(done.is_ok());
 
         let result_img = done.unwrap();
@@ -1109,7 +1109,7 @@ mod tests {
         assert_eq!(xa, 217);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(operations);
+        let done = operator.ignite(&operations);
 
         assert!(done.is_ok());
 

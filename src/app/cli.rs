@@ -218,7 +218,8 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> Result<Config<'a>, Strin
 
     // next setting.
     if let Some(script) = matches.value_of("script") {
-        builder = builder.image_operations_script(script);
+        let program = sic_parser::parse_script(script)?;
+        builder = builder.image_operations_program(program);
     }
 
     // next setting.

@@ -1,4 +1,6 @@
-#[derive(Debug, Clone)]
+use sic_image_engine::engine::Program;
+
+#[derive(Debug)]
 pub struct Config<'a> {
     pub tool_name: &'static str,
 
@@ -17,8 +19,10 @@ pub struct Config<'a> {
     pub output: Option<&'a str>,
 
     /// If a user wants to perform image operations on input image, they will need to provide
-    /// the image operation commands as a str.
-    pub image_operations_script: Option<&'a str>,
+    /// the image operation commands.
+    /// THe value set here should be presented as a [sic_image_engine::engine::Program].
+    /// If no program is present, an empty vec should be provided.
+    pub image_operations_program: Program,
 
     /// If a user wants to be informed about a specific image operation, they should provide
     /// the keyword of the operation which they want to be informed about.
@@ -54,7 +58,7 @@ impl Default for Config<'_> {
             output: None,
 
             /// Defaults to no provided image operations script.
-            image_operations_script: None,
+            image_operations_program: Vec::new(),
 
             /// Default to no provided topic for the image operations manual.
             image_operations_manual_topic: None,
@@ -68,7 +72,7 @@ impl Default for Config<'_> {
 /// For example, `output_path` can be set to some value, but not unset.
 ///
 /// Builder is consuming.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Default)]
 pub struct ConfigBuilder<'a> {
     settings: Config<'a>,
 }
@@ -108,8 +112,8 @@ impl<'a> ConfigBuilder<'a> {
         self
     }
 
-    pub fn image_operations_script(mut self, script: &'a str) -> ConfigBuilder<'a> {
-        self.settings.image_operations_script = Some(script);
+    pub fn image_operations_program(mut self, program: Program) -> ConfigBuilder<'a> {
+        self.settings.image_operations_program = program;
         self
     }
 
@@ -159,6 +163,8 @@ pub fn validate_jpeg_quality(quality: u8) -> Result<u8, String> {
 mod tests {
     use super::*;
     use std::str::FromStr;
+    use sic_image_engine::engine::Statement;
+    use sic_image_engine::Operation;
 
     #[test]
     fn jpeg_in_quality_range_lower_bound_inside() {
@@ -188,10 +194,10 @@ mod tests {
     fn config_builder_override_defaults() {
         let mut builder = ConfigBuilder::new();
         builder = builder.output_path("lalala");
-        builder = builder.image_operations_script("my");
+        builder = builder.image_operations_program(vec![Statement::Operation(Operation::Blur(1.0))]);
         let config = builder.build();
 
-        assert_eq!(config.image_operations_script.unwrap(), "my");
+        assert!(!config.image_operations_program.is_empty());
         assert_eq!(config.output.unwrap(), "lalala");
     }
 }
