@@ -1,10 +1,13 @@
-use clap::{App, AppSettings, Arg, ArgMatches};
+use clap::{App, AppSettings, Arg, ArgMatches, ArgGroup};
 
 use crate::app::config::{validate_jpeg_quality, Config, ConfigBuilder, SelectedLicenses};
 use crate::get_tool_name;
 use std::str::FromStr;
 
 const HELP_OPERATIONS_AVAILABLE: &str = include_str!("../../docs/cli_help_script.txt");
+
+pub(crate) const ARG_APPLY_OPERATIONS: &str = "script";
+
 
 // table of argument names
 pub(crate) mod arg_names {
@@ -21,7 +24,13 @@ pub(crate) mod arg_names {
     pub(crate) const ARG_USER_MANUAL: &str = "user_manual";
     pub(crate) const ARG_INPUT_FILE: &str = "input_file";
     pub(crate) const ARG_OUTPUT_FILE: &str = "output_file";
-    pub(crate) const ARG_APPLY_OPERATIONS: &str = "script";
+
+
+    pub(crate) const GROUP_APPLY_OPERATIONS: &str = "group";
+    pub(crate) const OP_BLUR: &str = "op_blur";
+    pub(crate) const OP_BRIGHTEN: &str = "op_brighten";
+    pub(crate) const OP_CONTRAST: &str = "op_contrast";
+
 }
 use arg_names::*;
 
@@ -117,6 +126,37 @@ pub fn cli() -> App<'static, 'static> {
             .required_unless_one(&[ARG_OUTPUT, ARG_LICENSE, ARG_DEP_LICENSES, ARG_USER_MANUAL])
             .conflicts_with_all(&[ARG_OUTPUT, ARG_INPUT])
             .index(2))
+
+        .group(ArgGroup::with_name(GROUP_APPLY_OPERATIONS)
+            .args(&[
+                OP_BLUR,
+                OP_BRIGHTEN,
+                OP_CONTRAST,
+            ])
+            .conflicts_with(ARG_APPLY_OPERATIONS)
+            .multiple(true))
+        .arg(Arg::with_name(OP_BLUR)
+            .help("Operation: blur.")
+            .long("--blur")
+            .takes_value(true)
+            .value_name("amount")
+            .number_of_values(1)
+            .multiple(true))
+        .arg(Arg::with_name(OP_BRIGHTEN)
+            .help("Operation: brighten.")
+            .long("--brighten")
+            .takes_value(true)
+            .value_name("amount")
+            .number_of_values(1)
+            .multiple(true))
+        .arg(Arg::with_name(OP_CONTRAST)
+            .help("Operation: contrast.")
+            .long("--contrast")
+            .takes_value(true)
+            .value_name("amount")
+            .number_of_values(1)
+            .multiple(true))
+
 }
 
 // Here any argument should not panic when invalid.
