@@ -26,13 +26,15 @@ pub(crate) mod arg_names {
     pub(crate) const ARG_OUTPUT_FILE: &str = "output_file";
 
 
-    pub(crate) const GROUP_APPLY_OPERATIONS: &str = "group";
+    pub(crate) const GROUP_IMAGE_OPERATIONS: &str = "group";
     pub(crate) const OP_BLUR: &str = "op_blur";
     pub(crate) const OP_BRIGHTEN: &str = "op_brighten";
     pub(crate) const OP_CONTRAST: &str = "op_contrast";
 
 }
 use arg_names::*;
+use sic_image_engine::engine::{Program, Statement};
+use sic_image_engine::engine::Statement::Operation;
 
 pub fn cli() -> App<'static, 'static> {
     App::new(get_tool_name())
@@ -127,7 +129,7 @@ pub fn cli() -> App<'static, 'static> {
             .conflicts_with_all(&[ARG_OUTPUT, ARG_INPUT])
             .index(2))
 
-        .group(ArgGroup::with_name(GROUP_APPLY_OPERATIONS)
+        .group(ArgGroup::with_name(GROUP_IMAGE_OPERATIONS)
             .args(&[
                 OP_BLUR,
                 OP_BRIGHTEN,
@@ -166,8 +168,8 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> Result<Config<'a>, Strin
 
     // next setting.
     let texts_requested = (
-        matches.is_present("license"),
-        matches.is_present("dep_licenses"),
+        matches.is_present(ARG_LICENSE),
+        matches.is_present(ARG_DEP_LICENSES),
     );
 
     match texts_requested {
@@ -184,17 +186,17 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> Result<Config<'a>, Strin
     };
 
     // next setting.
-    if let Some(format) = matches.value_of("forced_output_format") {
+    if let Some(format) = matches.value_of(ARG_FORCED_OUTPUT_FORMAT) {
         builder = builder.forced_output_format(format);
     }
 
     // next setting.
-    if matches.is_present("disable_automatic_color_type_adjustment") {
+    if matches.is_present(ARG_DISABLE_AUTOMATIC_COLOR_TYPE_ADJUSTMENT) {
         builder = builder.disable_automatic_color_type_adjustment(true);
     }
 
     // next setting.
-    if let Some(value) = matches.value_of("jpeg_encoding_quality") {
+    if let Some(value) = matches.value_of(ARG_JPEG_ENCODING_QUALITY) {
         let requested_jpeg_quality = u8::from_str(value)
             .map_err(|_| {
                 "JPEG Encoding quality should be a value between 1 and 100 (inclusive).".to_string()
@@ -204,21 +206,48 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> Result<Config<'a>, Strin
     }
 
     // next setting.
-    if matches.is_present("pnm_encoding_ascii") {
+    if matches.is_present(ARG_PNM_ENCODING_ASCII) {
         builder = builder.pnm_format_type(true);
     }
 
     // next setting.
     if let Some(path) = matches
-        .value_of("output")
-        .or_else(|| matches.value_of("output_file"))
+        .value_of(ARG_OUTPUT)
+        .or_else(|| matches.value_of(ARG_OUTPUT_FILE))
     {
         builder = builder.output_path(path);
     }
 
+    // Image Operations
+    // ----------------
+    //
+    // Image operations are a bit more involved.
+    // Thanks to clap, we know either ARG_APPLY_OPERATIONS xor GROUP_IMAGE_OPERATIONS
+    // we'll be the method of providing an image operations program.
+
+    // TODO: remove after development
+    let not_allowed = matches.value_of(ARG_APPLY_OPERATIONS).is_some() && matches.occurrences_of(GROUP_IMAGE_OPERATIONS) > 0;
+    if not_allowed {
+        unreachable!();
+    }
+
     // next setting.
-    if let Some(script) = matches.value_of("script") {
+    if let Some(script) = matches.value_of(ARG_APPLY_OPERATIONS) {
         let program = sic_parser::parse_script(script)?;
+        builder = builder.image_operations_program(program);
+    }
+    else {
+        let mut program: Program = Vec::new();
+
+        // todo: below
+        //
+        // (1) figure out the related provided arguments
+        // (2) figure out the order of the provided arguments
+        // (3) parse each argument value (re-use sic parser where possible? make trait / functions for operation value parsing there?)
+        // (4) add Statement for each parsed argument to `program`
+        //
+        // todo: above
+
         builder = builder.image_operations_program(program);
     }
 
