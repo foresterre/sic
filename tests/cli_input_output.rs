@@ -1,9 +1,8 @@
-use std::convert::Into;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command};
 
 #[macro_use]
-mod common;
+pub mod common;
 
 use crate::common::*;
 
