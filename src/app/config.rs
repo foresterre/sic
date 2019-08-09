@@ -162,9 +162,9 @@ pub fn validate_jpeg_quality(quality: u8) -> Result<u8, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::str::FromStr;
     use sic_image_engine::engine::Statement;
     use sic_image_engine::Operation;
+    use std::str::FromStr;
 
     #[test]
     fn jpeg_in_quality_range_lower_bound_inside() {
@@ -194,7 +194,8 @@ mod tests {
     fn config_builder_override_defaults() {
         let mut builder = ConfigBuilder::new();
         builder = builder.output_path("lalala");
-        builder = builder.image_operations_program(vec![Statement::Operation(Operation::Blur(1.0))]);
+        builder =
+            builder.image_operations_program(vec![Statement::Operation(Operation::Blur(1.0))]);
         let config = builder.build();
 
         assert!(!config.image_operations_program.is_empty());

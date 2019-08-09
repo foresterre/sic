@@ -3,7 +3,7 @@ use std::path::Path;
 
 use clap::ArgMatches;
 use sic_core::image;
-use sic_image_engine::engine::{ImageEngine, Program};
+use sic_image_engine::engine::ImageEngine;
 use sic_io::conversion::AutomaticColorTypeAdjustment;
 use sic_io::encoding_format::{
     DetermineEncodingFormat, EncodingFormatByIdentifier, EncodingFormatByMethod, JPEGQuality,
