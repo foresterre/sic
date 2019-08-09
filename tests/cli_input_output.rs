@@ -2,17 +2,10 @@ use std::convert::Into;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command};
 
-fn setup_input_path(test_image_path: &str) -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("resources")
-        .join(test_image_path)
-}
+#[macro_use]
+mod common;
 
-fn setup_output_path(test_output_path: &str) -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("target")
-        .join(test_output_path)
-}
+use crate::common::*;
 
 #[derive(Copy, Clone)]
 enum RunWithIOArg {
@@ -57,12 +50,6 @@ impl RunWithIOArg {
     }
 }
 
-// explicit (for a reader) negation
-fn not<T: Into<bool>>(t: T) -> bool {
-    let predicate: bool = t.into();
-    !predicate
-}
-
 #[test]
 fn both_i_and_o_args() {
     let kind = RunWithIOArg::BothIO;
@@ -95,7 +82,7 @@ fn only_i() {
     assert!(result.is_ok());
 
     // expect a non zero exit status
-    assert!(not(result.unwrap().success()));
+    assert_not!(result.unwrap().success());
 }
 
 #[test]
@@ -108,5 +95,5 @@ fn only_o() {
     assert!(result.is_ok());
 
     // expect a non zero exit status
-    assert!(not(result.unwrap().success()));
+    assert_not!(result.unwrap().success());
 }
