@@ -1,5 +1,5 @@
-use std::process::{Command, Child};
 use std::path::{Path, PathBuf};
+use std::process::{Child, Command};
 
 pub fn setup_input_path(test_image_path: &str) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -25,7 +25,6 @@ pub fn command(input: &str, output: &str, args: &str) -> Child {
     let mut arguments = vec!["run", "--", "-i", input, "-o", output];
     let provided: Vec<&str> = args.split_whitespace().collect();
     arguments.extend(provided);
-
 
     command.args(arguments);
     command.spawn().expect("Couldn't spawn child process.")
