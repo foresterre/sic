@@ -36,6 +36,9 @@ sic_io  = { path = "sic_io" }
 sic_parser = { path = "sic_parser" }
 sic_user_manual  = { path = "sic_user_manual" }
 
+[dev-dependencies]
+sic_testing = { path = "sic_testing" }
+
 [[bin]]
 name = "sic"
 path = "src/main.rs"
