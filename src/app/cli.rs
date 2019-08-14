@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use std::str::FromStr;
 
 use clap::{App, AppSettings, Arg, ArgGroup, ArgMatches};
-use sic_image_engine::engine::Program;
+use sic_image_engine::engine::Statement;
 
 use crate::app::config::{validate_jpeg_quality, Config, ConfigBuilder, SelectedLicenses};
 use crate::app::img_op_arg::{tree_extend, IndexTree, IndexedOps, Op, OperationId};
@@ -47,6 +47,8 @@ pub(crate) mod arg_names {
     pub(crate) const OP_ROTATE270: &str = "op_rot270";
     pub(crate) const OP_UNSHARPEN: &str = "op_unsharpen";
 
+    pub(crate) const OPMOD_RESIZE_PRESERVE_ASPECT_RATIO: &str = "opmod_resize_par";
+    pub(crate) const OPMOD_RESIZE_SAMPLING_FILTER: &str = "opmod_resize_sampling_filter";
 }
 
 pub fn cli() -> App<'static, 'static> {
@@ -142,6 +144,7 @@ pub fn cli() -> App<'static, 'static> {
             .conflicts_with_all(&[ARG_OUTPUT, ARG_INPUT])
             .index(2))
 
+        // operations
         .group(ArgGroup::with_name(GROUP_IMAGE_OPERATIONS)
             .args(&[
                 OP_BLUR,
@@ -252,6 +255,27 @@ pub fn cli() -> App<'static, 'static> {
             .number_of_values(2)
             .multiple(true)
             .allow_hyphen_values(true))
+
+        // operation modifiers
+        .arg(Arg::with_name(OPMOD_RESIZE_PRESERVE_ASPECT_RATIO)
+            .help("Operation modifier for: resize")
+            .long("--set-resize-preserve-aspect-ratio")
+            .takes_value(true)
+            .value_name("bool")
+            .number_of_values(1)
+            .multiple(true)
+            .possible_values(&["true", "false"])
+        )
+        .arg(Arg::with_name(OPMOD_RESIZE_SAMPLING_FILTER)
+            .help("Operation modifier for: resize")
+            .long("--set-resize-sampling-filter")
+            .takes_value(true)
+            .value_name("str")
+            .number_of_values(1)
+            .multiple(true)
+            .possible_values(&["catmullrom", "gaussian", "lanczos3", "nearest", "triangle"])
+            .default_value("gaussian")
+        )
 }
 
 // todo: below
@@ -343,80 +367,15 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> Result<Config<'a>, Strin
     // argv ourselves: --crop 0 0 1 1 --crop, is valid according to Clap. However, since we do not
     // receive the amount of times --crop was defined, but rather all the separate provided values for
     // the name of the argument, we just know that for `crop` we have values 0,0,1,1.
-
+    //
     // next setting.
-    if let Some(script) = matches.value_of(ARG_APPLY_OPERATIONS) {
-        let program = sic_parser::parse_script(script)?;
-        builder = builder.image_operations_program(program);
+    let program = if let Some(script) = matches.value_of(ARG_APPLY_OPERATIONS) {
+        sic_parser::parse_script(script)?
     } else {
-        let program: Program = Vec::new();
-
         let mut tree: IndexTree = BTreeMap::new();
-
-        // blur, # of arguments = 1
-        let blur: Option<IndexedOps> = op_with_values!(matches, OP_BLUR, OperationId::Blur);
-        tree_extend(&mut tree, blur, 1)?;
-
-        // brighten, # of arguments = 1
-        let brighten = op_with_values!(matches, OP_BRIGHTEN, OperationId::Brighten);
-        tree_extend(&mut tree, brighten, 1)?;
-
-        // contrast, # of arguments = 1
-        let contrast = op_with_values!(matches, OP_CONTRAST, OperationId::Contrast);
-        tree_extend(&mut tree, contrast, 1)?;
-
-        // crop, # of arguments = 4
-        let crop = op_with_values!(matches, OP_CROP, OperationId::Crop);
-        tree_extend(&mut tree, crop, 4)?;
-
-        // filter3x3, # of arguments = 9
-        let filter3x3 = op_with_values!(matches, OP_FILTER3X3, OperationId::Filter3x3);
-        tree_extend(&mut tree, filter3x3, 9)?;
-
-        // flip_horizontal, # of arguments = 0
-        let flip_horizontal = op_valueless!(matches, OP_FLIP_HORIZONTAL, OperationId::FlipH);
-        tree_extend(&mut tree, flip_horizontal, 0)?;
-
-        // flip_vertical, # of arguments = 0
-        let flip_vertical = op_valueless!(matches, OP_FLIP_VERTICAL, OperationId::FlipV);
-        tree_extend(&mut tree, flip_vertical, 1)?;
-
-        // grayscale, # of arguments = 0
-        let grayscale = op_valueless!(matches, OP_GRAYSCALE, OperationId::Grayscale);
-        tree_extend(&mut tree, grayscale, 1)?;
-
-        // huerotate, # of arguments = 1
-        let hue_rotate = op_with_values!(matches, OP_HUE_ROTATE, OperationId::HueRotate);
-        tree_extend(&mut tree, hue_rotate, 1)?;
-
-        // invert, # of arguments = 0
-        let invert = op_valueless!(matches, OP_INVERT, OperationId::Invert);
-        tree_extend(&mut tree, invert, 2)?;
-
-        // resize, # of arguments = 2
-        let resize = op_with_values!(matches, OP_RESIZE, OperationId::Resize);
-        tree_extend(&mut tree, resize, 2)?;
-
-        // rotate90, # of arguments = 0
-        let rotate90 = op_valueless!(matches, OP_ROTATE90, OperationId::Rotate90);
-        tree_extend(&mut tree, rotate90, 0)?;
-
-        // rotate180, # of arguments = 0
-        let rotate180 = op_valueless!(matches, OP_ROTATE180, OperationId::Rotate180);
-        tree_extend(&mut tree, rotate180, 0)?;
-
-        // rotate270, # of arguments = 0
-        let rotate270 = op_valueless!(matches, OP_ROTATE270, OperationId::Rotate270);
-        tree_extend(&mut tree, rotate270, 0)?;
-
-        // unsharpen, # of arguments = 4
-        let unsharpen = op_with_values!(matches, OP_UNSHARPEN, OperationId::Unsharpen);
-        tree_extend(&mut tree, unsharpen, 2)?;
-
-        dbg!(tree);
-
-        builder = builder.image_operations_program(program);
-    }
+        build_ast_from_matches(matches, &mut tree)?
+    };
+    builder = builder.image_operations_program(program);
 
     // next setting.
     if let Some(topic) = matches.value_of("user_manual") {
@@ -424,4 +383,103 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> Result<Config<'a>, Strin
     }
 
     Ok(builder.build())
+}
+
+fn build_ast_from_matches(
+    matches: &ArgMatches,
+    mut tree: &mut IndexTree,
+) -> Result<Vec<Statement>, String> {
+    // Operations
+
+    // blur, # of arguments = 1
+    let blur: Option<IndexedOps> = op_with_values!(matches, OP_BLUR, OperationId::Blur);
+    tree_extend(&mut tree, blur, 1)?;
+
+    // brighten, # of arguments = 1
+    let brighten = op_with_values!(matches, OP_BRIGHTEN, OperationId::Brighten);
+    tree_extend(&mut tree, brighten, 1)?;
+
+    // contrast, # of arguments = 1
+    let contrast = op_with_values!(matches, OP_CONTRAST, OperationId::Contrast);
+    tree_extend(&mut tree, contrast, 1)?;
+
+    // crop, # of arguments = 4
+    let crop = op_with_values!(matches, OP_CROP, OperationId::Crop);
+    tree_extend(&mut tree, crop, 4)?;
+
+    // filter3x3, # of arguments = 9
+    let filter3x3 = op_with_values!(matches, OP_FILTER3X3, OperationId::Filter3x3);
+    tree_extend(&mut tree, filter3x3, 9)?;
+
+    // flip_horizontal, # of arguments = 0
+    let flip_horizontal = op_valueless!(matches, OP_FLIP_HORIZONTAL, OperationId::FlipH);
+    tree_extend(&mut tree, flip_horizontal, 0)?;
+
+    // flip_vertical, # of arguments = 0
+    let flip_vertical = op_valueless!(matches, OP_FLIP_VERTICAL, OperationId::FlipV);
+    tree_extend(&mut tree, flip_vertical, 1)?;
+
+    // grayscale, # of arguments = 0
+    let grayscale = op_valueless!(matches, OP_GRAYSCALE, OperationId::Grayscale);
+    tree_extend(&mut tree, grayscale, 1)?;
+
+    // huerotate, # of arguments = 1
+    let hue_rotate = op_with_values!(matches, OP_HUE_ROTATE, OperationId::HueRotate);
+    tree_extend(&mut tree, hue_rotate, 1)?;
+
+    // invert, # of arguments = 0
+    let invert = op_valueless!(matches, OP_INVERT, OperationId::Invert);
+    tree_extend(&mut tree, invert, 2)?;
+
+    // resize, # of arguments = 2
+    let resize = op_with_values!(matches, OP_RESIZE, OperationId::Resize);
+    tree_extend(&mut tree, resize, 2)?;
+
+    // rotate90, # of arguments = 0
+    let rotate90 = op_valueless!(matches, OP_ROTATE90, OperationId::Rotate90);
+    tree_extend(&mut tree, rotate90, 0)?;
+
+    // rotate180, # of arguments = 0
+    let rotate180 = op_valueless!(matches, OP_ROTATE180, OperationId::Rotate180);
+    tree_extend(&mut tree, rotate180, 0)?;
+
+    // rotate270, # of arguments = 0
+    let rotate270 = op_valueless!(matches, OP_ROTATE270, OperationId::Rotate270);
+    tree_extend(&mut tree, rotate270, 0)?;
+
+    // unsharpen, # of arguments = 4
+    let unsharpen = op_with_values!(matches, OP_UNSHARPEN, OperationId::Unsharpen);
+    tree_extend(&mut tree, unsharpen, 2)?;
+
+    // Operation modifiers
+    let opmod_resize_preserve_aspect_ratio = op_with_values!(
+        matches,
+        OPMOD_RESIZE_PRESERVE_ASPECT_RATIO,
+        OperationId::ModResizePreserveAspectRatio
+    );
+    tree_extend(&mut tree, opmod_resize_preserve_aspect_ratio, 1)?;
+
+    let opmod_resize_sampling_filter = op_with_values!(
+        matches,
+        OPMOD_RESIZE_SAMPLING_FILTER,
+        OperationId::ModResizeSamplingFilter
+    );
+    tree_extend(&mut tree, opmod_resize_sampling_filter, 1)?;
+
+    // Build!
+    ast_from_index_tree(&mut tree)
+}
+
+fn ast_from_index_tree(tree: &mut IndexTree) -> Result<Vec<Statement>, String> {
+    let ast = tree
+        .iter()
+        .map(|(_index, op)| match op {
+            Op::Bare(_index, id) => {
+                let empty: &[&str; 0] = &[];
+                id.mk_statement(empty)
+            }
+            Op::WithValues(_index, id, values) => id.mk_statement(values),
+        })
+        .collect::<Result<Vec<Statement>, String>>();
+    ast
 }

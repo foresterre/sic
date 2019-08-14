@@ -7,6 +7,7 @@ use sic_image_engine::engine::Program;
 use crate::rule_parser::parse_image_operations;
 
 pub mod rule_parser;
+pub mod value_parser;
 
 const PARSER_RULE: Rule = Rule::main;
 

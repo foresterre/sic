@@ -1,6 +1,46 @@
 #[macro_use]
 pub mod common;
 
+// fixme: add additional integration tests
+
+#[cfg(test)]
+mod blur {
+    use crate::common::*;
+
+    //    FIXME(image-rs/image#983): blur panics on option unwrap within image::imageops::sample::vertical_sample.
+    //    #[test]
+    //    fn blur_0() {
+    //        let mut process = command(DEFAULT_IN, "img_op_arg.png", "--blur 0");
+    //        let result = process.wait();
+    //        assert!(result.is_ok());
+    //        assert!(result.unwrap().success());
+    //    }
+
+    #[test]
+    fn blur_1() {
+        let mut process = command(DEFAULT_IN, "img_op_arg.png", "--blur 1");
+        let result = process.wait();
+        assert!(result.is_ok());
+        assert!(result.unwrap().success());
+    }
+
+    #[test]
+    fn blur_1_dot_1() {
+        let mut process = command(DEFAULT_IN, "img_op_arg.png", "--blur 1.1");
+        let result = process.wait();
+        assert!(result.is_ok());
+        assert!(result.unwrap().success());
+    }
+
+    #[test]
+    fn blur_neg_1_dot_1() {
+        let mut process = command(DEFAULT_IN, "img_op_arg.png", "--blur -1.1");
+        let result = process.wait();
+        assert!(result.is_ok());
+        assert!(result.unwrap().success());
+    }
+}
+
 #[cfg(test)]
 mod crop {
     use crate::common::*;
@@ -34,7 +74,7 @@ mod crop {
         let mut process = command(
             DEFAULT_IN,
             "img_op_arg.png",
-            "--crop 0 0 1 1 --crop 2 2 3 3",
+            "--crop 2 2 3 3 --crop 0 0 1 1",
         );
         let result = process.wait();
         assert!(result.is_ok());
@@ -55,7 +95,7 @@ mod crop {
         let mut process = command(
             DEFAULT_IN,
             "img_op_arg.png",
-            "--crop 0 0 1 1 --crop --crop 2 2 3 3",
+            "--crop --crop 2 2 3 3 --crop 0 0 1 1",
         );
         let result = process.wait();
         assert!(result.is_ok());

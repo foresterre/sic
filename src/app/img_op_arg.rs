@@ -1,3 +1,7 @@
+use sic_image_engine::engine::{EnvironmentItem, EnvironmentKind, Statement};
+use sic_image_engine::wrapper::filter_type::FilterTypeWrap;
+use sic_image_engine::Operation;
+use sic_parser::value_parser::{Describable, ParseInputsFromIter};
 use std::collections::BTreeMap;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
@@ -17,6 +21,78 @@ pub(crate) enum OperationId {
     Rotate180,
     Rotate270,
     Unsharpen,
+    ModResizePreserveAspectRatio,
+    ModResizeSamplingFilter,
+}
+
+macro_rules! parse_inputs_by_type {
+    ($iterable:expr, $ty:ty) => {{
+        let input: Result<$ty, String> = ParseInputsFromIter::parse($iterable);
+        input
+    }};
+}
+
+impl OperationId {
+    pub fn mk_statement<'a, T>(&self, inputs: T) -> Result<Statement, String>
+    where
+        T: IntoIterator,
+        T::Item: Into<Describable<'a>> + std::fmt::Debug,
+    {
+        let stmt = match self {
+            OperationId::Blur => {
+                Statement::Operation(Operation::Blur(parse_inputs_by_type!(inputs, f32)?))
+            }
+            OperationId::Brighten => {
+                Statement::Operation(Operation::Brighten(parse_inputs_by_type!(inputs, i32)?))
+            }
+            OperationId::Contrast => {
+                Statement::Operation(Operation::Contrast(parse_inputs_by_type!(inputs, f32)?))
+            }
+            OperationId::Crop => Statement::Operation(Operation::Crop(parse_inputs_by_type!(
+                inputs,
+                (u32, u32, u32, u32)
+            )?)),
+            OperationId::Filter3x3 => Statement::Operation(Operation::Filter3x3(
+                parse_inputs_by_type!(inputs, [f32; 9])?,
+            )),
+            OperationId::FlipH => Statement::Operation(Operation::FlipHorizontal),
+            OperationId::FlipV => Statement::Operation(Operation::FlipVertical),
+            OperationId::Grayscale => Statement::Operation(Operation::GrayScale),
+            OperationId::HueRotate => {
+                Statement::Operation(Operation::HueRotate(parse_inputs_by_type!(inputs, i32)?))
+            }
+            OperationId::Invert => Statement::Operation(Operation::Invert),
+            OperationId::Resize => Statement::Operation(Operation::Resize(parse_inputs_by_type!(
+                inputs,
+                (u32, u32)
+            )?)),
+            OperationId::Rotate90 => Statement::Operation(Operation::Rotate90),
+            OperationId::Rotate180 => Statement::Operation(Operation::Rotate180),
+            OperationId::Rotate270 => Statement::Operation(Operation::Rotate270),
+            OperationId::Unsharpen => Statement::Operation(Operation::Unsharpen(
+                parse_inputs_by_type!(inputs, (f32, i32))?,
+            )),
+
+            OperationId::ModResizePreserveAspectRatio => {
+                let toggle = parse_inputs_by_type!(inputs, bool)?;
+                if toggle {
+                    Statement::RegisterEnvironmentItem(EnvironmentItem::PreserveAspectRatio)
+                } else {
+                    Statement::DeregisterEnvironmentItem(
+                        EnvironmentKind::OptResizePreserveAspectRatio,
+                    )
+                }
+            }
+            OperationId::ModResizeSamplingFilter => {
+                let input = parse_inputs_by_type!(inputs, String)?;
+                let filter = FilterTypeWrap::try_from_str(&input)
+                    .map_err(|_| "Error: resize sampling filter not found.".to_string())?;
+                Statement::RegisterEnvironmentItem(EnvironmentItem::OptResizeSamplingFilter(filter))
+            }
+        };
+
+        Ok(stmt)
+    }
 }
 
 type Index = usize;
@@ -51,7 +127,7 @@ pub(crate) type IndexedOps = Vec<(Index, Op)>;
 //
 // usage:
 //
-// ```
+// ```Index
 // op_by_index!(matches, "clap arg name", OperationId::Blur)?;
 // ```
 #[macro_export]
@@ -1012,5 +1088,149 @@ mod test_tree_extend {
                     .collect::<Vec<_>>()
             );
         }
+    }
+
+    mod case_opmod_resize_keep_aspect_ratio {
+        use super::*;
+
+        #[test]
+        fn set_true() {
+            let mut tree: IndexTree = BTreeMap::new();
+            let setup = setup("--set-resize-preserve-aspect-ratio true");
+            let matches = setup.0;
+            let op = op_with_values!(
+                matches,
+                OPMOD_RESIZE_PRESERVE_ASPECT_RATIO,
+                OperationId::ModResizePreserveAspectRatio
+            );
+            tree_extend(&mut tree, op, 1).unwrap();
+
+            let out = tree.iter().next().unwrap();
+
+            let (id, values) = match out {
+                (_, Op::WithValues(_, id, values)) => (id, values),
+                _ => panic!("unexpected test error"),
+            };
+
+            assert_eq!(*id, OperationId::ModResizePreserveAspectRatio);
+            assert_eq!(
+                *values,
+                vec!["true"]
+                    .iter()
+                    .map(ToString::to_string)
+                    .collect::<Vec<_>>()
+            );
+        }
+
+        #[test]
+        fn set_false() {
+            let mut tree: IndexTree = BTreeMap::new();
+            let setup = setup("--set-resize-preserve-aspect-ratio false");
+            let matches = setup.0;
+            let op = op_with_values!(
+                matches,
+                OPMOD_RESIZE_PRESERVE_ASPECT_RATIO,
+                OperationId::ModResizePreserveAspectRatio
+            );
+            tree_extend(&mut tree, op, 1).unwrap();
+
+            let out = tree.iter().next().unwrap();
+
+            let (id, values) = match out {
+                (_, Op::WithValues(_, id, values)) => (id, values),
+                _ => panic!("unexpected test error"),
+            };
+
+            assert_eq!(*id, OperationId::ModResizePreserveAspectRatio);
+            assert_eq!(
+                *values,
+                vec!["false"]
+                    .iter()
+                    .map(ToString::to_string)
+                    .collect::<Vec<_>>()
+            );
+        }
+
+        #[test]
+        #[should_panic]
+        fn not_allowed_value() {
+            setup("--set-resize-preserve-aspect-ratio yes");
+        }
+    }
+
+    mod case_opmod_resize_sampling_filter {
+        use super::*;
+
+        fn test<'a>(setup: (ArgMatches, String), expect: &str) {
+            let mut tree: IndexTree = BTreeMap::new();
+            let matches = setup.0;
+            let op = op_with_values!(
+                matches,
+                OPMOD_RESIZE_SAMPLING_FILTER,
+                OperationId::ModResizeSamplingFilter
+            );
+            tree_extend(&mut tree, op, 1).unwrap();
+
+            let out = tree.iter().next().unwrap();
+
+            let (a, b) = match out {
+                (_, Op::WithValues(_, id, values)) => (id, values),
+                _ => panic!("unexpected test error"),
+            };
+
+            assert_eq!(*a, OperationId::ModResizeSamplingFilter);
+            assert_eq!(
+                *b,
+                vec![expect]
+                    .iter()
+                    .map(ToString::to_string)
+                    .collect::<Vec<_>>()
+            );
+        }
+
+        // catmullrom, gaussian, lanczos3, nearest, triangle
+
+        #[test]
+        fn set_catmullrom() {
+            let setup = setup("--set-resize-sampling-filter catmullrom");
+            test(setup, "catmullrom");
+        }
+
+        #[test]
+        fn set_gaussian() {
+            let setup = setup("--set-resize-sampling-filter gaussian");
+            test(setup, "gaussian");
+        }
+
+        #[test]
+        fn set_default() {
+            let setup = setup("--set-resize-sampling-filter");
+            test(setup, "gaussian");
+        }
+
+        #[test]
+        fn set_lanczos3() {
+            let setup = setup("--set-resize-sampling-filter lanczos3");
+            test(setup, "lanczos3");
+        }
+
+        #[test]
+        fn set_nearest() {
+            let setup = setup("--set-resize-sampling-filter nearest");
+            test(setup, "nearest");
+        }
+
+        #[test]
+        fn set_triangle() {
+            let setup = setup("--set-resize-sampling-filter triangle");
+            test(setup, "triangle");
+        }
+
+        #[test]
+        #[should_panic]
+        fn not_allowed_value() {
+            setup("--set-resize-sampling-filter yes");
+        }
+
     }
 }
