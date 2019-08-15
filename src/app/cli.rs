@@ -5,7 +5,9 @@ use clap::{App, AppSettings, Arg, ArgGroup, ArgMatches};
 use sic_image_engine::engine::Statement;
 
 use crate::app::config::{validate_jpeg_quality, Config, ConfigBuilder, SelectedLicenses};
-use crate::app::img_op_arg::{tree_extend, IndexTree, IndexedOps, Op, OperationId};
+use crate::app::img_op_arg::{
+    extend_index_tree_with_unification, IndexTree, IndexedOps, Op, OperationId,
+};
 use crate::get_tool_name;
 use crate::{op_valueless, op_with_values};
 use arg_names::*;
@@ -84,11 +86,13 @@ pub fn cli() -> App<'static, 'static> {
         .arg(Arg::with_name(ARG_LICENSE)
             .long("license")
             .help("Displays the license of this piece of software (`stew`).")
-            .takes_value(false))
+            .takes_value(false)
+            .conflicts_with_all(&[ARG_DEP_LICENSES, ARG_USER_MANUAL, ARG_INPUT_FILE, ARG_OUTPUT_FILE, ARG_INPUT, ARG_OUTPUT]))
         .arg(Arg::with_name(ARG_DEP_LICENSES)
             .long("dep-licenses")
             .help("Displays the licenses of the dependencies on which this software relies.")
-            .takes_value(false))
+            .takes_value(false)
+            .conflicts_with_all(&[ARG_LICENSE, ARG_USER_MANUAL, ARG_INPUT_FILE, ARG_OUTPUT_FILE, ARG_INPUT, ARG_OUTPUT]))
         .arg(Arg::with_name(ARG_JPEG_ENCODING_QUALITY)
             .long("jpeg-encoding-quality")
             .help("Set the jpeg quality to QUALITY. Valid values are natural numbers from 1 up to and including 100. Will only be used when the output format is determined to be jpeg.")
@@ -106,16 +110,18 @@ pub fn cli() -> App<'static, 'static> {
             .value_name("FILE_INPUT")
             .takes_value(true)
             .help("Input image path. When using this option, input piped from stdin will be ignored.")
-            .required_unless_one(&[ARG_INPUT_FILE, ARG_LICENSE, ARG_DEP_LICENSES, ARG_USER_MANUAL])
-            .conflicts_with_all(&[ARG_INPUT_FILE, ARG_OUTPUT_FILE]))
+            .required_unless_all(&[ARG_INPUT_FILE, ARG_OUTPUT_FILE])
+            .required_unless_one(&[ARG_LICENSE, ARG_DEP_LICENSES, ARG_USER_MANUAL])
+            .conflicts_with_all(&[ARG_INPUT_FILE, ARG_OUTPUT_FILE, ARG_LICENSE, ARG_DEP_LICENSES, ARG_USER_MANUAL]))
         .arg(Arg::with_name(ARG_OUTPUT)
             .long("output")
             .short("o")
             .value_name("FILE_OUTPUT")
             .takes_value(true)
             .help("Output image path. When using this option, output won't be piped to stdout.")
-            .required_unless_one(&[ARG_OUTPUT_FILE, ARG_LICENSE, ARG_DEP_LICENSES, ARG_USER_MANUAL])
-            .conflicts_with_all(&[ARG_OUTPUT_FILE, ARG_INPUT_FILE]))
+            .required_unless_all(&[ARG_INPUT_FILE, ARG_OUTPUT_FILE])
+            .required_unless_one(&[ARG_LICENSE, ARG_DEP_LICENSES, ARG_USER_MANUAL])
+            .conflicts_with_all(&[ARG_INPUT_FILE, ARG_OUTPUT_FILE, ARG_LICENSE, ARG_DEP_LICENSES, ARG_USER_MANUAL]))
 
         // Selective arguments for `sic`.
         .arg(Arg::with_name(ARG_USER_MANUAL)
@@ -123,7 +129,8 @@ pub fn cli() -> App<'static, 'static> {
             .short("H")
             .help("Displays help text for different topics such as each supported script operation. Run `sic -H index` to display a list of available topics.")
             .value_name("TOPIC")
-            .takes_value(true))
+            .takes_value(true)
+            .conflicts_with_all(&[ARG_LICENSE, ARG_DEP_LICENSES, ARG_INPUT_FILE, ARG_OUTPUT_FILE, ARG_INPUT, ARG_OUTPUT]))
         .arg(Arg::with_name(ARG_APPLY_OPERATIONS)
             .long("apply-operations")
             .short("x")
@@ -134,14 +141,16 @@ pub fn cli() -> App<'static, 'static> {
         .arg(Arg::with_name(ARG_INPUT_FILE)
             .help("Sets the input file")
             .value_name("INPUT_FILE")
-            .required_unless_one(&[ARG_INPUT, ARG_LICENSE, ARG_DEP_LICENSES, ARG_USER_MANUAL])
-            .conflicts_with_all(&[ARG_INPUT, ARG_OUTPUT])
+            .required_unless_all(&[ARG_INPUT, ARG_OUTPUT])
+            .required_unless_one(&[ARG_LICENSE, ARG_DEP_LICENSES, ARG_USER_MANUAL])
+            .conflicts_with_all(&[ARG_INPUT, ARG_OUTPUT, ARG_LICENSE, ARG_DEP_LICENSES, ARG_USER_MANUAL])
             .index(1))
         .arg(Arg::with_name(ARG_OUTPUT_FILE)
             .help("Sets the desired output file")
             .value_name("OUTPUT_FILE")
-            .required_unless_one(&[ARG_OUTPUT, ARG_LICENSE, ARG_DEP_LICENSES, ARG_USER_MANUAL])
-            .conflicts_with_all(&[ARG_OUTPUT, ARG_INPUT])
+            .required_unless_all(&[ARG_INPUT, ARG_OUTPUT])
+            .required_unless_one(&[ARG_LICENSE, ARG_DEP_LICENSES, ARG_USER_MANUAL])
+            .conflicts_with_all(&[ARG_INPUT, ARG_OUTPUT, ARG_LICENSE, ARG_DEP_LICENSES, ARG_USER_MANUAL])
             .index(2))
 
         // operations
@@ -162,6 +171,9 @@ pub fn cli() -> App<'static, 'static> {
                 OP_ROTATE180,
                 OP_ROTATE270,
                 OP_UNSHARPEN,
+
+                OPMOD_RESIZE_PRESERVE_ASPECT_RATIO,
+                OPMOD_RESIZE_SAMPLING_FILTER,
             ])
             .conflicts_with(ARG_APPLY_OPERATIONS)
             .multiple(true))
@@ -274,18 +286,8 @@ pub fn cli() -> App<'static, 'static> {
             .number_of_values(1)
             .multiple(true)
             .possible_values(&["catmullrom", "gaussian", "lanczos3", "nearest", "triangle"])
-            .default_value("gaussian")
         )
 }
-
-// todo: below
-//
-// (1) figure out the related provided arguments, Complete!
-// (2) figure out the order of the provided arguments, Complete!
-// (3) parse each argument value (re-use sic parser where possible? make trait / functions for operation value parsing there?)
-// (4) add Statement for each parsed argument to `program`
-//
-// todo: above
 
 // Here any argument should not panic when invalid.
 // Previously, it was allowed to panic within Config, but this is no longer the case.
@@ -387,99 +389,264 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> Result<Config<'a>, Strin
 
 fn build_ast_from_matches(
     matches: &ArgMatches,
-    mut tree: &mut IndexTree,
+    tree: &mut IndexTree,
 ) -> Result<Vec<Statement>, String> {
-    // Operations
-
-    // blur, # of arguments = 1
-    let blur: Option<IndexedOps> = op_with_values!(matches, OP_BLUR, OperationId::Blur);
-    tree_extend(&mut tree, blur, 1)?;
-
-    // brighten, # of arguments = 1
-    let brighten = op_with_values!(matches, OP_BRIGHTEN, OperationId::Brighten);
-    tree_extend(&mut tree, brighten, 1)?;
-
-    // contrast, # of arguments = 1
-    let contrast = op_with_values!(matches, OP_CONTRAST, OperationId::Contrast);
-    tree_extend(&mut tree, contrast, 1)?;
-
-    // crop, # of arguments = 4
-    let crop = op_with_values!(matches, OP_CROP, OperationId::Crop);
-    tree_extend(&mut tree, crop, 4)?;
-
-    // filter3x3, # of arguments = 9
-    let filter3x3 = op_with_values!(matches, OP_FILTER3X3, OperationId::Filter3x3);
-    tree_extend(&mut tree, filter3x3, 9)?;
-
-    // flip_horizontal, # of arguments = 0
-    let flip_horizontal = op_valueless!(matches, OP_FLIP_HORIZONTAL, OperationId::FlipH);
-    tree_extend(&mut tree, flip_horizontal, 0)?;
-
-    // flip_vertical, # of arguments = 0
-    let flip_vertical = op_valueless!(matches, OP_FLIP_VERTICAL, OperationId::FlipV);
-    tree_extend(&mut tree, flip_vertical, 1)?;
-
-    // grayscale, # of arguments = 0
-    let grayscale = op_valueless!(matches, OP_GRAYSCALE, OperationId::Grayscale);
-    tree_extend(&mut tree, grayscale, 1)?;
-
-    // huerotate, # of arguments = 1
-    let hue_rotate = op_with_values!(matches, OP_HUE_ROTATE, OperationId::HueRotate);
-    tree_extend(&mut tree, hue_rotate, 1)?;
-
-    // invert, # of arguments = 0
-    let invert = op_valueless!(matches, OP_INVERT, OperationId::Invert);
-    tree_extend(&mut tree, invert, 2)?;
-
-    // resize, # of arguments = 2
-    let resize = op_with_values!(matches, OP_RESIZE, OperationId::Resize);
-    tree_extend(&mut tree, resize, 2)?;
-
-    // rotate90, # of arguments = 0
-    let rotate90 = op_valueless!(matches, OP_ROTATE90, OperationId::Rotate90);
-    tree_extend(&mut tree, rotate90, 0)?;
-
-    // rotate180, # of arguments = 0
-    let rotate180 = op_valueless!(matches, OP_ROTATE180, OperationId::Rotate180);
-    tree_extend(&mut tree, rotate180, 0)?;
-
-    // rotate270, # of arguments = 0
-    let rotate270 = op_valueless!(matches, OP_ROTATE270, OperationId::Rotate270);
-    tree_extend(&mut tree, rotate270, 0)?;
-
-    // unsharpen, # of arguments = 4
-    let unsharpen = op_with_values!(matches, OP_UNSHARPEN, OperationId::Unsharpen);
-    tree_extend(&mut tree, unsharpen, 2)?;
-
-    // Operation modifiers
-    let opmod_resize_preserve_aspect_ratio = op_with_values!(
-        matches,
-        OPMOD_RESIZE_PRESERVE_ASPECT_RATIO,
-        OperationId::ModResizePreserveAspectRatio
-    );
-    tree_extend(&mut tree, opmod_resize_preserve_aspect_ratio, 1)?;
-
-    let opmod_resize_sampling_filter = op_with_values!(
-        matches,
-        OPMOD_RESIZE_SAMPLING_FILTER,
-        OperationId::ModResizeSamplingFilter
-    );
-    tree_extend(&mut tree, opmod_resize_sampling_filter, 1)?;
+    let operations = vec![
+        // operations
+        OperationId::Blur,
+        OperationId::Brighten,
+        OperationId::Contrast,
+        OperationId::Crop,
+        OperationId::Filter3x3,
+        OperationId::FlipH,
+        OperationId::FlipV,
+        OperationId::Grayscale,
+        OperationId::HueRotate,
+        OperationId::Invert,
+        OperationId::Resize,
+        OperationId::Rotate90,
+        OperationId::Rotate180,
+        OperationId::Rotate270,
+        OperationId::Unsharpen,
+        // modifiers
+        OperationId::ModResizeSamplingFilter,
+        OperationId::ModResizePreserveAspectRatio,
+    ];
+    ast_extend_with_operation(tree, matches, operations)?;
 
     // Build!
-    ast_from_index_tree(&mut tree)
+    ast_from_index_tree(tree)
+}
+
+fn ast_extend_with_operation<T: IntoIterator<Item = OperationId>>(
+    tree: &mut IndexTree,
+    matches: &ArgMatches,
+    operations: T,
+) -> Result<(), String> {
+    for operation in operations {
+        let argc = operation.takes_number_of_arguments();
+        let ops = mk_ops(operation, matches);
+        extend_index_tree_with_unification(tree, ops, argc)?;
+    }
+
+    Ok(())
+}
+
+fn mk_ops(op: OperationId, matches: &ArgMatches) -> Option<IndexedOps> {
+    let argc = op.takes_number_of_arguments();
+    match argc {
+        0 => op_valueless!(matches, op),
+        _n => op_with_values!(matches, op),
+    }
 }
 
 fn ast_from_index_tree(tree: &mut IndexTree) -> Result<Vec<Statement>, String> {
     let ast = tree
         .iter()
         .map(|(_index, op)| match op {
-            Op::Bare(_index, id) => {
+            Op::Bare(id) => {
                 let empty: &[&str; 0] = &[];
                 id.mk_statement(empty)
             }
-            Op::WithValues(_index, id, values) => id.mk_statement(values),
+            Op::WithValues(id, values) => id.mk_statement(values),
         })
         .collect::<Result<Vec<Statement>, String>>();
     ast
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use sic_image_engine::engine::Statement;
+    use sic_image_engine::Operation;
+    use std::collections::BTreeMap;
+
+    macro_rules! assert_match {
+        ($iter:expr, $clause:pat, $assert:expr) => {{
+            match $iter.next().unwrap() {
+                $clause => $assert,
+                err => panic!(format!(
+                    "Assertion: {} failed. Value found was: {:?}",
+                    stringify!($assert),
+                    err
+                )),
+            }
+        }};
+    }
+
+    #[test]
+    fn build_from_args_all() {
+        let input = "sic -i in -o out \
+                     --blur 1 \
+                     --brighten 2 \
+                     --contrast 3 \
+                     --crop 0 0 2 2 \
+                     --filter3x3 0 1 2 3 4 5 6 7 8 \
+                     --flip-horizontal \
+                     --flip-vertical \
+                     --grayscale \
+                     --hue-rotate -90 \
+                     --invert \
+                     --resize 10 10 \
+                     --rotate90 \
+                     --rotate180 \
+                     --rotate270 \
+                     --unsharpen 1.5 1";
+
+        let input = input.split_ascii_whitespace();
+        let matches = cli().get_matches_from(input);
+        let mut tree: IndexTree = BTreeMap::new();
+        let ast = build_ast_from_matches(&matches, &mut tree);
+        let ast = ast.unwrap();
+        let mut iter = ast.iter();
+
+        assert_match!(
+            iter,
+            Statement::Operation(Operation::Blur(n)),
+            assert_eq!(*n, 1f32)
+        );
+
+        assert_match!(
+            iter,
+            Statement::Operation(Operation::Brighten(n)),
+            assert_eq!(*n, 2i32)
+        );
+
+        assert_match!(
+            iter,
+            Statement::Operation(Operation::Contrast(n)),
+            assert_eq!(*n, 3f32)
+        );
+
+        assert_match!(
+            iter,
+            Statement::Operation(Operation::Crop(n)),
+            assert_eq!(*n, (0u32, 0u32, 2u32, 2u32))
+        );
+
+        assert_match!(
+            iter,
+            Statement::Operation(Operation::Filter3x3(n)),
+            assert_eq!(*n, [0f32, 1f32, 2f32, 3f32, 4f32, 5f32, 6f32, 7f32, 8f32])
+        );
+
+        assert_match!(iter, Statement::Operation(Operation::FlipHorizontal), ());
+
+        assert_match!(iter, Statement::Operation(Operation::FlipVertical), ());
+
+        assert_match!(iter, Statement::Operation(Operation::GrayScale), ());
+
+        assert_match!(
+            iter,
+            Statement::Operation(Operation::HueRotate(n)),
+            assert_eq!(*n, -90i32)
+        );
+
+        assert_match!(iter, Statement::Operation(Operation::Invert), ());
+
+        assert_match!(
+            iter,
+            Statement::Operation(Operation::Resize(n)),
+            assert_eq!(*n, (10u32, 10u32))
+        );
+
+        assert_match!(iter, Statement::Operation(Operation::Rotate90), ());
+
+        assert_match!(iter, Statement::Operation(Operation::Rotate180), ());
+
+        assert_match!(iter, Statement::Operation(Operation::Rotate270), ());
+
+        assert_match!(
+            iter,
+            Statement::Operation(Operation::Unsharpen(n)),
+            assert_eq!(*n, (1.5f32, 1i32))
+        );
+
+        assert_eq!(iter.next(), None);
+    }
+
+    #[test]
+    fn mk_ops_0() {
+        let input = "sic -i in -o out \
+                     --rotate180";
+
+        let input = input.split_ascii_whitespace();
+        let matches = cli().get_matches_from(input);
+
+        let ops = mk_ops(OperationId::Rotate180, &matches);
+        let ops = ops.unwrap();
+        let (i, v) = ops.get(0).unwrap();
+        assert_eq!(*i, 5usize);
+        assert_eq!(*v, Op::Bare(OperationId::Rotate180))
+    }
+
+    #[test]
+    fn mk_ops_n() {
+        let input = "sic -i in -o out --unsharpen 1.5 2";
+
+        let input = input.split_ascii_whitespace();
+        let matches = cli().get_matches_from(input);
+
+        // note that at mk_ops no unification of arguments has taken place.
+        let ops = mk_ops(OperationId::Unsharpen, &matches);
+
+        let ops = ops.unwrap();
+        let (i, v) = ops.get(0).unwrap();
+        assert_eq!(*i, 6usize);
+        assert_eq!(
+            *v,
+            Op::WithValues(OperationId::Unsharpen, vec![String::from("1.5")])
+        );
+
+        let (i, v) = ops.get(1).unwrap();
+        assert_eq!(*i, 7usize);
+        assert_eq!(
+            *v,
+            Op::WithValues(OperationId::Unsharpen, vec![String::from("2")])
+        );
+    }
+
+    #[test]
+    fn ast_from_index_tree_empty() {
+        let mut tree: IndexTree = BTreeMap::new();
+        let ast = ast_from_index_tree(&mut tree);
+
+        assert!(ast.unwrap().is_empty())
+    }
+
+    #[test]
+    fn ast_from_index_tree_with_vals() {
+        let mut tree: IndexTree = BTreeMap::new();
+        tree.insert(
+            1,
+            Op::WithValues(OperationId::Brighten, vec![String::from("10")]),
+        );
+        tree.insert(2, Op::Bare(OperationId::FlipV));
+        tree.insert(
+            3,
+            Op::WithValues(OperationId::HueRotate, vec![String::from("-90")]),
+        );
+        let ast = ast_from_index_tree(&mut tree);
+
+        let iter = ast.unwrap();
+        let mut iter = iter.iter();
+
+        // can't assert eq, because Operation does not implement Eq, since f32 doesn't support it
+        assert_match!(
+            iter,
+            Statement::Operation(Operation::Brighten(n)),
+            assert_eq!(*n, 10)
+        );
+
+        assert_match!(iter, Statement::Operation(Operation::FlipVertical), ());
+
+        assert_match!(
+            iter,
+            Statement::Operation(Operation::HueRotate(n)),
+            assert_eq!(*n, -90)
+        );
+
+        assert_eq!(iter.next(), None);
+    }
+
 }

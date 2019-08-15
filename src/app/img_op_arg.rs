@@ -1,9 +1,15 @@
+use crate::app::cli::arg_names::{
+    OPMOD_RESIZE_PRESERVE_ASPECT_RATIO, OPMOD_RESIZE_SAMPLING_FILTER, OP_BLUR, OP_BRIGHTEN,
+    OP_CONTRAST, OP_CROP, OP_FILTER3X3, OP_FLIP_HORIZONTAL, OP_FLIP_VERTICAL, OP_GRAYSCALE,
+    OP_HUE_ROTATE, OP_INVERT, OP_RESIZE, OP_ROTATE180, OP_ROTATE270, OP_ROTATE90, OP_UNSHARPEN,
+};
 use sic_image_engine::engine::{EnvironmentItem, EnvironmentKind, Statement};
 use sic_image_engine::wrapper::filter_type::FilterTypeWrap;
 use sic_image_engine::Operation;
 use sic_parser::value_parser::{Describable, ParseInputsFromIter};
 use std::collections::BTreeMap;
 
+/// The enumeration of all supported operations.
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub(crate) enum OperationId {
     Blur,
@@ -25,6 +31,60 @@ pub(crate) enum OperationId {
     ModResizeSamplingFilter,
 }
 
+impl OperationId {
+    /// A string representation for each operation.
+    pub fn as_str(&self) -> &str {
+        match self {
+            OperationId::Blur => OP_BLUR,
+            OperationId::Brighten => OP_BRIGHTEN,
+            OperationId::Contrast => OP_CONTRAST,
+            OperationId::Crop => OP_CROP,
+            OperationId::Filter3x3 => OP_FILTER3X3,
+            OperationId::FlipH => OP_FLIP_HORIZONTAL,
+            OperationId::FlipV => OP_FLIP_VERTICAL,
+            OperationId::Grayscale => OP_GRAYSCALE,
+            OperationId::HueRotate => OP_HUE_ROTATE,
+            OperationId::Invert => OP_INVERT,
+            OperationId::Resize => OP_RESIZE,
+            OperationId::Rotate90 => OP_ROTATE90,
+            OperationId::Rotate180 => OP_ROTATE180,
+            OperationId::Rotate270 => OP_ROTATE270,
+            OperationId::Unsharpen => OP_UNSHARPEN,
+            OperationId::ModResizePreserveAspectRatio => OPMOD_RESIZE_PRESERVE_ASPECT_RATIO,
+            OperationId::ModResizeSamplingFilter => OPMOD_RESIZE_SAMPLING_FILTER,
+        }
+    }
+
+    /// Provides the number of arguments an operation takes.
+    /// Used to unify arguments together.
+    /// E.g. (without accounting for the requirement of having incremental indices as well),
+    ///     say we receive for resize the values 10, 20, 100 and 100. With the number of values we know
+    ///     that each resize operation takes two arguments, not four. So it could be that there are
+    ///     two operations, namely `resize 10 20` and `resize 100 100`. We do need to take some other
+    ///     conditions into account, but they are not relevant for this particular method =).
+    pub fn takes_number_of_arguments(&self) -> usize {
+        match self {
+            OperationId::Blur => 1,
+            OperationId::Brighten => 1,
+            OperationId::Contrast => 1,
+            OperationId::Crop => 4,
+            OperationId::Filter3x3 => 9,
+            OperationId::FlipH => 0,
+            OperationId::FlipV => 0,
+            OperationId::Grayscale => 0,
+            OperationId::HueRotate => 1,
+            OperationId::Invert => 0,
+            OperationId::Resize => 2,
+            OperationId::Rotate90 => 0,
+            OperationId::Rotate180 => 0,
+            OperationId::Rotate270 => 0,
+            OperationId::Unsharpen => 2,
+            OperationId::ModResizePreserveAspectRatio => 1,
+            OperationId::ModResizeSamplingFilter => 1,
+        }
+    }
+}
+
 macro_rules! parse_inputs_by_type {
     ($iterable:expr, $ty:ty) => {{
         let input: Result<$ty, String> = ParseInputsFromIter::parse($iterable);
@@ -33,6 +93,7 @@ macro_rules! parse_inputs_by_type {
 }
 
 impl OperationId {
+    /// Constructs statements for image operations which are taken as input by the image engine.
     pub fn mk_statement<'a, T>(&self, inputs: T) -> Result<Statement, String>
     where
         T: IntoIterator,
@@ -99,24 +160,24 @@ type Index = usize;
 
 /// Represents an image operation which was obtained from CLI image operation commands.
 ///
-/// Index := Position of an argument value.
 /// OperationId := Type of operation we are dealing with, e.g. Blur or Rotate90.
 /// Vec<String> := Vector of unverified string arguments; initially with multiple arguments
-///              we will receive multiple [Op] as Clap provides multiple arguments individually.
-///              The multiple Op will be unified where applicable.
+///              we will receive multiple [Op] as Clap provides multiple
+///              arguments individually. The multiple [Op] will be unified where applicable.
 ///
-/// The operation values are not parsed yet within this structure.
-#[derive(Debug, Clone)]
+/// The operation argument values are not parsed yet within this structure.
+/// The values are also not necessarily unified yet.
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub(crate) enum Op {
-    WithValues(Index, OperationId, Vec<String>),
-    Bare(Index, OperationId),
+    WithValues(OperationId, Vec<String>),
+    Bare(OperationId),
 }
 
 /// An IndexTree represents the decided order in which operations should be applied.
 /// Because the underlying data structure is a BTree, we can conveniently add
 /// [Op] by their provided indices.
 /// Note that unified [Op] could be given any index of the values they were originally unified
-/// from.#[macro_export]
+/// from.
 pub(crate) type IndexTree = BTreeMap<Index, Op>;
 
 /// Nodes which contain tuples with arity 2, where the first value is the Index,
@@ -124,6 +185,7 @@ pub(crate) type IndexTree = BTreeMap<Index, Op>;
 pub(crate) type IndexedOps = Vec<(Index, Op)>;
 
 // Pair operations with the index, which can be used to find the order in which arguments were provided.
+// It should only be used for operations which take one or more arguments.
 //
 // usage:
 //
@@ -132,14 +194,15 @@ pub(crate) type IndexedOps = Vec<(Index, Op)>;
 // ```
 #[macro_export]
 macro_rules! op_with_values {
-    ($matches:expr, $op_name:expr, $op_variant:expr) => {{
-        let indices = $matches.indices_of($op_name);
-        let values = $matches.values_of($op_name);
+    ($matches:expr, $op_variant:expr) => {{
+        let op_name = $op_variant.as_str();
+        let indices = $matches.indices_of(op_name);
+        let values = $matches.values_of(op_name);
         let vec: Option<IndexedOps> = indices.and_then(|indices| {
             values.map(|values| {
                 indices
                     .zip(values)
-                    .map(|(i, v)| (i, Op::WithValues(i, $op_variant, vec![v.to_string()])))
+                    .map(|(i, v)| (i, Op::WithValues($op_variant, vec![v.to_string()])))
                     .collect::<_>()
             })
         });
@@ -148,12 +211,15 @@ macro_rules! op_with_values {
     }};
 }
 
+// This macro helps us to create Op::Bare values. Since always the enum variant Bare is used,
+// this should only be used for operations which do not take arguments.
 #[macro_export]
 macro_rules! op_valueless {
-    ($matches:expr, $op_name:expr, $op_variant:expr) => {{
-        $matches.indices_of($op_name).map(|indices| {
+    ($matches:expr, $op_variant:expr) => {{
+        let op_name = $op_variant.as_str();
+        $matches.indices_of(op_name).map(|indices| {
             indices
-                .map(|index| (index, Op::Bare(index, $op_variant)))
+                .map(|index| (index, Op::Bare($op_variant)))
                 .collect::<Vec<_>>()
         })
     }};
@@ -162,17 +228,41 @@ macro_rules! op_valueless {
 /// Extends the IndexTree with the found cli image operations.
 /// Should be used one image operation at a time.
 /// The amount of values ensures that cli arguments which take more than one value will be combined.
-pub(crate) fn tree_extend(
+///     The total amount of arguments will be partitioned in equal sized partitions (if possible,
+///     otherwise the partitioning is invalid and will be rejected). The size of each partition
+///     is the 'amount of values'. The values of each partition will be unified to represent
+///     a the arguments of an operation.
+///     Examples regarding the amount of values this function expects:
+///     Operation 'blur' takes one argument so the amount of values for the blur operation is 1.
+///     Operation 'crop' takes four arguments, so the amount of values for the crop operation is 4.
+pub(crate) fn extend_index_tree_with_unification(
     tree: &mut IndexTree,
     values_for_operation: Option<IndexedOps>,
     amount_of_values: usize,
 ) -> Result<(), String> {
     match (amount_of_values, values_for_operation) {
+        // The operation is not available within our input.
         (_, None) => Ok(()),
+        // The operation is available, and requires 0 or 1 arguments.
+        // We do not need to unify these values, since operations which 'take' 0 arguments
+        // will be of enum type Op::Bare and operations which take 1 argument, are
+        // already in their correct state (after all, we receive one argument of an operation at
+        // a time).
         (0, Some(values)) | (1, Some(values)) => {
             tree.extend(values);
             Ok(())
         }
+        // The operation is available, and requires 2 or more arguments.
+        // Since we receive the available values for an operation one at a time (but they will
+        // have an index); you can look at them as a stand alone list of values, we need to combine
+        // the values to the amount of arguments which each operation takes.
+        // So, if we have an operation X which takes two arguments, and we receive the values
+        // [1, 2, 3, 4] for that operation, it could be that the operation was 'called' twice by the
+        // user (namely, once with arguments 1 and 2, and once with 3 and 4. We check whether that is
+        // actually the cases by checking whether the indices of these arguments are incremental.
+        // That is, if the argument value 1 has index 6, argument value 2 should have index 6+1=7.
+        // And then if argument value 3 has index 21, argument value 4 should have index 21+1=22.
+        // The input by a user could look like `sic -i in -o out --my-operation-X 1 2 (...) --my-operation-X 3 4 (...)`.
         (n, Some(values)) => tree_extend_unifiable(tree, values, n),
     }
 }
@@ -199,14 +289,14 @@ fn tree_extend_unifiable(
     nodes: IndexedOps,
     size: usize,
 ) -> Result<(), String> {
-    let unified = unify_multiple_values(nodes, size)?;
+    let unified = unify_arguments_of_operation(nodes, size)?;
     tree.extend(unified);
     Ok(())
 }
 
 /// Chunk provided values and try to unify each chunk to a single [Op].
 /// Requires each chunk to be of the size of the `size` argument.
-fn unify_multiple_values(nodes: IndexedOps, size: usize) -> Result<IndexedOps, String> {
+fn unify_arguments_of_operation(nodes: IndexedOps, size: usize) -> Result<IndexedOps, String> {
     assert_ne!(size, 0);
 
     let chunks = nodes.chunks(size).clone();
@@ -262,7 +352,7 @@ fn unify_chunk(
                     let unified_op = node.1;
                     let current_op = current.1;
                     match (unified_op, current_op) {
-                        (Op::WithValues(_, id, mut values), Op::WithValues(_, _, values2)) => {
+                        (Op::WithValues(id, mut values), Op::WithValues(_id2, values2)) => {
                             values.extend(values2);
 
                             // the [Op] consist of:
@@ -277,7 +367,7 @@ fn unify_chunk(
                             //                  the unified [Op] with a new provided image operation
                             //                  argument
                             // )
-                            let updated_op = Op::WithValues(current.0, id, values);
+                            let updated_op = Op::WithValues(id, values);
 
                             // Package it as an [IndexedOpNode]
                             let new_last = (current.0, updated_op);
@@ -309,10 +399,8 @@ mod test_unification {
             let mut tree: IndexTree = BTreeMap::new();
             assert!(tree.is_empty());
 
-            let blur: IndexedOps = vec![(
-                0,
-                Op::WithValues(0, OperationId::Blur, vec!["1".to_string()]),
-            )];
+            let blur: IndexedOps =
+                vec![(0, Op::WithValues(OperationId::Blur, vec!["1".to_string()]))];
             let res = tree_extend_unifiable(&mut tree, blur, 1);
 
             assert!(res.is_ok());
@@ -328,22 +416,10 @@ mod test_unification {
             // the `tree_extend_unifiable` function doesn't care about the operation id.
             // Nor about the Index within Op(index,..,..).
             let blur: IndexedOps = vec![
-                (
-                    0,
-                    Op::WithValues(0, OperationId::Blur, vec!["1".to_string()]),
-                ),
-                (
-                    1,
-                    Op::WithValues(0, OperationId::Blur, vec!["1".to_string()]),
-                ),
-                (
-                    2,
-                    Op::WithValues(0, OperationId::Blur, vec!["1".to_string()]),
-                ),
-                (
-                    3,
-                    Op::WithValues(0, OperationId::Blur, vec!["1".to_string()]),
-                ),
+                (0, Op::WithValues(OperationId::Blur, vec!["1".to_string()])),
+                (1, Op::WithValues(OperationId::Blur, vec!["1".to_string()])),
+                (2, Op::WithValues(OperationId::Blur, vec!["1".to_string()])),
+                (3, Op::WithValues(OperationId::Blur, vec!["1".to_string()])),
             ];
             let res = tree_extend_unifiable(&mut tree, blur, 4);
 
@@ -360,22 +436,10 @@ mod test_unification {
             // the `tree_extend_unifiable` function doesn't care about the operation id.
             // Nor about the Index within Op(index,..,..).
             let blur: IndexedOps = vec![
-                (
-                    0,
-                    Op::WithValues(0, OperationId::Blur, vec!["1".to_string()]),
-                ),
-                (
-                    1,
-                    Op::WithValues(0, OperationId::Blur, vec!["1".to_string()]),
-                ),
-                (
-                    2,
-                    Op::WithValues(0, OperationId::Blur, vec!["1".to_string()]),
-                ),
-                (
-                    3,
-                    Op::WithValues(0, OperationId::Blur, vec!["1".to_string()]),
-                ),
+                (0, Op::WithValues(OperationId::Blur, vec!["1".to_string()])),
+                (1, Op::WithValues(OperationId::Blur, vec!["1".to_string()])),
+                (2, Op::WithValues(OperationId::Blur, vec!["1".to_string()])),
+                (3, Op::WithValues(OperationId::Blur, vec!["1".to_string()])),
             ];
             let res = tree_extend_unifiable(&mut tree, blur, 2);
 
@@ -388,22 +452,10 @@ mod test_unification {
             let mut tree: IndexTree = BTreeMap::new();
 
             let blur: IndexedOps = vec![
-                (
-                    0,
-                    Op::WithValues(0, OperationId::Blur, vec!["1".to_string()]),
-                ),
-                (
-                    2,
-                    Op::WithValues(0, OperationId::Blur, vec!["1".to_string()]),
-                ),
-                (
-                    2,
-                    Op::WithValues(0, OperationId::Blur, vec!["1".to_string()]),
-                ),
-                (
-                    3,
-                    Op::WithValues(0, OperationId::Blur, vec!["1".to_string()]),
-                ),
+                (0, Op::WithValues(OperationId::Blur, vec!["1".to_string()])),
+                (2, Op::WithValues(OperationId::Blur, vec!["1".to_string()])),
+                (2, Op::WithValues(OperationId::Blur, vec!["1".to_string()])),
+                (3, Op::WithValues(OperationId::Blur, vec!["1".to_string()])),
             ];
             let res = tree_extend_unifiable(&mut tree, blur, 4);
 
@@ -415,18 +467,9 @@ mod test_unification {
             let mut tree: IndexTree = BTreeMap::new();
 
             let blur: IndexedOps = vec![
-                (
-                    0,
-                    Op::WithValues(0, OperationId::Blur, vec!["1".to_string()]),
-                ),
-                (
-                    1,
-                    Op::WithValues(0, OperationId::Blur, vec!["1".to_string()]),
-                ),
-                (
-                    2,
-                    Op::WithValues(0, OperationId::Blur, vec!["1".to_string()]),
-                ),
+                (0, Op::WithValues(OperationId::Blur, vec!["1".to_string()])),
+                (1, Op::WithValues(OperationId::Blur, vec!["1".to_string()])),
+                (2, Op::WithValues(OperationId::Blur, vec!["1".to_string()])),
             ];
             let res = tree_extend_unifiable(&mut tree, blur, 4);
 
@@ -438,26 +481,11 @@ mod test_unification {
             let mut tree: IndexTree = BTreeMap::new();
 
             let blur: IndexedOps = vec![
-                (
-                    0,
-                    Op::WithValues(0, OperationId::Blur, vec!["1".to_string()]),
-                ),
-                (
-                    1,
-                    Op::WithValues(0, OperationId::Blur, vec!["1".to_string()]),
-                ),
-                (
-                    2,
-                    Op::WithValues(0, OperationId::Blur, vec!["1".to_string()]),
-                ),
-                (
-                    3,
-                    Op::WithValues(0, OperationId::Blur, vec!["1".to_string()]),
-                ),
-                (
-                    4,
-                    Op::WithValues(0, OperationId::Blur, vec!["1".to_string()]),
-                ),
+                (0, Op::WithValues(OperationId::Blur, vec!["1".to_string()])),
+                (1, Op::WithValues(OperationId::Blur, vec!["1".to_string()])),
+                (2, Op::WithValues(OperationId::Blur, vec!["1".to_string()])),
+                (3, Op::WithValues(OperationId::Blur, vec!["1".to_string()])),
+                (4, Op::WithValues(OperationId::Blur, vec!["1".to_string()])),
             ];
             let res = tree_extend_unifiable(&mut tree, blur, 4);
 
@@ -469,7 +497,6 @@ mod test_unification {
 #[cfg(test)]
 mod test_tree_extend {
     use super::*;
-    use crate::app::cli::arg_names::*;
     use crate::app::cli::cli;
     use clap::ArgMatches;
     use sic_testing::{setup_output_path, setup_test_image};
@@ -478,10 +505,7 @@ mod test_tree_extend {
 
     fn setup(cmd: &str) -> (ArgMatches, String) {
         let out = output(cmd);
-
         let command = format!("sic -i {} -o {} {}", input().as_str(), out, cmd);
-        dbg!(command.clone());
-
         let split = command.split_ascii_whitespace().collect::<Vec<_>>();
         (cli().get_matches_from_safe(&split).unwrap(), out)
     }
@@ -511,13 +535,13 @@ mod test_tree_extend {
         fn blur_x1_pos() {
             let mut tree: IndexTree = BTreeMap::new();
             let setup = setup("--blur 1.5");
-            let blur: Option<IndexedOps> = op_with_values!(setup.0, OP_BLUR, OperationId::Blur);
-            tree_extend(&mut tree, blur, 1).unwrap();
+            let blur: Option<IndexedOps> = op_with_values!(setup.0, OperationId::Blur);
+            extend_index_tree_with_unification(&mut tree, blur, 1).unwrap();
 
             let out = tree.iter().next().unwrap();
 
             match out.1 {
-                Op::WithValues(_, id, values) => {
+                Op::WithValues(id, values) => {
                     assert_eq!(*id, OperationId::Blur);
                     assert_eq!(*values, vec!["1.5".to_string()]);
                 }
@@ -529,13 +553,13 @@ mod test_tree_extend {
         fn blur_x1_neg() {
             let mut tree: IndexTree = BTreeMap::new();
             let setup = setup("--blur -1.5");
-            let blur: Option<IndexedOps> = op_with_values!(setup.0, OP_BLUR, OperationId::Blur);
-            tree_extend(&mut tree, blur, 1).unwrap();
+            let blur: Option<IndexedOps> = op_with_values!(setup.0, OperationId::Blur);
+            extend_index_tree_with_unification(&mut tree, blur, 1).unwrap();
 
             let out = tree.iter().next().unwrap();
 
             match out.1 {
-                Op::WithValues(_, id, values) => {
+                Op::WithValues(id, values) => {
                     assert_eq!(*id, OperationId::Blur);
                     assert_eq!(*values, vec!["-1.5".to_string()]);
                 }
@@ -552,14 +576,14 @@ mod test_tree_extend {
             let mut tree: IndexTree = BTreeMap::new();
             let setup = setup("--brighten 1");
             let matches = setup.0;
-            let brighten = op_with_values!(matches, OP_BRIGHTEN, OperationId::Brighten);
+            let brighten = op_with_values!(matches, OperationId::Brighten);
             let has = brighten.map(|nodes| tree.extend(nodes));
 
             assert!(has.is_some());
             let out = tree.iter().next().unwrap();
 
             match out.1 {
-                Op::WithValues(_, id, values) => {
+                Op::WithValues(id, values) => {
                     assert_eq!(*id, OperationId::Brighten);
                     assert_eq!(*values, vec!["1".to_string()]);
                 }
@@ -572,14 +596,14 @@ mod test_tree_extend {
             let mut tree: IndexTree = BTreeMap::new();
             let setup = setup("--brighten -1");
             let matches = setup.0;
-            let brighten = op_with_values!(matches, OP_BRIGHTEN, OperationId::Brighten);
+            let brighten = op_with_values!(matches, OperationId::Brighten);
             let has = brighten.map(|nodes| tree.extend(nodes));
 
             assert!(has.is_some());
             let out = tree.iter().next().unwrap();
 
             match out.1 {
-                Op::WithValues(_, id, values) => {
+                Op::WithValues(id, values) => {
                     assert_eq!(*id, OperationId::Brighten);
                     assert_eq!(*values, vec!["-1".to_string()]);
                 }
@@ -594,14 +618,14 @@ mod test_tree_extend {
             let mut tree: IndexTree = BTreeMap::new();
             let setup = setup("--contrast 1.5");
             let matches = setup.0;
-            let contrast = op_with_values!(matches, OP_CONTRAST, OperationId::Contrast);
+            let contrast = op_with_values!(matches, OperationId::Contrast);
             let has = contrast.map(|nodes| tree.extend(nodes));
 
             assert!(has.is_some());
             let out = tree.iter().next().unwrap();
 
             match out.1 {
-                Op::WithValues(_, id, values) => {
+                Op::WithValues(id, values) => {
                     assert_eq!(*id, OperationId::Contrast);
                     assert_eq!(*values, vec!["1.5".to_string()]);
                 }
@@ -616,14 +640,14 @@ mod test_tree_extend {
             let mut tree: IndexTree = BTreeMap::new();
             let setup = setup("--contrast -1.5");
             let matches = setup.0;
-            let contrast = op_with_values!(matches, OP_CONTRAST, OperationId::Contrast);
+            let contrast = op_with_values!(matches, OperationId::Contrast);
             let has = contrast.map(|nodes| tree.extend(nodes));
 
             assert!(has.is_some());
             let out = tree.iter().next().unwrap();
 
             match out.1 {
-                Op::WithValues(_, id, values) => {
+                Op::WithValues(id, values) => {
                     assert_eq!(*id, OperationId::Contrast);
                     assert_eq!(*values, vec!["-1.5".to_string()]);
                 }
@@ -640,13 +664,13 @@ mod test_tree_extend {
             let mut tree: IndexTree = BTreeMap::new();
             let setup = setup("--crop 1 2 3 4");
             let matches = setup.0;
-            let crop = op_with_values!(matches, OP_CROP, OperationId::Crop);
-            tree_extend(&mut tree, crop, 4).unwrap();
+            let crop = op_with_values!(matches, OperationId::Crop);
+            extend_index_tree_with_unification(&mut tree, crop, 4).unwrap();
 
             let out = tree.iter().next().unwrap();
 
             match out.1 {
-                Op::WithValues(_, id, values) => {
+                Op::WithValues(id, values) => {
                     assert_eq!(*id, OperationId::Crop);
                     assert_eq!(
                         *values,
@@ -675,13 +699,13 @@ mod test_tree_extend {
             let mut tree: IndexTree = BTreeMap::new();
             let setup = setup("--filter3x3 1 2 3 4 5.5 6 7 8 9");
             let matches = setup.0;
-            let filter3x3 = op_with_values!(matches, OP_FILTER3X3, OperationId::Filter3x3);
-            tree_extend(&mut tree, filter3x3, 9).unwrap();
+            let filter3x3 = op_with_values!(matches, OperationId::Filter3x3);
+            extend_index_tree_with_unification(&mut tree, filter3x3, 9).unwrap();
 
             let out = tree.iter().next().unwrap();
 
             let (id, values) = match out {
-                (_, Op::WithValues(_, id, values)) => (id, values),
+                (_, Op::WithValues(id, values)) => (id, values),
                 _ => panic!("unexpected test error"),
             };
 
@@ -700,13 +724,13 @@ mod test_tree_extend {
             let mut tree: IndexTree = BTreeMap::new();
             let setup = setup("--filter3x3 1 2 3 4 -5.5 6 7 8 9");
             let matches = setup.0;
-            let filter3x3 = op_with_values!(matches, OP_FILTER3X3, OperationId::Filter3x3);
-            tree_extend(&mut tree, filter3x3, 9).unwrap();
+            let filter3x3 = op_with_values!(matches, OperationId::Filter3x3);
+            extend_index_tree_with_unification(&mut tree, filter3x3, 9).unwrap();
 
             let out = tree.iter().next().unwrap();
 
             let (id, values) = match out {
-                (_, Op::WithValues(_, id, values)) => (id, values),
+                (_, Op::WithValues(id, values)) => (id, values),
                 _ => panic!("unexpected test error"),
             };
 
@@ -729,7 +753,7 @@ mod test_tree_extend {
             let mut tree: IndexTree = BTreeMap::new();
             let setup = setup("--flip-horizontal");
             let matches = setup.0;
-            let fliph = op_valueless!(matches, OP_FLIP_HORIZONTAL, OperationId::FlipH);
+            let fliph = op_valueless!(matches, OperationId::FlipH);
             let has = fliph.map(|nodes| tree.extend(nodes));
 
             assert!(has.is_some());
@@ -737,7 +761,7 @@ mod test_tree_extend {
             let out = tree.iter().next().unwrap();
 
             let id = match out {
-                (_, Op::Bare(_, id)) => *id,
+                (_, Op::Bare(id)) => *id,
                 _ => panic!("unexpected test error"),
             };
 
@@ -753,7 +777,7 @@ mod test_tree_extend {
             let mut tree: IndexTree = BTreeMap::new();
             let setup = setup("--flip-vertical");
             let matches = setup.0;
-            let flipv = op_valueless!(matches, OP_FLIP_VERTICAL, OperationId::FlipV);
+            let flipv = op_valueless!(matches, OperationId::FlipV);
             let has = flipv.map(|nodes| tree.extend(nodes));
 
             assert!(has.is_some());
@@ -761,7 +785,7 @@ mod test_tree_extend {
             let out = tree.iter().next().unwrap();
 
             let id = match out {
-                (_, Op::Bare(_, id)) => *id,
+                (_, Op::Bare(id)) => *id,
                 _ => panic!("unexpected test error"),
             };
 
@@ -777,7 +801,7 @@ mod test_tree_extend {
             let mut tree: IndexTree = BTreeMap::new();
             let setup = setup("--grayscale");
             let matches = setup.0;
-            let grayscale = op_valueless!(matches, OP_GRAYSCALE, OperationId::Grayscale);
+            let grayscale = op_valueless!(matches, OperationId::Grayscale);
             let has = grayscale.map(|nodes| tree.extend(nodes));
 
             assert!(has.is_some());
@@ -785,7 +809,7 @@ mod test_tree_extend {
             let out = tree.iter().next().unwrap();
 
             let id = match out {
-                (_, Op::Bare(_, id)) => *id,
+                (_, Op::Bare(id)) => *id,
                 _ => panic!("unexpected test error"),
             };
 
@@ -801,13 +825,13 @@ mod test_tree_extend {
             let mut tree: IndexTree = BTreeMap::new();
             let setup = setup("--hue-rotate 1");
             let matches = setup.0;
-            let hue_rotate = op_with_values!(matches, OP_HUE_ROTATE, OperationId::HueRotate);
-            tree_extend(&mut tree, hue_rotate, 1).unwrap();
+            let hue_rotate = op_with_values!(matches, OperationId::HueRotate);
+            extend_index_tree_with_unification(&mut tree, hue_rotate, 1).unwrap();
 
             let out = tree.iter().next().unwrap();
 
             let (id, values) = match out {
-                (_, Op::WithValues(_, id, values)) => (id, values),
+                (_, Op::WithValues(id, values)) => (id, values),
                 _ => panic!("unexpected test error"),
             };
 
@@ -826,13 +850,13 @@ mod test_tree_extend {
             let mut tree: IndexTree = BTreeMap::new();
             let setup = setup("--hue-rotate -1");
             let matches = setup.0;
-            let hue_rotate = op_with_values!(matches, OP_HUE_ROTATE, OperationId::HueRotate);
-            tree_extend(&mut tree, hue_rotate, 1).unwrap();
+            let hue_rotate = op_with_values!(matches, OperationId::HueRotate);
+            extend_index_tree_with_unification(&mut tree, hue_rotate, 1).unwrap();
 
             let out = tree.iter().next().unwrap();
 
             let (id, values) = match out {
-                (_, Op::WithValues(_, id, values)) => (id, values),
+                (_, Op::WithValues(id, values)) => (id, values),
                 _ => panic!("unexpected test error"),
             };
 
@@ -856,13 +880,13 @@ mod test_tree_extend {
             let op_id = OperationId::Invert;
             let setup = setup("--invert");
             let matches = setup.0;
-            let op = op_valueless!(matches, OP_INVERT, op_id);
-            tree_extend(&mut tree, op, 0).unwrap();
+            let op = op_valueless!(matches, op_id);
+            extend_index_tree_with_unification(&mut tree, op, 0).unwrap();
 
             let out = tree.iter().next().unwrap();
 
             let id = match out {
-                (_, Op::Bare(_, id)) => *id,
+                (_, Op::Bare(id)) => *id,
                 _ => panic!("unexpected test error"),
             };
 
@@ -878,13 +902,13 @@ mod test_tree_extend {
             let mut tree: IndexTree = BTreeMap::new();
             let setup = setup("--resize 1 2");
             let matches = setup.0;
-            let resize = op_with_values!(matches, OP_RESIZE, OperationId::Resize);
-            tree_extend(&mut tree, resize, 2).unwrap();
+            let resize = op_with_values!(matches, OperationId::Resize);
+            extend_index_tree_with_unification(&mut tree, resize, 2).unwrap();
 
             let out = tree.iter().next().unwrap();
 
             let (id, values) = match out {
-                (_, Op::WithValues(_, id, values)) => (id, values),
+                (_, Op::WithValues(id, values)) => (id, values),
                 _ => panic!("unexpected test error"),
             };
 
@@ -927,13 +951,13 @@ mod test_tree_extend {
             let setup = setup("--rotate90");
             let matches = setup.0;
 
-            let rotate90 = op_valueless!(matches, OP_ROTATE90, OperationId::Rotate90);
+            let rotate90 = op_valueless!(matches, OperationId::Rotate90);
             let has = rotate90.map(|nodes| tree.extend(nodes));
             assert!(has.is_some());
 
             let out = tree.iter().next().unwrap();
             let id = match out {
-                (_, Op::Bare(_, id)) => *id,
+                (_, Op::Bare(id)) => *id,
                 _ => panic!("unexpected test error"),
             };
             assert_eq!(id, op_id);
@@ -950,13 +974,13 @@ mod test_tree_extend {
             let setup = setup("--rotate180");
             let matches = setup.0;
 
-            let rotate180 = op_valueless!(matches, OP_ROTATE180, OperationId::Rotate180);
+            let rotate180 = op_valueless!(matches, OperationId::Rotate180);
             let has = rotate180.map(|nodes| tree.extend(nodes));
             assert!(has.is_some());
 
             let out = tree.iter().next().unwrap();
             let id = match out {
-                (_, Op::Bare(_, id)) => *id,
+                (_, Op::Bare(id)) => *id,
                 _ => panic!("unexpected test error"),
             };
             assert_eq!(id, op_id);
@@ -973,13 +997,13 @@ mod test_tree_extend {
             let setup = setup("--rotate270");
             let matches = setup.0;
 
-            let rotate270 = op_valueless!(matches, OP_ROTATE270, OperationId::Rotate270);
+            let rotate270 = op_valueless!(matches, OperationId::Rotate270);
             let has = rotate270.map(|nodes| tree.extend(nodes));
             assert!(has.is_some());
 
             let out = tree.iter().next().unwrap();
             let id = match out {
-                (_, Op::Bare(_, id)) => *id,
+                (_, Op::Bare(id)) => *id,
                 _ => panic!("unexpected test error"),
             };
             assert_eq!(id, op_id);
@@ -994,13 +1018,13 @@ mod test_tree_extend {
             let mut tree: IndexTree = BTreeMap::new();
             let setup = setup("--unsharpen 1 2");
             let matches = setup.0;
-            let unsharpen = op_with_values!(matches, OP_UNSHARPEN, OperationId::Unsharpen);
-            tree_extend(&mut tree, unsharpen, 2).unwrap();
+            let unsharpen = op_with_values!(matches, OperationId::Unsharpen);
+            extend_index_tree_with_unification(&mut tree, unsharpen, 2).unwrap();
 
             let out = tree.iter().next().unwrap();
 
             let (id, values) = match out {
-                (_, Op::WithValues(_, id, values)) => (id, values),
+                (_, Op::WithValues(id, values)) => (id, values),
                 _ => panic!("unexpected test error"),
             };
 
@@ -1019,13 +1043,13 @@ mod test_tree_extend {
             let mut tree: IndexTree = BTreeMap::new();
             let setup = setup("--unsharpen -1.5 2");
             let matches = setup.0;
-            let unsharpen = op_with_values!(matches, OP_UNSHARPEN, OperationId::Unsharpen);
-            tree_extend(&mut tree, unsharpen, 2).unwrap();
+            let unsharpen = op_with_values!(matches, OperationId::Unsharpen);
+            extend_index_tree_with_unification(&mut tree, unsharpen, 2).unwrap();
 
             let out = tree.iter().next().unwrap();
 
             let (id, values) = match out {
-                (_, Op::WithValues(_, id, values)) => (id, values),
+                (_, Op::WithValues(id, values)) => (id, values),
                 _ => panic!("unexpected test error"),
             };
 
@@ -1044,13 +1068,13 @@ mod test_tree_extend {
             let mut tree: IndexTree = BTreeMap::new();
             let setup = setup("--unsharpen 1.5 -2");
             let matches = setup.0;
-            let unsharpen = op_with_values!(matches, OP_UNSHARPEN, OperationId::Unsharpen);
-            tree_extend(&mut tree, unsharpen, 2).unwrap();
+            let unsharpen = op_with_values!(matches, OperationId::Unsharpen);
+            extend_index_tree_with_unification(&mut tree, unsharpen, 2).unwrap();
 
             let out = tree.iter().next().unwrap();
 
             let (id, values) = match out {
-                (_, Op::WithValues(_, id, values)) => (id, values),
+                (_, Op::WithValues(id, values)) => (id, values),
                 _ => panic!("unexpected test error"),
             };
 
@@ -1069,13 +1093,13 @@ mod test_tree_extend {
             let mut tree: IndexTree = BTreeMap::new();
             let setup = setup("--unsharpen -1.5 -2");
             let matches = setup.0;
-            let unsharpen = op_with_values!(matches, OP_UNSHARPEN, OperationId::Unsharpen);
-            tree_extend(&mut tree, unsharpen, 2).unwrap();
+            let unsharpen = op_with_values!(matches, OperationId::Unsharpen);
+            extend_index_tree_with_unification(&mut tree, unsharpen, 2).unwrap();
 
             let out = tree.iter().next().unwrap();
 
             let (id, values) = match out {
-                (_, Op::WithValues(_, id, values)) => (id, values),
+                (_, Op::WithValues(id, values)) => (id, values),
                 _ => panic!("unexpected test error"),
             };
 
@@ -1098,17 +1122,13 @@ mod test_tree_extend {
             let mut tree: IndexTree = BTreeMap::new();
             let setup = setup("--set-resize-preserve-aspect-ratio true");
             let matches = setup.0;
-            let op = op_with_values!(
-                matches,
-                OPMOD_RESIZE_PRESERVE_ASPECT_RATIO,
-                OperationId::ModResizePreserveAspectRatio
-            );
-            tree_extend(&mut tree, op, 1).unwrap();
+            let op = op_with_values!(matches, OperationId::ModResizePreserveAspectRatio);
+            extend_index_tree_with_unification(&mut tree, op, 1).unwrap();
 
             let out = tree.iter().next().unwrap();
 
             let (id, values) = match out {
-                (_, Op::WithValues(_, id, values)) => (id, values),
+                (_, Op::WithValues(id, values)) => (id, values),
                 _ => panic!("unexpected test error"),
             };
 
@@ -1127,17 +1147,13 @@ mod test_tree_extend {
             let mut tree: IndexTree = BTreeMap::new();
             let setup = setup("--set-resize-preserve-aspect-ratio false");
             let matches = setup.0;
-            let op = op_with_values!(
-                matches,
-                OPMOD_RESIZE_PRESERVE_ASPECT_RATIO,
-                OperationId::ModResizePreserveAspectRatio
-            );
-            tree_extend(&mut tree, op, 1).unwrap();
+            let op = op_with_values!(matches, OperationId::ModResizePreserveAspectRatio);
+            extend_index_tree_with_unification(&mut tree, op, 1).unwrap();
 
             let out = tree.iter().next().unwrap();
 
             let (id, values) = match out {
-                (_, Op::WithValues(_, id, values)) => (id, values),
+                (_, Op::WithValues(id, values)) => (id, values),
                 _ => panic!("unexpected test error"),
             };
 
@@ -1164,17 +1180,13 @@ mod test_tree_extend {
         fn test<'a>(setup: (ArgMatches, String), expect: &str) {
             let mut tree: IndexTree = BTreeMap::new();
             let matches = setup.0;
-            let op = op_with_values!(
-                matches,
-                OPMOD_RESIZE_SAMPLING_FILTER,
-                OperationId::ModResizeSamplingFilter
-            );
-            tree_extend(&mut tree, op, 1).unwrap();
+            let op = op_with_values!(matches, OperationId::ModResizeSamplingFilter);
+            extend_index_tree_with_unification(&mut tree, op, 1).unwrap();
 
             let out = tree.iter().next().unwrap();
 
             let (a, b) = match out {
-                (_, Op::WithValues(_, id, values)) => (id, values),
+                (_, Op::WithValues(id, values)) => (id, values),
                 _ => panic!("unexpected test error"),
             };
 
@@ -1199,12 +1211,6 @@ mod test_tree_extend {
         #[test]
         fn set_gaussian() {
             let setup = setup("--set-resize-sampling-filter gaussian");
-            test(setup, "gaussian");
-        }
-
-        #[test]
-        fn set_default() {
-            let setup = setup("--set-resize-sampling-filter");
             test(setup, "gaussian");
         }
 
