@@ -21,21 +21,13 @@ impl<'a> From<&'a String> for Describable<'a> {
     }
 }
 
-/// This second iteration of the parse trait should help with unifying the
+/// This iteration of the parse trait should help with unifying the
 /// Pest parsing and cli ops arguments directly from &str.
 ///
 /// From Pest we receive iterators, but we can use as_str, to request &str values.
 /// We'll try to use this to map the received values as_str, and then we'll have
 /// a similar structure as the image operation arguments from the cli (we receive these
 /// eventually as Vec<&str>, thus iterable.
-///
-/// The problem of ParseFromStr is that we stitch the str we receive together at this moment (
-/// i.e. we concatenate the arguments to a single string, and parse that by splitting it again;
-/// sounds unnecessary eh?).
-///
-/// NB: That is if, ParseFromStr will ever be committed to the tree of course =).
-///     As reference, it is similar to FromStr::from_str, but implementable since defined within
-///     this crate (this module even :D).
 pub trait ParseInputsFromIter {
     type Error;
 
