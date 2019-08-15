@@ -93,101 +93,100 @@ _legend_:
 
 _Image operation example usage:_
 
-**blur** example:
-
-`sic -i in.png -o out.png --apply-operations "blur 1.3;"`
-or
+**blur** example: <br>
+`sic -i in.png -o out.png --apply-operations "blur 1.3;"` <br>
+or <br>
 `sic -i in.png -o out.png --blur 1.3`
 
-**brighten** example:
-`sic -i in.png -o out.png --apply-operations "brighten 2;"`
-or
+**brighten** example: <br>
+`sic -i in.png -o out.png --apply-operations "brighten 2;"` <br>
+or <br>
 `sic -i in.png -o out.png --brighten 2`
 
-**contrast** example:
-`sic -i in.png -o out.png --apply-operations "contrast 0.7;"`
-or
+**contrast** example: <br>
+`sic -i in.png -o out.png --apply-operations "contrast 0.7;"` <br>
+or <br>
 `sic -i in.png -o out.png --contrast 0.7`
 
 
-**crop** example:
-`sic -i in.png -o out.png --apply-operations "crop 0 0 10 10;"`
-or
+**crop** example: <br>
+`sic -i in.png -o out.png --apply-operations "crop 0 0 10 10;"` <br>
+or <br>
 `sic -i in.png -o out.png --crop 0 0 10 10`
 
 
-**filter3x3** example:
-`sic -i in.png -o out.png --apply-operations "filter3x3 1.0 1.0 1.0 0 0 0 0.5 0.5 0.5"`
-or
+**filter3x3** example: <br>
+`sic -i in.png -o out.png --apply-operations "filter3x3 1.0 1.0 1.0 0 0 0 0.5 0.5 0.5"` <br>
+or <br>
 `sic -i in.png -o out.png --filter3x3 1.0 1.0 1.0 0 0 0 0.5 0.5 0.5`
 
 
-**flip horizontal** example:
-`sic -i in.png -o out.png --apply-operations "fliph"`
-or
+**flip horizontal** example: <br>
+`sic -i in.png -o out.png --apply-operations "fliph"` <br>
+or <br>
 `sic -i in.png -o out.png --flip-horizontal`
 
 
-**flip vertical** example:
-`sic -i in.png -o out.png --apply-operations "flipv"`
-or
+**flip vertical** example: <br>
+`sic -i in.png -o out.png --apply-operations "flipv"` <br>
+or <br>
 `sic -i in.png -o out.png --flip-vertical`
 
 
-**gray scale** example:
-`sic -i in.png -o out.png --apply-operations "grayscale"`
-or
+**gray scale** example: <br>
+`sic -i in.png -o out.png --apply-operations "grayscale"` <br>
+or <br>
 `sic -i in.png -o out.png --grayscale`
 
 
-**hue rotate** example:
-`sic -i in.png -o out.png --apply-operations "huerotate -90"`
-or
+**hue rotate** example: <br>
+`sic -i in.png -o out.png --apply-operations "huerotate -90"` <br>
+or <br>
 `sic -i in.png -o out.png --hue-rotate -90`
 
-**invert** example:
-`sic -i in.png -o out.png --apply-operations "invert"`
-or
+**invert** example: <br>
+`sic -i in.png -o out.png --apply-operations "invert"` <br>
+or <br>
 `sic -i in.png -o out.png --invert`
 
-**resize** example:
-`sic -i in.png -o out.png --apply-operations "resize 100 100"`
-or
+**resize** example: <br>
+`sic -i in.png -o out.png --apply-operations "resize 100 100"` <br>
+or <br>
 `sic -i in.png -o out.png --resize 100 100`
 
-**resize** with **preserve aspect ratio** example:
-`sic -i in.png -o out.png --apply-operations "set resize preserve_aspect_ratio; resize 100 100"`
-or
+**resize** with **preserve aspect ratio** example: <br>
+`sic -i in.png -o out.png --apply-operations "set resize preserve_aspect_ratio; resize 100 100"` <br>
+or <br>
 `sic -i in.png -o out.png --set-resize-preserve-aspect-ratio --resize 100 100`
 
-**resize** with **custom sampling filter** (default is 'gaussian') example:
-`sic -i in.png -o out.png --apply-operations "set resize sampling_filter triangle; resize 100 100"`
-or
+**resize** with **custom sampling filter** (default is 'gaussian') example: <br>
+`sic -i in.png -o out.png --apply-operations "set resize sampling_filter triangle; resize 100 100"` <br>
+or <br>
 `sic -i in.png -o out.png --set-resize-sampling-filter triangle --resize 100 100`
 
-**rotate 90 degree** example:
-`sic -i in.png -o out.png --apply-operations "rotate90"`
-or
+**rotate 90 degree** example: <br>
+`sic -i in.png -o out.png --apply-operations "rotate90"` <br>
+or <br>
 `sic -i in.png -o out.png --rotate90`
 
-**rotate 180 degree** example:
-`sic -i in.png -o out.png --apply-operations "rotate180"`
-or
+**rotate 180 degree** example: <br>
+`sic -i in.png -o out.png --apply-operations "rotate180"` <br>
+or <br>
 `sic -i in.png -o out.png --rotate180`
 
-**rotate 270 degree** example:
-`sic -i in.png -o out.png --apply-operations "rotate270"`
-or
+**rotate 270 degree** example: <br>
+`sic -i in.png -o out.png --apply-operations "rotate270"` <br>
+or <br>
 `sic -i in.png -o out.png --rotate270`
 
-**unsharpen** example:
-`sic -i in.png -o out.png --apply-operations "unsharpen -0.7 1"`
-or
+**unsharpen** example: <br>
+`sic -i in.png -o out.png --apply-operations "unsharpen -0.7 1"` <br>
+or <br>
 `sic -i in.png -o out.png --unsharpen -0.7 1`
 
-example with multiple image operations combined:
-`sic -i in.png -o out.png --apply-operations "rotate180; fliph; set resize sampling_filter nearest; resize 75 80 huerotate 75"`
-or
+example with multiple image operations combined: <br>
+`sic -i in.png -o out.png --apply-operations "rotate180; fliph; set resize sampling_filter nearest; resize 75 80 huerotate 75"` <br>
+or <br>
 `sic -i in.png -o out.png --rotate180 --flip-horizontal --set-resize-sampling-filter nearest --resize 75 80 --hue-rotate 75`
 
 
