@@ -39,13 +39,16 @@ From the source:
 Supported image output formats are (as of 0.8.0): `bmp`, `gif`, `ico`, `jpg` (or `jpeg`), `png`, `pbm`, `pgm`, `ppm` and `pam`.
 The JPEG quality can optionally be set with `--jpeg-encoding-quality <value>` (value should be an integer from 1 up to (including) 100). Default value if not user overridden is 80.
 PNM (PBM, PGM, PPM) by default uses binary encoding (PNM P4, P5 and P6 respectively). To use ascii encoding, provide the following flag:
-`--pnm-encoding-ascii`. 
+`--pnm-encoding-ascii`.
 
 <br>
 
 **Apply image operations to an image.**
 * In general: `sic --apply-operations "<operations>" <input> <output> ` (shorthand: `-x` or `-A`) 
-* Example `sic input.png output.jpg --apply-operations "fliph; blur 10; resize 250 250"`
+* Example `sic -i input.png -o output.jpg --apply-operations "fliph; blur 10; resize 250 250"`
+Alternatively from release 0.10.0, you can also use image operations as cli arguments. The example above then becomes:
+* `sic -i input.png -o output.jpg --flip-horizontal --blur 10 --resize 250 250`
+* Note that image operation cli arguments can not be combined with --apply-operations.
 
 When more than one image operation is provided, the separator `;` should be used 
 between each operation.
@@ -57,16 +60,16 @@ The available image operations are:
 |blur               | `blur <fp>`                           | Yes (0.5.0) 	    | Performs a Gaussian blur on the image ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.blur.html)). An argument below `0.0`, will use `1.0` instead. |
 |brighten           | `brighten <int>`                      | Yes (0.7.0) 	    | |
 |contrast           | `contrast <fp>`                       | Yes (0.7.0) 	    | |
-|crop               | `crop <int> <int> <int> <int>`        | Yes (0.9.0)       | Syntax: `crop <lx> <ly> <rx> <ry>`, where `lx` is top left corner x coordinate starting at 0, `ly` is the top left corner y coordinate starting at 0, `rx` is the  bottom right corner x coordinate and `ry` is the bottom right corner y coordinate. `rx` and `ry` should be larger than `lx` and `ly` respectively. |
+|crop               | `crop <int> <int> <int> <int>`        | Yes (0.9.0)       | Syntax: `crop <lx> <ly> <rx> <ry>`, where `lx` is top left corner x pixel coordinate starting at 0, `ly` is the top left corner y pixel coordinate starting at 0, `rx` is the  bottom right corner x pixel coordinate and `ry` is the bottom right corner y pixel coordinate. `rx` and `ry` should be larger than `lx` and `ly` respectively. |
 |filter3x3          | `filter3x3 <args9>`                   | Yes (0.7.0)       | |
 |flip horizontal    | `fliph`                               | Yes (0.5.0) 	    | Flips the image on the horizontal axis. |
 |flip vertical      | `flipv`                               | Yes (0.5.0) 	    | Flips the image on the vertical axis. |
 |gray scale         | `grayscale`                           | Yes (0.7.0) 	    | |
 |hue rotate         | `huerotate <int>`                     | Yes (0.7.0) 	    | Rotate's the hue, argument is in degrees. Rotates `<int>%360` degrees. |
 |invert             | `invert`                              | Yes (0.7.0) 	    | |
-|resize             | `resize <uint> <uint>`                | Yes (0.5.0) 	    | Resize the image using a selecteds sampling filter, which defaults to the Gaussian sampling filter. Use  |
-| >                 | `set resize preserve_aspect_ratio`    | Yes (0.9.0)       | Enables preservation of the aspect ratio. |
-| >                 | `set resize sampling_filter <value>`  | Yes (0.9.0)       | Valid `<value>` choices are `catmullrom`, `gaussian`,`lanczos3`,`nearest`,`triangle`. |
+|resize             | `resize <uint> <uint>`                | Yes (0.5.0) 	    | Resize the image to x by y pixels. Can both up- and downscale. Uses a gaussian sampling filter if no override value is set. |
+| >                 | `set resize preserve_aspect_ratio`    | Yes (0.9.0)       | Enables preservation of the aspect ratio when resizing. |
+| >                 | `set resize sampling_filter <value>`  | Yes (0.9.0)       | When resizing use the `<value>` sampling filter. Choices are `catmullrom`, `gaussian`,`lanczos3`,`nearest`,`triangle`. |
 |rotate90           | `rotate90`                            | Yes (0.7.0) 	    | |
 |rotate180          | `rotate180`                           | Yes (0.7.0) 	    | |
 |rotate270          | `rotate270`                           | Yes (0.7.0) 	    | |
@@ -88,96 +91,105 @@ _legend_:
 <args9> means `<fp> <fp> <fp> <fp> <fp> <fp> <fp> <fp> <fp>`.
 ```
 
-_Syntax examples:_
-For each example: each of the lines are valid syntactically and the full examples are valid syntactically as well.
+_Image operation example usage:_
 
 **blur** example:
-```
-blur 10;
-blur 
-```
+
+`sic -i in.png -o out.png --apply-operations "blur 1.3;"`
+or
+`sic -i in.png -o out.png --blur 1.3`
 
 **brighten** example:
-```
-brighten 10;
-brighten -10;
-```
+`sic -i in.png -o out.png --apply-operations "brighten 2;"`
+or
+`sic -i in.png -o out.png --brighten 2`
 
 **contrast** example:
-```
-contrast -10;
-contrast 10;
-contrast 1.35;
-```
+`sic -i in.png -o out.png --apply-operations "contrast 0.7;"`
+or
+`sic -i in.png -o out.png --contrast 0.7`
+
 
 **crop** example:
-```
-crop 0 0 100 100;
-crop 25 50 45 65;
-```
+`sic -i in.png -o out.png --apply-operations "crop 0 0 10 10;"`
+or
+`sic -i in.png -o out.png --crop 0 0 10 10`
+
 
 **filter3x3** example:
-```
-filter3x3 10.0 9.0 8.0 | 7.5 6.5 5.5 | 4 3 2;
-filter3x3 10.0 9.0 8.0 7.5 6.5 5.5 4 3 2;
-filter3x3 12.0 29.0 28 27.5 26 25.5 14 3 2
-```
+`sic -i in.png -o out.png --apply-operations "filter3x3 1.0 1.0 1.0 0 0 0 0.5 0.5 0.5"`
+or
+`sic -i in.png -o out.png --filter3x3 1.0 1.0 1.0 0 0 0 0.5 0.5 0.5`
+
 
 **flip horizontal** example:
-```
-fliph;
-```
+`sic -i in.png -o out.png --apply-operations "fliph"`
+or
+`sic -i in.png -o out.png --flip-horizontal`
+
 
 **flip vertical** example:
-```
-flipv;
-```
+`sic -i in.png -o out.png --apply-operations "flipv"`
+or
+`sic -i in.png -o out.png --flip-vertical`
+
 
 **gray scale** example:
-```
-grayscale;
-```
+`sic -i in.png -o out.png --apply-operations "grayscale"`
+or
+`sic -i in.png -o out.png --grayscale`
+
 
 **hue rotate** example:
-```
-huerotate 10;
-huerotate -10;
-```
+`sic -i in.png -o out.png --apply-operations "huerotate -90"`
+or
+`sic -i in.png -o out.png --hue-rotate -90`
 
 **invert** example:
-```
-invert;
-```
+`sic -i in.png -o out.png --apply-operations "invert"`
+or
+`sic -i in.png -o out.png --invert`
 
 **resize** example:
-```
-resize 10 10;
-resize 1 1;
-resize 80 180;
-```
+`sic -i in.png -o out.png --apply-operations "resize 100 100"`
+or
+`sic -i in.png -o out.png --resize 100 100`
+
+**resize** with **preserve aspect ratio** example:
+`sic -i in.png -o out.png --apply-operations "set resize preserve_aspect_ratio; resize 100 100"`
+or
+`sic -i in.png -o out.png --set-resize-preserve-aspect-ratio --resize 100 100`
+
+**resize** with **custom sampling filter** (default is 'gaussian') example:
+`sic -i in.png -o out.png --apply-operations "set resize sampling_filter triangle; resize 100 100"`
+or
+`sic -i in.png -o out.png --set-resize-sampling-filter triangle --resize 100 100`
 
 **rotate 90 degree** example:
-```
-rotate90;
-```
+`sic -i in.png -o out.png --apply-operations "rotate90"`
+or
+`sic -i in.png -o out.png --rotate90`
 
 **rotate 180 degree** example:
-```
-rotate180;
-```
+`sic -i in.png -o out.png --apply-operations "rotate180"`
+or
+`sic -i in.png -o out.png --rotate180`
 
 **rotate 270 degree** example:
-```
-rotate270;
-```
+`sic -i in.png -o out.png --apply-operations "rotate270"`
+or
+`sic -i in.png -o out.png --rotate270`
 
 **unsharpen** example:
-```
-unsharpen -12.3 -12;
-unsharpen -10.0 12;
-unsharpen 12.3 1;
-unsharpen 10 1;
-```
+`sic -i in.png -o out.png --apply-operations "unsharpen -0.7 1"`
+or
+`sic -i in.png -o out.png --unsharpen -0.7 1`
+
+example with multiple image operations combined:
+`sic -i in.png -o out.png --apply-operations "rotate180; fliph; set resize sampling_filter nearest; resize 75 80 huerotate 75"`
+or
+`sic -i in.png -o out.png --rotate180 --flip-horizontal --set-resize-sampling-filter nearest --resize 75 80 --hue-rotate 75`
+
 
 <br>
 
