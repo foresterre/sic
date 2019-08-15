@@ -126,8 +126,6 @@ fn parse_crop(pair: Pair<'_, Rule>) -> Result<Statement, String> {
     Ok(stmt)
 }
 
-// The code below, should work for parsing the 9 elements of a 3x3 fp32 triplet structure, but
-// let's be honest; this code can't be called beautiful. This should be refactored.
 fn parse_filter3x3(pair: Pair<'_, Rule>) -> Result<Statement, String> {
     let inner = pair.into_inner();
     let arr = ParseInputsFromIter::parse(inner.map(|pair| pair.as_str()))?;
