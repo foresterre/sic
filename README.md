@@ -184,8 +184,8 @@ or <br>
 or <br>
 `sic -i in.png -o out.png --unsharpen -0.7 1`
 
-example with multiple image operations combined: <br>
-`sic -i in.png -o out.png --apply-operations "rotate180; fliph; set resize sampling_filter nearest; resize 75 80 huerotate 75"` <br>
+example with *multiple* image operations which are applied from left-to-right: <br>
+`sic -i in.png -o out.png --apply-operations "rotate180; fliph; set resize sampling_filter nearest; resize 75 80; huerotate 75"` <br>
 or <br>
 `sic -i in.png -o out.png --rotate180 --flip-horizontal --set-resize-sampling-filter nearest --resize 75 80 --hue-rotate 75`
 
