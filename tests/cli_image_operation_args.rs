@@ -111,7 +111,6 @@ mod crop {
         let result = process.wait();
         assert!(result.is_ok());
 
-        // Here we would like to assert_not! instead
         assert_not!(result.unwrap().success());
     }
 
@@ -121,7 +120,6 @@ mod crop {
         let result = process.wait();
         assert!(result.is_ok());
 
-        // Here we would like to assert_not! instead
         assert_not!(result.unwrap().success());
     }
 
@@ -131,7 +129,6 @@ mod crop {
         let result = process.wait();
         assert!(result.is_ok());
 
-        // Here we would like to assert_not! instead
         assert_not!(result.unwrap().success());
     }
 
