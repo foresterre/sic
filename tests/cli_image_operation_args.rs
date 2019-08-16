@@ -1,8 +1,8 @@
 #[macro_use]
 pub mod common;
 
-// These test modules currently only check whether the process they start exit with the success exit
-// code.
+// The following integration test modules currently only check whether the processes they start exit
+// successfully.
 
 #[cfg(test)]
 mod blur {
