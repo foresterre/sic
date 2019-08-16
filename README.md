@@ -44,18 +44,30 @@ PNM (PBM, PGM, PPM) by default uses binary encoding (PNM P4, P5 and P6 respectiv
 <br>
 
 **Apply image operations to an image.**
-* In general: `sic --apply-operations "<operations>" <input> <output> ` (shorthand: `-x` or `-A`) 
-* Example `sic -i input.png -o output.jpg --apply-operations "fliph; blur 10; resize 250 250"`
-Alternatively from release 0.10.0, you can also use image operations as cli arguments. The example above then becomes:
-* `sic -i input.png -o output.jpg --flip-horizontal --blur 10 --resize 250 250`
-* Note that image operation cli arguments can not be combined with --apply-operations.
+As of release 0.10.0, there are two methods to apply image operations on an image.
+The first method is by using the `--apply-operations "<operations>"` (shorthand: `-x` or `-A`) cli argument and providing
+statements which tell `sic` what operations should be applied on the image, for example: <br>
+`sic -i input.jpg -o output.jpg --apply-operations "fliph; blur 10; resize 250 250"` <br>
+When more than one image operation is provided, the separator `;` should be used
+to separate each operation statement. <br>
+Any version of the program prior to 0.10.0 is limited to this method of applying image operations.
 
-When more than one image operation is provided, the separator `;` should be used 
-between each operation.
+
+From release 0.10.0 forward, there is a second method which can be used. This method uses cli arguments to inform
+`sic`, what image operations should be applied in what order. Do note that the order in which these arguments are provided
+ *does* (not in every case though =D) matter.
+
+If we use the _image operations as cli arguments_ method the previously shown example becomes: <br>
+`sic -i input.png -o output.jpg --flip-horizontal --blur 10 --resize 250 250` <br>
+Note that image operation cli arguments can not be combined with --apply-operations. <br>
+
+The image operations are applied left-to-right for both methods. Additionally the methods can not be used both at the same
+time. Either the _--apply-operations_ method or the _image operations as cli arguments_ method should be used.
+
 
 The available image operations are:
 
-|operations|syntax|available (from version)|description|
+|operations|syntax*|available (from version)|description|
 |---|---|---|---|
 |blur               | `blur <fp>`                           | Yes (0.5.0) 	    | Performs a Gaussian blur on the image ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.blur.html)). An argument below `0.0`, will use `1.0` instead. |
 |brighten           | `brighten <int>`                      | Yes (0.7.0) 	    | |
@@ -75,12 +87,15 @@ The available image operations are:
 |rotate270          | `rotate270`                           | Yes (0.7.0) 	    | |
 |unsharpen          | `unsharpen <fp> <int>`                | Yes (0.7.0) 	    | |
 
-For some operations, their behaviour can be (slightly) changed by choosing and enabling an option. These options can be overwritten and they can also be disabled.
+`* The exact syntax applies to the --apply-operations method, but can also be used as a reference for the image operations as cli arguments method.`
+
+
+For some operations, their behaviour can be (slightly) changed by setting an operation modifier. These modifiers can be overwritten and they can also be reset (to their default behaviour).
 
 |environment operation|syntax|available (from version)|description|
 |---|---|---|---|
-|set environment option   | `set <operation> <option-of-operation> [<args 0..n>]` | Yes (0.9.0) | Enables the use of an option by an operation. Any operation which looks at this option will use the selected option value instead of the default value. Can be overwritten by calling `set` again for the same operation and option. |
-|unset environment option | `del <operation> <option-of-operation>`               | Yes (0.9.0) | Disables the use of an option by an operation. Any operation which looks at this option will use the default value instead. |
+|set environment option   | `set <operation> <option-of-operation> [<args 0..n>]` | Yes (0.9.0) | Enables the use of a modifier for an operation. Any operation which uses the value of the modifier will use the set modifier value instead of the default value. Can be overwritten by calling `set` again for the same operation and modifier specifier. |
+|unset environment option | `del <operation> <option-of-operation>`               | Yes (0.9.0) | Resets the modifier value. Any operation which looks at the value of this modifier will use the default value instead.|
 
 _legend_:
 ```
