@@ -1,10 +1,20 @@
-The cli option `--apply-operations <operations>` (`-x <operations>`) provides a declarative way to apply image operations on an image.
-The order in which these operations are applied is left-to-right.
+Image Operations
+================
+
+There are currently two ways to perform image operations on an image.
+The first is by means of the cli option `--apply-operations <operations>` (we abbreviate this method as AOS for apply operations script).
+The second is by means of 'image operations as cli arguments' (this method is currently known and abbreviated as IOCA).
+
+The order in which the operations specified for both methods are applied is left-to-right.
+Note that the you should either use the AOS method, or the IOCA method. It is not allowed to combine the methods.
+
+
 
 Supported operations:
+---------------------
 
 |-------------------|-----------------------------------|------------------|
-| operations        | syntax                            | As of version    |
+| operations        | syntax*                           | As of version    |
 |-------------------|-----------------------------------|------------------|
 |blur               | `blur <uint>`                     | 0.5.0            |
 |brighten           | `brighten <int>`                  | 0.7.0            |
@@ -23,6 +33,10 @@ Supported operations:
 |unsharpen          | `unsharpen <fp> <int>`            | 0.7.0            |
 |-------------------|-----------------------------------|------------------|
 
+* this is the syntax as used by the AOS method. To display an overview of the supported cli arguments which can be used with the
+IOCA method, you can call the program with '--help'. This table can however still be used as a reference on the supported
+image operations and image operation modifiers.
+
 table legend:
 
 <uint> means any 32 bit unsigned integer is required as argument.
@@ -30,25 +44,22 @@ table legend:
 <fp> means any 32 bit floating point number is required as argument.
 <fp9x> means `<fp> <fp> <fp> <fp> <fp> <fp> <fp> <fp> <fp>`.
 
+When using the AOS method, within a script, operation separators (';') are required. Image operations are separated by
+this separator and a required, even if using a multi-line script. The examples below may offer guidance and serve
+as examples on where to use the separator.
 
-Operation separators (';') are required.
-
-Example 1: sic input.png output.png --apply-operations "resize 250 250; blur 5; huerotate -30"
-Example 2: sic input.png output.jpg --apply-operations "flipv; resize 10 5; blur 100; grayscale"
-Example 3: sic input.png output.jpg --apply-operations "filter3x3 1.0 0.9 0.8 0.7 0.6 0.5 0.4 0.3 0.2; flipv; invert"
-
-
-Some image operations have extra options which (slightly) change the behaviour of an operation.
-Options can be set using the following syntax `set <image operation> <option for operation> [<value> 0..n]`.
-Not all options require values to be provided and the amount of values may differ.
-The options can be overwritten by using the `set` command again, and can also be reset to their default by using the `del` command.
-The syntax for the `del` command is as follows: `del <image operation> <option for operation>``
+Some image operations have extra options which may change the behaviour of an operation. We call these options
+image operation modifiers, or modifiers for short.
+Modifiers can be set using the following syntax `set <image operation> <modifier for operation> [<value> 0..n]`.
+Not all modifiers require values to be provided and the required amount of values may differ.
+The modifier settings can be overwritten by using the `set` command again, and can also be reset to their default by
+using the `del` command. The syntax for the `del` command is as follows: `del <image operation> <modifier for operation>`.
 
 
-The available options on image operation are:
+The available image operation modifiers are:
 
 |===================|===================================|
-| for operation:    | option:                           |
+| for operation:    | modifier:                         |
 |===================|===================================|
 | resize            | preserve_aspect_ratio             |
 | resize            | sampling_filter <filter>          |
@@ -62,9 +73,23 @@ The available options on image operation are:
 |                   | lanczos3, nearest, triangle       |
 ---------------------------------------------------------
 
-Example 1: sic input.png output.png --apply-operations "set resize sampling_filter nearest; resize 250 250;"
-Example 2: sic input.png output.png --apply-operations "set resize preserve_aspect_ratio; set resize sampling_filter lanczos3; resize 250 250;"
-Example 3: sic input.png output.png --apply-operations "set resize sampling_filter lanczos3; resize 250 250; del resize sampling_filter; resize 100 100"
+Examples: AOS method
+--------------------
+
+Example 1: sic --input input.png --output output.png --apply-operations "invert; huerotate -75; rotate90; contrast 0.25"
+Example 2: sic -i input.png -o output.png --apply-operations "set resize preserve_aspect_ratio; set resize sampling_filter lanczos3; resize 250 250;"
+Example 3: sic -i in.png -o out.png --apply-operations "rotate180; fliph; set resize sampling_filter nearest; resize 75 80; huerotate 75"
+
+
+Examples: IOCA method
+---------------------
+
+If we translate the above examples to the IOCA method we will get the following:
+
+Example 1: sic --input input.png --output output.png --invert --hue-rotate -75 --rotate90 --contrast 0.25
+Example 2: sic -i input.png -o output.png --set-resize-preserve-aspect-ratio true --set-resize-sampling-filter lanczos3 --resize 250 250
+Example 3: sic -i in.png -o out.png --rotate180 --flip-horizontal --set-resize-sampling-filter nearest --resize 75 80 --hue-rotate 75"
+
 
 ---
 
@@ -72,5 +97,8 @@ Help pages:
 * Each image operation command has a help page which might provide some additional information.
 * Display the help page by running `sic -H <operation>` where `<operation>` is an operation from the
   operations column in the table above.
+* Note that the help pages are not updated for every version of this program and are scheduled to be removed. However,
+  they may still serve as some guidance on how to use the program. For up-to-date help, please review the development
+  repository readme.
 
 ---

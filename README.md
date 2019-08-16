@@ -27,19 +27,26 @@ From the source:
 # Usage
 
 **Convert an image from one format to another, for example from PNG to JPG.**
-* In general: `sic <input> <output>`
-* Example: `sic input.png output.jpg`
+* Command: `sic --input <input> --output <output>`
+* Shorthand: `sic -i <input> -o <output>`
+* Example: `sic -i input.png -o output.jpg` <br>
+
+Previously `sic <input> <output>` was used to specify the input and output image files. This method of specifying
+input and output image paths is still supported, if and only if no other input and output option ( such as
+'--input' and '--output') is  used. Using the '--input' and '--output' arguments is however the preferred way to specify
+input and output image file paths.
 
 <br>
 
 **Covert an image from one format to another while not caring about the output file extension.**
-* In general `sic --output-format "<format>" <input> <output>` (or  `sic -f "<format>" <input> <output>`)
-* Example `sic --output-format png input.bmp output.jpg` _(Note: `output.jpg` will have the PNG format even though the extension is `jpg`.)_
+* In general `sic --output-format "<format>" -i <input> -o <output>` (or  `sic -f "<format>" -i <input> -o <output>`)
+* Example `sic --output-format png -i input.bmp -o output.jpg` _(Note: `output.jpg` will have the PNG format even though the extension is `jpg`.)_
 
 Supported image output formats are (as of 0.8.0): `bmp`, `gif`, `ico`, `jpg` (or `jpeg`), `png`, `pbm`, `pgm`, `ppm` and `pam`.
-The JPEG quality can optionally be set with `--jpeg-encoding-quality <value>` (value should be an integer from 1 up to (including) 100). Default value if not user overridden is 80.
-PNM (PBM, PGM, PPM) by default uses binary encoding (PNM P4, P5 and P6 respectively). To use ascii encoding, provide the following flag:
-`--pnm-encoding-ascii`.
+The JPEG quality can optionally be set with `--jpeg-encoding-quality <value>` (value should be an integer from 1 up to (including) 100).
+Default value if not user overridden is 80.
+The PNM format (specifically PBM, PGM and PPM) use binary encoding (PNM P4, P5 and P6 respectively) by default.
+To use ascii encoding, provide the following flag: `--pnm-encoding-ascii`.
 
 <br>
 
@@ -172,7 +179,7 @@ or <br>
 **resize** with **preserve aspect ratio** example: <br>
 `sic -i in.png -o out.png --apply-operations "set resize preserve_aspect_ratio; resize 100 100"` <br>
 or <br>
-`sic -i in.png -o out.png --set-resize-preserve-aspect-ratio --resize 100 100`
+`sic -i in.png -o out.png --set-resize-preserve-aspect-ratio true --resize 100 100`
 
 **resize** with **custom sampling filter** (default is 'gaussian') example: <br>
 `sic -i in.png -o out.png --apply-operations "set resize sampling_filter triangle; resize 100 100"` <br>
