@@ -10,18 +10,18 @@ pub enum Operation {
     Blur(f32),
     Brighten(i32),
     Contrast(f32),
-    Crop(u32, u32, u32, u32),
+    Crop((u32, u32, u32, u32)),
     Filter3x3([f32; 9]),
     FlipHorizontal,
     FlipVertical,
     GrayScale,
     HueRotate(i32),
     Invert,
-    Resize(u32, u32),
+    Resize((u32, u32)),
     Rotate90,
     Rotate180,
     Rotate270,
-    Unsharpen(f32, i32),
+    Unsharpen((f32, i32)),
 }
 
 pub enum OpArg {
@@ -40,7 +40,7 @@ pub fn operation_by_name(name: &str, value: OpArg) -> Result<Operation, String> 
         ("brighten", OpArg::Integer(v)) => Ok(Operation::Brighten(v)),
         ("contrast", OpArg::FloatingPoint(v)) => Ok(Operation::Contrast(v)),
         ("crop", OpArg::UnsignedIntegerTuple4(u0, u1, u2, u3)) => {
-            Ok(Operation::Crop(u0, u1, u2, u3))
+            Ok(Operation::Crop((u0, u1, u2, u3)))
         }
         ("filter3x3", OpArg::FloatingPointArray9(v)) => Ok(Operation::Filter3x3(v)),
         ("fliph", OpArg::Empty) => Ok(Operation::FlipHorizontal),
@@ -48,11 +48,11 @@ pub fn operation_by_name(name: &str, value: OpArg) -> Result<Operation, String> 
         ("grayscale", OpArg::Empty) => Ok(Operation::GrayScale),
         ("huerotate", OpArg::Integer(v)) => Ok(Operation::HueRotate(v)),
         ("invert", OpArg::Empty) => Ok(Operation::Invert),
-        ("resize", OpArg::UnsignedIntegerTuple2(u0, u1)) => Ok(Operation::Resize(u0, u1)),
+        ("resize", OpArg::UnsignedIntegerTuple2(u0, u1)) => Ok(Operation::Resize((u0, u1))),
         ("rotate90", OpArg::Empty) => Ok(Operation::Rotate90),
         ("rotate180", OpArg::Empty) => Ok(Operation::Rotate180),
         ("rotate270", OpArg::Empty) => Ok(Operation::Rotate270),
-        ("unsharpen", OpArg::FloatingPointIntegerTuple2(f, i)) => Ok(Operation::Unsharpen(f, i)),
+        ("unsharpen", OpArg::FloatingPointIntegerTuple2(f, i)) => Ok(Operation::Unsharpen((f, i))),
         _ => Err("No suitable operation was found.".to_string()),
     }
 }
@@ -112,7 +112,7 @@ mod tests {
     fn crop_ok() {
         let actual = operation_by_name("crop", OpArg::UnsignedIntegerTuple4(0, 1, 2, 3));
 
-        assert_eq!(actual, Ok(Operation::Crop(0, 1, 2, 3)));
+        assert_eq!(actual, Ok(Operation::Crop((0, 1, 2, 3))));
     }
 
     // filter3x3
@@ -184,7 +184,7 @@ mod tests {
     fn resize_ok() {
         let actual = operation_by_name("resize", OpArg::UnsignedIntegerTuple2(80, 40));
 
-        assert_eq!(actual, Ok(Operation::Resize(80, 40)));
+        assert_eq!(actual, Ok(Operation::Resize((80, 40))));
     }
 
     // rotate90
@@ -224,6 +224,6 @@ mod tests {
     fn unsharpen_ok() {
         let actual = operation_by_name("unsharpen", OpArg::FloatingPointIntegerTuple2(1.5, 3));
 
-        assert_eq!(actual, Ok(Operation::Unsharpen(1.5, 3)));
+        assert_eq!(actual, Ok(Operation::Unsharpen((1.5, 3))));
     }
 }

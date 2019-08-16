@@ -435,6 +435,7 @@ dependencies = [
  "sic_image_engine 0.1.0",
  "sic_io 0.2.0",
  "sic_parser 0.1.0",
+ "sic_testing 0.1.0",
  "sic_user_manual 0.1.0",
 ]
 
