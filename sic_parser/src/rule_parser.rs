@@ -7,11 +7,17 @@ use sic_image_engine::Operation;
 use super::Rule;
 use crate::value_parser::ParseInputsFromIter;
 
-// This function parses Operation
-// [grammar.pest].
-// It returns an error (Err) in case of any parse failure.
-// The error currently contains inner
-// The function is supposed to never panic.
+// This function parses statements provided as a single 'script' to an image operations program.
+// An image operations program is currently a linear list of image operations which are applied
+// in a left-to-right order.
+// Operations are parsed from Pairs and Rules, which are provided by the Pest parser library.
+//
+// In the event of any parse failure, an error shall be returned.
+// The error currently usually contains into_inner(), to provide detailed information about the
+// origins of the parsing rejection.
+//
+// FIXME: When the user facing errors will be reworked, the providing of or the how to providing of-
+//        the into_inner() parsing details should be reconsidered
 pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Program, String> {
     pairs
         .filter(|pair| pair.as_rule() != Rule::EOI)
