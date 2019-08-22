@@ -13,10 +13,7 @@ use sic_io::{export, import, ExportMethod, ExportSettings};
 use sic_user_manual::user_manual_printer::UserManualPrinter;
 
 use crate::app::config::Config;
-use crate::app::license_display::LicenseDisplayProcessor;
-
-const LICENSE_SELF: &str = include_str!("../../LICENSE");
-const LICENSE_DEPS: &str = include_str!("../../thanks/dependency_licenses.txt");
+use crate::app::license_display::PrintTextFor;
 
 /// The run function runs the sic application, taking the matches found by Clap.
 /// This function is separated from the main() function so that it can be used more easily in test cases.
@@ -89,11 +86,10 @@ fn determine_export_method<P: AsRef<Path>>(
 }
 
 pub fn run_display_licenses(config: &Config) -> Result<(), String> {
-    let license_display_processor = LicenseDisplayProcessor::new(LICENSE_SELF, LICENSE_DEPS);
-
-    license_display_processor.process(&config);
-
-    Ok(())
+    config
+        .show_license_text_of
+        .ok_or_else(|| "Unable to display license texts".to_string())
+        .and_then(|license_text| license_text.print())
 }
 
 pub fn run_display_help(config: &Config) -> Result<(), String> {

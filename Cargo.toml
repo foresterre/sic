@@ -29,15 +29,20 @@ members = [
 ]
 
 [dependencies]
-clap = "2.32.0"
 sic_core = { path = "sic_core" }
 sic_image_engine = { path = "sic_image_engine" }
 sic_io  = { path = "sic_io" }
 sic_parser = { path = "sic_parser" }
 sic_user_manual  = { path = "sic_user_manual" }
 
+clap = "2.32.0"
+snap = "0.2.5"
+
 [dev-dependencies]
 sic_testing = { path = "sic_testing" }
+
+[build-dependencies]
+snap = "0.2.5 "
 
 [[bin]]
 name = "sic"
