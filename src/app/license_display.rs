@@ -1,48 +1,36 @@
-use std::process;
+use crate::app::config::SelectedLicenses;
+use inflate::inflate_bytes;
 
-use crate::app::config::{Config, SelectedLicenses};
+const LICENSE_SELF: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/LICENSE",));
+const LICENSE_DEPS: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/compressed_dep_licenses"));
 
-#[derive(Debug, Default)]
-pub struct LicenseDisplayProcessor<'a> {
-    self_license: &'a str,
-    dependency_licenses: &'a str,
+pub(crate) trait PrintTextFor {
+    fn print(&self) -> Result<(), String>;
 }
 
-impl<'a> LicenseDisplayProcessor<'a> {
-    pub fn new(self_license: &'a str, dependency_licenses: &'a str) -> LicenseDisplayProcessor<'a> {
-        LicenseDisplayProcessor {
-            self_license,
-            dependency_licenses,
+impl PrintTextFor for SelectedLicenses {
+    fn print(&self) -> Result<(), String> {
+        fn print_for_this_software() -> Result<(), String> {
+            println!("sic image tools license:\n\n{}\n\n", LICENSE_SELF);
+
+            Ok(())
         }
-    }
-}
 
-impl<'a> LicenseDisplayProcessor<'a> {
-    fn print_licenses(&self, requested_texts: SelectedLicenses, tool_name: &str) {
-        let print_for_this_software = || {
-            println!(
-                "{} image tools license:\n\n{}\n\n",
-                tool_name, &self.self_license
-            );
-        };
+        fn print_for_dependencies() -> Result<(), String> {
+            let inflated = inflate_bytes(LICENSE_DEPS)?;
+            let text = std::str::from_utf8(&inflated).map_err(|err| err.to_string())?;
 
-        let print_for_dependencies = || println!("{}", &self.dependency_licenses);
+            println!("{}", text);
 
-        match requested_texts {
+            Ok(())
+        }
+
+        match self {
             SelectedLicenses::ThisSoftware => print_for_this_software(),
             SelectedLicenses::Dependencies => print_for_dependencies(),
             SelectedLicenses::ThisSoftwarePlusDependencies => {
-                print_for_this_software();
-                print_for_dependencies();
+                print_for_this_software().and_then(|_| print_for_dependencies())
             }
-        };
-    }
-
-    pub fn process(&self, config: &Config) {
-        if let Some(selection) = config.show_license_text_of {
-            self.print_licenses(selection, &config.tool_name);
-        } else {
-            process::exit(0)
         }
     }
 }

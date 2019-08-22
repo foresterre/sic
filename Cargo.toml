@@ -29,15 +29,20 @@ members = [
 ]
 
 [dependencies]
-clap = "2.32.0"
 sic_core = { path = "sic_core" }
 sic_image_engine = { path = "sic_image_engine" }
 sic_io  = { path = "sic_io" }
 sic_parser = { path = "sic_parser" }
 sic_user_manual  = { path = "sic_user_manual" }
 
+clap = "2.32.0"
+inflate = "0.4.5"
+
 [dev-dependencies]
 sic_testing = { path = "sic_testing" }
+
+[build-dependencies]
+flate2 = "1.0.11"
 
 [[bin]]
 name = "sic"
@@ -50,6 +55,7 @@ path = "src/lib.rs"
 [features]
 output-test-images = []
 
-
 [profile.release]
 panic = "abort"
+#lto = true
+#codegen-units = 1
