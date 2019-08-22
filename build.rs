@@ -1,3 +1,5 @@
+use flate2::write::DeflateEncoder;
+use flate2::Compression;
 use std::env;
 use std::fs::File;
 use std::io::Write;
@@ -15,8 +17,8 @@ fn main() {
         "/dependency_licenses.txt"
     ));
 
-    let mut writer = snap::Writer::new(file);
-    writer
+    let mut encoder = DeflateEncoder::new(file, Compression::default());
+    encoder
         .write_all(text)
-        .expect("unable to write dependency licenses as compressed file.");
+        .expect("Unable to compress dep licenses tet");
 }

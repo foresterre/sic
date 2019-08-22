@@ -36,13 +36,13 @@ sic_parser = { path = "sic_parser" }
 sic_user_manual  = { path = "sic_user_manual" }
 
 clap = "2.32.0"
-snap = "0.2.5"
+inflate = "0.4.5"
 
 [dev-dependencies]
 sic_testing = { path = "sic_testing" }
 
 [build-dependencies]
-snap = "0.2.5 "
+flate2 = "1.0.11"
 
 [[bin]]
 name = "sic"
@@ -55,6 +55,7 @@ path = "src/lib.rs"
 [features]
 output-test-images = []
 
-
 [profile.release]
 panic = "abort"
+#lto = true
+#codegen-units = 1
