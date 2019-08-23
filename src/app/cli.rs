@@ -439,8 +439,7 @@ fn mk_ops(op: OperationId, matches: &ArgMatches) -> Option<IndexedOps> {
 }
 
 fn ast_from_index_tree(tree: &mut IndexTree) -> Result<Vec<Statement>, String> {
-    let ast = tree
-        .iter()
+    tree.iter()
         .map(|(_index, op)| match op {
             Op::Bare(id) => {
                 let empty: &[&str; 0] = &[];
@@ -448,8 +447,7 @@ fn ast_from_index_tree(tree: &mut IndexTree) -> Result<Vec<Statement>, String> {
             }
             Op::WithValues(id, values) => id.mk_statement(values),
         })
-        .collect::<Result<Vec<Statement>, String>>();
-    ast
+        .collect::<Result<Vec<Statement>, String>>()
 }
 
 #[cfg(test)]

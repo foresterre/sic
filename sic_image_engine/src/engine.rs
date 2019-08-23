@@ -167,7 +167,7 @@ impl ImageEngine {
                 self.image.invert();
                 Ok(())
             }
-            Operation::Resize(((new_x, new_y))) => {
+            Operation::Resize((new_x, new_y)) => {
                 const DEFAULT_RESIZE_FILTER: FilterType = FilterType::Gaussian;
 
                 let filter = self
@@ -201,7 +201,7 @@ impl ImageEngine {
                 *self.image = self.image.rotate270();
                 Ok(())
             }
-            Operation::Unsharpen(((sigma, threshold))) => {
+            Operation::Unsharpen((sigma, threshold)) => {
                 *self.image = self.image.unsharpen(*sigma, *threshold);
                 Ok(())
             }
@@ -379,7 +379,7 @@ mod tests {
         let mut engine2 = engine.clone();
         let cmp_left = engine.ignite(&vec![
             Statement::RegisterEnvironmentItem(EnvironmentItem::PreserveAspectRatio),
-            Statement::Operation(Operation::Resize(((100, 100)))),
+            Statement::Operation(Operation::Resize((100, 100))),
         ]);
 
         assert!(cmp_left.is_ok());
