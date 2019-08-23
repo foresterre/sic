@@ -167,7 +167,7 @@ impl ImageEngine {
                 self.image.invert();
                 Ok(())
             }
-            Operation::Resize(((new_x, new_y))) => {
+            Operation::Resize((new_x, new_y)) => {
                 const DEFAULT_RESIZE_FILTER: FilterType = FilterType::Gaussian;
 
                 let filter = self

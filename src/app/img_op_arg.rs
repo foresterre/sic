@@ -62,7 +62,7 @@ impl OperationId {
     ///     that each resize operation takes two arguments, not four. So it could be that there are
     ///     two operations, namely `resize 10 20` and `resize 100 100`. We do need to take some other
     ///     conditions into account, but they are not relevant for this particular method =).
-    pub fn takes_number_of_arguments(&self) -> usize {
+    pub fn takes_number_of_arguments(self) -> usize {
         match self {
             OperationId::Blur => 1,
             OperationId::Brighten => 1,
@@ -94,7 +94,7 @@ macro_rules! parse_inputs_by_type {
 
 impl OperationId {
     /// Constructs statements for image operations which are taken as input by the image engine.
-    pub fn mk_statement<'a, T>(&self, inputs: T) -> Result<Statement, String>
+    pub fn mk_statement<'a, T>(self, inputs: T) -> Result<Statement, String>
     where
         T: IntoIterator,
         T::Item: Into<Describable<'a>> + std::fmt::Debug,
