@@ -12,7 +12,9 @@ use crate::get_tool_name;
 use crate::{op_valueless, op_with_values};
 use arg_names::*;
 
-const HELP_OPERATIONS_AVAILABLE: &str = include_str!("../../docs/cli_help_script.txt");
+const ABOUT: &str = include_str!("../../resources/help-pages/about.txt");
+const HELP_OPERATIONS_AVAILABLE: &str =
+    include_str!("../../resources/help-pages/image_operations.txt");
 
 // table of argument names
 pub(crate) mod arg_names {
@@ -26,7 +28,6 @@ pub(crate) mod arg_names {
         "disable_automatic_color_type_adjustment";
     pub(crate) const ARG_INPUT: &str = "input";
     pub(crate) const ARG_OUTPUT: &str = "output";
-    pub(crate) const ARG_USER_MANUAL: &str = "user_manual";
     pub(crate) const ARG_INPUT_FILE: &str = "input_file";
     pub(crate) const ARG_OUTPUT_FILE: &str = "output_file";
 
@@ -56,19 +57,7 @@ pub(crate) mod arg_names {
 pub fn cli() -> App<'static, 'static> {
     App::new(get_tool_name())
         .version(env!("CARGO_PKG_VERSION"))
-        .about("An image tool app front-end which can convert images to different formats, and transform \
-                images by applying image operations.\n\n\
-                Supported input (decoding) formats are:  BMP, GIF, ICO, JPEG, PNG, PBM, PGM, PPM,\n\
-                PAM and TIFF and WebP.\n\
-                Supported output (encoding) formats are: BMP, GIF, ICO, JPEG, PNG, PBM, PGM, PPM \n\
-                and PAM.\n\
-                Limitations may apply for both input and output formats. For compatibility information see:[1].\n\n\
-                The image conversion and image operations are made possible by the awesome 'image' library [2].\n\
-                Run `sic --help` for all available flags and options and `sic --user-manual <OPERATION>`\n\
-                for help on the image operations supported by the `--apply-operations \"<OPERATION(S)>\"`` option.\n\n\
-                [1] https://github.com/PistonDevelopers/image/tree/13372d52ad7ca96da1bb1ca148c57d402bf4c8c0#21-supported-image-formats\n\
-                [2] image library by PistonDevelopers: https://github.com/PistonDevelopers/image\n\n\
-                ")
+        .about(ABOUT)
         .after_help("For more information, visit: https://github.com/foresterre/sic")
         .author("Martijn Gribnau <garm@ilumeo.com>")
 
@@ -87,12 +76,12 @@ pub fn cli() -> App<'static, 'static> {
             .long("license")
             .help("Displays the license of this piece of software (`stew`).")
             .takes_value(false)
-            .conflicts_with_all(&[ARG_DEP_LICENSES, ARG_USER_MANUAL, ARG_INPUT_FILE, ARG_OUTPUT_FILE, ARG_INPUT, ARG_OUTPUT]))
+            .conflicts_with_all(&[ARG_DEP_LICENSES, ARG_INPUT_FILE, ARG_OUTPUT_FILE, ARG_INPUT, ARG_OUTPUT]))
         .arg(Arg::with_name(ARG_DEP_LICENSES)
             .long("dep-licenses")
             .help("Displays the licenses of the dependencies on which this software relies.")
             .takes_value(false)
-            .conflicts_with_all(&[ARG_LICENSE, ARG_USER_MANUAL, ARG_INPUT_FILE, ARG_OUTPUT_FILE, ARG_INPUT, ARG_OUTPUT]))
+            .conflicts_with_all(&[ARG_LICENSE, ARG_INPUT_FILE, ARG_OUTPUT_FILE, ARG_INPUT, ARG_OUTPUT]))
         .arg(Arg::with_name(ARG_JPEG_ENCODING_QUALITY)
             .long("jpeg-encoding-quality")
             .help("Set the jpeg quality to QUALITY. Valid values are natural numbers from 1 up to and including 100. Will only be used when the output format is determined to be jpeg.")
@@ -111,8 +100,8 @@ pub fn cli() -> App<'static, 'static> {
             .takes_value(true)
             .help("Input image path. When using this option, input piped from stdin will be ignored.")
             .required_unless_all(&[ARG_INPUT_FILE, ARG_OUTPUT_FILE])
-            .required_unless_one(&[ARG_LICENSE, ARG_DEP_LICENSES, ARG_USER_MANUAL])
-            .conflicts_with_all(&[ARG_INPUT_FILE, ARG_OUTPUT_FILE, ARG_LICENSE, ARG_DEP_LICENSES, ARG_USER_MANUAL]))
+            .required_unless_one(&[ARG_LICENSE, ARG_DEP_LICENSES])
+            .conflicts_with_all(&[ARG_INPUT_FILE, ARG_OUTPUT_FILE, ARG_LICENSE, ARG_DEP_LICENSES]))
         .arg(Arg::with_name(ARG_OUTPUT)
             .long("output")
             .short("o")
@@ -120,17 +109,10 @@ pub fn cli() -> App<'static, 'static> {
             .takes_value(true)
             .help("Output image path. When using this option, output won't be piped to stdout.")
             .required_unless_all(&[ARG_INPUT_FILE, ARG_OUTPUT_FILE])
-            .required_unless_one(&[ARG_LICENSE, ARG_DEP_LICENSES, ARG_USER_MANUAL])
-            .conflicts_with_all(&[ARG_INPUT_FILE, ARG_OUTPUT_FILE, ARG_LICENSE, ARG_DEP_LICENSES, ARG_USER_MANUAL]))
+            .required_unless_one(&[ARG_LICENSE, ARG_DEP_LICENSES])
+            .conflicts_with_all(&[ARG_INPUT_FILE, ARG_OUTPUT_FILE, ARG_LICENSE, ARG_DEP_LICENSES]))
 
         // Selective arguments for `sic`.
-        .arg(Arg::with_name(ARG_USER_MANUAL)
-            .long("user-manual")
-            .short("H")
-            .help("Displays help text for different topics such as each supported script operation. Run `sic -H index` to display a list of available topics.")
-            .value_name("TOPIC")
-            .takes_value(true)
-            .conflicts_with_all(&[ARG_LICENSE, ARG_DEP_LICENSES, ARG_INPUT_FILE, ARG_OUTPUT_FILE, ARG_INPUT, ARG_OUTPUT]))
         .arg(Arg::with_name(ARG_APPLY_OPERATIONS)
             .long("apply-operations")
             .short("x")
@@ -141,13 +123,13 @@ pub fn cli() -> App<'static, 'static> {
         .arg(Arg::with_name(ARG_INPUT_FILE)
             .help("Sets the input file")
             .value_name("INPUT_FILE")
-            .conflicts_with_all(&[ARG_INPUT, ARG_OUTPUT, ARG_LICENSE, ARG_DEP_LICENSES, ARG_USER_MANUAL])
+            .conflicts_with_all(&[ARG_INPUT, ARG_OUTPUT, ARG_LICENSE, ARG_DEP_LICENSES])
             .index(1)
             .hidden(true))
         .arg(Arg::with_name(ARG_OUTPUT_FILE)
             .help("Sets the desired output file")
             .value_name("OUTPUT_FILE")
-            .conflicts_with_all(&[ARG_INPUT, ARG_OUTPUT, ARG_LICENSE, ARG_DEP_LICENSES, ARG_USER_MANUAL])
+            .conflicts_with_all(&[ARG_INPUT, ARG_OUTPUT, ARG_LICENSE, ARG_DEP_LICENSES])
             .index(2)
             .hidden(true))
 
@@ -376,11 +358,6 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> Result<Config<'a>, Strin
         build_ast_from_matches(matches, &mut tree)?
     };
     builder = builder.image_operations_program(program);
-
-    // next setting.
-    if let Some(topic) = matches.value_of("user_manual") {
-        builder = builder.image_operations_manual_keyword(topic);
-    }
 
     Ok(builder.build())
 }

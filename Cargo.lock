@@ -502,7 +502,6 @@ dependencies = [
  "sic_io 0.2.0",
  "sic_parser 0.1.0",
  "sic_testing 0.1.0",
- "sic_user_manual 0.1.0",
 ]
 
 [[package]]
@@ -539,10 +538,6 @@ dependencies = [
 
 [[package]]
 name = "sic_testing"
-version = "0.1.0"
-
-[[package]]
-name = "sic_user_manual"
 version = "0.1.0"
 
 [[package]]

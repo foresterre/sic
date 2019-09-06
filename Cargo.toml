@@ -19,7 +19,6 @@ categories = ["multimedia::images", "command-line-utilities"]
 members = [
   "sic_core",
   "sic_parser",
-  "sic_user_manual",
 
   # former combostew modules
   "sic_image_engine",
@@ -33,7 +32,6 @@ sic_core = { path = "sic_core" }
 sic_image_engine = { path = "sic_image_engine" }
 sic_io  = { path = "sic_io" }
 sic_parser = { path = "sic_parser" }
-sic_user_manual  = { path = "sic_user_manual" }
 
 clap = "2.32.0"
 inflate = "0.4.5"

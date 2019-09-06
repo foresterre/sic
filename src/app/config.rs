@@ -23,10 +23,6 @@ pub struct Config<'a> {
     /// THe value set here should be presented as a [sic_image_engine::engine::Program].
     /// If no program is present, an empty vec should be provided.
     pub image_operations_program: Program,
-
-    /// If a user wants to be informed about a specific image operation, they should provide
-    /// the keyword of the operation which they want to be informed about.
-    pub image_operations_manual_topic: Option<&'a str>,
 }
 
 impl Default for Config<'_> {
@@ -59,9 +55,6 @@ impl Default for Config<'_> {
 
             /// Defaults to no provided image operations script.
             image_operations_program: Vec::new(),
-
-            /// Default to no provided topic for the image operations manual.
-            image_operations_manual_topic: None,
         }
     }
 }
@@ -114,11 +107,6 @@ impl<'a> ConfigBuilder<'a> {
 
     pub fn image_operations_program(mut self, program: Program) -> ConfigBuilder<'a> {
         self.settings.image_operations_program = program;
-        self
-    }
-
-    pub fn image_operations_manual_keyword(mut self, topic: &'a str) -> ConfigBuilder<'a> {
-        self.settings.image_operations_manual_topic = Some(topic);
         self
     }
 
