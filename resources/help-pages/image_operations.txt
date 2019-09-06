@@ -1,5 +1,3 @@
-Image Operations
-================
 
 There are currently two ways to perform image operations on an image.
 The first is by means of the cli option `--apply-operations <operations>` (we abbreviate this method as AOS for apply operations script).
@@ -7,7 +5,6 @@ The second is by means of 'image operations as cli arguments' (this method is cu
 
 The order in which the operations specified for both methods are applied is left-to-right.
 Note that the you should either use the AOS method, or the IOCA method. It is not allowed to combine the methods.
-
 
 
 Supported operations:
@@ -89,16 +86,5 @@ If we translate the above examples to the IOCA method we will get the following:
 Example 1: sic --input input.png --output output.png --invert --hue-rotate -75 --rotate90 --contrast 0.25
 Example 2: sic -i input.png -o output.png --set-resize-preserve-aspect-ratio true --set-resize-sampling-filter lanczos3 --resize 250 250
 Example 3: sic -i in.png -o out.png --rotate180 --flip-horizontal --set-resize-sampling-filter nearest --resize 75 80 --hue-rotate 75"
-
-
----
-
-Help pages:
-* Each image operation command has a help page which might provide some additional information.
-* Display the help page by running `sic -H <operation>` where `<operation>` is an operation from the
-  operations column in the table above.
-* Note that the help pages are not updated for every version of this program and are scheduled to be removed. However,
-  they may still serve as some guidance on how to use the program. For up-to-date help, please review the development
-  repository readme.
 
 ---

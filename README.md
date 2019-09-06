@@ -214,15 +214,9 @@ or <br>
 
 <br>
 
-**User manual**
+**Other resources on image operations**
 
 For additional information on available options and flags, run `sic --help`.
-Additional information on the available image operations can be found by running `sic --user-manual <topic>` (or `sic -H <topic>`).
-Available topics can be listed by running `sic --user-manual index`.
-
-The provided help pages in this command line accessible user manual are still a bit minimal. Additionally only the image operations
-are available and the layout is sub optimal for a command line. This is definitely something which is planned to be addressed in an upcoming release.   
-
 
 # Suggestions, Questions, Bugs
 

@@ -10,8 +10,6 @@ use sic_io::encoding_format::{
 };
 use sic_io::{export, import, ExportMethod, ExportSettings};
 
-use sic_user_manual::user_manual_printer::UserManualPrinter;
-
 use crate::app::config::Config;
 use crate::app::license_display::PrintTextFor;
 
@@ -90,10 +88,4 @@ pub fn run_display_licenses(config: &Config) -> Result<(), String> {
         .show_license_text_of
         .ok_or_else(|| "Unable to display license texts".to_string())
         .and_then(|license_text| license_text.print())
-}
-
-pub fn run_display_help(config: &Config) -> Result<(), String> {
-    let help = UserManualPrinter::default();
-    let page = config.image_operations_manual_topic;
-    help.show(page).map(|_| ()).map_err(|err| err.to_string())
 }
