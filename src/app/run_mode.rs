@@ -8,7 +8,8 @@ use sic_io::conversion::AutomaticColorTypeAdjustment;
 use sic_io::encoding_format::{
     DetermineEncodingFormat, EncodingFormatByIdentifier, EncodingFormatByMethod, JPEGQuality,
 };
-use sic_io::{export, import, ExportMethod, ExportSettings};
+use sic_io::export::{export, ExportMethod, ExportSettings};
+use sic_io::import::{import, GIFFrameSelection, ImportSettings};
 
 use crate::app::config::Config;
 use crate::app::license_display::PrintTextFor;
@@ -29,6 +30,9 @@ pub fn run(matches: &ArgMatches, options: &Config) -> Result<(), String> {
         matches
             .value_of("input")
             .or_else(|| matches.value_of("input_file")),
+        ImportSettings {
+            gif_frame: GIFFrameSelection::First,
+        },
     )?;
 
     let mut image_engine = ImageEngine::new(img);

@@ -3,7 +3,7 @@ use std::path::Path;
 use sic_core::image;
 use std::error::Error;
 
-use crate::ExportMethod;
+use crate::export::ExportMethod;
 
 const DEFAULT_PIPED_OUTPUT_FORMAT: image::ImageOutputFormat = image::ImageOutputFormat::BMP;
 

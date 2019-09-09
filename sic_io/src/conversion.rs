@@ -3,7 +3,7 @@ use std::path::Path;
 
 use sic_core::image;
 
-use crate::ExportMethod;
+use crate::export::ExportMethod;
 
 #[derive(Clone, Copy, Debug)]
 pub enum AutomaticColorTypeAdjustment {
