@@ -67,8 +67,8 @@ jobs:
       - run: cargo test --verbose --all
 
       # allow job failure on MacOS, since we have no access to a MacOS machine ourselves.
-      - if: matrix.build == 'macos'
-        continue-on-error: true
+#      - if: matrix.build == 'macos'
+#        continue-on-error: true
 
   rustfmt:
     name: rustfmt
