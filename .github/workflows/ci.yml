@@ -1,0 +1,91 @@
+# GitHub Actions workflow: CI for sic
+#
+# based on: https://github.com/BurntSushi/bstr/blob/master/.github/workflows/ci.yml
+# which is licensed under Apache License, Version 2.0 or MIT license
+
+name: "GitHub Actions: CI"
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+jobs:
+  test:
+    name: test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        build: [pinned, stable, nightly, macos, win-gnu, win-msvc]
+        include:
+          # pinned rust version :: ubuntu
+          - build: pinned
+            os: ubuntu-18.04
+            rust: 1.36.0
+
+          # latest rust stable :: ubuntu
+          - build: stable
+            os: ubuntu-latest
+            rust: stable
+
+          # latest rust nightly :: ubuntu
+          - build: nightly
+            os: ubuntu-latest
+            rust: nightly
+
+          # latest rust stable :: mac_os
+          #
+          # .. This job is allowed to fail.
+          # .. Reason: I've no access to a MacOS dev machine, but is is useful to know whether it builds or not.
+          - build: macos
+            os: macOS-latest
+            rust: stable
+            allow_failure: true
+
+          # latest rust stable :: windows + gnu
+          - build: win-gnu
+            os: windows-latest
+            rust: stable-x86_64-gnu
+
+          # latest rust stable :: windows + msvc
+          - build: win-msvc
+            os: windows-latest
+            rust: stable
+
+
+    steps:
+      # checkout
+      - name: Checkout repository
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+
+      # install: rust
+      - name: Install Rust
+        uses: hecrj/setup-rust-action@v1
+        with:
+          rust-version: ${{ matrix.rust }}
+
+      # build / doc / test
+      - run: cargo build --verbose --all
+      - run: cargo doc --verbose --all
+      - run: cargo test --verbose --all
+      - if: matrix.allow_failure
+        continue-on-error: true
+
+  rustfmt:
+    name: rustfmt
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+      - name: Install Rust
+        uses: hecrj/setup-rust-action@v1
+        with:
+          rust-version: stable
+      - name: Install rustfmt
+        run: rustup component add rustfmt
+      - name: Check formatting
+        run: |
+          cargo fmt -- --check
