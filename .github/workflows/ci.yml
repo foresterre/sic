@@ -65,8 +65,9 @@ jobs:
       - name: Build all workspace crates
         run: cargo build --verbose --all
 
-      - name: Build documentation for all workspace crates
-        run: cargo doc --verbose --all
+# eventually we will want to enable this (luckily we are no library crate) =); for now, it shortens the build time.
+#      - name: Build documentation for all workspace crates
+#        run: cargo doc --verbose --all
 
       - name: Test all workspace crates
         run: cargo test --verbose --all
