@@ -69,7 +69,7 @@ jobs:
       - run: cargo build --verbose --all
       - run: cargo doc --verbose --all
       - run: cargo test --verbose --all
-      - if: matrix.allow_failure
+      - if: matrix.allow_failure == true
         continue-on-error: true
 
   rustfmt:
