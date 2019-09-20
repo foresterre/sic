@@ -33,13 +33,9 @@ jobs:
             rust: nightly
 
           # latest rust stable :: mac_os
-          #
-          # .. This job is allowed to fail.
-          # .. Reason: I've no access to a MacOS dev machine, but is is useful to know whether it builds or not.
           - build: macos
             os: macOS-latest
             rust: stable
-            allow_failure: true
 
           # latest rust stable :: windows + gnu
           - build: win-gnu
@@ -69,7 +65,9 @@ jobs:
       - run: cargo build --verbose --all
       - run: cargo doc --verbose --all
       - run: cargo test --verbose --all
-      - if: matrix.allow_failure == true
+
+      # allow job failure on MacOS, since we have no access to a MacOS machine ourselves.
+      - if: matrix.build == 'macos'
         continue-on-error: true
 
   rustfmt:
