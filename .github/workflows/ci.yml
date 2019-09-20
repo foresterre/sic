@@ -62,13 +62,14 @@ jobs:
           rust-version: ${{ matrix.rust }}
 
       # build / doc / test
-      - run: cargo build --verbose --all
-      - run: cargo doc --verbose --all
-      - run: cargo test --verbose --all
+      - name: Build all workspace crates
+        run: cargo build --verbose --all
 
-      # allow job failure on MacOS, since we have no access to a MacOS machine ourselves.
-#      - if: matrix.build == 'macos'
-#        continue-on-error: true
+      - name: Build documentation for all workspace crates
+        run: cargo doc --verbose --all
+
+      - name: Test all workspace crates
+        run: cargo test --verbose --all
 
   rustfmt:
     name: rustfmt
