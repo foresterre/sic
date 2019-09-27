@@ -1,15 +1,8 @@
-use std::env::args;
-use std::io::stdin;
-use std::io::Read;
-use std::path::Path;
-
-use crate::conversion::{AutomaticColorTypeAdjustment, ConversionWriter};
-
 // importing
-pub mod import;
+pub mod load;
 
 // exporting
-pub mod export;
+pub mod save;
 
 pub mod conversion;
-pub mod encoding_format;
+pub mod format;

@@ -1,18 +1,21 @@
 use std::error::Error;
+use std::io::Read;
 use std::path::Path;
 
 use clap::ArgMatches;
 use sic_core::image;
 use sic_image_engine::engine::ImageEngine;
 use sic_io::conversion::AutomaticColorTypeAdjustment;
-use sic_io::encoding_format::{
+use sic_io::format::{
     DetermineEncodingFormat, EncodingFormatByIdentifier, EncodingFormatByMethod, JPEGQuality,
 };
-use sic_io::export::{export, ExportMethod, ExportSettings};
-use sic_io::import::{import, GIFFrameSelection, ImportSettings};
+use sic_io::load::{load_image, GIFFrameSelection, ImportConfig};
+use sic_io::save::{export, ExportMethod, ExportSettings};
 
 use crate::app::config::Config;
 use crate::app::license_display::PrintTextFor;
+
+const NO_INPUT_PATH_MSG: &str = "Input path was expected but could not be found.";
 
 /// The run function runs the sic application, taking the matches found by Clap.
 /// This function is separated from the main() function so that it can be used more easily in test cases.
@@ -25,12 +28,11 @@ pub fn run(matches: &ArgMatches, options: &Config) -> Result<(), String> {
         );
     }
 
-    // "input_file" is sic specific.
-    let img = import(
-        matches
-            .value_of("input")
-            .or_else(|| matches.value_of("input_file")),
-        ImportSettings {
+    let mut reader = mk_reader(matches)?;
+
+    let img = load_image(
+        &mut reader,
+        &ImportConfig {
             gif_frame: GIFFrameSelection::First,
         },
     )?;
@@ -73,6 +75,31 @@ pub fn run(matches: &ArgMatches, options: &Config) -> Result<(), String> {
     )
 }
 
+/// Create a reader which will be used to load the image.
+/// The reader can be a file or the stdin.
+/// If no file path is provided, the stdin will be assumed.
+fn mk_reader(matches: &ArgMatches) -> Result<Box<dyn Read>, String> {
+    let reader = if matches.is_present("input") {
+        sic_io::load::file_reader(
+            matches
+                .value_of("input")
+                .ok_or_else(|| NO_INPUT_PATH_MSG.to_string())?,
+        )
+    } else if matches.is_present("input_file") {
+        sic_io::load::file_reader(
+            matches
+                .value_of("input_file")
+                .ok_or_else(|| NO_INPUT_PATH_MSG.to_string())?,
+        )
+    } else {
+        sic_io::load::stdin_reader()
+    }?;
+
+    Ok(reader)
+}
+
+/// Determines what export method should be used.
+/// The choices are the stdout or a file.
 fn determine_export_method<P: AsRef<Path>>(
     output_path: Option<P>,
 ) -> Result<ExportMethod<P>, Box<dyn Error>> {

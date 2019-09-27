@@ -621,5 +621,4 @@ mod tests {
 
         assert_eq!(iter.next(), None);
     }
-
 }

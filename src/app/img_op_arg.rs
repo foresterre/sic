@@ -1237,6 +1237,5 @@ mod test_tree_extend {
         fn not_allowed_value() {
             setup("--set-resize-sampling-filter yes");
         }
-
     }
 }
