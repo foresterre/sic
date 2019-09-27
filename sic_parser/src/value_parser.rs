@@ -52,7 +52,7 @@ macro_rules! parse_next {
 
 macro_rules! return_if_complete {
     ($iter:expr, $ok_value:expr, $err_msg:expr) => {
-        if let Some(_) = $iter.next() {
+        if $iter.next().is_some() {
             Err($err_msg.to_string())
         } else {
             Ok($ok_value)
@@ -371,5 +371,4 @@ mod tests_parse_from_iter {
             let _some: (f32, i32) = ParseInputsFromIter::parse(&["03579", "1", "1"]).unwrap();
         }
     }
-
 }

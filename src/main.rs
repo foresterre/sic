@@ -1,5 +1,5 @@
 use sic_lib::app::cli::build_app_config;
-use sic_lib::app::run_mode::{run, run_display_licenses};
+use sic_lib::app::procedure::{run, run_display_licenses};
 
 fn main() -> Result<(), String> {
     let app = sic_lib::app::cli::cli();

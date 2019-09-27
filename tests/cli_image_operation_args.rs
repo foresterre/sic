@@ -128,7 +128,6 @@ mod crop {
 
         assert_not!(result.unwrap().success());
     }
-
 }
 
 #[cfg(test)]
