@@ -43,7 +43,6 @@ fn load<R: Read>(reader: &mut R) -> ImportResult<Vec<u8>> {
 
 #[derive(Debug, Default)]
 pub struct ImportConfig {
-    //
     pub gif_frame: GIFFrameSelection,
 }
 
