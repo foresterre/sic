@@ -11,7 +11,7 @@ use crate::app::operations::{
 use crate::get_tool_name;
 use crate::{op_valueless, op_with_values};
 use arg_names::*;
-use sic_io::load::GIFFrameSelection;
+use sic_io::load::FrameSelection;
 
 const ABOUT: &str = include_str!("../../resources/help-pages/about.txt");
 const HELP_OPERATIONS_AVAILABLE: &str =
@@ -34,7 +34,7 @@ pub(crate) mod arg_names {
     pub(crate) const ARG_OUTPUT_FILE: &str = "output_file";
 
     // config(in):
-    pub(crate) const ARG_GIF_SELECT_FRAME: &str = "gif_select_frame";
+    pub(crate) const ARG_SELECT_FRAME: &str = "select_frame";
 
     // config(out):
     pub(crate) const ARG_DISABLE_AUTOMATIC_COLOR_TYPE_ADJUSTMENT: &str =
@@ -129,8 +129,8 @@ pub fn cli() -> App<'static, 'static> {
             .hidden(true))
 
         // config(in):
-        .arg(Arg::with_name(ARG_GIF_SELECT_FRAME)
-            .long("gif-select-frame")
+        .arg(Arg::with_name(ARG_SELECT_FRAME)
+            .long("select-frame")
             .value_name("#FRAME")
             .help("Zero-indexed frame which you want to load if the image is an animated gif.\
             To pick the first and last frame respectively, provide 'first' and 'last' as arguments. \
@@ -335,22 +335,22 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> Result<Config<'a>, Strin
     }
 
     // config(in)/gif-select-frame:
-    if let Some(frame_in) = matches.value_of(ARG_GIF_SELECT_FRAME) {
+    if let Some(frame_in) = matches.value_of(ARG_SELECT_FRAME) {
         let frame_out = match frame_in {
-            "first" => GIFFrameSelection::First,
-            "last" => GIFFrameSelection::Last,
+            "first" => FrameSelection::First,
+            "last" => FrameSelection::Last,
             n => {
                 let pick = n.parse::<usize>().map_err(|_| {
-                    "Provided argument for --gif-select-frame is not a valid option. \
-                     Valid options are 'first', 'last' or a (zero-indexed) unsigned integer."
+                    "Provided argument for --select-frame is not a valid option. \
+                     Valid options are `first`, `last` or a (zero-indexed) unsigned integer."
                         .to_string()
                 })?;
 
-                GIFFrameSelection::Nth(pick)
+                FrameSelection::Nth(pick)
             }
         };
 
-        builder = builder.gif_select_frame(frame_out);
+        builder = builder.select_frame(frame_out);
     }
 
     // config(out)/disable-automatic-color-type-adjustment:

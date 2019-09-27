@@ -9,7 +9,7 @@ use sic_io::conversion::AutomaticColorTypeAdjustment;
 use sic_io::format::{
     DetermineEncodingFormat, EncodingFormatByIdentifier, EncodingFormatByMethod, JPEGQuality,
 };
-use sic_io::load::{load_image, GIFFrameSelection, ImportConfig};
+use sic_io::load::{load_image, ImportConfig};
 use sic_io::save::{export, ExportMethod, ExportSettings};
 
 use crate::app::config::Config;
@@ -33,7 +33,7 @@ pub fn run(matches: &ArgMatches, options: &Config) -> Result<(), String> {
     let img = load_image(
         &mut reader,
         &ImportConfig {
-            gif_frame: GIFFrameSelection::First,
+            selected_frame: options.selected_frame,
         },
     )?;
 
