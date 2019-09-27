@@ -33,6 +33,7 @@ sic_image_engine = { path = "sic_image_engine" }
 sic_io  = { path = "sic_io" }
 sic_parser = { path = "sic_parser" }
 
+atty = "0.2.13"
 clap = "2.32.0"
 inflate = "0.4.5"
 

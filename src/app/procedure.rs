@@ -12,6 +12,7 @@ use sic_io::format::{
 use sic_io::load::{load_image, ImportConfig};
 use sic_io::save::{export, ExportMethod, ExportSettings};
 
+use crate::app::cli::arg_names::{ARG_INPUT, ARG_INPUT_FILE};
 use crate::app::config::Config;
 use crate::app::license::PrintTextFor;
 
@@ -79,21 +80,27 @@ pub fn run(matches: &ArgMatches, options: &Config) -> Result<(), String> {
 /// The reader can be a file or the stdin.
 /// If no file path is provided, the stdin will be assumed.
 fn mk_reader(matches: &ArgMatches) -> Result<Box<dyn Read>, String> {
-    let reader = if matches.is_present("input") {
-        sic_io::load::file_reader(
+    fn with_file_reader(matches: &ArgMatches, value_of: &str) -> Result<Box<dyn Read>, String> {
+        Ok(sic_io::load::file_reader(
             matches
-                .value_of("input")
+                .value_of(value_of)
                 .ok_or_else(|| NO_INPUT_PATH_MSG.to_string())?,
-        )
-    } else if matches.is_present("input_file") {
-        sic_io::load::file_reader(
-            matches
-                .value_of("input_file")
-                .ok_or_else(|| NO_INPUT_PATH_MSG.to_string())?,
-        )
+        )?)
+    };
+
+    let reader = if matches.is_present(ARG_INPUT) {
+        with_file_reader(matches, ARG_INPUT)?
+    } else if matches.is_present(ARG_INPUT_FILE) {
+        with_file_reader(matches, ARG_INPUT_FILE)?
     } else {
-        sic_io::load::stdin_reader()
-    }?;
+        if atty::is(atty::Stream::Stdin) {
+            return Err(
+                "An input image should be given by providing a path using the input argument or by \
+                piping an image to the stdin.".to_string(),
+            );
+        }
+        sic_io::load::stdin_reader()?
+    };
 
     Ok(reader)
 }
