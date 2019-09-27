@@ -90,7 +90,7 @@ pub fn cli() -> App<'static, 'static> {
         // organisational:
         .arg(Arg::with_name(ARG_LICENSE)
             .long("license")
-            .help("Displays the license of this piece of software (`stew`).")
+            .help("Displays the license of this piece of software (`sic`).")
             .takes_value(false)
             .conflicts_with_all(&[ARG_DEP_LICENSES, ARG_INPUT_FILE, ARG_OUTPUT_FILE, ARG_INPUT, ARG_OUTPUT]))
         .arg(Arg::with_name(ARG_DEP_LICENSES)
@@ -146,7 +146,9 @@ pub fn cli() -> App<'static, 'static> {
         // config(out):
         .arg(Arg::with_name(ARG_DISABLE_AUTOMATIC_COLOR_TYPE_ADJUSTMENT)
             .long("disable-automatic-color-type-adjustment")
-            .help("Some image output formats do not support the color type of the image buffer prior to encoding. By default Stew tries to adjust the color type. If this flag is provided, sic will not try to adjust the color type."))
+            .help("Some image output formats do not support the color type of the image buffer prior to encoding. \
+            By default the program tries to adjust the color type. If this flag is provided, \
+            the program will not try to adjust the color type."))
         .arg(Arg::with_name(ARG_FORCED_OUTPUT_FORMAT)
             .short("f")
             .long("output-format")
