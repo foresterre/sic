@@ -36,8 +36,8 @@ image operations and image operation modifiers.
 
 table legend:
 
-<uint> means any 32 bit unsigned integer is required as argument.
-<int> means any 32 bit signed integer is required as argument.
+<uint> means any 32 bit unsigned integer (positive number) is required as argument.
+<int> means any 32 bit signed integer (positive or negative number) is required as argument.
 <fp> means any 32 bit floating point number is required as argument.
 <fp9x> means `<fp> <fp> <fp> <fp> <fp> <fp> <fp> <fp> <fp>`.
 

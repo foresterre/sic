@@ -11,7 +11,7 @@ use crate::app::operations::{
 use crate::get_tool_name;
 use crate::{op_valueless, op_with_values};
 use arg_names::*;
-use sic_io::load::FrameSelection;
+use sic_io::load::FrameIndex;
 
 const ABOUT: &str = include_str!("../../resources/help-pages/about.txt");
 const HELP_OPERATIONS_AVAILABLE: &str =
@@ -78,7 +78,12 @@ pub fn cli() -> App<'static, 'static> {
         .author("Martijn Gribnau <garm@ilumeo.com>")
 
         // settings
-        .setting(AppSettings::NextLineHelp)
+        .global_setting(AppSettings::NextLineHelp)
+        .global_setting(AppSettings::ColoredHelp)
+        .global_setting(AppSettings::ColorAuto)
+        .global_setting(AppSettings::DontCollapseArgsInUsage)
+        .global_setting(AppSettings::UnifiedHelpMessage)
+        .max_term_width(120)
 
         // cli arguments
 
@@ -132,9 +137,10 @@ pub fn cli() -> App<'static, 'static> {
         .arg(Arg::with_name(ARG_SELECT_FRAME)
             .long("select-frame")
             .value_name("#FRAME")
-            .help("Zero-indexed frame which you want to load if the image is an animated gif.\
-            To pick the first and last frame respectively, provide 'first' and 'last' as arguments. \
-            Otherwise provide a zero-indexed unsigned integer which corresponds with the frame index.")
+            .help("Frame to be loaded as still image if the input image is an animated image.\
+            To pick the first and last frame respectively, you can provide 'first' and 'last' as arguments. \
+            Otherwise provide a single one-indexed positive number which corresponds with the frame index. \
+            For example, to select the first frame, the argument would be '1', for the second '2', etc.")
             .takes_value(true))
 
         // config(out):
@@ -150,7 +156,7 @@ pub fn cli() -> App<'static, 'static> {
             .takes_value(true))
         .arg(Arg::with_name(ARG_JPEG_ENCODING_QUALITY)
             .long("jpeg-encoding-quality")
-            .help("Set the jpeg quality to QUALITY. Valid values are natural numbers from 1 up to and including 100. Will only be used when the output format is determined to be jpeg.")
+            .help("Set the jpeg quality to QUALITY. Valid values are positive numbers from 1 up to and including 100. Will only be used when the output format is determined to be jpeg.")
             .value_name("QUALITY")
             .takes_value(true))
         .arg(Arg::with_name(ARG_PNM_ENCODING_ASCII)
@@ -337,16 +343,25 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> Result<Config<'a>, Strin
     // config(in)/gif-select-frame:
     if let Some(frame_in) = matches.value_of(ARG_SELECT_FRAME) {
         let frame_out = match frame_in {
-            "first" => FrameSelection::First,
-            "last" => FrameSelection::Last,
+            "first" => FrameIndex::First,
+            "last" => FrameIndex::Last,
             n => {
                 let pick = n.parse::<usize>().map_err(|_| {
                     "Provided argument for --select-frame is not a valid option. \
-                     Valid options are `first`, `last` or a (zero-indexed) unsigned integer."
+                     Valid options are 'first', 'last' or a (one-indexed) positive number."
                         .to_string()
                 })?;
 
-                FrameSelection::Nth(pick)
+                if pick == 0 {
+                    return Err(
+                        "Provided argument for --select-frame is not a valid option. \
+                         If a number is provided, the number should be positive and larger than 0. \
+                         To select the first frame, provide the argument '1'."
+                            .to_string(),
+                    );
+                }
+
+                FrameIndex::Nth(pick - 1)
             }
         };
 

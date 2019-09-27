@@ -44,19 +44,20 @@ fn load<R: Read>(reader: &mut R) -> ImportResult<Vec<u8>> {
 #[derive(Debug, Default)]
 pub struct ImportConfig {
     /// For animated images; decides which frame will be used as static image.
-    pub selected_frame: FrameSelection,
+    pub selected_frame: FrameIndex,
 }
 
+/// Zero-indexed frame index.
 #[derive(Clone, Copy, Debug)]
-pub enum FrameSelection {
+pub enum FrameIndex {
     First,
     Last,
     Nth(usize),
 }
 
-impl Default for FrameSelection {
+impl Default for FrameIndex {
     fn default() -> Self {
-        FrameSelection::First
+        FrameIndex::First
     }
 }
 
@@ -64,18 +65,19 @@ fn starts_with_gif_magic_number(buffer: &[u8]) -> bool {
     buffer.starts_with(b"GIF87a") || buffer.starts_with(b"GIF89a")
 }
 
-fn load_gif(buffer: &[u8], frame: FrameSelection) -> Result<image::DynamicImage, ImportError> {
+fn load_gif(buffer: &[u8], frame: FrameIndex) -> Result<image::DynamicImage, ImportError> {
     let decoder = image::gif::Decoder::new(&buffer[..])?;
     let frames = decoder.into_frames();
     let vec = frames.collect::<Result<Vec<_>, image::ImageError>>()?;
     let amount_of_frames = vec.len();
 
-    // The zero-indexed selected frame picked by the user.
+    // The one-indexed selected frame picked by the user; stored as zero-indexed frames
+    // in the import config.
     // There is no guarantee that the selected frame does exist at this point.
     let selected = match frame {
-        FrameSelection::First => 0usize,
-        FrameSelection::Nth(n) => n,
-        FrameSelection::Last => {
+        FrameIndex::First => 0usize,
+        FrameIndex::Nth(n) => n,
+        FrameIndex::Last => {
             if vec.is_empty() {
                 return Err(ImportError::NoSuchFrame(0, "No frames found.".to_string()));
             }
@@ -90,7 +92,7 @@ fn load_gif(buffer: &[u8], frame: FrameSelection) -> Result<image::DynamicImage,
             selected,
             format!(
                 "Chosen frame index exceeds the maximum frame index ({}) of the image.",
-                amount_of_frames - 1
+                amount_of_frames
             ),
         ));
     }
@@ -108,7 +110,6 @@ pub enum ImportError {
     Image(image::ImageError),
     Io(std::io::Error),
     NoSuchFrame(usize, String),
-    Undefined,
 }
 
 impl From<std::io::Error> for ImportError {
@@ -131,9 +132,9 @@ impl From<ImportError> for String {
             ImportError::Image(err) => err.to_string(),
             ImportError::NoSuchFrame(which, reason) => format!(
                 "Unable to extract frame {} from the (animated) image. Reason given: {}",
-                which, reason,
+                which + 1,
+                reason,
             ),
-            ImportError::Undefined => "Unable to load image.".to_string(),
         }
     }
 }
@@ -153,7 +154,7 @@ mod tests {
         let load_path = setup_test_image(GIF_NO_LOOP);
 
         let config = ImportConfig {
-            selected_frame: FrameSelection::First,
+            selected_frame: FrameIndex::First,
         };
 
         let image = load_image(&mut file_reader(load_path).unwrap(), &config).unwrap();
@@ -168,11 +169,11 @@ mod tests {
         let load_path = setup_test_image(GIF_NO_LOOP);
 
         let first = ImportConfig {
-            selected_frame: FrameSelection::First,
+            selected_frame: FrameIndex::First,
         };
 
         let zero = ImportConfig {
-            selected_frame: FrameSelection::Nth(0),
+            selected_frame: FrameIndex::Nth(0),
         };
 
         let first = load_image(&mut file_reader(&load_path).unwrap(), &first).unwrap();
@@ -186,11 +187,11 @@ mod tests {
         let load_path = setup_test_image(GIF_LOOP);
 
         let first = ImportConfig {
-            selected_frame: FrameSelection::First,
+            selected_frame: FrameIndex::First,
         };
 
         let zero = ImportConfig {
-            selected_frame: FrameSelection::Nth(0),
+            selected_frame: FrameIndex::Nth(0),
         };
 
         let first = load_image(&mut file_reader(&load_path).unwrap(), &first).unwrap();
@@ -218,7 +219,7 @@ mod tests {
             let load_path = setup_test_image(GIF_NO_LOOP);
 
             let config = ImportConfig {
-                selected_frame: FrameSelection::Nth(i),
+                selected_frame: FrameIndex::Nth(i),
             };
 
             let image = load_image(&mut file_reader(load_path).unwrap(), &config).unwrap();
@@ -233,7 +234,7 @@ mod tests {
             let load_path = setup_test_image(GIF_LOOP);
 
             let config = ImportConfig {
-                selected_frame: FrameSelection::Nth(i),
+                selected_frame: FrameIndex::Nth(i),
             };
 
             let image = load_image(&mut file_reader(load_path).unwrap(), &config).unwrap();
@@ -247,7 +248,7 @@ mod tests {
         let load_path = setup_test_image(GIF_NO_LOOP);
 
         let config = ImportConfig {
-            selected_frame: FrameSelection::Nth(8),
+            selected_frame: FrameIndex::Nth(8),
         };
 
         let result = load_image(&mut file_reader(load_path).unwrap(), &config);
@@ -260,7 +261,7 @@ mod tests {
         let load_path = setup_test_image(GIF_LOOP);
 
         let config = ImportConfig {
-            selected_frame: FrameSelection::Nth(8),
+            selected_frame: FrameIndex::Nth(8),
         };
 
         let result = load_image(&mut file_reader(load_path).unwrap(), &config);
@@ -272,11 +273,11 @@ mod tests {
         let load_path = setup_test_image(GIF_NO_LOOP);
 
         let last = ImportConfig {
-            selected_frame: FrameSelection::Last,
+            selected_frame: FrameIndex::Last,
         };
 
         let seven = ImportConfig {
-            selected_frame: FrameSelection::Nth(7),
+            selected_frame: FrameIndex::Nth(7),
         };
 
         let last = load_image(&mut file_reader(&load_path).unwrap(), &last).unwrap();
@@ -290,11 +291,11 @@ mod tests {
         let load_path = setup_test_image(GIF_LOOP);
 
         let last = ImportConfig {
-            selected_frame: FrameSelection::Last,
+            selected_frame: FrameIndex::Last,
         };
 
         let seven = ImportConfig {
-            selected_frame: FrameSelection::Nth(7),
+            selected_frame: FrameIndex::Nth(7),
         };
 
         let last = load_image(&mut file_reader(&load_path).unwrap(), &last).unwrap();

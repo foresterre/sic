@@ -1,5 +1,5 @@
 use sic_image_engine::engine::Program;
-use sic_io::load::FrameSelection;
+use sic_io::load::FrameIndex;
 
 #[derive(Debug)]
 pub struct Config<'a> {
@@ -14,7 +14,7 @@ pub struct Config<'a> {
     pub output: Option<&'a str>,
 
     // config(in)
-    pub selected_frame: FrameSelection,
+    pub selected_frame: FrameIndex,
 
     // config(out)
     /// Disable color type adjustments on save.
@@ -50,7 +50,7 @@ impl Default for Config<'_> {
             output: None,
 
             /// By default the first frame of a gif is used.
-            selected_frame: FrameSelection::First,
+            selected_frame: FrameIndex::First,
 
             /// Defaults to using automatic color type adjustment where appropriate.
             disable_automatic_color_type_adjustment: false,
@@ -96,7 +96,7 @@ impl<'a> ConfigBuilder<'a> {
     }
 
     // config(in)
-    pub fn select_frame(mut self, frame: FrameSelection) -> ConfigBuilder<'a> {
+    pub fn select_frame(mut self, frame: FrameIndex) -> ConfigBuilder<'a> {
         self.settings.selected_frame = frame;
         self
     }
