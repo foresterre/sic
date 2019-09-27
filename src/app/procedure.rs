@@ -13,7 +13,7 @@ use sic_io::load::{load_image, GIFFrameSelection, ImportConfig};
 use sic_io::save::{export, ExportMethod, ExportSettings};
 
 use crate::app::config::Config;
-use crate::app::license_display::PrintTextFor;
+use crate::app::license::PrintTextFor;
 
 const NO_INPUT_PATH_MSG: &str = "Input path was expected but could not be found.";
 

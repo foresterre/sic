@@ -1,23 +1,34 @@
 use sic_image_engine::engine::Program;
+use sic_io::load::GIFFrameSelection;
 
 #[derive(Debug)]
 pub struct Config<'a> {
     pub tool_name: &'static str,
 
-    // Display license of this software or its dependencies.
+    // organisational
+    /// Display license of this software or its dependencies.
     pub show_license_text_of: Option<SelectedLicenses>,
 
-    // Format to which an image will be converted (enforced).
-    pub forced_output_format: Option<&'a str>,
-
-    // --disable-automatic-color-type-adjustment
-    pub disable_automatic_color_type_adjustment: bool,
-
-    pub encoding_settings: FormatEncodingSettings,
-
-    // output path
+    // io(output)
+    /// The image output path.
     pub output: Option<&'a str>,
 
+    // config(in)
+    pub gif_select_frame: GIFFrameSelection,
+
+    // config(out)
+    /// Disable color type adjustments on save.
+    pub disable_automatic_color_type_adjustment: bool,
+
+    // config(out)
+    /// Format to which an image will be converted (enforced).
+    pub forced_output_format: Option<&'a str>,
+
+    // config(out)
+    /// Encoding settings for specific output formats.
+    pub encoding_settings: FormatEncodingSettings,
+
+    // image-operations
     /// If a user wants to perform image operations on input image, they will need to provide
     /// the image operation commands.
     /// THe value set here should be presented as a [sic_image_engine::engine::Program].
@@ -34,11 +45,18 @@ impl Default for Config<'_> {
             /// Defaults to no displayed license text.
             show_license_text_of: None,
 
-            /// Defaults to not forcing a specific image output format.
-            forced_output_format: None,
+            /// Default output path is None. The program may require an output to be set
+            /// for most of its program behaviour.
+            output: None,
+
+            /// By default the first frame of a gif is used.
+            gif_select_frame: GIFFrameSelection::First,
 
             /// Defaults to using automatic color type adjustment where appropriate.
             disable_automatic_color_type_adjustment: false,
+
+            /// Defaults to not forcing a specific image output format.
+            forced_output_format: None,
 
             /// Default format encoding settings.
             encoding_settings: FormatEncodingSettings {
@@ -48,10 +66,6 @@ impl Default for Config<'_> {
                 /// Default encoding type of PNM files (excluding PAM) is set to binary.
                 pnm_use_ascii_format: false,
             },
-
-            /// Default output path is None. The program may require an output to be set
-            /// for most of its program behaviour.
-            output: None,
 
             /// Defaults to no provided image operations script.
             image_operations_program: Vec::new(),
@@ -75,36 +89,49 @@ impl<'a> ConfigBuilder<'a> {
         ConfigBuilder::default()
     }
 
+    // organisational
     pub fn show_license_text_of(mut self, selection: SelectedLicenses) -> ConfigBuilder<'a> {
         self.settings.show_license_text_of = Some(selection);
         self
     }
 
+    // config(in)
+    pub fn gif_select_frame(mut self, frame: GIFFrameSelection) -> ConfigBuilder<'a> {
+        self.settings.gif_select_frame = frame;
+        self
+    }
+
+    // config(out)
     pub fn forced_output_format(mut self, format: &'a str) -> ConfigBuilder<'a> {
         self.settings.forced_output_format = Some(format);
         self
     }
 
+    // config(out)
     pub fn disable_automatic_color_type_adjustment(mut self, toggle: bool) -> ConfigBuilder<'a> {
         self.settings.disable_automatic_color_type_adjustment = toggle;
         self
     }
 
+    // config(out)
     pub fn jpeg_quality(mut self, quality: u8) -> ConfigBuilder<'a> {
         self.settings.encoding_settings.jpeg_quality = quality;
         self
     }
 
+    // config(out)
     pub fn pnm_format_type(mut self, use_ascii: bool) -> ConfigBuilder<'a> {
         self.settings.encoding_settings.pnm_use_ascii_format = use_ascii;
         self
     }
 
+    // config(out)
     pub fn output_path(mut self, path: &'a str) -> ConfigBuilder<'a> {
         self.settings.output = Some(path);
         self
     }
 
+    // image-operations
     pub fn image_operations_program(mut self, program: Program) -> ConfigBuilder<'a> {
         self.settings.image_operations_program = program;
         self

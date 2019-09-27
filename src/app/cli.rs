@@ -5,12 +5,13 @@ use clap::{App, AppSettings, Arg, ArgGroup, ArgMatches};
 use sic_image_engine::engine::Statement;
 
 use crate::app::config::{validate_jpeg_quality, Config, ConfigBuilder, SelectedLicenses};
-use crate::app::img_op_arg::{
+use crate::app::operations::{
     extend_index_tree_with_unification, IndexTree, IndexedOps, Op, OperationId,
 };
 use crate::get_tool_name;
 use crate::{op_valueless, op_with_values};
 use arg_names::*;
+use sic_io::load::GIFFrameSelection;
 
 const ABOUT: &str = include_str!("../../resources/help-pages/about.txt");
 const HELP_OPERATIONS_AVAILABLE: &str =
@@ -19,20 +20,34 @@ const HELP_OPERATIONS_AVAILABLE: &str =
 // table of argument names
 pub(crate) mod arg_names {
     // cli - possible arguments
-    pub(crate) const ARG_FORCED_OUTPUT_FORMAT: &str = "forced_output_format";
+
+    // organisational:
     pub(crate) const ARG_LICENSE: &str = "license";
     pub(crate) const ARG_DEP_LICENSES: &str = "dep_licenses";
-    pub(crate) const ARG_JPEG_ENCODING_QUALITY: &str = "jpeg_encoding_quality";
-    pub(crate) const ARG_PNM_ENCODING_ASCII: &str = "pnm_encoding_ascii";
-    pub(crate) const ARG_DISABLE_AUTOMATIC_COLOR_TYPE_ADJUSTMENT: &str =
-        "disable_automatic_color_type_adjustment";
+
+    // io(input):
     pub(crate) const ARG_INPUT: &str = "input";
     pub(crate) const ARG_OUTPUT: &str = "output";
+
+    // io(output):
     pub(crate) const ARG_INPUT_FILE: &str = "input_file";
     pub(crate) const ARG_OUTPUT_FILE: &str = "output_file";
 
+    // config(in):
+    pub(crate) const ARG_GIF_SELECT_FRAME: &str = "gif_select_frame";
+
+    // config(out):
+    pub(crate) const ARG_DISABLE_AUTOMATIC_COLOR_TYPE_ADJUSTMENT: &str =
+        "disable_automatic_color_type_adjustment";
+    pub(crate) const ARG_FORCED_OUTPUT_FORMAT: &str = "forced_output_format";
+    pub(crate) const ARG_JPEG_ENCODING_QUALITY: &str = "jpeg_encoding_quality";
+
+    pub(crate) const ARG_PNM_ENCODING_ASCII: &str = "pnm_encoding_ascii";
+
+    // image-operations(script):
     pub(crate) const ARG_APPLY_OPERATIONS: &str = "script";
 
+    // image-operations(cli-arguments):
     pub(crate) const GROUP_IMAGE_OPERATIONS: &str = "group";
     pub(crate) const OP_BLUR: &str = "op_blur";
     pub(crate) const OP_BRIGHTEN: &str = "op_brighten";
@@ -50,6 +65,7 @@ pub(crate) mod arg_names {
     pub(crate) const OP_ROTATE270: &str = "op_rot270";
     pub(crate) const OP_UNSHARPEN: &str = "op_unsharpen";
 
+    // image-operations(cli-arguments/modifiers):
     pub(crate) const OPMOD_RESIZE_PRESERVE_ASPECT_RATIO: &str = "opmod_resize_par";
     pub(crate) const OPMOD_RESIZE_SAMPLING_FILTER: &str = "opmod_resize_sampling_filter";
 }
@@ -61,17 +77,12 @@ pub fn cli() -> App<'static, 'static> {
         .after_help("For more information, visit: https://github.com/foresterre/sic")
         .author("Martijn Gribnau <garm@ilumeo.com>")
 
-        // Settings
+        // settings
         .setting(AppSettings::NextLineHelp)
 
-        // Base arguments shared between `sic` and `stew`.
-        .arg(Arg::with_name(ARG_FORCED_OUTPUT_FORMAT)
-            .short("f")
-            .long("output-format")
-            .value_name("FORMAT")
-            .help("Force the output image format to use FORMAT, regardless of the (if any) extension of the given output file path. \
-                Output formats (FORMAT values) supported: BMP, GIF, ICO, JPEG, PNG, PBM, PGM, PPM and PAM.")
-            .takes_value(true))
+        // cli arguments
+
+        // organisational:
         .arg(Arg::with_name(ARG_LICENSE)
             .long("license")
             .help("Displays the license of this piece of software (`stew`).")
@@ -82,17 +93,8 @@ pub fn cli() -> App<'static, 'static> {
             .help("Displays the licenses of the dependencies on which this software relies.")
             .takes_value(false)
             .conflicts_with_all(&[ARG_LICENSE, ARG_INPUT_FILE, ARG_OUTPUT_FILE, ARG_INPUT, ARG_OUTPUT]))
-        .arg(Arg::with_name(ARG_JPEG_ENCODING_QUALITY)
-            .long("jpeg-encoding-quality")
-            .help("Set the jpeg quality to QUALITY. Valid values are natural numbers from 1 up to and including 100. Will only be used when the output format is determined to be jpeg.")
-            .value_name("QUALITY")
-            .takes_value(true))
-        .arg(Arg::with_name(ARG_PNM_ENCODING_ASCII)
-            .long("pnm-encoding-ascii")
-            .help("Use ascii based encoding when using a PNM image output format (pbm, pgm or ppm). Doesn't apply to 'pam' (PNM Arbitrary Map)."))
-        .arg(Arg::with_name(ARG_DISABLE_AUTOMATIC_COLOR_TYPE_ADJUSTMENT)
-            .long("disable-automatic-color-type-adjustment")
-            .help("Some image output formats do not support the color type of the image buffer prior to encoding. By default Stew tries to adjust the color type. If this flag is provided, sic will not try to adjust the color type."))
+
+        // io(input):
         .arg(Arg::with_name(ARG_INPUT)
             .long("input")
             .short("i")
@@ -102,6 +104,14 @@ pub fn cli() -> App<'static, 'static> {
             .required_unless_all(&[ARG_INPUT_FILE, ARG_OUTPUT_FILE])
             .required_unless_one(&[ARG_LICENSE, ARG_DEP_LICENSES])
             .conflicts_with_all(&[ARG_INPUT_FILE, ARG_OUTPUT_FILE, ARG_LICENSE, ARG_DEP_LICENSES]))
+        .arg(Arg::with_name(ARG_INPUT_FILE)
+            .help("Sets the input file")
+            .value_name("INPUT_FILE")
+            .conflicts_with_all(&[ARG_INPUT, ARG_OUTPUT, ARG_LICENSE, ARG_DEP_LICENSES])
+            .index(1)
+            .hidden(true))
+
+        // io(output):
         .arg(Arg::with_name(ARG_OUTPUT)
             .long("output")
             .short("o")
@@ -111,21 +121,6 @@ pub fn cli() -> App<'static, 'static> {
             .required_unless_all(&[ARG_INPUT_FILE, ARG_OUTPUT_FILE])
             .required_unless_one(&[ARG_LICENSE, ARG_DEP_LICENSES])
             .conflicts_with_all(&[ARG_INPUT_FILE, ARG_OUTPUT_FILE, ARG_LICENSE, ARG_DEP_LICENSES]))
-
-        // Selective arguments for `sic`.
-        .arg(Arg::with_name(ARG_APPLY_OPERATIONS)
-            .long("apply-operations")
-            .short("x")
-            .alias("A")
-            .help(HELP_OPERATIONS_AVAILABLE)
-            .value_name("OPERATIONS")
-            .takes_value(true))
-        .arg(Arg::with_name(ARG_INPUT_FILE)
-            .help("Sets the input file")
-            .value_name("INPUT_FILE")
-            .conflicts_with_all(&[ARG_INPUT, ARG_OUTPUT, ARG_LICENSE, ARG_DEP_LICENSES])
-            .index(1)
-            .hidden(true))
         .arg(Arg::with_name(ARG_OUTPUT_FILE)
             .help("Sets the desired output file")
             .value_name("OUTPUT_FILE")
@@ -133,7 +128,45 @@ pub fn cli() -> App<'static, 'static> {
             .index(2)
             .hidden(true))
 
-        // operations
+        // config(in):
+        .arg(Arg::with_name(ARG_GIF_SELECT_FRAME)
+            .long("gif-select-frame")
+            .value_name("#FRAME")
+            .help("Zero-indexed frame which you want to load if the image is an animated gif.\
+            To pick the first and last frame respectively, provide 'first' and 'last' as arguments. \
+            Otherwise provide a zero-indexed unsigned integer which corresponds with the frame index.")
+            .takes_value(true))
+
+        // config(out):
+        .arg(Arg::with_name(ARG_DISABLE_AUTOMATIC_COLOR_TYPE_ADJUSTMENT)
+            .long("disable-automatic-color-type-adjustment")
+            .help("Some image output formats do not support the color type of the image buffer prior to encoding. By default Stew tries to adjust the color type. If this flag is provided, sic will not try to adjust the color type."))
+        .arg(Arg::with_name(ARG_FORCED_OUTPUT_FORMAT)
+            .short("f")
+            .long("output-format")
+            .value_name("FORMAT")
+            .help("Force the output image format to use FORMAT, regardless of the (if any) extension of the given output file path. \
+                Output formats (FORMAT values) supported: BMP, GIF, ICO, JPEG, PNG, PBM, PGM, PPM and PAM.")
+            .takes_value(true))
+        .arg(Arg::with_name(ARG_JPEG_ENCODING_QUALITY)
+            .long("jpeg-encoding-quality")
+            .help("Set the jpeg quality to QUALITY. Valid values are natural numbers from 1 up to and including 100. Will only be used when the output format is determined to be jpeg.")
+            .value_name("QUALITY")
+            .takes_value(true))
+        .arg(Arg::with_name(ARG_PNM_ENCODING_ASCII)
+            .long("pnm-encoding-ascii")
+            .help("Use ascii based encoding when using a PNM image output format (pbm, pgm or ppm). Doesn't apply to 'pam' (PNM Arbitrary Map)."))
+
+        // image-operations(script):
+        .arg(Arg::with_name(ARG_APPLY_OPERATIONS)
+            .long("apply-operations")
+            .short("x")
+            .alias("A")
+            .help(HELP_OPERATIONS_AVAILABLE)
+            .value_name("OPERATIONS")
+            .takes_value(true))
+
+        // image-operations(cli-arguments):
         .group(ArgGroup::with_name(GROUP_IMAGE_OPERATIONS)
             .args(&[
                 OP_BLUR,
@@ -248,7 +281,7 @@ pub fn cli() -> App<'static, 'static> {
             .multiple(true)
             .allow_hyphen_values(true))
 
-        // operation modifiers
+        // image-operations(cli-arguments/modifiers):
         .arg(Arg::with_name(OPMOD_RESIZE_PRESERVE_ASPECT_RATIO)
             .help("Operation modifier for: resize")
             .long("--set-resize-preserve-aspect-ratio")
@@ -274,7 +307,7 @@ pub fn cli() -> App<'static, 'static> {
 pub fn build_app_config<'a>(matches: &'a ArgMatches) -> Result<Config<'a>, String> {
     let mut builder = ConfigBuilder::new();
 
-    // next setting.
+    // organisational/licenses:
     let texts_requested = (
         matches.is_present(ARG_LICENSE),
         matches.is_present(ARG_DEP_LICENSES),
@@ -293,17 +326,44 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> Result<Config<'a>, Strin
         (false, false) => (),
     };
 
-    // next setting.
-    if let Some(format) = matches.value_of(ARG_FORCED_OUTPUT_FORMAT) {
-        builder = builder.forced_output_format(format);
+    // io(output):
+    if let Some(path) = matches
+        .value_of(ARG_OUTPUT)
+        .or_else(|| matches.value_of(ARG_OUTPUT_FILE))
+    {
+        builder = builder.output_path(path);
     }
 
-    // next setting.
+    // config(in)/gif-select-frame:
+    if let Some(frame_in) = matches.value_of(ARG_GIF_SELECT_FRAME) {
+        let frame_out = match frame_in {
+            "first" => GIFFrameSelection::First,
+            "last" => GIFFrameSelection::Last,
+            n => {
+                let pick = n.parse::<usize>().map_err(|_| {
+                    "Provided argument for --gif-select-frame is not a valid option. \
+                     Valid options are 'first', 'last' or a (zero-indexed) unsigned integer."
+                        .to_string()
+                })?;
+
+                GIFFrameSelection::Nth(pick)
+            }
+        };
+
+        builder = builder.gif_select_frame(frame_out);
+    }
+
+    // config(out)/disable-automatic-color-type-adjustment:
     if matches.is_present(ARG_DISABLE_AUTOMATIC_COLOR_TYPE_ADJUSTMENT) {
         builder = builder.disable_automatic_color_type_adjustment(true);
     }
 
-    // next setting.
+    // config(out)/output-format:
+    if let Some(format) = matches.value_of(ARG_FORCED_OUTPUT_FORMAT) {
+        builder = builder.forced_output_format(format);
+    }
+
+    // config(out)/jpeg-encoding-quality:
     if let Some(value) = matches.value_of(ARG_JPEG_ENCODING_QUALITY) {
         let requested_jpeg_quality = u8::from_str(value)
             .map_err(|_| {
@@ -313,21 +373,12 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> Result<Config<'a>, Strin
         builder = builder.jpeg_quality(requested_jpeg_quality);
     }
 
-    // next setting.
+    // config(out)/pnm-encoding-type:
     if matches.is_present(ARG_PNM_ENCODING_ASCII) {
         builder = builder.pnm_format_type(true);
     }
 
-    // next setting.
-    if let Some(path) = matches
-        .value_of(ARG_OUTPUT)
-        .or_else(|| matches.value_of(ARG_OUTPUT_FILE))
-    {
-        builder = builder.output_path(path);
-    }
-
-    // Image Operations
-    // ----------------
+    // image-operations:
     //
     // Image operations are a bit more involved.
     // Thanks to clap, we know either ARG_APPLY_OPERATIONS xor GROUP_IMAGE_OPERATIONS
@@ -349,8 +400,6 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> Result<Config<'a>, Strin
     // argv ourselves: --crop 0 0 1 1 --crop, is valid according to Clap. However, since we do not
     // receive the amount of times --crop was defined, but rather all the separate provided values for
     // the name of the argument, we just know that for `crop` we have values 0,0,1,1.
-    //
-    // next setting.
     let program = if let Some(script) = matches.value_of(ARG_APPLY_OPERATIONS) {
         sic_parser::parse_script(script)?
     } else {
