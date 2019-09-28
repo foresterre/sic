@@ -1,9 +1,9 @@
 [package]
 edition = "2018"
 name = "sic"
-version = "0.9.0"
+version = "0.10.0"
 authors = ["Martijn Gribnau <garm@ilumeo.com>"]
-description = "'sic' or 'sic image cli' is a (partial) front-end for the 'image' crate."
+description = "Accessible image processing and conversion from the terminal (and a front-end for the 'image' crate)."
 license = "MIT"
 repository = "https://github.com/foresterre/sic"
 readme = "README.md"

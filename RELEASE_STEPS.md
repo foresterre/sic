@@ -40,8 +40,12 @@ Blocking:
 **Update version number**
 
 - [ ] Define update version number [as described here](https://doc.rust-lang.org/cargo/reference/publishing.html#publishing-a-new-version-of-an-existing-crate).
-- [ ] Update the version number in `Cargo.toml`.
-- The Clap App version number in `src/main.rs` will be equal to the version number in `Cargo.toml`.
+- [ ] Update the version number in all `Cargo.toml` files (i.e. all workspace crates).
+    - Specifically, for the pre-1.0 versions the versioning strategy is currently as follows:
+        - The minor version number is the same for all workspace crates, and incremented
+          for each release. 
+        - The patch version is increased on a as-needed basis, separately per crate. 
+- The Clap App version number in `src/main.rs` will be equal to the version number in the root `Cargo.toml`.
 
 
 **Update the dependency licenses to be included in the binary as per their licenses**

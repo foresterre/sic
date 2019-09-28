@@ -491,54 +491,54 @@ dependencies = [
 
 [[package]]
 name = "sic"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "atty 0.2.13 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "flate2 1.0.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "inflate 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "sic_core 0.1.0",
- "sic_image_engine 0.1.0",
- "sic_io 0.2.0",
- "sic_parser 0.1.0",
- "sic_testing 0.1.0",
+ "sic_core 0.10.0",
+ "sic_image_engine 0.10.0",
+ "sic_io 0.10.0",
+ "sic_parser 0.10.0",
+ "sic_testing 0.10.0",
 ]
 
 [[package]]
 name = "sic_core"
-version = "0.1.0"
+version = "0.10.0"
 dependencies = [
  "image 0.22.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "sic_image_engine"
-version = "0.1.0"
+version = "0.10.0"
 dependencies = [
- "sic_core 0.1.0",
+ "sic_core 0.10.0",
 ]
 
 [[package]]
 name = "sic_io"
-version = "0.2.0"
+version = "0.10.0"
 dependencies = [
- "sic_core 0.1.0",
- "sic_testing 0.1.0",
+ "sic_core 0.10.0",
+ "sic_testing 0.10.0",
 ]
 
 [[package]]
 name = "sic_parser"
-version = "0.1.0"
+version = "0.10.0"
 dependencies = [
  "pest 2.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "pest_derive 2.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sic_core 0.1.0",
- "sic_image_engine 0.1.0",
+ "sic_core 0.10.0",
+ "sic_image_engine 0.10.0",
 ]
 
 [[package]]
 name = "sic_testing"
-version = "0.1.0"
+version = "0.10.0"
 
 [[package]]
 name = "strsim"
