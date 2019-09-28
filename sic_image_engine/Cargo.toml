@@ -2,8 +2,10 @@
 name = "sic_image_engine"
 version = "0.10.0"
 authors = ["Martijn Gribnau <garm@ilumeo.com>"]
+description = "Component of the sic cli: provides abstractions for (the application of) image operations."
 edition = "2018"
 license-file = "../LICENSE"
+repository = "https://github.com/foresterre/sic"
 
 [dependencies]
 sic_core = { path = "../sic_core" }
