@@ -491,7 +491,7 @@ dependencies = [
 
 [[package]]
 name = "sic"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "atty 0.2.13 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)",
