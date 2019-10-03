@@ -96,7 +96,7 @@ impl ImageEngine {
         }
     }
 
-    pub fn ignite(&mut self, statements: &Program) -> Result<&DynamicImage, Box<dyn Error>> {
+    pub fn ignite(&mut self, statements: &[Statement]) -> Result<&DynamicImage, Box<dyn Error>> {
         for stmt in statements {
             match self.process_statement(stmt) {
                 Ok(_) => continue,
