@@ -124,12 +124,13 @@ impl ImageEngine {
                 Ok(())
             }
             ImgOp::Crop((lx, ly, rx, ry)) => {
+                let selection = CropSelection::new(*lx, *ly, *rx, *ry);
+
                 // 1. verify that the top left anchor is smaller than the bottom right anchor
                 // 2. verify that the selection is within the bounds of the image
-                Verify::crop_selection_box_can_exist(*lx, *ly, *rx, *ry)
-                    .and_then(|_| {
-                        Verify::crop_selection_within_image_bounds(&self.image, *lx, *ly, *rx, *ry)
-                    })
+                selection
+                    .dimensions_are_ok()
+                    .and_then(|selection| selection.fits_within(&self.image))
                     .map(|_| {
                         *self.image = self.image.crop(*lx, *ly, rx - lx, ry - ly);
                     })
@@ -222,43 +223,49 @@ impl ImageEngine {
     }
 }
 
-struct Verify;
+struct CropSelection {
+    lx: u32,
+    ly: u32,
+    rx: u32,
+    ry: u32,
+}
 
-impl Verify {
-    fn crop_selection_box_can_exist(
-        lx: u32,
-        ly: u32,
-        rx: u32,
-        ry: u32,
-    ) -> Result<(), Box<dyn Error>> {
-        if (rx <= lx) || (ry <= ly) {
+impl CropSelection {
+    pub(crate) fn new(lx: u32, ly: u32, rx: u32, ry: u32) -> Self {
+        Self { lx, ly, rx, ry }
+    }
+
+    pub(crate) fn dimensions_are_ok(&self) -> Result<&Self, Box<dyn Error>> {
+        if self.are_dimensions_incorrect() {
             Err(format!(
                 "Operation: crop -- Top selection coordinates are smaller than bottom selection coordinates. \
             Required top selection < bottom selection but given coordinates are: [top anchor: (x={}, y={}), bottom anchor: (x={}, y={})].",
-                lx, ly, rx, ry
+                self.lx, self.ly, self.rx, self.ry
             ).into())
         } else {
-            Ok(())
+            Ok(self)
         }
     }
 
-    fn crop_selection_within_image_bounds(
-        image: &DynamicImage,
-        lx: u32,
-        ly: u32,
-        rx: u32,
-        ry: u32,
-    ) -> Result<(), Box<dyn Error>> {
-        let (dim_x, dim_y) = image.dimensions();
+    pub(crate) fn fits_within(&self, outer: &DynamicImage) -> Result<&Self, Box<dyn Error>> {
+        let (dim_x, dim_y) = outer.dimensions();
 
-        match (lx <= dim_x, ly <= dim_y, rx <= dim_x, ry <= dim_y) {
-            (true, true, true, true) => Ok(()),
+        match (
+            self.lx <= dim_x,
+            self.ly <= dim_y,
+            self.rx <= dim_x,
+            self.ry <= dim_y,
+        ) {
+            (true, true, true, true) => Ok(self),
             _ => {
-                println!("error expected");
                 Err(format!("Operation: crop -- Top or bottom selection coordinates out of bounds: selection is [top anchor: \
-                (x={}, y={}), bottom anchor: (x={}, y={})] but max selection range is: (x={}, y={}).", lx, ly, rx, ry, dim_x, dim_y).into())
+                (x={}, y={}), bottom anchor: (x={}, y={})] but max selection range is: (x={}, y={}).", self.lx, self.ly, self.rx, self.ry, dim_x, dim_y).into())
             }
         }
+    }
+
+    fn are_dimensions_incorrect(&self) -> bool {
+        (self.rx <= self.lx) || (self.ry <= self.ly)
     }
 }
 
