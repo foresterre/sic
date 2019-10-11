@@ -358,11 +358,24 @@ mod environment_tests {
 mod tests {
     use super::*;
 
+    use sic_core::image::DynamicImage;
     use sic_core::image::FilterType;
     use sic_core::image::GenericImageView;
     use sic_core::image::Rgba;
 
-    use crate::test_includes::*;
+    use sic_testing::{in_, out_};
+
+    // output images during tests to verify the results visually
+    fn output_test_image_for_manual_inspection(img: &DynamicImage, path: &str) {
+        if cfg!(feature = "output-test-images") {
+            let _ = img.save(path);
+        }
+    }
+
+    fn setup_default_test_image() -> DynamicImage {
+        const DEFAULT_TEST_IMAGE_PATH: &str = "unsplash_763569_cropped.jpg";
+        sic_testing::open_test_image(sic_testing::in_!(DEFAULT_TEST_IMAGE_PATH))
+    }
 
     #[test]
     fn resize_with_preserve_aspect_ratio() {
@@ -582,8 +595,8 @@ mod tests {
 
     #[test]
     fn test_crop_ok_no_change() {
-        let img: DynamicImage = setup_test_image(in_!("blackwhite_2x2.bmp"));
-        let cmp: DynamicImage = setup_test_image(in_!("blackwhite_2x2.bmp"));
+        let img: DynamicImage = sic_testing::open_test_image(in_!("blackwhite_2x2.bmp"));
+        let cmp: DynamicImage = sic_testing::open_test_image(in_!("blackwhite_2x2.bmp"));
 
         let operation = ImgOp::Crop((0, 0, 2, 2));
 
@@ -601,8 +614,8 @@ mod tests {
 
     #[test]
     fn test_crop_ok_to_one_pixel() {
-        let img: DynamicImage = setup_test_image(in_!("blackwhite_2x2.bmp"));
-        let cmp: DynamicImage = setup_test_image(in_!("blackwhite_2x2.bmp"));
+        let img: DynamicImage = sic_testing::open_test_image(in_!("blackwhite_2x2.bmp"));
+        let cmp: DynamicImage = sic_testing::open_test_image(in_!("blackwhite_2x2.bmp"));
 
         let operation = ImgOp::Crop((0, 0, 1, 1));
 
@@ -629,8 +642,8 @@ mod tests {
 
     #[test]
     fn test_crop_ok_to_half_horizontal() {
-        let img: DynamicImage = setup_test_image(in_!("blackwhite_2x2.bmp"));
-        let cmp: DynamicImage = setup_test_image(in_!("blackwhite_2x2.bmp"));
+        let img: DynamicImage = sic_testing::open_test_image(in_!("blackwhite_2x2.bmp"));
+        let cmp: DynamicImage = sic_testing::open_test_image(in_!("blackwhite_2x2.bmp"));
 
         let operation = ImgOp::Crop((0, 0, 2, 1));
 
@@ -658,7 +671,7 @@ mod tests {
 
     #[test]
     fn test_crop_err_lx_larger_than_rx() {
-        let img: DynamicImage = setup_test_image(in_!("blackwhite_2x2.bmp"));
+        let img: DynamicImage = sic_testing::open_test_image(in_!("blackwhite_2x2.bmp"));
 
         // not rx >= lx
         let operation = ImgOp::Crop((1, 0, 0, 0));
@@ -671,7 +684,7 @@ mod tests {
 
     #[test]
     fn test_crop_err_ly_larger_than_ry() {
-        let img: DynamicImage = setup_test_image(in_!("blackwhite_2x2.bmp"));
+        let img: DynamicImage = sic_testing::open_test_image(in_!("blackwhite_2x2.bmp"));
 
         // not rx >= lx
         let operation = ImgOp::Crop((0, 1, 0, 0));
@@ -684,7 +697,7 @@ mod tests {
 
     #[test]
     fn test_crop_err_out_of_image_bounds_top_lx() {
-        let img: DynamicImage = setup_test_image(in_!("blackwhite_2x2.bmp"));
+        let img: DynamicImage = sic_testing::open_test_image(in_!("blackwhite_2x2.bmp"));
 
         let operation = ImgOp::Crop((3, 0, 1, 1));
 
@@ -696,7 +709,7 @@ mod tests {
 
     #[test]
     fn test_crop_err_out_of_image_bounds_top_ly() {
-        let img: DynamicImage = setup_test_image(in_!("blackwhite_2x2.bmp"));
+        let img: DynamicImage = sic_testing::open_test_image(in_!("blackwhite_2x2.bmp"));
 
         let operation = ImgOp::Crop((0, 3, 1, 1));
 
@@ -708,7 +721,7 @@ mod tests {
 
     #[test]
     fn test_crop_err_out_of_image_bounds_top_rx() {
-        let img: DynamicImage = setup_test_image(in_!("blackwhite_2x2.bmp"));
+        let img: DynamicImage = sic_testing::open_test_image(in_!("blackwhite_2x2.bmp"));
 
         let operation = ImgOp::Crop((0, 0, 3, 1));
 
@@ -720,7 +733,7 @@ mod tests {
 
     #[test]
     fn test_crop_err_out_of_image_bounds_top_ry() {
-        let img: DynamicImage = setup_test_image(in_!("blackwhite_2x2.bmp"));
+        let img: DynamicImage = sic_testing::open_test_image(in_!("blackwhite_2x2.bmp"));
 
         let operation = ImgOp::Crop((0, 0, 1, 3));
 
@@ -793,7 +806,7 @@ mod tests {
     fn test_gray_scale() {
         use sic_core::image::Pixel;
 
-        let img: DynamicImage = setup_test_image(in_!("rainbow_8x6.bmp"));
+        let img: DynamicImage = sic_testing::open_test_image(in_!("rainbow_8x6.bmp"));
         let operation = ImgOp::GrayScale;
 
         let mut operator = ImageEngine::new(img);

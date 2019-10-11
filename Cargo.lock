@@ -510,6 +510,7 @@ name = "sic_image_engine"
 version = "0.10.0"
 dependencies = [
  "sic_core 0.10.0",
+ "sic_testing 0.10.0",
  "strum 0.16.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "strum_macros 0.16.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -535,6 +536,9 @@ dependencies = [
 [[package]]
 name = "sic_testing"
 version = "0.10.0"
+dependencies = [
+ "sic_core 0.10.0",
+]
 
 [[package]]
 name = "strsim"
