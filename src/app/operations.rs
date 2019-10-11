@@ -3,9 +3,9 @@ use crate::app::cli::arg_names::{
     OP_CONTRAST, OP_CROP, OP_FILTER3X3, OP_FLIP_HORIZONTAL, OP_FLIP_VERTICAL, OP_GRAYSCALE,
     OP_HUE_ROTATE, OP_INVERT, OP_RESIZE, OP_ROTATE180, OP_ROTATE270, OP_ROTATE90, OP_UNSHARPEN,
 };
-use sic_image_engine::engine::{EnvironmentItem, EnvironmentKind, Statement};
+use sic_image_engine::engine::{EnvironmentItem, EnvironmentKind, Instruction};
 use sic_image_engine::wrapper::filter_type::FilterTypeWrap;
-use sic_image_engine::Operation;
+use sic_image_engine::ImgOp;
 use sic_parser::value_parser::{Describable, ParseInputsFromIter};
 use std::collections::BTreeMap;
 
@@ -94,52 +94,51 @@ macro_rules! parse_inputs_by_type {
 
 impl OperationId {
     /// Constructs statements for image operations which are taken as input by the image engine.
-    pub fn mk_statement<'a, T>(self, inputs: T) -> Result<Statement, String>
+    pub fn mk_statement<'a, T>(self, inputs: T) -> Result<Instruction, String>
     where
         T: IntoIterator,
         T::Item: Into<Describable<'a>> + std::fmt::Debug,
     {
         let stmt = match self {
             OperationId::Blur => {
-                Statement::Operation(Operation::Blur(parse_inputs_by_type!(inputs, f32)?))
+                Instruction::Operation(ImgOp::Blur(parse_inputs_by_type!(inputs, f32)?))
             }
             OperationId::Brighten => {
-                Statement::Operation(Operation::Brighten(parse_inputs_by_type!(inputs, i32)?))
+                Instruction::Operation(ImgOp::Brighten(parse_inputs_by_type!(inputs, i32)?))
             }
             OperationId::Contrast => {
-                Statement::Operation(Operation::Contrast(parse_inputs_by_type!(inputs, f32)?))
+                Instruction::Operation(ImgOp::Contrast(parse_inputs_by_type!(inputs, f32)?))
             }
-            OperationId::Crop => Statement::Operation(Operation::Crop(parse_inputs_by_type!(
+            OperationId::Crop => Instruction::Operation(ImgOp::Crop(parse_inputs_by_type!(
                 inputs,
                 (u32, u32, u32, u32)
             )?)),
-            OperationId::Filter3x3 => Statement::Operation(Operation::Filter3x3(
-                parse_inputs_by_type!(inputs, [f32; 9])?,
-            )),
-            OperationId::FlipH => Statement::Operation(Operation::FlipHorizontal),
-            OperationId::FlipV => Statement::Operation(Operation::FlipVertical),
-            OperationId::Grayscale => Statement::Operation(Operation::GrayScale),
-            OperationId::HueRotate => {
-                Statement::Operation(Operation::HueRotate(parse_inputs_by_type!(inputs, i32)?))
+            OperationId::Filter3x3 => {
+                Instruction::Operation(ImgOp::Filter3x3(parse_inputs_by_type!(inputs, [f32; 9])?))
             }
-            OperationId::Invert => Statement::Operation(Operation::Invert),
-            OperationId::Resize => Statement::Operation(Operation::Resize(parse_inputs_by_type!(
-                inputs,
-                (u32, u32)
-            )?)),
-            OperationId::Rotate90 => Statement::Operation(Operation::Rotate90),
-            OperationId::Rotate180 => Statement::Operation(Operation::Rotate180),
-            OperationId::Rotate270 => Statement::Operation(Operation::Rotate270),
-            OperationId::Unsharpen => Statement::Operation(Operation::Unsharpen(
-                parse_inputs_by_type!(inputs, (f32, i32))?,
-            )),
+            OperationId::FlipH => Instruction::Operation(ImgOp::FlipHorizontal),
+            OperationId::FlipV => Instruction::Operation(ImgOp::FlipVertical),
+            OperationId::Grayscale => Instruction::Operation(ImgOp::GrayScale),
+            OperationId::HueRotate => {
+                Instruction::Operation(ImgOp::HueRotate(parse_inputs_by_type!(inputs, i32)?))
+            }
+            OperationId::Invert => Instruction::Operation(ImgOp::Invert),
+            OperationId::Resize => {
+                Instruction::Operation(ImgOp::Resize(parse_inputs_by_type!(inputs, (u32, u32))?))
+            }
+            OperationId::Rotate90 => Instruction::Operation(ImgOp::Rotate90),
+            OperationId::Rotate180 => Instruction::Operation(ImgOp::Rotate180),
+            OperationId::Rotate270 => Instruction::Operation(ImgOp::Rotate270),
+            OperationId::Unsharpen => {
+                Instruction::Operation(ImgOp::Unsharpen(parse_inputs_by_type!(inputs, (f32, i32))?))
+            }
 
             OperationId::ModResizePreserveAspectRatio => {
                 let toggle = parse_inputs_by_type!(inputs, bool)?;
                 if toggle {
-                    Statement::RegisterEnvironmentItem(EnvironmentItem::PreserveAspectRatio)
+                    Instruction::RegisterEnvironmentItem(EnvironmentItem::PreserveAspectRatio)
                 } else {
-                    Statement::DeregisterEnvironmentItem(
+                    Instruction::DeregisterEnvironmentItem(
                         EnvironmentKind::OptResizePreserveAspectRatio,
                     )
                 }
@@ -148,7 +147,9 @@ impl OperationId {
                 let input = parse_inputs_by_type!(inputs, String)?;
                 let filter = FilterTypeWrap::try_from_str(&input)
                     .map_err(|_| "Error: resize sampling filter not found.".to_string())?;
-                Statement::RegisterEnvironmentItem(EnvironmentItem::OptResizeSamplingFilter(filter))
+                Instruction::RegisterEnvironmentItem(EnvironmentItem::OptResizeSamplingFilter(
+                    filter,
+                ))
             }
         };
 
