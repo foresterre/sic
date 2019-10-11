@@ -1088,7 +1088,7 @@ mod tests {
 
         assert_eq!(
             Ok(vec![Instruction::DeregisterEnvironmentItem(
-                EnvironmentKind::OptResizePreserveAspectRatio
+                EnvironmentKind::PreserveAspectRatio
             ),]),
             parse_image_operations(pairs)
         );
