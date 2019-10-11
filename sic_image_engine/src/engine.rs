@@ -90,9 +90,12 @@ impl ImageEngine {
         }
     }
 
-    pub fn ignite(&mut self, statements: &[Instruction]) -> Result<&DynamicImage, Box<dyn Error>> {
-        for stmt in statements {
-            match self.process_statement(stmt) {
+    pub fn ignite(
+        &mut self,
+        instructions: &[Instruction],
+    ) -> Result<&DynamicImage, Box<dyn Error>> {
+        for instruction in instructions {
+            match self.process_instruction(instruction) {
                 Ok(_) => continue,
                 Err(err) => return Err(err),
             }
@@ -101,15 +104,15 @@ impl ImageEngine {
         Ok(&self.image)
     }
 
-    pub fn process_statement(&mut self, statement: &Instruction) -> Result<(), Box<dyn Error>> {
-        match statement {
+    fn process_instruction(&mut self, instruction: &Instruction) -> Result<(), Box<dyn Error>> {
+        match instruction {
             Instruction::Operation(op) => self.process_operation(op),
-            Instruction::AddToEnv(item) => self.process_register_env(*item),
-            Instruction::RemoveFromEnv(key) => self.process_deregister_env(*key),
+            Instruction::AddToEnv(item) => self.insert_env(*item),
+            Instruction::RemoveFromEnv(key) => self.remove_env(*key),
         }
     }
 
-    pub fn process_operation(&mut self, operation: &ImgOp) -> Result<(), Box<dyn Error>> {
+    fn process_operation(&mut self, operation: &ImgOp) -> Result<(), Box<dyn Error>> {
         match operation {
             ImgOp::Blur(sigma) => {
                 *self.image = self.image.blur(*sigma);
@@ -203,13 +206,13 @@ impl ImageEngine {
         }
     }
 
-    pub fn process_register_env(&mut self, item: EnvironmentItem) -> Result<(), Box<dyn Error>> {
+    fn insert_env(&mut self, item: EnvironmentItem) -> Result<(), Box<dyn Error>> {
         self.environment.insert_or_update(item);
 
         Ok(())
     }
 
-    pub fn process_deregister_env(&mut self, key: EnvironmentKind) -> Result<(), Box<dyn Error>> {
+    fn remove_env(&mut self, key: EnvironmentKind) -> Result<(), Box<dyn Error>> {
         let success = self.environment.remove(key);
 
         if success.is_none() {
