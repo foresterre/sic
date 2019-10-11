@@ -72,8 +72,8 @@ impl Environment {
 #[derive(Debug, PartialEq)]
 pub enum Instruction {
     Operation(ImgOp),
-    RegisterEnvironmentItem(EnvironmentItem),
-    DeregisterEnvironmentItem(EnvironmentKind),
+    AddToEnv(EnvironmentItem),
+    RemoveFromEnv(EnvironmentKind),
 }
 
 #[derive(Clone)]
@@ -104,8 +104,8 @@ impl ImageEngine {
     pub fn process_statement(&mut self, statement: &Instruction) -> Result<(), Box<dyn Error>> {
         match statement {
             Instruction::Operation(op) => self.process_operation(op),
-            Instruction::RegisterEnvironmentItem(item) => self.process_register_env(*item),
-            Instruction::DeregisterEnvironmentItem(key) => self.process_deregister_env(*key),
+            Instruction::AddToEnv(item) => self.process_register_env(*item),
+            Instruction::RemoveFromEnv(key) => self.process_deregister_env(*key),
         }
     }
 
@@ -372,7 +372,7 @@ mod tests {
         let mut engine = ImageEngine::new(img);
         let mut engine2 = engine.clone();
         let cmp_left = engine.ignite(&vec![
-            Instruction::RegisterEnvironmentItem(EnvironmentItem::PreserveAspectRatio),
+            Instruction::AddToEnv(EnvironmentItem::PreserveAspectRatio),
             Instruction::Operation(ImgOp::Resize((100, 100))),
         ]);
 
@@ -408,9 +408,9 @@ mod tests {
         let mut engine = ImageEngine::new(img);
         let mut engine2 = engine.clone();
         let cmp_left = engine.ignite(&vec![
-            Instruction::RegisterEnvironmentItem(EnvironmentItem::CustomSamplingFilter(
-                FilterTypeWrap::new(FilterType::Nearest),
-            )),
+            Instruction::AddToEnv(EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
+                FilterType::Nearest,
+            ))),
             Instruction::Operation(ImgOp::Resize((100, 100))),
         ]);
 
@@ -444,10 +444,10 @@ mod tests {
         let mut engine2 = engine.clone();
 
         let cmp_left = engine.ignite(&vec![
-            Instruction::RegisterEnvironmentItem(EnvironmentItem::CustomSamplingFilter(
-                FilterTypeWrap::new(FilterType::Nearest),
-            )),
-            Instruction::DeregisterEnvironmentItem(EnvironmentKind::CustomSamplingFilter),
+            Instruction::AddToEnv(EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
+                FilterType::Nearest,
+            ))),
+            Instruction::RemoveFromEnv(EnvironmentKind::CustomSamplingFilter),
             Instruction::Operation(ImgOp::Resize((100, 100))),
         ]);
 

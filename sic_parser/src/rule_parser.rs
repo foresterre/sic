@@ -75,7 +75,7 @@ fn parse_set_environment(pair: Pair<'_, Rule>) -> Result<Instruction, String> {
         }
     };
 
-    Ok(Instruction::RegisterEnvironmentItem(environment_item))
+    Ok(Instruction::AddToEnv(environment_item))
 }
 
 fn parse_set_resize_sampling_filter(pair: Pair<'_, Rule>) -> Result<EnvironmentItem, String> {
@@ -113,7 +113,7 @@ fn parse_unset_environment(pair: Pair<'_, Rule>) -> Result<Instruction, String> 
         }
     };
 
-    Ok(Instruction::DeregisterEnvironmentItem(environment_item))
+    Ok(Instruction::RemoveFromEnv(environment_item))
 }
 
 fn parse_f32(pair: Pair<'_, Rule>) -> Result<f32, String> {
@@ -893,7 +893,7 @@ mod tests {
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![Instruction::RegisterEnvironmentItem(
+            Ok(vec![Instruction::AddToEnv(
                 EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
                     image::FilterType::CatmullRom
                 ))
@@ -908,7 +908,7 @@ mod tests {
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![Instruction::RegisterEnvironmentItem(
+            Ok(vec![Instruction::AddToEnv(
                 EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
                     image::FilterType::Gaussian
                 ))
@@ -923,7 +923,7 @@ mod tests {
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![Instruction::RegisterEnvironmentItem(
+            Ok(vec![Instruction::AddToEnv(
                 EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
                     image::FilterType::Lanczos3
                 ))
@@ -938,7 +938,7 @@ mod tests {
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![Instruction::RegisterEnvironmentItem(
+            Ok(vec![Instruction::AddToEnv(
                 EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
                     image::FilterType::Nearest
                 ))
@@ -953,7 +953,7 @@ mod tests {
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![Instruction::RegisterEnvironmentItem(
+            Ok(vec![Instruction::AddToEnv(
                 EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
                     image::FilterType::Triangle
                 ))
@@ -972,9 +972,9 @@ mod tests {
 
         assert_eq!(
             Ok(vec![
-                Instruction::RegisterEnvironmentItem(EnvironmentItem::CustomSamplingFilter(
-                    FilterTypeWrap::new(image::FilterType::Gaussian)
-                )),
+                Instruction::AddToEnv(EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
+                    image::FilterType::Gaussian
+                ))),
                 Instruction::Operation(ImgOp::Resize((100, 200)))
             ]),
             parse_image_operations(pairs)
@@ -995,21 +995,21 @@ mod tests {
 
         assert_eq!(
             Ok(vec![
-                Instruction::RegisterEnvironmentItem(EnvironmentItem::CustomSamplingFilter(
-                    FilterTypeWrap::new(image::FilterType::CatmullRom)
-                )),
-                Instruction::RegisterEnvironmentItem(EnvironmentItem::CustomSamplingFilter(
-                    FilterTypeWrap::new(image::FilterType::Gaussian)
-                )),
-                Instruction::RegisterEnvironmentItem(EnvironmentItem::CustomSamplingFilter(
-                    FilterTypeWrap::new(image::FilterType::Lanczos3)
-                )),
-                Instruction::RegisterEnvironmentItem(EnvironmentItem::CustomSamplingFilter(
-                    FilterTypeWrap::new(image::FilterType::Nearest)
-                )),
-                Instruction::RegisterEnvironmentItem(EnvironmentItem::CustomSamplingFilter(
-                    FilterTypeWrap::new(image::FilterType::Triangle)
-                )),
+                Instruction::AddToEnv(EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
+                    image::FilterType::CatmullRom
+                ))),
+                Instruction::AddToEnv(EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
+                    image::FilterType::Gaussian
+                ))),
+                Instruction::AddToEnv(EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
+                    image::FilterType::Lanczos3
+                ))),
+                Instruction::AddToEnv(EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
+                    image::FilterType::Nearest
+                ))),
+                Instruction::AddToEnv(EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
+                    image::FilterType::Triangle
+                ))),
             ]),
             parse_image_operations(pairs)
         );
@@ -1025,7 +1025,7 @@ mod tests {
 
         assert_eq!(
             Ok(vec![
-                Instruction::RegisterEnvironmentItem(EnvironmentItem::PreserveAspectRatio),
+                Instruction::AddToEnv(EnvironmentItem::PreserveAspectRatio),
                 Instruction::Operation(ImgOp::Resize((100, 200)))
             ]),
             parse_image_operations(pairs)
@@ -1048,7 +1048,7 @@ mod tests {
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![Instruction::DeregisterEnvironmentItem(
+            Ok(vec![Instruction::RemoveFromEnv(
                 EnvironmentKind::CustomSamplingFilter
             ),]),
             parse_image_operations(pairs)
@@ -1068,14 +1068,14 @@ mod tests {
 
         assert_eq!(
             Ok(vec![
-                Instruction::RegisterEnvironmentItem(EnvironmentItem::CustomSamplingFilter(
-                    FilterTypeWrap::new(image::FilterType::CatmullRom)
-                )),
-                Instruction::RegisterEnvironmentItem(EnvironmentItem::CustomSamplingFilter(
-                    FilterTypeWrap::new(image::FilterType::Gaussian)
-                )),
-                Instruction::DeregisterEnvironmentItem(EnvironmentKind::CustomSamplingFilter),
-                Instruction::DeregisterEnvironmentItem(EnvironmentKind::CustomSamplingFilter),
+                Instruction::AddToEnv(EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
+                    image::FilterType::CatmullRom
+                ))),
+                Instruction::AddToEnv(EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
+                    image::FilterType::Gaussian
+                ))),
+                Instruction::RemoveFromEnv(EnvironmentKind::CustomSamplingFilter),
+                Instruction::RemoveFromEnv(EnvironmentKind::CustomSamplingFilter),
             ]),
             parse_image_operations(pairs)
         );
@@ -1087,7 +1087,7 @@ mod tests {
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![Instruction::DeregisterEnvironmentItem(
+            Ok(vec![Instruction::RemoveFromEnv(
                 EnvironmentKind::PreserveAspectRatio
             ),]),
             parse_image_operations(pairs)

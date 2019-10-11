@@ -136,16 +136,16 @@ impl OperationId {
             OperationId::ModResizePreserveAspectRatio => {
                 let toggle = parse_inputs_by_type!(inputs, bool)?;
                 if toggle {
-                    Instruction::RegisterEnvironmentItem(EnvironmentItem::PreserveAspectRatio)
+                    Instruction::AddToEnv(EnvironmentItem::PreserveAspectRatio)
                 } else {
-                    Instruction::DeregisterEnvironmentItem(EnvironmentKind::PreserveAspectRatio)
+                    Instruction::RemoveFromEnv(EnvironmentKind::PreserveAspectRatio)
                 }
             }
             OperationId::ModResizeSamplingFilter => {
                 let input = parse_inputs_by_type!(inputs, String)?;
                 let filter = FilterTypeWrap::try_from_str(&input)
                     .map_err(|_| "Error: resize sampling filter not found.".to_string())?;
-                Instruction::RegisterEnvironmentItem(EnvironmentItem::CustomSamplingFilter(filter))
+                Instruction::AddToEnv(EnvironmentItem::CustomSamplingFilter(filter))
             }
         };
 
