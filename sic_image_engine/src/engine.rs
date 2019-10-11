@@ -2,6 +2,7 @@
 /// Instead of evaluating a program, we apply 'a language' on an image.
 use std::collections::HashMap;
 use std::error::Error;
+use std::hash::Hash;
 
 use sic_core::image::DynamicImage;
 use sic_core::image::FilterType;
@@ -10,26 +11,21 @@ use sic_core::image::GenericImageView;
 use crate::wrapper::filter_type::FilterTypeWrap;
 use crate::ImgOp;
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
-pub enum EnvironmentKind {
-    OptResizeSamplingFilter,
-    OptResizePreserveAspectRatio,
-}
-
 trait EnvironmentKey {
     fn key(&self) -> EnvironmentKind;
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, EnumDiscriminants)]
+#[strum_discriminants(name(EnvironmentKind), derive(Display, Hash))]
 pub enum EnvironmentItem {
-    OptResizeSamplingFilter(FilterTypeWrap),
+    CustomSamplingFilter(FilterTypeWrap),
     PreserveAspectRatio,
 }
 
 impl EnvironmentItem {
     pub fn resize_sampling_filter(self) -> Option<FilterTypeWrap> {
         match self {
-            EnvironmentItem::OptResizeSamplingFilter(k) => Some(k),
+            EnvironmentItem::CustomSamplingFilter(k) => Some(k),
             _ => None,
         }
     }
@@ -38,8 +34,8 @@ impl EnvironmentItem {
 impl EnvironmentKey for EnvironmentItem {
     fn key(&self) -> EnvironmentKind {
         match self {
-            EnvironmentItem::OptResizeSamplingFilter(_) => EnvironmentKind::OptResizeSamplingFilter,
-            EnvironmentItem::PreserveAspectRatio => EnvironmentKind::OptResizePreserveAspectRatio,
+            EnvironmentItem::CustomSamplingFilter(_) => EnvironmentKind::CustomSamplingFilter,
+            EnvironmentItem::PreserveAspectRatio => EnvironmentKind::PreserveAspectRatio,
         }
     }
 }
@@ -170,14 +166,14 @@ impl ImageEngine {
 
                 let filter = self
                     .environment
-                    .get(EnvironmentKind::OptResizeSamplingFilter)
+                    .get(EnvironmentKind::CustomSamplingFilter)
                     .and_then(|item| item.resize_sampling_filter())
                     .map(FilterType::from)
                     .unwrap_or(DEFAULT_RESIZE_FILTER);
 
                 *self.image = if self
                     .environment
-                    .get(EnvironmentKind::OptResizePreserveAspectRatio)
+                    .get(EnvironmentKind::PreserveAspectRatio)
                     .is_some()
                 {
                     self.image.resize(*new_x, *new_y, filter)
@@ -277,43 +273,43 @@ mod environment_tests {
         let mut env = Environment::default();
         assert!(!env
             .store
-            .contains_key(&EnvironmentKind::OptResizeSamplingFilter));
+            .contains_key(&EnvironmentKind::CustomSamplingFilter));
 
-        env.insert_or_update(EnvironmentItem::OptResizeSamplingFilter(
-            FilterTypeWrap::Inner(FilterType::Triangle),
-        ));
+        env.insert_or_update(EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
+            FilterType::Triangle,
+        )));
 
         assert!(env
             .store
-            .contains_key(&EnvironmentKind::OptResizeSamplingFilter));
+            .contains_key(&EnvironmentKind::CustomSamplingFilter));
     }
 
     #[test]
     fn environment_update() {
         let mut env = Environment::default();
 
-        env.insert_or_update(EnvironmentItem::OptResizeSamplingFilter(
-            FilterTypeWrap::Inner(FilterType::Triangle),
-        ));
+        env.insert_or_update(EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
+            FilterType::Triangle,
+        )));
 
         assert!(env
             .store
-            .contains_key(&EnvironmentKind::OptResizeSamplingFilter));
+            .contains_key(&EnvironmentKind::CustomSamplingFilter));
         assert_eq!(
-            EnvironmentItem::OptResizeSamplingFilter(FilterTypeWrap::Inner(FilterType::Triangle)),
-            *env.get(EnvironmentKind::OptResizeSamplingFilter).unwrap()
+            EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(FilterType::Triangle)),
+            *env.get(EnvironmentKind::CustomSamplingFilter).unwrap()
         );
 
-        env.insert_or_update(EnvironmentItem::OptResizeSamplingFilter(
-            FilterTypeWrap::Inner(FilterType::Gaussian),
-        ));
+        env.insert_or_update(EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
+            FilterType::Gaussian,
+        )));
 
         assert!(env
             .store
-            .contains_key(&EnvironmentKind::OptResizeSamplingFilter));
+            .contains_key(&EnvironmentKind::CustomSamplingFilter));
         assert_eq!(
-            EnvironmentItem::OptResizeSamplingFilter(FilterTypeWrap::Inner(FilterType::Gaussian)),
-            *env.get(EnvironmentKind::OptResizeSamplingFilter).unwrap()
+            EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(FilterType::Gaussian)),
+            *env.get(EnvironmentKind::CustomSamplingFilter).unwrap()
         );
     }
 
@@ -321,24 +317,24 @@ mod environment_tests {
     fn environment_remove() {
         let mut env = Environment::default();
 
-        env.insert_or_update(EnvironmentItem::OptResizeSamplingFilter(
-            FilterTypeWrap::Inner(FilterType::Triangle),
-        ));
+        env.insert_or_update(EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
+            FilterType::Triangle,
+        )));
 
         assert!(env
             .store
-            .contains_key(&EnvironmentKind::OptResizeSamplingFilter));
+            .contains_key(&EnvironmentKind::CustomSamplingFilter));
         assert_eq!(
-            EnvironmentItem::OptResizeSamplingFilter(FilterTypeWrap::Inner(FilterType::Triangle)),
-            *env.get(EnvironmentKind::OptResizeSamplingFilter).unwrap()
+            EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(FilterType::Triangle)),
+            *env.get(EnvironmentKind::CustomSamplingFilter).unwrap()
         );
 
-        let removed = env.remove(EnvironmentKind::OptResizeSamplingFilter);
+        let removed = env.remove(EnvironmentKind::CustomSamplingFilter);
 
         assert!(removed.is_some());
         assert!(!env
             .store
-            .contains_key(&EnvironmentKind::OptResizeSamplingFilter));
+            .contains_key(&EnvironmentKind::CustomSamplingFilter));
     }
 
     #[test]
@@ -347,14 +343,14 @@ mod environment_tests {
 
         assert!(!env
             .store
-            .contains_key(&EnvironmentKind::OptResizeSamplingFilter));
+            .contains_key(&EnvironmentKind::CustomSamplingFilter));
 
-        let removed = env.remove(EnvironmentKind::OptResizeSamplingFilter);
+        let removed = env.remove(EnvironmentKind::CustomSamplingFilter);
 
         assert!(removed.is_none());
         assert!(!env
             .store
-            .contains_key(&EnvironmentKind::OptResizeSamplingFilter));
+            .contains_key(&EnvironmentKind::CustomSamplingFilter));
     }
 }
 
@@ -412,8 +408,8 @@ mod tests {
         let mut engine = ImageEngine::new(img);
         let mut engine2 = engine.clone();
         let cmp_left = engine.ignite(&vec![
-            Instruction::RegisterEnvironmentItem(EnvironmentItem::OptResizeSamplingFilter(
-                FilterTypeWrap::Inner(FilterType::Nearest),
+            Instruction::RegisterEnvironmentItem(EnvironmentItem::CustomSamplingFilter(
+                FilterTypeWrap::new(FilterType::Nearest),
             )),
             Instruction::Operation(ImgOp::Resize((100, 100))),
         ]);
@@ -448,10 +444,10 @@ mod tests {
         let mut engine2 = engine.clone();
 
         let cmp_left = engine.ignite(&vec![
-            Instruction::RegisterEnvironmentItem(EnvironmentItem::OptResizeSamplingFilter(
-                FilterTypeWrap::Inner(FilterType::Nearest),
+            Instruction::RegisterEnvironmentItem(EnvironmentItem::CustomSamplingFilter(
+                FilterTypeWrap::new(FilterType::Nearest),
             )),
-            Instruction::DeregisterEnvironmentItem(EnvironmentKind::OptResizeSamplingFilter),
+            Instruction::DeregisterEnvironmentItem(EnvironmentKind::CustomSamplingFilter),
             Instruction::Operation(ImgOp::Resize((100, 100))),
         ]);
 

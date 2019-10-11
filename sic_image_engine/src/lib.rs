@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate strum_macros;
+
 #[cfg(test)]
 #[macro_use]
 mod test_includes;

@@ -10,5 +10,8 @@ repository = "https://github.com/foresterre/sic"
 [dependencies]
 sic_core = { path = "../sic_core" }
 
+strum = "0.16.0"
+strum_macros = "0.16.0"
+
 [features]
 output-test-images = []

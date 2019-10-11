@@ -98,15 +98,13 @@ fn parse_set_resize_sampling_filter(pair: Pair<'_, Rule>) -> Result<EnvironmentI
         .and_then(|val| {
             FilterTypeWrap::try_from_str(val).map_err(|err| format!("Unable to parse: {}", err))
         })
-        .map(EnvironmentItem::OptResizeSamplingFilter)
+        .map(EnvironmentItem::CustomSamplingFilter)
 }
 
 fn parse_unset_environment(pair: Pair<'_, Rule>) -> Result<Instruction, String> {
     let environment_item = match pair.as_rule() {
-        Rule::env_resize_sampling_filter_name => EnvironmentKind::OptResizeSamplingFilter,
-        Rule::env_resize_preserve_aspect_ratio_name => {
-            EnvironmentKind::OptResizePreserveAspectRatio
-        }
+        Rule::env_resize_sampling_filter_name => EnvironmentKind::CustomSamplingFilter,
+        Rule::env_resize_preserve_aspect_ratio_name => EnvironmentKind::PreserveAspectRatio,
         _ => {
             return Err(format!(
                 "Unable to parse `del` environment command. Error on element: {}",
@@ -896,7 +894,7 @@ mod tests {
 
         assert_eq!(
             Ok(vec![Instruction::RegisterEnvironmentItem(
-                EnvironmentItem::OptResizeSamplingFilter(FilterTypeWrap::Inner(
+                EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
                     image::FilterType::CatmullRom
                 ))
             )]),
@@ -911,7 +909,7 @@ mod tests {
 
         assert_eq!(
             Ok(vec![Instruction::RegisterEnvironmentItem(
-                EnvironmentItem::OptResizeSamplingFilter(FilterTypeWrap::Inner(
+                EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
                     image::FilterType::Gaussian
                 ))
             ),]),
@@ -926,7 +924,7 @@ mod tests {
 
         assert_eq!(
             Ok(vec![Instruction::RegisterEnvironmentItem(
-                EnvironmentItem::OptResizeSamplingFilter(FilterTypeWrap::Inner(
+                EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
                     image::FilterType::Lanczos3
                 ))
             ),]),
@@ -941,7 +939,7 @@ mod tests {
 
         assert_eq!(
             Ok(vec![Instruction::RegisterEnvironmentItem(
-                EnvironmentItem::OptResizeSamplingFilter(FilterTypeWrap::Inner(
+                EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
                     image::FilterType::Nearest
                 ))
             ),]),
@@ -956,7 +954,7 @@ mod tests {
 
         assert_eq!(
             Ok(vec![Instruction::RegisterEnvironmentItem(
-                EnvironmentItem::OptResizeSamplingFilter(FilterTypeWrap::Inner(
+                EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
                     image::FilterType::Triangle
                 ))
             ),]),
@@ -974,8 +972,8 @@ mod tests {
 
         assert_eq!(
             Ok(vec![
-                Instruction::RegisterEnvironmentItem(EnvironmentItem::OptResizeSamplingFilter(
-                    FilterTypeWrap::Inner(image::FilterType::Gaussian)
+                Instruction::RegisterEnvironmentItem(EnvironmentItem::CustomSamplingFilter(
+                    FilterTypeWrap::new(image::FilterType::Gaussian)
                 )),
                 Instruction::Operation(ImgOp::Resize((100, 200)))
             ]),
@@ -997,20 +995,20 @@ mod tests {
 
         assert_eq!(
             Ok(vec![
-                Instruction::RegisterEnvironmentItem(EnvironmentItem::OptResizeSamplingFilter(
-                    FilterTypeWrap::Inner(image::FilterType::CatmullRom)
+                Instruction::RegisterEnvironmentItem(EnvironmentItem::CustomSamplingFilter(
+                    FilterTypeWrap::new(image::FilterType::CatmullRom)
                 )),
-                Instruction::RegisterEnvironmentItem(EnvironmentItem::OptResizeSamplingFilter(
-                    FilterTypeWrap::Inner(image::FilterType::Gaussian)
+                Instruction::RegisterEnvironmentItem(EnvironmentItem::CustomSamplingFilter(
+                    FilterTypeWrap::new(image::FilterType::Gaussian)
                 )),
-                Instruction::RegisterEnvironmentItem(EnvironmentItem::OptResizeSamplingFilter(
-                    FilterTypeWrap::Inner(image::FilterType::Lanczos3)
+                Instruction::RegisterEnvironmentItem(EnvironmentItem::CustomSamplingFilter(
+                    FilterTypeWrap::new(image::FilterType::Lanczos3)
                 )),
-                Instruction::RegisterEnvironmentItem(EnvironmentItem::OptResizeSamplingFilter(
-                    FilterTypeWrap::Inner(image::FilterType::Nearest)
+                Instruction::RegisterEnvironmentItem(EnvironmentItem::CustomSamplingFilter(
+                    FilterTypeWrap::new(image::FilterType::Nearest)
                 )),
-                Instruction::RegisterEnvironmentItem(EnvironmentItem::OptResizeSamplingFilter(
-                    FilterTypeWrap::Inner(image::FilterType::Triangle)
+                Instruction::RegisterEnvironmentItem(EnvironmentItem::CustomSamplingFilter(
+                    FilterTypeWrap::new(image::FilterType::Triangle)
                 )),
             ]),
             parse_image_operations(pairs)
@@ -1051,7 +1049,7 @@ mod tests {
 
         assert_eq!(
             Ok(vec![Instruction::DeregisterEnvironmentItem(
-                EnvironmentKind::OptResizeSamplingFilter
+                EnvironmentKind::CustomSamplingFilter
             ),]),
             parse_image_operations(pairs)
         );
@@ -1070,14 +1068,14 @@ mod tests {
 
         assert_eq!(
             Ok(vec![
-                Instruction::RegisterEnvironmentItem(EnvironmentItem::OptResizeSamplingFilter(
-                    FilterTypeWrap::Inner(image::FilterType::CatmullRom)
+                Instruction::RegisterEnvironmentItem(EnvironmentItem::CustomSamplingFilter(
+                    FilterTypeWrap::new(image::FilterType::CatmullRom)
                 )),
-                Instruction::RegisterEnvironmentItem(EnvironmentItem::OptResizeSamplingFilter(
-                    FilterTypeWrap::Inner(image::FilterType::Gaussian)
+                Instruction::RegisterEnvironmentItem(EnvironmentItem::CustomSamplingFilter(
+                    FilterTypeWrap::new(image::FilterType::Gaussian)
                 )),
-                Instruction::DeregisterEnvironmentItem(EnvironmentKind::OptResizeSamplingFilter),
-                Instruction::DeregisterEnvironmentItem(EnvironmentKind::OptResizeSamplingFilter),
+                Instruction::DeregisterEnvironmentItem(EnvironmentKind::CustomSamplingFilter),
+                Instruction::DeregisterEnvironmentItem(EnvironmentKind::CustomSamplingFilter),
             ]),
             parse_image_operations(pairs)
         );
