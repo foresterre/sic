@@ -1,12 +1,11 @@
-#[cfg(test)]
 #[macro_use]
-mod test_includes;
+extern crate strum_macros;
 
 pub mod engine;
 pub mod wrapper;
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum Operation {
+pub enum ImgOp {
     Blur(f32),
     Brighten(i32),
     Contrast(f32),

@@ -1,11 +1,13 @@
 use std::path::{Path, PathBuf};
 
+#[macro_export]
 macro_rules! out_ {
     ($path:expr) => {
         &[env!("CARGO_MANIFEST_DIR"), "/../target/", $path].concat()
     };
 }
 
+#[macro_export]
 macro_rules! in_ {
     ($path:expr) => {
         &[env!("CARGO_MANIFEST_DIR"), "/../resources/", $path].concat()
@@ -13,7 +15,6 @@ macro_rules! in_ {
 }
 
 /// TODO{issue#128}: rework to provide flexibility and consistency, so all modules can use this;
-
 pub fn setup_test_image(test_image_path: &str) -> PathBuf {
     Path::new("").join(in_!(test_image_path))
 }
@@ -25,4 +26,8 @@ pub fn setup_output_path(test_output_path: &str) -> PathBuf {
 pub fn clean_up_output_path(test_output_path: &str) {
     std::fs::remove_file(setup_output_path(test_output_path))
         .expect("Unable to remove file after test.");
+}
+
+pub fn open_test_image<P: AsRef<Path>>(path: P) -> sic_core::image::DynamicImage {
+    sic_core::image::open(path.as_ref()).unwrap()
 }

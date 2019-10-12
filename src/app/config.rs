@@ -1,4 +1,4 @@
-use sic_image_engine::engine::Program;
+use sic_image_engine::engine::Instruction;
 use sic_io::load::FrameIndex;
 
 #[derive(Debug)]
@@ -33,7 +33,7 @@ pub struct Config<'a> {
     /// the image operation commands.
     /// THe value set here should be presented as a [sic_image_engine::engine::Program].
     /// If no program is present, an empty vec should be provided.
-    pub image_operations_program: Program,
+    pub image_operations_program: Vec<Instruction>,
 }
 
 impl Default for Config<'_> {
@@ -132,7 +132,7 @@ impl<'a> ConfigBuilder<'a> {
     }
 
     // image-operations
-    pub fn image_operations_program(mut self, program: Program) -> ConfigBuilder<'a> {
+    pub fn image_operations_program(mut self, program: Vec<Instruction>) -> ConfigBuilder<'a> {
         self.settings.image_operations_program = program;
         self
     }
@@ -177,8 +177,8 @@ pub fn validate_jpeg_quality(quality: u8) -> Result<u8, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use sic_image_engine::engine::Statement;
-    use sic_image_engine::Operation;
+    use sic_image_engine::engine::Instruction;
+    use sic_image_engine::ImgOp;
     use std::str::FromStr;
 
     #[test]
@@ -209,8 +209,7 @@ mod tests {
     fn config_builder_override_defaults() {
         let mut builder = ConfigBuilder::new();
         builder = builder.output_path("lalala");
-        builder =
-            builder.image_operations_program(vec![Statement::Operation(Operation::Blur(1.0))]);
+        builder = builder.image_operations_program(vec![Instruction::Operation(ImgOp::Blur(1.0))]);
         let config = builder.build();
 
         assert!(!config.image_operations_program.is_empty());

@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use std::str::FromStr;
 
 use clap::{App, AppSettings, Arg, ArgGroup, ArgMatches};
-use sic_image_engine::engine::Statement;
+use sic_image_engine::engine::Instruction;
 
 use crate::app::config::{validate_jpeg_quality, Config, ConfigBuilder, SelectedLicenses};
 use crate::app::operations::{
@@ -427,7 +427,7 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> Result<Config<'a>, Strin
 fn build_ast_from_matches(
     matches: &ArgMatches,
     tree: &mut IndexTree,
-) -> Result<Vec<Statement>, String> {
+) -> Result<Vec<Instruction>, String> {
     let operations = vec![
         // operations
         OperationId::Blur,
@@ -477,7 +477,7 @@ fn mk_ops(op: OperationId, matches: &ArgMatches) -> Option<IndexedOps> {
     }
 }
 
-fn ast_from_index_tree(tree: &mut IndexTree) -> Result<Vec<Statement>, String> {
+fn ast_from_index_tree(tree: &mut IndexTree) -> Result<Vec<Instruction>, String> {
     tree.iter()
         .map(|(_index, op)| match op {
             Op::Bare(id) => {
@@ -486,14 +486,14 @@ fn ast_from_index_tree(tree: &mut IndexTree) -> Result<Vec<Statement>, String> {
             }
             Op::WithValues(id, values) => id.mk_statement(values),
         })
-        .collect::<Result<Vec<Statement>, String>>()
+        .collect::<Result<Vec<Instruction>, String>>()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use sic_image_engine::engine::Statement;
-    use sic_image_engine::Operation;
+    use sic_image_engine::engine::Instruction;
+    use sic_image_engine::ImgOp;
     use std::collections::BTreeMap;
 
     macro_rules! assert_match {
@@ -537,63 +537,63 @@ mod tests {
 
         assert_match!(
             iter,
-            Statement::Operation(Operation::Blur(n)),
+            Instruction::Operation(ImgOp::Blur(n)),
             assert_eq!(*n, 1f32)
         );
 
         assert_match!(
             iter,
-            Statement::Operation(Operation::Brighten(n)),
+            Instruction::Operation(ImgOp::Brighten(n)),
             assert_eq!(*n, 2i32)
         );
 
         assert_match!(
             iter,
-            Statement::Operation(Operation::Contrast(n)),
+            Instruction::Operation(ImgOp::Contrast(n)),
             assert_eq!(*n, 3f32)
         );
 
         assert_match!(
             iter,
-            Statement::Operation(Operation::Crop(n)),
+            Instruction::Operation(ImgOp::Crop(n)),
             assert_eq!(*n, (0u32, 0u32, 2u32, 2u32))
         );
 
         assert_match!(
             iter,
-            Statement::Operation(Operation::Filter3x3(n)),
+            Instruction::Operation(ImgOp::Filter3x3(n)),
             assert_eq!(*n, [0f32, 1f32, 2f32, 3f32, 4f32, 5f32, 6f32, 7f32, 8f32])
         );
 
-        assert_match!(iter, Statement::Operation(Operation::FlipHorizontal), ());
+        assert_match!(iter, Instruction::Operation(ImgOp::FlipHorizontal), ());
 
-        assert_match!(iter, Statement::Operation(Operation::FlipVertical), ());
+        assert_match!(iter, Instruction::Operation(ImgOp::FlipVertical), ());
 
-        assert_match!(iter, Statement::Operation(Operation::GrayScale), ());
+        assert_match!(iter, Instruction::Operation(ImgOp::GrayScale), ());
 
         assert_match!(
             iter,
-            Statement::Operation(Operation::HueRotate(n)),
+            Instruction::Operation(ImgOp::HueRotate(n)),
             assert_eq!(*n, -90i32)
         );
 
-        assert_match!(iter, Statement::Operation(Operation::Invert), ());
+        assert_match!(iter, Instruction::Operation(ImgOp::Invert), ());
 
         assert_match!(
             iter,
-            Statement::Operation(Operation::Resize(n)),
+            Instruction::Operation(ImgOp::Resize(n)),
             assert_eq!(*n, (10u32, 10u32))
         );
 
-        assert_match!(iter, Statement::Operation(Operation::Rotate90), ());
+        assert_match!(iter, Instruction::Operation(ImgOp::Rotate90), ());
 
-        assert_match!(iter, Statement::Operation(Operation::Rotate180), ());
+        assert_match!(iter, Instruction::Operation(ImgOp::Rotate180), ());
 
-        assert_match!(iter, Statement::Operation(Operation::Rotate270), ());
+        assert_match!(iter, Instruction::Operation(ImgOp::Rotate270), ());
 
         assert_match!(
             iter,
-            Statement::Operation(Operation::Unsharpen(n)),
+            Instruction::Operation(ImgOp::Unsharpen(n)),
             assert_eq!(*n, (1.5f32, 1i32))
         );
 
@@ -669,15 +669,15 @@ mod tests {
         // can't assert eq, because Operation does not implement Eq, since f32 doesn't support it
         assert_match!(
             iter,
-            Statement::Operation(Operation::Brighten(n)),
+            Instruction::Operation(ImgOp::Brighten(n)),
             assert_eq!(*n, 10)
         );
 
-        assert_match!(iter, Statement::Operation(Operation::FlipVertical), ());
+        assert_match!(iter, Instruction::Operation(ImgOp::FlipVertical), ());
 
         assert_match!(
             iter,
-            Statement::Operation(Operation::HueRotate(n)),
+            Instruction::Operation(ImgOp::HueRotate(n)),
             assert_eq!(*n, -90)
         );
 

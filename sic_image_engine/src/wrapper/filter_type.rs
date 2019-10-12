@@ -1,63 +1,42 @@
 use std::error::Error;
 use std::fmt::{Debug, Formatter};
+use std::hash::Hash;
 
 use sic_core::image::FilterType;
 
-// Wrapper for image::FilterType.
-// Does only exists, because image::FilterType does not implement PartialEq and Debug.
-#[derive(Copy)]
-pub enum FilterTypeWrap {
-    Inner(FilterType),
+#[derive(Clone, Copy)]
+pub struct FilterTypeWrap {
+    inner: FilterType,
+}
+
+impl FilterTypeWrap {
+    pub fn new(with: FilterType) -> Self {
+        Self { inner: with }
+    }
 }
 
 impl PartialEq<FilterTypeWrap> for FilterTypeWrap {
     fn eq(&self, other: &FilterTypeWrap) -> bool {
-        match (self, other) {
-            (
-                FilterTypeWrap::Inner(FilterType::CatmullRom),
-                FilterTypeWrap::Inner(FilterType::CatmullRom),
-            ) => true,
-            (
-                FilterTypeWrap::Inner(FilterType::Gaussian),
-                FilterTypeWrap::Inner(FilterType::Gaussian),
-            ) => true,
-            (
-                FilterTypeWrap::Inner(FilterType::Lanczos3),
-                FilterTypeWrap::Inner(FilterType::Lanczos3),
-            ) => true,
-            (
-                FilterTypeWrap::Inner(FilterType::Nearest),
-                FilterTypeWrap::Inner(FilterType::Nearest),
-            ) => true,
-            (
-                FilterTypeWrap::Inner(FilterType::Triangle),
-                FilterTypeWrap::Inner(FilterType::Triangle),
-            ) => true,
-            _ => false,
-        }
-    }
-}
-
-impl Clone for FilterTypeWrap {
-    fn clone(&self) -> Self {
-        match self {
-            FilterTypeWrap::Inner(a) => FilterTypeWrap::Inner(*a),
-        }
+        std::mem::discriminant(&self.inner) == std::mem::discriminant(&other.inner)
     }
 }
 
 impl Eq for FilterTypeWrap {}
 
+impl Hash for FilterTypeWrap {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        std::mem::discriminant(&self.inner).hash(state)
+    }
+}
+
 impl Debug for FilterTypeWrap {
     fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
-        let msg = match self {
-            FilterTypeWrap::Inner(FilterType::CatmullRom) => {
-                "image::FilterType::CatmullRom (Wrapper)"
-            }
-            FilterTypeWrap::Inner(FilterType::Gaussian) => "image::FilterType::Gaussian (Wrapper)",
-            FilterTypeWrap::Inner(FilterType::Lanczos3) => "image::FilterType::Lanczos3 (Wrapper)",
-            FilterTypeWrap::Inner(FilterType::Nearest) => "image::FilterType::Nearest (Wrapper)",
-            FilterTypeWrap::Inner(FilterType::Triangle) => "image::FilterType::Triangle (Wrapper)",
+        let msg = match self.inner {
+            FilterType::CatmullRom => "image::FilterType::CatmullRom (Wrapper)",
+            FilterType::Gaussian => "image::FilterType::Gaussian (Wrapper)",
+            FilterType::Lanczos3 => "image::FilterType::Lanczos3 (Wrapper)",
+            FilterType::Nearest => "image::FilterType::Nearest (Wrapper)",
+            FilterType::Triangle => "image::FilterType::Triangle (Wrapper)",
         };
 
         f.write_str(msg)
@@ -66,21 +45,40 @@ impl Debug for FilterTypeWrap {
 
 impl From<FilterTypeWrap> for FilterType {
     fn from(wrap: FilterTypeWrap) -> Self {
-        match wrap {
-            FilterTypeWrap::Inner(w) => w,
-        }
+        wrap.inner
     }
 }
 
 impl FilterTypeWrap {
     pub fn try_from_str(val: &str) -> Result<FilterTypeWrap, Box<dyn Error>> {
         match val.to_lowercase().as_str() {
-            "catmullrom" | "cubic" => Ok(FilterTypeWrap::Inner(FilterType::CatmullRom)),
-            "gaussian" => Ok(FilterTypeWrap::Inner(FilterType::Gaussian)),
-            "lanczos3" => Ok(FilterTypeWrap::Inner(FilterType::Lanczos3)),
-            "nearest" => Ok(FilterTypeWrap::Inner(FilterType::Nearest)),
-            "triangle" => Ok(FilterTypeWrap::Inner(FilterType::Triangle)),
+            "catmullrom" | "cubic" => Ok(FilterTypeWrap::new(FilterType::CatmullRom)),
+            "gaussian" => Ok(FilterTypeWrap::new(FilterType::Gaussian)),
+            "lanczos3" => Ok(FilterTypeWrap::new(FilterType::Lanczos3)),
+            "nearest" => Ok(FilterTypeWrap::new(FilterType::Nearest)),
+            "triangle" => Ok(FilterTypeWrap::new(FilterType::Triangle)),
             fail => Err(format!("No such sampling filter: {}", fail).into()),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn partial_eq() {
+        let wrapped_cat1 = FilterTypeWrap::new(FilterType::CatmullRom);
+        let wrapped_cat2 = FilterTypeWrap::new(FilterType::CatmullRom);
+
+        assert!(wrapped_cat1.eq(&wrapped_cat2));
+    }
+
+    #[test]
+    fn partial_ne() {
+        let wrapped_cat = FilterTypeWrap::new(FilterType::CatmullRom);
+        let wrapped_gauss = FilterTypeWrap::new(FilterType::Gaussian);
+
+        assert!(wrapped_cat.ne(&wrapped_gauss));
     }
 }
