@@ -125,8 +125,8 @@ fn parse_i32(pair: Pair<'_, Rule>) -> Result<i32, String> {
 }
 
 fn parse_crop(pair: Pair<'_, Rule>) -> Result<Instruction, String> {
-    let tuple: (u32, u32, u32, u32) = parse_from_pair!(pair, (u32, u32, u32, u32))?;
-    let stmt = Instruction::Operation(ImgOp::Crop((tuple.0, tuple.1, tuple.2, tuple.3)));
+    let tuple = parse_from_pair!(pair, (u32, u32, u32, u32))?;
+    let stmt = Instruction::Operation(ImgOp::Crop(tuple));
     Ok(stmt)
 }
 
@@ -139,13 +139,13 @@ fn parse_filter3x3(pair: Pair<'_, Rule>) -> Result<Instruction, String> {
 
 fn parse_resize(pair: Pair<'_, Rule>) -> Result<Instruction, String> {
     let tuple = parse_from_pair!(pair, (u32, u32))?;
-    let stmt = Instruction::Operation(ImgOp::Resize((tuple.0, tuple.1)));
+    let stmt = Instruction::Operation(ImgOp::Resize(tuple));
     Ok(stmt)
 }
 
 fn parse_unsharpen(pair: Pair<'_, Rule>) -> Result<Instruction, String> {
     let tuple = parse_from_pair!(pair, (f32, i32))?;
-    let stmt = Instruction::Operation(ImgOp::Unsharpen((tuple.0, tuple.1)));
+    let stmt = Instruction::Operation(ImgOp::Unsharpen(tuple));
     Ok(stmt)
 }
 
