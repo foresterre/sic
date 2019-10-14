@@ -22,27 +22,21 @@ pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Vec<Instruction>
     pairs
         .filter(|pair| pair.as_rule() != Rule::EOI)
         .map(|pair| match pair.as_rule() {
-            Rule::blur => parse_f32(pair).map(|v| Instruction::Operation(ImgOp::Blur(v))),
-            Rule::brighten => {
-                parse_i32(pair).map(|v| Instruction::Operation(ImgOp::Brighten(v)))
-            }
-            Rule::contrast => {
-                parse_f32(pair).map(|v| Instruction::Operation(ImgOp::Contrast(v)))
-            }
-            Rule::crop => parse_crop(pair),
-            Rule::filter3x3 => parse_filter3x3(pair),
+            Rule::blur => Blur(pair),
+            Rule::brighten => Brighten(pair),
+            Rule::contrast => Contrast(pair),
+            Rule::crop => Crop(pair),
+            Rule::filter3x3 => Filter3x3(pair),
             Rule::flip_horizontal => Ok(Instruction::Operation(ImgOp::FlipHorizontal)),
             Rule::flip_vertical => Ok(Instruction::Operation(ImgOp::FlipVertical)),
             Rule::grayscale => Ok(Instruction::Operation(ImgOp::GrayScale)),
-            Rule::huerotate => {
-                parse_i32(pair).map(|v| Instruction::Operation(ImgOp::HueRotate(v)))
-            }
+            Rule::huerotate => HueRotate(pair),
             Rule::invert => Ok(Instruction::Operation(ImgOp::Invert)),
-            Rule::resize => parse_resize(pair),
+            Rule::resize => Resize(pair),
             Rule::rotate90 => Ok(Instruction::Operation(ImgOp::Rotate90)),
             Rule::rotate180 => Ok(Instruction::Operation(ImgOp::Rotate180)),
             Rule::rotate270 => Ok(Instruction::Operation(ImgOp::Rotate270)),
-            Rule::unsharpen => parse_unsharpen(pair),
+            Rule::unsharpen => Unsharpen(pair),
             Rule::setopt => parse_set_environment(pair.into_inner().next().ok_or_else(|| {
                 "Unable to parse `set` environment command. Error: expected a single `set` inner element.".to_string()
             })?),
@@ -55,13 +49,33 @@ pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Vec<Instruction>
         .collect::<Result<Vec<_>, String>>()
 }
 
-macro_rules! parse_from_pair {
+macro_rules! parse_primitive_from_pair {
     ($pair:expr, $ty:ty) => {{
         let inner = $pair.into_inner();
         let ty: Result<$ty, String> = ParseInputsFromIter::parse(inner.map(|pair| pair.as_str()));
         ty
     }};
 }
+
+macro_rules! parse_op_from_pair {
+    ($what_op:tt, $inner_ty:ty) => {
+        #[allow(non_snake_case)]
+        fn $what_op(pair: Pair<'_, Rule>) -> Result<Instruction, String> {
+            let val = parse_primitive_from_pair!(pair, $inner_ty)?;
+            let stmt = Instruction::Operation(ImgOp::$what_op(val));
+            Ok(stmt)
+        }
+    };
+}
+
+parse_op_from_pair!(Blur, f32);
+parse_op_from_pair!(Brighten, i32);
+parse_op_from_pair!(Contrast, f32);
+parse_op_from_pair!(Crop, (u32, u32, u32, u32));
+parse_op_from_pair!(HueRotate, i32);
+parse_op_from_pair!(Resize, (u32, u32));
+parse_op_from_pair!(Unsharpen, (f32, i32));
+parse_op_from_pair!(Filter3x3, [f32; 9]);
 
 fn parse_set_environment(pair: Pair<'_, Rule>) -> Result<Instruction, String> {
     let environment_item = match pair.as_rule() {
@@ -114,39 +128,6 @@ fn parse_unset_environment(pair: Pair<'_, Rule>) -> Result<Instruction, String> 
     };
 
     Ok(Instruction::RemoveFromEnv(environment_item))
-}
-
-fn parse_f32(pair: Pair<'_, Rule>) -> Result<f32, String> {
-    parse_from_pair!(pair, f32)
-}
-
-fn parse_i32(pair: Pair<'_, Rule>) -> Result<i32, String> {
-    parse_from_pair!(pair, i32)
-}
-
-fn parse_crop(pair: Pair<'_, Rule>) -> Result<Instruction, String> {
-    let tuple = parse_from_pair!(pair, (u32, u32, u32, u32))?;
-    let stmt = Instruction::Operation(ImgOp::Crop(tuple));
-    Ok(stmt)
-}
-
-fn parse_filter3x3(pair: Pair<'_, Rule>) -> Result<Instruction, String> {
-    let inner = pair.into_inner();
-    let arr = ParseInputsFromIter::parse(inner.map(|pair| pair.as_str()))?;
-    let stmt = Instruction::Operation(ImgOp::Filter3x3(arr));
-    Ok(stmt)
-}
-
-fn parse_resize(pair: Pair<'_, Rule>) -> Result<Instruction, String> {
-    let tuple = parse_from_pair!(pair, (u32, u32))?;
-    let stmt = Instruction::Operation(ImgOp::Resize(tuple));
-    Ok(stmt)
-}
-
-fn parse_unsharpen(pair: Pair<'_, Rule>) -> Result<Instruction, String> {
-    let tuple = parse_from_pair!(pair, (f32, i32))?;
-    let stmt = Instruction::Operation(ImgOp::Unsharpen(tuple));
-    Ok(stmt)
 }
 
 #[cfg(test)]
