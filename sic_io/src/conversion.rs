@@ -1,9 +1,8 @@
-use std::io::{self, Write};
-use std::path::Path;
+use std::io::Write;
 
 use sic_core::image;
 
-use crate::save::ExportMethod;
+// use crate::save::ExportMethod;
 
 #[derive(Clone, Copy, Debug)]
 pub enum AutomaticColorTypeAdjustment {
@@ -28,9 +27,10 @@ impl<'a> ConversionWriter<'a> {
         ConversionWriter { image }
     }
 
-    pub fn write<P: AsRef<Path>>(
+    pub fn write<W: Write>(
         &self,
-        export: ExportMethod<P>,
+        writer: &mut W,
+        // export: ExportMethod<P>,
         output_format: image::ImageOutputFormat,
         color_type_adjustment: AutomaticColorTypeAdjustment,
     ) -> Result<(), String> {
@@ -45,16 +45,18 @@ impl<'a> ConversionWriter<'a> {
             None => &self.image,
         };
 
-        match export {
-            // Some() => write to file
-            ExportMethod::File(v) => {
-                ConversionWriter::save_to_file(&export_buffer, output_format, v)
-            }
-            // None => write to stdout
-            ExportMethod::StdoutBytes => {
-                ConversionWriter::export_to_stdout(&export_buffer, output_format)
-            }
-        }
+        ConversionWriter::save_to(writer, &export_buffer, output_format)
+
+        // match export {
+        //     // Some() => write to file
+        //     ExportMethod::File(v) => {
+        //         ConversionWriter::save_to_file(&export_buffer, output_format, v)
+        //     }
+        //     // None => write to stdout
+        //     ExportMethod::StdoutBytes => {
+        //         ConversionWriter::export_to_stdout(&export_buffer, output_format)
+        //     }
+        // }
     }
 
     /// Some image output format types require color type pre-processing.
@@ -91,38 +93,49 @@ impl<'a> ConversionWriter<'a> {
         }
     }
 
-    fn save_to_file<P: AsRef<Path>>(
+    // fn save_to_file<P: AsRef<Path>>(
+    //     buffer: &image::DynamicImage,
+    //     format: image::ImageOutputFormat,
+    //     path: P,
+    // ) -> Result<(), String> {
+    //     let mut out = std::fs::File::create(path).map_err(|err| err.to_string())?;
+
+    //     buffer
+    //         .write_to(&mut out, format)
+    //         .map_err(|err| err.to_string())
+    // }
+
+    // fn export_to_stdout(
+    //     buffer: &image::DynamicImage,
+    //     format: image::ImageOutputFormat,
+    // ) -> Result<(), String> {
+    //     let mut write_buffer = Vec::new();
+
+    //     buffer
+    //         .write_to(&mut write_buffer, format)
+    //         .map_err(|err| err.to_string())?;
+
+    //     io::stdout()
+    //         .write(&write_buffer)
+    //         .map(|_| ())
+    //         .map_err(|err| err.to_string())
+    // }
+
+    fn save_to<W: Write>(
+        writer: &mut W,
         buffer: &image::DynamicImage,
         format: image::ImageOutputFormat,
-        path: P,
     ) -> Result<(), String> {
-        let mut out = std::fs::File::create(path).map_err(|err| err.to_string())?;
-
         buffer
-            .write_to(&mut out, format)
-            .map_err(|err| err.to_string())
-    }
-
-    fn export_to_stdout(
-        buffer: &image::DynamicImage,
-        format: image::ImageOutputFormat,
-    ) -> Result<(), String> {
-        let mut write_buffer = Vec::new();
-
-        buffer
-            .write_to(&mut write_buffer, format)
-            .map_err(|err| err.to_string())?;
-
-        io::stdout()
-            .write(&write_buffer)
-            .map(|_| ())
+            .write_to(writer, format)
             .map_err(|err| err.to_string())
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::io::Read;
+    use std::fs::File;
+    use std::io::{self, Read};
 
     use sic_testing::{clean_up_output_path, setup_output_path, setup_test_image};
 
@@ -134,7 +147,7 @@ mod tests {
     const OUTPUT: &str = "_out.png";
 
     #[test]
-    fn will_output_file_be_created() {
+    fn will_output_file_be_created() -> io::Result<()> {
         let our_output = &format!("will_output_file_be_created{}", OUTPUT); // this is required because tests are run in parallel, and the creation, or deletion can collide.
         let output_path = setup_output_path(our_output);
 
@@ -143,7 +156,8 @@ mod tests {
         let conversion_processor = ConversionWriter::new(&buffer);
         conversion_processor
             .write(
-                ExportMethod::File(&output_path),
+                &mut File::create(&output_path)?,
+                // ExportMethod::File(&output_path),
                 example_output_format,
                 AutomaticColorTypeAdjustment::Enabled,
             )
@@ -152,10 +166,11 @@ mod tests {
         assert!(output_path.exists());
 
         clean_up_output_path(our_output);
+        Ok(())
     }
 
     #[test]
-    fn has_png_extension() {
+    fn has_png_extension() -> io::Result<()> {
         let our_output = &format!("has_png_extension{}", OUTPUT); // this is required because tests are run in parallel, and the creation, or deletion can collide.
         let output_path = setup_output_path(our_output);
 
@@ -164,7 +179,8 @@ mod tests {
         let conversion_processor = ConversionWriter::new(&buffer);
         conversion_processor
             .write(
-                ExportMethod::File(&output_path),
+                &mut File::create(&output_path)?,
+                // ExportMethod::File(&output_path),
                 example_output_format,
                 AutomaticColorTypeAdjustment::Enabled,
             )
@@ -176,10 +192,11 @@ mod tests {
         );
 
         clean_up_output_path(our_output);
+        Ok(())
     }
 
     #[test]
-    fn is_png_file() {
+    fn is_png_file() -> io::Result<()> {
         let our_output = &format!("is_png_file{}", OUTPUT); // this is required because tests are run in parallel, and the creation, or deletion can collide.
         let output_path = setup_output_path(our_output);
 
@@ -188,7 +205,8 @@ mod tests {
         let conversion_processor = ConversionWriter::new(&buffer);
         conversion_processor
             .write(
-                ExportMethod::File(&output_path),
+                &mut File::create(&output_path)?,
+                // ExportMethod::File(&output_path),
                 example_output_format,
                 AutomaticColorTypeAdjustment::Enabled,
             )
@@ -206,6 +224,7 @@ mod tests {
         );
 
         clean_up_output_path(our_output);
+        Ok(())
     }
 
     // Multi tests:
@@ -252,16 +271,17 @@ mod tests {
         enc_format: &str,
         format: image::ImageOutputFormat,
         expected_format: image::ImageFormat,
-    ) {
+    ) -> io::Result<()> {
         let our_output = &format!("header_match_conversion.{}", enc_format); // this is required because tests are run in parallel, and the creation, or deletion can collide.
         let output_path = setup_output_path(our_output);
 
         let buffer = image::open(setup_test_image(input)).expect("Can't open test file.");
         let conversion_processor = ConversionWriter::new(&buffer);
-        let method = ExportMethod::File(&output_path);
+        // let method = ExportMethod::File(&output_path);
+        let mut writer = File::create(&output_path)?;
 
         conversion_processor
-            .write(method, format, AutomaticColorTypeAdjustment::Enabled)
+            .write(&mut writer, format, AutomaticColorTypeAdjustment::Enabled)
             .expect("Unable to save file to the test computer.");
 
         let mut file = std::fs::File::open(setup_output_path(our_output))
@@ -276,10 +296,11 @@ mod tests {
         );
 
         clean_up_output_path(our_output);
+        Ok(())
     }
 
     #[test]
-    fn test_conversions_with_header_match() {
+    fn test_conversions_with_header_match() -> io::Result<()> {
         for test_image in INPUT_MULTI.iter() {
             let zipped = INPUT_FORMATS
                 .iter()
@@ -291,8 +312,10 @@ mod tests {
                     "testing `test_conversion_with_header_match`, converting {} => : {}",
                     test_image, ext
                 );
-                test_conversion_with_header_match(test_image, ext, to_format, *expected_format);
+                test_conversion_with_header_match(test_image, ext, to_format, *expected_format)?;
             }
         }
+
+        Ok(())
     }
 }

@@ -1,5 +1,6 @@
 use std::error::Error;
-use std::io::Read;
+use std::fs::File;
+use std::io::{self, Read, Write};
 use std::path::Path;
 
 use clap::ArgMatches;
@@ -7,10 +8,10 @@ use sic_core::image;
 use sic_image_engine::engine::ImageEngine;
 use sic_io::conversion::AutomaticColorTypeAdjustment;
 use sic_io::format::{
-    DetermineEncodingFormat, EncodingFormatByIdentifier, EncodingFormatByMethod, JPEGQuality,
+    DetermineEncodingFormat, EncodingFormatByExtension, EncodingFormatByIdentifier, JPEGQuality,
 };
 use sic_io::load::{load_image, ImportConfig};
-use sic_io::save::{export, ExportMethod, ExportSettings};
+use sic_io::save::{export, ExportSettings};
 
 use crate::app::cli::arg_names::{ARG_INPUT, ARG_INPUT_FILE};
 use crate::app::config::Config;
@@ -43,8 +44,8 @@ pub fn run(matches: &ArgMatches, options: &Config) -> Result<(), String> {
         .ignite(&options.image_operations_program)
         .map_err(|err| err.to_string())?;
 
-    let export_method =
-        determine_export_method(options.output.as_ref()).map_err(|err| err.to_string())?;
+    let mut export_writer =
+        mk_export_writer(options.output.as_ref()).map_err(|err| err.to_string())?;
 
     let encoding_format_determiner = DetermineEncodingFormat {
         pnm_sample_encoding: if options.encoding_settings.pnm_use_ascii_format {
@@ -62,13 +63,16 @@ pub fn run(matches: &ArgMatches, options: &Config) -> Result<(), String> {
 
     let encoding_format = match &options.forced_output_format {
         Some(format) => encoding_format_determiner.by_identifier(format),
-        None => encoding_format_determiner.by_method(&export_method),
+        None => match options.output {
+            Some(out) => encoding_format_determiner.by_extension(out),
+            None => Ok(image::ImageOutputFormat::BMP),
+        },
     }
     .map_err(|err| err.to_string())?;
 
     export(
         buffer,
-        export_method,
+        &mut export_writer,
         encoding_format,
         ExportSettings {
             adjust_color_type: AutomaticColorTypeAdjustment::default(),
@@ -105,20 +109,15 @@ fn mk_reader(matches: &ArgMatches) -> Result<Box<dyn Read>, String> {
     Ok(reader)
 }
 
-/// Determines what export method should be used.
+/// Make a export writer.
 /// The choices are the stdout or a file.
-fn determine_export_method<P: AsRef<Path>>(
+fn mk_export_writer<P: AsRef<Path>>(
     output_path: Option<P>,
-) -> Result<ExportMethod<P>, Box<dyn Error>> {
-    let method = if output_path.is_none() {
-        ExportMethod::StdoutBytes
-    } else {
-        let path = output_path
-            .ok_or_else(|| "The export method 'file' requires an output file path.".to_string());
-        ExportMethod::File(path?)
-    };
-
-    Ok(method)
+) -> Result<Box<dyn Write>, Box<dyn Error>> {
+    match output_path {
+        Some(out) => Ok(Box::new(File::create(out)?)),
+        None => Ok(Box::new(io::stdout())),
+    }
 }
 
 pub fn run_display_licenses(config: &Config) -> Result<(), String> {
