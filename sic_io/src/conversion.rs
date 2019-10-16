@@ -2,8 +2,6 @@ use std::io::Write;
 
 use sic_core::image;
 
-// use crate::save::ExportMethod;
-
 #[derive(Clone, Copy, Debug)]
 pub enum AutomaticColorTypeAdjustment {
     // Usually the default
@@ -30,7 +28,6 @@ impl<'a> ConversionWriter<'a> {
     pub fn write<W: Write>(
         &self,
         writer: &mut W,
-        // export: ExportMethod<P>,
         output_format: image::ImageOutputFormat,
         color_type_adjustment: AutomaticColorTypeAdjustment,
     ) -> Result<(), String> {
@@ -46,17 +43,6 @@ impl<'a> ConversionWriter<'a> {
         };
 
         ConversionWriter::save_to(writer, &export_buffer, output_format)
-
-        // match export {
-        //     // Some() => write to file
-        //     ExportMethod::File(v) => {
-        //         ConversionWriter::save_to_file(&export_buffer, output_format, v)
-        //     }
-        //     // None => write to stdout
-        //     ExportMethod::StdoutBytes => {
-        //         ConversionWriter::export_to_stdout(&export_buffer, output_format)
-        //     }
-        // }
     }
 
     /// Some image output format types require color type pre-processing.
@@ -92,34 +78,6 @@ impl<'a> ConversionWriter<'a> {
             AutomaticColorTypeAdjustment::Disabled => None,
         }
     }
-
-    // fn save_to_file<P: AsRef<Path>>(
-    //     buffer: &image::DynamicImage,
-    //     format: image::ImageOutputFormat,
-    //     path: P,
-    // ) -> Result<(), String> {
-    //     let mut out = std::fs::File::create(path).map_err(|err| err.to_string())?;
-
-    //     buffer
-    //         .write_to(&mut out, format)
-    //         .map_err(|err| err.to_string())
-    // }
-
-    // fn export_to_stdout(
-    //     buffer: &image::DynamicImage,
-    //     format: image::ImageOutputFormat,
-    // ) -> Result<(), String> {
-    //     let mut write_buffer = Vec::new();
-
-    //     buffer
-    //         .write_to(&mut write_buffer, format)
-    //         .map_err(|err| err.to_string())?;
-
-    //     io::stdout()
-    //         .write(&write_buffer)
-    //         .map(|_| ())
-    //         .map_err(|err| err.to_string())
-    // }
 
     fn save_to<W: Write>(
         writer: &mut W,
@@ -157,7 +115,6 @@ mod tests {
         conversion_processor
             .write(
                 &mut File::create(&output_path)?,
-                // ExportMethod::File(&output_path),
                 example_output_format,
                 AutomaticColorTypeAdjustment::Enabled,
             )
@@ -180,7 +137,6 @@ mod tests {
         conversion_processor
             .write(
                 &mut File::create(&output_path)?,
-                // ExportMethod::File(&output_path),
                 example_output_format,
                 AutomaticColorTypeAdjustment::Enabled,
             )
@@ -206,7 +162,6 @@ mod tests {
         conversion_processor
             .write(
                 &mut File::create(&output_path)?,
-                // ExportMethod::File(&output_path),
                 example_output_format,
                 AutomaticColorTypeAdjustment::Enabled,
             )
@@ -277,7 +232,6 @@ mod tests {
 
         let buffer = image::open(setup_test_image(input)).expect("Can't open test file.");
         let conversion_processor = ConversionWriter::new(&buffer);
-        // let method = ExportMethod::File(&output_path);
         let mut writer = File::create(&output_path)?;
 
         conversion_processor

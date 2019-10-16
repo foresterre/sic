@@ -3,18 +3,6 @@ use std::path::Path;
 use sic_core::image;
 use std::error::Error;
 
-// use crate::save::ExportMethod;
-
-// const DEFAULT_PIPED_OUTPUT_FORMAT: image::ImageOutputFormat = image::ImageOutputFormat::BMP;
-
-// pub trait EncodingFormatByMethod {
-//     /// Determine the encoding format based on the method of exporting.
-//     fn by_method<P: AsRef<Path>>(
-//         &self,
-//         method: &ExportMethod<P>,
-//     ) -> Result<image::ImageOutputFormat, Box<dyn Error>>;
-// }
-
 pub trait EncodingFormatByExtension {
     /// Determine the encoding format based on the extension of a file path.
     fn by_extension<P: AsRef<Path>>(
@@ -72,22 +60,6 @@ impl JPEGQuality {
         self.quality
     }
 }
-
-// impl EncodingFormatByMethod for DetermineEncodingFormat {
-//     /// Determine the encoding format based on the method of exporting.
-//     /// For stdout, the default piped output format will be used.
-//     ///     If another format is wanted the `by_identifier` function should be used instead.
-//     /// For file, the format will be determined based on the output path extension.
-//     fn by_method<P: AsRef<Path>>(
-//         &self,
-//         method: &ExportMethod<P>,
-//     ) -> Result<image::ImageOutputFormat, Box<dyn Error>> {
-//         match method {
-//             ExportMethod::StdoutBytes => Ok(DEFAULT_PIPED_OUTPUT_FORMAT),
-//             ExportMethod::File(path) => self.by_extension(path),
-//         }
-//     }
-// }
 
 impl EncodingFormatByExtension for DetermineEncodingFormat {
     /// Determines the encoding format based on the extension of the given path.
@@ -196,26 +168,6 @@ mod tests {
             jpeg_quality: Some(JPEGQuality::try_from(80).unwrap()),
         }
     }
-
-    //
-    // fn test_with_method_path(ext: &str, expected: &image::ImageOutputFormat) {
-    //     let path = format!("w_path.{}", ext);
-    //     let method = ExportMethod::File(path);
-
-    //     let format_determiner = setup_default_format_determiner();
-    //     let result = format_determiner.by_method(&method);
-
-    //     assert_eq!(result.unwrap(), *expected);
-    // }
-
-    // #[test]
-    // fn method_path_with_defaults() {
-    //     let zipped = INPUT_FORMATS.iter().zip(EXPECTED_VALUES.iter());
-
-    //     for (ext, exp) in zipped {
-    //         test_with_method_path(ext, exp);
-    //     }
-    // }
 
     //
     fn test_with_extensions(ext: &str, expected: &image::ImageOutputFormat) {

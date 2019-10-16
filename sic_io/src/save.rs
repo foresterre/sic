@@ -7,7 +7,6 @@ use crate::conversion::{AutomaticColorTypeAdjustment, ConversionWriter};
 
 pub fn export<W: Write>(
     image: &image::DynamicImage,
-    // method: ExportMethod<P>,
     writer: &mut W,
     format: image::ImageOutputFormat,
     export_settings: ExportSettings,
@@ -20,17 +19,6 @@ pub fn export<W: Write>(
 pub struct ExportSettings {
     pub adjust_color_type: AutomaticColorTypeAdjustment,
 }
-
-// #[derive(Debug)]
-// pub enum ExportMethod<P: AsRef<Path>> {
-//     File(P),
-//     StdoutBytes,
-// }
-
-// // enum variants on type aliases are currently experimental, so we use a function here instead.
-// pub fn use_stdout_bytes_as_export_method() -> ExportMethod<EmptyPath> {
-//     ExportMethod::StdoutBytes
-// }
 
 pub struct EmptyPath;
 
