@@ -109,7 +109,7 @@ fn mk_reader(matches: &ArgMatches) -> Result<Box<dyn Read>, String> {
     Ok(reader)
 }
 
-/// Make a export writer.
+/// Make an export writer.
 /// The choices are the stdout or a file.
 fn mk_export_writer<P: AsRef<Path>>(
     output_path: Option<P>,
