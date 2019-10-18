@@ -1,10 +1,10 @@
 use std::error::Error;
 use std::fs::File;
-use std::io::{BufReader, Read};
+use std::io::{BufReader, Cursor, Read};
 use std::path::Path;
 
 use sic_core::image;
-use sic_core::image::AnimationDecoder;
+use sic_core::image::{AnimationDecoder, ImageFormat};
 
 /// Load an image using a reader.
 /// All images are currently loaded from memory.
@@ -12,12 +12,31 @@ pub fn load_image<R: Read>(
     reader: &mut R,
     config: &ImportConfig,
 ) -> ImportResult<image::DynamicImage> {
-    let buffer = load(reader)?;
-
-    if starts_with_gif_magic_number(&buffer) {
-        load_gif(&buffer, config.selected_frame)
-    } else {
-        image::load_from_memory(&buffer).map_err(From::from)
+    let reader = image::io::Reader::new(Cursor::new(load(reader)?)).with_guessed_format()?;
+    match reader.format() {
+        Some(f) => match f {
+            ImageFormat::GIF => {
+                let frames = image::gif::Decoder::new(reader.into_inner())?
+                    .into_frames()
+                    .collect_frames()?;
+                let frame_index = match config.selected_frame {
+                    FrameIndex::First => 0,
+                    FrameIndex::Last => frames.len() - 1,
+                    FrameIndex::Nth(n) => n,
+                };
+                match frames.into_iter().nth(frame_index) {
+                    Some(frame) => Ok(image::DynamicImage::ImageRgba8(frame.into_buffer())),
+                    None => Err(ImportError::NoSuchFrame(
+                        frame_index,
+                        "Frame index out of range.".to_string(),
+                    )),
+                }
+            }
+            _ => Ok(reader.decode()?),
+        },
+        None => Err(ImportError::from(image::ImageError::FormatError(
+            "Image format not supported.".to_string(),
+        ))),
     }
 }
 
@@ -59,50 +78,6 @@ impl Default for FrameIndex {
     fn default() -> Self {
         FrameIndex::First
     }
-}
-
-fn starts_with_gif_magic_number(buffer: &[u8]) -> bool {
-    buffer.starts_with(b"GIF87a") || buffer.starts_with(b"GIF89a")
-}
-
-fn load_gif(buffer: &[u8], frame: FrameIndex) -> Result<image::DynamicImage, ImportError> {
-    let decoder = image::gif::Decoder::new(&buffer[..])?;
-    let frames = decoder.into_frames();
-    let vec = frames.collect::<Result<Vec<_>, image::ImageError>>()?;
-    let amount_of_frames = vec.len();
-
-    // The one-indexed selected frame picked by the user; stored as zero-indexed frames
-    // in the import config.
-    // There is no guarantee that the selected frame does exist at this point.
-    let selected = match frame {
-        FrameIndex::First => 0usize,
-        FrameIndex::Nth(n) => n,
-        FrameIndex::Last => {
-            if vec.is_empty() {
-                return Err(ImportError::NoSuchFrame(0, "No frames found.".to_string()));
-            }
-
-            amount_of_frames - 1
-        }
-    };
-
-    // Check that the frame exists, because we will access the buffer unchecked.
-    if selected >= amount_of_frames {
-        return Err(ImportError::NoSuchFrame(
-            selected,
-            format!(
-                "Chosen frame index exceeds the maximum frame index ({}) of the image.",
-                amount_of_frames
-            ),
-        ));
-    }
-
-    // select the frame from the buffer.
-    let pick = &vec[selected];
-
-    // fixme: Can we get away without cloning?
-    let image = pick.clone().into_buffer();
-    Ok(image::DynamicImage::ImageRgba8(image))
 }
 
 #[derive(Debug)]
