@@ -3,14 +3,14 @@ use std::path::{Path, PathBuf};
 #[macro_export]
 macro_rules! out_ {
     ($path:expr) => {
-        &[env!("CARGO_MANIFEST_DIR"), "/../target/", $path].concat()
+        &[env!("CARGO_MANIFEST_DIR"), "/../../target/", $path].concat()
     };
 }
 
 #[macro_export]
 macro_rules! in_ {
     ($path:expr) => {
-        &[env!("CARGO_MANIFEST_DIR"), "/../resources/", $path].concat()
+        &[env!("CARGO_MANIFEST_DIR"), "/../../resources/", $path].concat()
     };
 }
 
