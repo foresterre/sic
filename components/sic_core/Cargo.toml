@@ -4,7 +4,7 @@ version = "0.10.0"
 authors = ["Martijn Gribnau <garm@ilumeo.com>"]
 description = "Component of the sic cli: re-exports global dependencies to sub-crates."
 edition = "2018"
-license-file = "../LICENSE"
+license-file = "../../LICENSE"
 repository = "https://github.com/foresterre/sic"
 
 [dependencies]
