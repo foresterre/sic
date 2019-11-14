@@ -209,6 +209,7 @@ impl ParseInputsFromIter for String {
 #[cfg(test)]
 mod tests_parse_from_iter {
     use super::*;
+    use parameterized::parameterized as pm;
 
     #[test]
     fn a_f32() {
@@ -220,38 +221,25 @@ mod tests_parse_from_iter {
         use super::*;
 
         #[test]
-        fn a_tuple_of_u32_u32_u32_u32() {
+        fn should_succeed_with() {
             let some: (u32, u32, u32, u32) =
                 ParseInputsFromIter::parse(&["03579", "0", "1", "1"]).unwrap();
-            assert_eq!(some, (3579u32, 0u32, 1u32, 1u32))
+            assert_eq!(some, (3579u32, 0u32, 1u32, 1u32));
         }
 
-        #[test]
-        #[should_panic]
-        fn a_tuple_of_u32_u32_u32_u32_fail_on_neg() {
-            let _some: (u32, u32, u32, u32) =
-                ParseInputsFromIter::parse(&["03579", "-0", "1", "1"]).unwrap();
-        }
-
-        #[test]
-        #[should_panic]
-        fn a_tuple_of_u32_u32_u32_u32_fail_on_length_too_short() {
-            let _some: (u32, u32, u32, u32) =
-                ParseInputsFromIter::parse(&["03579", "-0", "1"]).unwrap();
-        }
-
-        #[test]
-        #[should_panic]
-        fn a_tuple_of_u32_u32_u32_u32_fail_on_length_too_long() {
-            let _some: (u32, u32, u32, u32) =
-                ParseInputsFromIter::parse(&["03579", "0", "1", "1", "1"]).unwrap();
-        }
-
-        #[test]
-        #[should_panic]
-        fn a_tuple_of_u32_u32_u32_u32_fail_not_u32() {
-            let _some: (u32, u32, u32, u32) =
-                ParseInputsFromIter::parse(&["03579", "0", "1", "o"]).unwrap();
+        #[pm(input = {
+            &["-4", "3", "2", "1"],         // &[a, _b, _c, _d]: a not u32 (neg)
+            &["4", "-3", "2", "1"],         // &[_a, b, _c, _d]: b not u32 (neg)
+            &["4", "3", "-2", "1"],         // &[_a, _b, c, _d]: c not u32 (neg)
+            &["4", "3", "2", "-1"],         // &[_a, _b, _c, d]: d not u32 (neg)
+            &["4", "3", "2", "o"],          // &[..., x]: x not f32 (not a number)
+            &["4", "3", "2"],               // len() == 4 expected
+            &["4", "3", "2", "1", "0"],     // len() == 4 expected
+            &[],                            // empty
+        })]
+        fn expected_failures(input: &[&str]) {
+            let result: Result<(u32, u32, u32, u32), String> = ParseInputsFromIter::parse(input);
+            assert!(result.is_err());
         }
     }
 
@@ -270,29 +258,15 @@ mod tests_parse_from_iter {
             assert_eq!(some, expected);
         }
 
-        #[test]
-        #[should_panic]
-        fn array_of_f32_oof_too_short() {
-            let _some: [f32; 9] =
-                ParseInputsFromIter::parse(&["1", "2", "3", "4", "5.5", "-6.0", "7", "8"]).unwrap();
-        }
-
-        #[test]
-        #[should_panic]
-        fn array_of_f32_oof_too_long() {
-            let _some: [f32; 9] = ParseInputsFromIter::parse(&[
-                "1", "2", "3", "4", "5.5", "-6.0", "7", "8", "-9.9999", "1",
-            ])
-            .unwrap();
-        }
-
-        #[test]
-        #[should_panic]
-        fn array_of_f32_oof_not_a_f32() {
-            let _some: [f32; 9] = ParseInputsFromIter::parse(&[
-                "1", "2", "3", "4", "5.5", "-6.0", "7", "8", "lalala",
-            ])
-            .unwrap();
+        #[pm(input = {
+            &["1", "2", "3", "4", "5.5", "-6.0", "7", "8", "lalala"],               // &[..., x]: x not f32 (not a number)
+            &["1", "2", "3", "4", "5.5", "-6.0", "7", "8"],                         // len() == 9 expected
+            &["1", "2", "3", "4", "5.5", "-6.0", "7", "8", "-9.9999", "1"],         // len() == 9 expected
+            &[],                                                                    // empty
+        })]
+        fn expected_failures(input: &[&str]) {
+            let result: Result<[f32; 9], String> = ParseInputsFromIter::parse(input);
+            assert!(result.is_err())
         }
     }
 
@@ -305,29 +279,16 @@ mod tests_parse_from_iter {
             assert_eq!(some, (3579u32, 0u32))
         }
 
-        #[test]
-        #[should_panic]
-        fn a_tuple_of_u32_u32_fail_on_neg() {
-            let _some: (u32, u32) = ParseInputsFromIter::parse(&["03579", "-0"]).unwrap();
-        }
-
-        #[test]
-        #[should_panic]
-        fn a_tuple_of_u32_u32_fail_on_empty() {
-            let empty: &[&str; 0] = &[];
-            let _some: (u32, u32) = ParseInputsFromIter::parse(empty).unwrap();
-        }
-
-        #[test]
-        #[should_panic]
-        fn a_tuple_of_u32_u32_fail_on_too_short() {
-            let _some: (u32, u32) = ParseInputsFromIter::parse(&["03579"]).unwrap();
-        }
-
-        #[test]
-        #[should_panic]
-        fn a_tuple_of_u32_u32_fail_on_too_long() {
-            let _some: (u32, u32) = ParseInputsFromIter::parse(&["03579", "1", "1"]).unwrap();
+        #[pm(input = {
+            &["4", "-0"],   // [_x, y]: y not u32 (neg 0)
+            &["4", "-4"],   // [_x, y]: y not u32 (neg number)
+            &["4", "f"],    // [_x, y]: y not u32 (not a number)
+            &["03579"],     // len() == 2 expected
+            &[],            // empty
+        })]
+        fn expected_failures(input: &[&str]) {
+            let result: Result<(u32, u32), String> = ParseInputsFromIter::parse(input);
+            assert!(result.is_err());
         }
     }
 
@@ -340,35 +301,16 @@ mod tests_parse_from_iter {
             assert_eq!(some, (-3579.1f32, 0i32))
         }
 
-        #[test]
-        #[should_panic]
-        fn a_tuple_of_f32_i32_fail_on_not_f32() {
-            let _some: (f32, i32) = ParseInputsFromIter::parse(&["f", "-1"]).unwrap();
-        }
-
-        #[test]
-        #[should_panic]
-        fn a_tuple_of_f32_i32_fail_on_not_i32() {
-            let _some: (f32, i32) = ParseInputsFromIter::parse(&["-1.0", "f"]).unwrap();
-        }
-
-        #[test]
-        #[should_panic]
-        fn a_tuple_of_f32_i32_fail_on_empty() {
-            let empty: &[&str; 0] = &[];
-            let _some: (f32, i32) = ParseInputsFromIter::parse(empty).unwrap();
-        }
-
-        #[test]
-        #[should_panic]
-        fn a_tuple_of_f32_i32_fail_on_too_short() {
-            let _some: (f32, i32) = ParseInputsFromIter::parse(&["03579"]).unwrap();
-        }
-
-        #[test]
-        #[should_panic]
-        fn a_tuple_of_f32_i32_fail_on_too_long() {
-            let _some: (f32, i32) = ParseInputsFromIter::parse(&["03579", "1", "1"]).unwrap();
+        #[pm(input = {
+            &["-f", "-1"],      // [x, _y]: x not f32
+            &["-1.0", "f"],     // [_x, y]: y not i32
+            &["4"],             // len() == 2 expected
+            &["4", "4", "4"],   // len() == 2 expected
+            &[],                // empty
+        })]
+        fn expected_failures(input: &[&str]) {
+            let result: Result<(f32, i32), String> = ParseInputsFromIter::parse(input);
+            assert!(result.is_err());
         }
     }
 }
