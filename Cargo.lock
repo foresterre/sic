@@ -348,12 +348,12 @@ name = "parameterized"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "parameterized-macro 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "parameterized-macro 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "parameterized-macro"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "proc-macro2 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -724,7 +724,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum num_cpus 1.11.0 (registry+https://github.com/rust-lang/crates.io-index)" = "155394f924cdddf08149da25bfb932d226b4a593ca7468b08191ff6335941af5"
 "checksum opaque-debug 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)" = "2839e79665f131bdb5782e51f2c6c9599c133c6098982a54c794358bf432529c"
 "checksum parameterized 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "4e521bbd3ce276d9fa5caff732719af06d02fd0b4ae29979148f51938d71682f"
-"checksum parameterized-macro 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "b6e046f37626e175b05c0632fb09438acbf1332d2a64797726695ab9a398232f"
+"checksum parameterized-macro 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "8a01df7a2035840851c9bc9bcf132255a150b7914883e8d6958b3d628b7dd15b"
 "checksum pest 2.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "7e4fb201c5c22a55d8b24fef95f78be52738e5e1361129be1b5e862ecdb6894a"
 "checksum pest_derive 2.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "833d1ae558dc601e9a60366421196a8d94bc0ac980476d0b67e1d0988d72b2d0"
 "checksum pest_generator 2.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "7b9fcf299b5712d06ee128a556c94709aaa04512c4dffb8ead07c5c998447fc0"
