@@ -12,40 +12,40 @@ use crate::wrapper::filter_type::FilterTypeWrap;
 use crate::ImgOp;
 
 trait EnvironmentKey {
-    fn key(&self) -> EnvironmentKind;
+    fn key(&self) -> ItemName;
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, EnumDiscriminants)]
-#[strum_discriminants(name(EnvironmentKind), derive(Display, Hash))]
-pub enum EnvironmentItem {
+#[strum_discriminants(name(ItemName), derive(Display, Hash))]
+pub enum EnvItem {
     CustomSamplingFilter(FilterTypeWrap),
     PreserveAspectRatio,
 }
 
-impl EnvironmentItem {
+impl EnvItem {
     pub fn resize_sampling_filter(self) -> Option<FilterTypeWrap> {
         match self {
-            EnvironmentItem::CustomSamplingFilter(k) => Some(k),
+            EnvItem::CustomSamplingFilter(k) => Some(k),
             _ => None,
         }
     }
 }
 
-impl EnvironmentKey for EnvironmentItem {
-    fn key(&self) -> EnvironmentKind {
+impl EnvironmentKey for EnvItem {
+    fn key(&self) -> ItemName {
         match self {
-            EnvironmentItem::CustomSamplingFilter(_) => EnvironmentKind::CustomSamplingFilter,
-            EnvironmentItem::PreserveAspectRatio => EnvironmentKind::PreserveAspectRatio,
+            EnvItem::CustomSamplingFilter(_) => ItemName::CustomSamplingFilter,
+            EnvItem::PreserveAspectRatio => ItemName::PreserveAspectRatio,
         }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Environment {
-    store: HashMap<EnvironmentKind, EnvironmentItem>,
+pub struct Env {
+    store: HashMap<ItemName, EnvItem>,
 }
 
-impl Default for Environment {
+impl Default for Env {
     fn default() -> Self {
         Self {
             store: HashMap::new(),
@@ -53,47 +53,44 @@ impl Default for Environment {
     }
 }
 
-impl Environment {
-    pub fn insert_or_update(&mut self, item: EnvironmentItem) {
+impl Env {
+    pub fn insert_or_update(&mut self, item: EnvItem) {
         let key = item.key();
 
         *self.store.entry(key).or_insert(item) = item;
     }
 
-    pub fn remove(&mut self, key: EnvironmentKind) -> Option<()> {
+    pub fn remove(&mut self, key: ItemName) -> Option<()> {
         self.store.remove(&key).map(|_| ())
     }
 
-    pub fn get(&mut self, key: EnvironmentKind) -> Option<&EnvironmentItem> {
+    pub fn get(&mut self, key: ItemName) -> Option<&EnvItem> {
         self.store.get(&key)
     }
 }
 
 #[derive(Debug, PartialEq)]
-pub enum Instruction {
+pub enum Instr {
     Operation(ImgOp),
-    AddToEnv(EnvironmentItem),
-    RemoveFromEnv(EnvironmentKind),
+    EnvAdd(EnvItem),
+    EnvRemove(ItemName),
 }
 
 #[derive(Clone)]
 pub struct ImageEngine {
-    environment: Box<Environment>,
+    environment: Box<Env>,
     image: Box<DynamicImage>,
 }
 
 impl ImageEngine {
     pub fn new(image: DynamicImage) -> Self {
         Self {
-            environment: Box::from(Environment::default()),
+            environment: Box::from(Env::default()),
             image: Box::from(image),
         }
     }
 
-    pub fn ignite(
-        &mut self,
-        instructions: &[Instruction],
-    ) -> Result<&DynamicImage, Box<dyn Error>> {
+    pub fn ignite(&mut self, instructions: &[Instr]) -> Result<&DynamicImage, Box<dyn Error>> {
         for instruction in instructions {
             match self.process_instruction(instruction) {
                 Ok(_) => continue,
@@ -104,11 +101,11 @@ impl ImageEngine {
         Ok(&self.image)
     }
 
-    fn process_instruction(&mut self, instruction: &Instruction) -> Result<(), Box<dyn Error>> {
+    fn process_instruction(&mut self, instruction: &Instr) -> Result<(), Box<dyn Error>> {
         match instruction {
-            Instruction::Operation(op) => self.process_operation(op),
-            Instruction::AddToEnv(item) => self.insert_env(*item),
-            Instruction::RemoveFromEnv(key) => self.remove_env(*key),
+            Instr::Operation(op) => self.process_operation(op),
+            Instr::EnvAdd(item) => self.insert_env(*item),
+            Instr::EnvRemove(key) => self.remove_env(*key),
         }
     }
 
@@ -170,14 +167,14 @@ impl ImageEngine {
 
                 let filter = self
                     .environment
-                    .get(EnvironmentKind::CustomSamplingFilter)
+                    .get(ItemName::CustomSamplingFilter)
                     .and_then(|item| item.resize_sampling_filter())
                     .map(FilterType::from)
                     .unwrap_or(DEFAULT_RESIZE_FILTER);
 
                 *self.image = if self
                     .environment
-                    .get(EnvironmentKind::PreserveAspectRatio)
+                    .get(ItemName::PreserveAspectRatio)
                     .is_some()
                 {
                     self.image.resize(*new_x, *new_y, filter)
@@ -206,13 +203,13 @@ impl ImageEngine {
         }
     }
 
-    fn insert_env(&mut self, item: EnvironmentItem) -> Result<(), Box<dyn Error>> {
+    fn insert_env(&mut self, item: EnvItem) -> Result<(), Box<dyn Error>> {
         self.environment.insert_or_update(item);
 
         Ok(())
     }
 
-    fn remove_env(&mut self, key: EnvironmentKind) -> Result<(), Box<dyn Error>> {
+    fn remove_env(&mut self, key: ItemName) -> Result<(), Box<dyn Error>> {
         let success = self.environment.remove(key);
 
         if success.is_none() {
@@ -272,6 +269,8 @@ impl CropSelection {
     }
 }
 
+//fn resize_filter(env: &Env)
+
 #[cfg(test)]
 mod environment_tests {
     use sic_core::image::FilterType;
@@ -280,87 +279,71 @@ mod environment_tests {
 
     #[test]
     fn environment_insert() {
-        let mut env = Environment::default();
-        assert!(!env
-            .store
-            .contains_key(&EnvironmentKind::CustomSamplingFilter));
+        let mut env = Env::default();
+        assert!(!env.store.contains_key(&ItemName::CustomSamplingFilter));
 
-        env.insert_or_update(EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
+        env.insert_or_update(EnvItem::CustomSamplingFilter(FilterTypeWrap::new(
             FilterType::Triangle,
         )));
 
-        assert!(env
-            .store
-            .contains_key(&EnvironmentKind::CustomSamplingFilter));
+        assert!(env.store.contains_key(&ItemName::CustomSamplingFilter));
     }
 
     #[test]
     fn environment_update() {
-        let mut env = Environment::default();
+        let mut env = Env::default();
 
-        env.insert_or_update(EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
+        env.insert_or_update(EnvItem::CustomSamplingFilter(FilterTypeWrap::new(
             FilterType::Triangle,
         )));
 
-        assert!(env
-            .store
-            .contains_key(&EnvironmentKind::CustomSamplingFilter));
+        assert!(env.store.contains_key(&ItemName::CustomSamplingFilter));
         assert_eq!(
-            EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(FilterType::Triangle)),
-            *env.get(EnvironmentKind::CustomSamplingFilter).unwrap()
+            EnvItem::CustomSamplingFilter(FilterTypeWrap::new(FilterType::Triangle)),
+            *env.get(ItemName::CustomSamplingFilter).unwrap()
         );
 
-        env.insert_or_update(EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
+        env.insert_or_update(EnvItem::CustomSamplingFilter(FilterTypeWrap::new(
             FilterType::Gaussian,
         )));
 
-        assert!(env
-            .store
-            .contains_key(&EnvironmentKind::CustomSamplingFilter));
+        assert!(env.store.contains_key(&ItemName::CustomSamplingFilter));
         assert_eq!(
-            EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(FilterType::Gaussian)),
-            *env.get(EnvironmentKind::CustomSamplingFilter).unwrap()
+            EnvItem::CustomSamplingFilter(FilterTypeWrap::new(FilterType::Gaussian)),
+            *env.get(ItemName::CustomSamplingFilter).unwrap()
         );
     }
 
     #[test]
     fn environment_remove() {
-        let mut env = Environment::default();
+        let mut env = Env::default();
 
-        env.insert_or_update(EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
+        env.insert_or_update(EnvItem::CustomSamplingFilter(FilterTypeWrap::new(
             FilterType::Triangle,
         )));
 
-        assert!(env
-            .store
-            .contains_key(&EnvironmentKind::CustomSamplingFilter));
+        assert!(env.store.contains_key(&ItemName::CustomSamplingFilter));
         assert_eq!(
-            EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(FilterType::Triangle)),
-            *env.get(EnvironmentKind::CustomSamplingFilter).unwrap()
+            EnvItem::CustomSamplingFilter(FilterTypeWrap::new(FilterType::Triangle)),
+            *env.get(ItemName::CustomSamplingFilter).unwrap()
         );
 
-        let removed = env.remove(EnvironmentKind::CustomSamplingFilter);
+        let removed = env.remove(ItemName::CustomSamplingFilter);
 
         assert!(removed.is_some());
-        assert!(!env
-            .store
-            .contains_key(&EnvironmentKind::CustomSamplingFilter));
+        assert!(!env.store.contains_key(&ItemName::CustomSamplingFilter));
     }
 
     #[test]
     fn environment_remove_not_existing() {
-        let mut env = Environment::default();
+        let mut env = Env::default();
 
-        assert!(!env
-            .store
-            .contains_key(&EnvironmentKind::CustomSamplingFilter));
+        assert!(!env.store.contains_key(&ItemName::CustomSamplingFilter));
 
-        let removed = env.remove(EnvironmentKind::CustomSamplingFilter);
+        let removed = env.remove(ItemName::CustomSamplingFilter);
 
         assert!(removed.is_none());
-        assert!(!env
-            .store
-            .contains_key(&EnvironmentKind::CustomSamplingFilter));
+        assert!(!env.store.contains_key(&ItemName::CustomSamplingFilter));
     }
 }
 
@@ -395,13 +378,13 @@ mod tests {
         let mut engine = ImageEngine::new(img);
         let mut engine2 = engine.clone();
         let cmp_left = engine.ignite(&vec![
-            Instruction::AddToEnv(EnvironmentItem::PreserveAspectRatio),
-            Instruction::Operation(ImgOp::Resize((100, 100))),
+            Instr::EnvAdd(EnvItem::PreserveAspectRatio),
+            Instr::Operation(ImgOp::Resize((100, 100))),
         ]);
 
         assert!(cmp_left.is_ok());
 
-        let cmp_right = engine2.ignite(&vec![Instruction::Operation(ImgOp::Resize((100, 100)))]);
+        let cmp_right = engine2.ignite(&vec![Instr::Operation(ImgOp::Resize((100, 100)))]);
 
         assert!(cmp_left.is_ok());
 
@@ -431,15 +414,15 @@ mod tests {
         let mut engine = ImageEngine::new(img);
         let mut engine2 = engine.clone();
         let cmp_left = engine.ignite(&vec![
-            Instruction::AddToEnv(EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
+            Instr::EnvAdd(EnvItem::CustomSamplingFilter(FilterTypeWrap::new(
                 FilterType::Nearest,
             ))),
-            Instruction::Operation(ImgOp::Resize((100, 100))),
+            Instr::Operation(ImgOp::Resize((100, 100))),
         ]);
 
         assert!(cmp_left.is_ok());
 
-        let cmp_right = engine2.ignite(&vec![Instruction::Operation(ImgOp::Resize((100, 100)))]);
+        let cmp_right = engine2.ignite(&vec![Instr::Operation(ImgOp::Resize((100, 100)))]);
 
         assert!(cmp_left.is_ok());
 
@@ -467,16 +450,16 @@ mod tests {
         let mut engine2 = engine.clone();
 
         let cmp_left = engine.ignite(&vec![
-            Instruction::AddToEnv(EnvironmentItem::CustomSamplingFilter(FilterTypeWrap::new(
+            Instr::EnvAdd(EnvItem::CustomSamplingFilter(FilterTypeWrap::new(
                 FilterType::Nearest,
             ))),
-            Instruction::RemoveFromEnv(EnvironmentKind::CustomSamplingFilter),
-            Instruction::Operation(ImgOp::Resize((100, 100))),
+            Instr::EnvRemove(ItemName::CustomSamplingFilter),
+            Instr::Operation(ImgOp::Resize((100, 100))),
         ]);
 
         assert!(cmp_left.is_ok());
 
-        let cmp_right = engine2.ignite(&vec![Instruction::Operation(ImgOp::Resize((100, 100)))]);
+        let cmp_right = engine2.ignite(&vec![Instr::Operation(ImgOp::Resize((100, 100)))]);
 
         assert!(cmp_left.is_ok());
 
@@ -502,7 +485,7 @@ mod tests {
         let operation = ImgOp::Blur(10.0);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -517,7 +500,7 @@ mod tests {
         let operation = ImgOp::Brighten(25);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -535,7 +518,7 @@ mod tests {
         let operation = ImgOp::Brighten(0);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -554,7 +537,7 @@ mod tests {
         let operation = ImgOp::Brighten(-25);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -573,7 +556,7 @@ mod tests {
         let operation = ImgOp::Contrast(150.9);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -592,7 +575,7 @@ mod tests {
         let operation = ImgOp::Contrast(-150.9);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -611,7 +594,7 @@ mod tests {
         let operation = ImgOp::Crop((0, 0, 2, 2));
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -630,7 +613,7 @@ mod tests {
         let operation = ImgOp::Crop((0, 0, 1, 1));
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -658,7 +641,7 @@ mod tests {
         let operation = ImgOp::Crop((0, 0, 2, 1));
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -687,7 +670,7 @@ mod tests {
         let operation = ImgOp::Crop((1, 0, 0, 0));
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_err());
     }
@@ -700,7 +683,7 @@ mod tests {
         let operation = ImgOp::Crop((0, 1, 0, 0));
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_err());
     }
@@ -712,7 +695,7 @@ mod tests {
         let operation = ImgOp::Crop((3, 0, 1, 1));
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_err());
     }
@@ -724,7 +707,7 @@ mod tests {
         let operation = ImgOp::Crop((0, 3, 1, 1));
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_err());
     }
@@ -736,7 +719,7 @@ mod tests {
         let operation = ImgOp::Crop((0, 0, 3, 1));
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_err());
     }
@@ -748,7 +731,7 @@ mod tests {
         let operation = ImgOp::Crop((0, 0, 1, 3));
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_err());
     }
@@ -761,7 +744,7 @@ mod tests {
         let operation = ImgOp::Filter3x3([1.0, 0.5, 0.0, 1.0, 0.5, 0.0, 1.0, 0.5, 0.0]);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -779,7 +762,7 @@ mod tests {
 
         let (xa, ya) = img.dimensions();
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -799,7 +782,7 @@ mod tests {
 
         let (xa, ya) = img.dimensions();
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -820,7 +803,7 @@ mod tests {
         let operation = ImgOp::GrayScale;
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -852,7 +835,7 @@ mod tests {
         let operation = ImgOp::HueRotate(-100);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -871,7 +854,7 @@ mod tests {
         let operation = ImgOp::HueRotate(100);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -890,7 +873,7 @@ mod tests {
         let operation = ImgOp::HueRotate(0);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -909,7 +892,7 @@ mod tests {
         let operation = ImgOp::HueRotate(360);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -930,7 +913,7 @@ mod tests {
         let operation = ImgOp::HueRotate(460);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -949,7 +932,7 @@ mod tests {
         let operation = ImgOp::Invert;
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -972,7 +955,7 @@ mod tests {
         assert_eq!(ya, 447);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -997,7 +980,7 @@ mod tests {
         assert_eq!(ya, 447);
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -1017,7 +1000,7 @@ mod tests {
 
         let (xa, ya) = img.dimensions();
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -1037,7 +1020,7 @@ mod tests {
 
         let (xa, ya) = img.dimensions();
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -1057,7 +1040,7 @@ mod tests {
 
         let (xa, ya) = img.dimensions();
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
 
         assert!(done.is_ok());
 
@@ -1078,7 +1061,7 @@ mod tests {
         let operation = ImgOp::Unsharpen((20.1, 20));
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
         assert!(done.is_ok());
 
         let result_img = done.unwrap();
@@ -1096,7 +1079,7 @@ mod tests {
         let operation = ImgOp::Unsharpen((-20.1, -20));
 
         let mut operator = ImageEngine::new(img);
-        let done = operator.ignite(&vec![Instruction::Operation(operation)]);
+        let done = operator.ignite(&vec![Instr::Operation(operation)]);
         assert!(done.is_ok());
 
         let result_img = done.unwrap();
@@ -1114,11 +1097,11 @@ mod tests {
         // 217x447px original
         let img: DynamicImage = setup_default_test_image();
         let operations = vec![
-            Instruction::Operation(ImgOp::Resize((80, 100))),
-            Instruction::Operation(ImgOp::Blur(5.0)),
-            Instruction::Operation(ImgOp::FlipHorizontal),
-            Instruction::Operation(ImgOp::FlipVertical),
-            Instruction::Operation(ImgOp::Rotate90),
+            Instr::Operation(ImgOp::Resize((80, 100))),
+            Instr::Operation(ImgOp::Blur(5.0)),
+            Instr::Operation(ImgOp::FlipHorizontal),
+            Instr::Operation(ImgOp::FlipVertical),
+            Instr::Operation(ImgOp::Rotate90),
         ];
         let (xa, ya) = img.dimensions();
 
