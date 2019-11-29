@@ -4,7 +4,7 @@ extern crate pest_derive;
 use pest::Parser;
 
 use crate::rule_parser::parse_image_operations;
-use sic_image_engine::engine::Instruction;
+use sic_image_engine::engine::Instr;
 
 pub mod rule_parser;
 pub mod value_parser;
@@ -15,7 +15,7 @@ const PARSER_RULE: Rule = Rule::main;
 #[grammar = "grammar.pest"]
 pub struct SICParser;
 
-pub fn parse_script(script: &str) -> Result<Vec<Instruction>, String> {
+pub fn parse_script(script: &str) -> Result<Vec<Instr>, String> {
     let parsed_script = SICParser::parse(PARSER_RULE, script);
 
     parsed_script
@@ -25,7 +25,7 @@ pub fn parse_script(script: &str) -> Result<Vec<Instruction>, String> {
 
 #[cfg(test)]
 mod tests {
-    use sic_image_engine::engine::Instruction;
+    use sic_image_engine::engine::Instr;
     use sic_image_engine::ImgOp;
 
     use super::*;
@@ -50,8 +50,8 @@ mod tests {
         assert_eq!(
             parsed.unwrap(),
             vec![
-                Instruction::Operation(ImgOp::Blur(15.0)),
-                Instruction::Operation(ImgOp::FlipVertical)
+                Instr::Operation(ImgOp::Blur(15.0)),
+                Instr::Operation(ImgOp::FlipVertical)
             ]
         );
     }
