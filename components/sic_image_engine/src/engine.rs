@@ -163,14 +163,7 @@ impl ImageEngine {
                 Ok(())
             }
             ImgOp::Resize((new_x, new_y)) => {
-                const DEFAULT_RESIZE_FILTER: FilterType = FilterType::Gaussian;
-
-                let filter = self
-                    .environment
-                    .get(ItemName::CustomSamplingFilter)
-                    .and_then(|item| item.resize_sampling_filter())
-                    .map(FilterType::from)
-                    .unwrap_or(DEFAULT_RESIZE_FILTER);
+                let filter = resize_filter_or_default(&mut self.environment);
 
                 *self.image = if self
                     .environment
@@ -269,7 +262,14 @@ impl CropSelection {
     }
 }
 
-//fn resize_filter(env: &Env)
+const DEFAULT_RESIZE_FILTER: FilterType = FilterType::Gaussian;
+
+fn resize_filter_or_default(env: &mut Env) -> FilterType {
+    env.get(ItemName::CustomSamplingFilter)
+        .and_then(|item| item.resize_sampling_filter())
+        .map(FilterType::from)
+        .unwrap_or(DEFAULT_RESIZE_FILTER)
+}
 
 #[cfg(test)]
 mod environment_tests {
