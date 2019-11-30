@@ -30,6 +30,7 @@ sic_image_engine = { path = "components/sic_image_engine", version = "0.10" }
 sic_io  = { path = "components/sic_io", version = "0.10" }
 sic_parser = { path = "components/sic_parser", version = "0.10" }
 
+anyhow = "1.0"
 atty = "0.2.13"
 clap = "2.32.0"
 inflate = "0.4.5"
