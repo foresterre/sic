@@ -2,6 +2,7 @@
 extern crate strum_macros;
 
 pub mod engine;
+pub mod errors;
 pub mod wrapper;
 
 #[derive(Debug, PartialEq, Clone)]

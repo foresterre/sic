@@ -113,7 +113,7 @@ mod crop {
 
     #[test]
     fn crop_too_few() {
-        let mut process = command(DEFAULT_IN, "cio_crop7.png", "--crop 2 2 2");
+        let mut process = command(DEFAULT_IN, "cio_crop7.png", "--crop 0 0 2");
         let result = process.wait();
         assert!(result.is_ok());
 
@@ -122,7 +122,25 @@ mod crop {
 
     #[test]
     fn crop_too_many() {
-        let mut process = command(DEFAULT_IN, "cio_crop8.png", "--crop 2 2 2 2 2");
+        let mut process = command(DEFAULT_IN, "cio_crop8.png", "--crop 0 0 2 2 2");
+        let result = process.wait();
+        assert!(result.is_ok());
+
+        assert_not!(result.unwrap().success());
+    }
+
+    #[test]
+    fn crop_invalid_selection() {
+        let mut process = command(DEFAULT_IN, "cio_crop9.png", "--crop 1 1 1 1");
+        let result = process.wait();
+        assert!(result.is_ok());
+
+        assert_not!(result.unwrap().success());
+    }
+
+    #[test]
+    fn crop_out_of_bounds_selection() {
+        let mut process = command(DEFAULT_IN, "cio_crop9.png", "--crop 1 1 10 10");
         let result = process.wait();
         assert!(result.is_ok());
 

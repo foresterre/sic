@@ -1,13 +1,13 @@
 /// This version of the operations module will use an AST like structure.
 /// Instead of evaluating a program, we apply 'a language' on an image.
 use std::collections::HashMap;
-use std::error::Error;
 use std::hash::Hash;
 
 use sic_core::image::DynamicImage;
 use sic_core::image::FilterType;
 use sic_core::image::GenericImageView;
 
+use crate::errors::SicImageEngineError;
 use crate::wrapper::filter_type::FilterTypeWrap;
 use crate::ImgOp;
 
@@ -90,7 +90,7 @@ impl ImageEngine {
         }
     }
 
-    pub fn ignite(&mut self, instructions: &[Instr]) -> Result<&DynamicImage, Box<dyn Error>> {
+    pub fn ignite(&mut self, instructions: &[Instr]) -> Result<&DynamicImage, SicImageEngineError> {
         for instruction in instructions {
             match self.process_instruction(instruction) {
                 Ok(_) => continue,
@@ -101,7 +101,7 @@ impl ImageEngine {
         Ok(&self.image)
     }
 
-    fn process_instruction(&mut self, instruction: &Instr) -> Result<(), Box<dyn Error>> {
+    fn process_instruction(&mut self, instruction: &Instr) -> Result<(), SicImageEngineError> {
         match instruction {
             Instr::Operation(op) => self.process_operation(op),
             Instr::EnvAdd(item) => self.insert_env(*item),
@@ -109,7 +109,7 @@ impl ImageEngine {
         }
     }
 
-    fn process_operation(&mut self, operation: &ImgOp) -> Result<(), Box<dyn Error>> {
+    fn process_operation(&mut self, operation: &ImgOp) -> Result<(), SicImageEngineError> {
         match operation {
             ImgOp::Blur(sigma) => {
                 *self.image = self.image.blur(*sigma);
@@ -196,13 +196,13 @@ impl ImageEngine {
         }
     }
 
-    fn insert_env(&mut self, item: EnvItem) -> Result<(), Box<dyn Error>> {
+    fn insert_env(&mut self, item: EnvItem) -> Result<(), SicImageEngineError> {
         self.environment.insert_or_update(item);
 
         Ok(())
     }
 
-    fn remove_env(&mut self, key: ItemName) -> Result<(), Box<dyn Error>> {
+    fn remove_env(&mut self, key: ItemName) -> Result<(), SicImageEngineError> {
         let success = self.environment.remove(key);
 
         if success.is_none() {
@@ -228,19 +228,17 @@ impl CropSelection {
         Self { lx, ly, rx, ry }
     }
 
-    pub(crate) fn dimensions_are_ok(&self) -> Result<&Self, Box<dyn Error>> {
+    pub(crate) fn dimensions_are_ok(&self) -> Result<&Self, SicImageEngineError> {
         if self.are_dimensions_incorrect() {
-            Err(format!(
-                "Operation: crop -- Top selection coordinates are smaller than bottom selection coordinates. \
-            Required top selection < bottom selection but given coordinates are: [top anchor: (x={}, y={}), bottom anchor: (x={}, y={})].",
-                self.lx, self.ly, self.rx, self.ry
-            ).into())
+            Err(SicImageEngineError::CropInvalidSelection(
+                self.lx, self.ly, self.rx, self.ry,
+            ))
         } else {
             Ok(self)
         }
     }
 
-    pub(crate) fn fits_within(&self, outer: &DynamicImage) -> Result<&Self, Box<dyn Error>> {
+    pub(crate) fn fits_within(&self, outer: &DynamicImage) -> Result<&Self, SicImageEngineError> {
         let (dim_x, dim_y) = outer.dimensions();
 
         match (
@@ -250,10 +248,9 @@ impl CropSelection {
             self.ry <= dim_y,
         ) {
             (true, true, true, true) => Ok(self),
-            _ => {
-                Err(format!("Operation: crop -- Top or bottom selection coordinates out of bounds: selection is [top anchor: \
-                (x={}, y={}), bottom anchor: (x={}, y={})] but max selection range is: (x={}, y={}).", self.lx, self.ly, self.rx, self.ry, dim_x, dim_y).into())
-            }
+            _ => Err(SicImageEngineError::CropCoordinateOutOfBounds(
+                dim_x, dim_y, self.lx, self.ly, self.rx, self.ry,
+            )),
         }
     }
 
