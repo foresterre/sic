@@ -10,7 +10,7 @@ repository = "https://github.com/foresterre/sic"
 [dependencies]
 sic_core = { path = "../sic_core", version = "0.10" }
 
-strum = "0.16.0"
+strum = "0.17.1"
 strum_macros = "0.17.1"
 
 [dev-dependencies]
