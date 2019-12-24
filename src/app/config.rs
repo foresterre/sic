@@ -1,3 +1,4 @@
+use anyhow::bail;
 use sic_image_engine::engine::Instr;
 use sic_io::load::FrameIndex;
 
@@ -158,8 +159,8 @@ pub struct FormatEncodingSettings {
 
 /// Strictly speaking not necessary here since the responsible owners will validate the quality as well.
 /// However, by doing anyways it we can exit earlier.
-pub fn validate_jpeg_quality(quality: u8) -> Result<u8, String> {
-    fn within_range(v: u8) -> Result<u8, String> {
+pub fn validate_jpeg_quality(quality: u8) -> anyhow::Result<u8> {
+    fn within_range(v: u8) -> anyhow::Result<u8> {
         // Upper bound is exclusive with .. syntax.
         // When the `range_contains` feature will be stabilised Range.contains(&v)
         // should be used instead.
@@ -167,7 +168,7 @@ pub fn validate_jpeg_quality(quality: u8) -> Result<u8, String> {
         if ALLOWED_RANGE.contains(&v) {
             Ok(v)
         } else {
-            Err("JPEG Encoding Settings error: JPEG quality requires a number between 1 and 100 (inclusive).".to_string())
+            bail!("JPEG Encoding Settings error: JPEG quality requires a number between 1 and 100 (inclusive).")
         }
     }
 

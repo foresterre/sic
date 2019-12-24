@@ -725,10 +725,10 @@ fn convert_jpeg_quality_different() {
     ];
 
     let matches1 = get_app().get_matches_from(args1);
-    let complete1 = run(&matches1, &build_app_config(&matches1).unwrap()).unwrap();
+    run(&matches1, &build_app_config(&matches1).unwrap()).unwrap();
 
     let matches2 = get_app().get_matches_from(args2);
-    let complete2 = run(&matches2, &build_app_config(&matches2).unwrap()).unwrap();
+    run(&matches2, &build_app_config(&matches2).unwrap()).unwrap();
 
     assert!(out1.exists() && out2.exists());
 
