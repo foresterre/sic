@@ -5,6 +5,7 @@ use sic_image_engine::wrapper::filter_type::FilterTypeWrap;
 use sic_image_engine::ImgOp;
 
 use super::Rule;
+use crate::errors::{OperationParamError, SicParserError};
 use crate::value_parser::ParseInputsFromIter;
 
 // This function parses statements provided as a single 'script' to an image operations program.
@@ -18,7 +19,7 @@ use crate::value_parser::ParseInputsFromIter;
 //
 // FIXME: When the user facing errors will be reworked, the providing of or the how to providing of-
 //        the into_inner() parsing details should be reconsidered
-pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Vec<Instr>, String> {
+pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Vec<Instr>, SicParserError> {
     pairs
         .filter(|pair| pair.as_rule() != Rule::EOI)
         .map(|pair| match pair.as_rule() {
@@ -38,21 +39,24 @@ pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Vec<Instr>, Stri
             Rule::rotate270 => Ok(Instr::Operation(ImgOp::Rotate270)),
             Rule::unsharpen => Unsharpen(pair),
             Rule::setopt => parse_set_environment(pair.into_inner().next().ok_or_else(|| {
-                "Unable to parse `set` environment command. Error: expected a single `set` inner element.".to_string()
+                SicParserError::OperationError(OperationParamError::SetEnvironment)
             })?),
             // this is called 'del' for users
-            Rule::unsetopt => parse_unset_environment(pair.into_inner().next().ok_or_else(|| {
-                "Unable to parse `del` environment command. Error: expected a single `del` inner element.".to_string()
-            })?),
-            _ => Err("Parse failed: Operation doesn't exist".to_string()),
+            Rule::unsetopt => {
+                parse_unset_environment(pair.into_inner().next().ok_or_else(|| {
+                    SicParserError::OperationError(OperationParamError::UnsetEnvironment)
+                })?)
+            }
+            _ => Err(SicParserError::UnknownOperationError),
         })
-        .collect::<Result<Vec<_>, String>>()
+        .collect::<Result<Vec<_>, SicParserError>>()
 }
 
 macro_rules! parse_primitive_from_pair {
     ($pair:expr, $ty:ty) => {{
         let inner = $pair.into_inner();
-        let ty: Result<$ty, String> = ParseInputsFromIter::parse(inner.map(|pair| pair.as_str()));
+        let ty: Result<$ty, SicParserError> =
+            ParseInputsFromIter::parse(inner.map(|pair| pair.as_str()));
         ty
     }};
 }
@@ -60,7 +64,7 @@ macro_rules! parse_primitive_from_pair {
 macro_rules! parse_op_from_pair {
     ($what_op:tt, $inner_ty:ty) => {
         #[allow(non_snake_case)]
-        fn $what_op(pair: Pair<'_, Rule>) -> Result<Instr, String> {
+        fn $what_op(pair: Pair<'_, Rule>) -> Result<Instr, SicParserError> {
             let val = parse_primitive_from_pair!(pair, $inner_ty)?;
             let stmt = Instr::Operation(ImgOp::$what_op(val));
             Ok(stmt)
@@ -77,14 +81,13 @@ parse_op_from_pair!(Resize, (u32, u32));
 parse_op_from_pair!(Unsharpen, (f32, i32));
 parse_op_from_pair!(Filter3x3, [f32; 9]);
 
-fn parse_set_environment(pair: Pair<'_, Rule>) -> Result<Instr, String> {
+fn parse_set_environment(pair: Pair<'_, Rule>) -> Result<Instr, SicParserError> {
     let environment_item = match pair.as_rule() {
         Rule::set_resize_sampling_filter => parse_set_resize_sampling_filter(pair)?,
         Rule::set_resize_preserve_aspect_ratio => EnvItem::PreserveAspectRatio,
         _ => {
-            return Err(format!(
-                "Unable to parse `set` environment command. Error on element: {}",
-                pair
+            return Err(SicParserError::OperationError(
+                OperationParamError::SetEnvironmentElement(format!("{}", pair)),
             ));
         }
     };
@@ -92,37 +95,38 @@ fn parse_set_environment(pair: Pair<'_, Rule>) -> Result<Instr, String> {
     Ok(Instr::EnvAdd(environment_item))
 }
 
-fn parse_set_resize_sampling_filter(pair: Pair<'_, Rule>) -> Result<EnvItem, String> {
+fn parse_set_resize_sampling_filter(pair: Pair<'_, Rule>) -> Result<EnvItem, SicParserError> {
     let mut inner = pair.into_inner();
 
     // skip over the compound atomic 'env_available' rule
-    inner
-        .next()
-        .ok_or_else(|| "Unable to parse the 'set_resize_sampling_filter' option. No options exist for the command. ")?;
+    inner.next().ok_or_else(|| {
+        SicParserError::OperationError(OperationParamError::SetResizeSamplingFilter(
+            "No option value found.".to_string(),
+        ))
+    })?;
 
     inner
         .next()
         .ok_or_else(|| {
-            format!(
-                "Unable to parse the 'set_resize_sampling_filter' option. Error on element: {}",
+            SicParserError::OperationError(OperationParamError::SetResizeSamplingFilter(format!(
+                "{}",
                 inner
-            )
+            )))
         })
         .map(|val| val.as_str())
         .and_then(|val| {
-            FilterTypeWrap::try_from_str(val).map_err(|err| format!("Unable to parse: {}", err))
+            FilterTypeWrap::try_from_str(val).map_err(|err| SicParserError::FilterTypeError(err))
         })
         .map(EnvItem::CustomSamplingFilter)
 }
 
-fn parse_unset_environment(pair: Pair<'_, Rule>) -> Result<Instr, String> {
+fn parse_unset_environment(pair: Pair<'_, Rule>) -> Result<Instr, SicParserError> {
     let environment_item = match pair.as_rule() {
         Rule::env_resize_sampling_filter_name => ItemName::CustomSamplingFilter,
         Rule::env_resize_preserve_aspect_ratio_name => ItemName::PreserveAspectRatio,
         _ => {
-            return Err(format!(
-                "Unable to parse `del` environment command. Error on element: {}",
-                pair
+            return Err(SicParserError::OperationError(
+                OperationParamError::UnsetEnvironmentElement(format!("{}", pair)),
             ));
         }
     };

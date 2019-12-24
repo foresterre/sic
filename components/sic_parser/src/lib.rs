@@ -3,9 +3,11 @@ extern crate pest_derive;
 
 use pest::Parser;
 
+use crate::errors::SicParserError;
 use crate::rule_parser::parse_image_operations;
 use sic_image_engine::engine::Instr;
 
+pub mod errors;
 pub mod rule_parser;
 pub mod value_parser;
 
@@ -15,11 +17,11 @@ const PARSER_RULE: Rule = Rule::main;
 #[grammar = "grammar.pest"]
 pub struct SICParser;
 
-pub fn parse_script(script: &str) -> Result<Vec<Instr>, String> {
+pub fn parse_script(script: &str) -> Result<Vec<Instr>, SicParserError> {
     let parsed_script = SICParser::parse(PARSER_RULE, script);
 
     parsed_script
-        .map_err(|err| format!("Unable to parse sic image operations script: {:?}", err))
+        .map_err(|err| SicParserError::PestGrammarError(err.to_string()))
         .and_then(parse_image_operations)
 }
 

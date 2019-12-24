@@ -3,9 +3,11 @@ use crate::app::cli::arg_names::{
     OP_CONTRAST, OP_CROP, OP_FILTER3X3, OP_FLIP_HORIZONTAL, OP_FLIP_VERTICAL, OP_GRAYSCALE,
     OP_HUE_ROTATE, OP_INVERT, OP_RESIZE, OP_ROTATE180, OP_ROTATE270, OP_ROTATE90, OP_UNSHARPEN,
 };
+use anyhow::{anyhow, bail, Context};
 use sic_image_engine::engine::{EnvItem, Instr, ItemName};
 use sic_image_engine::wrapper::filter_type::FilterTypeWrap;
 use sic_image_engine::ImgOp;
+use sic_parser::errors::SicParserError;
 use sic_parser::value_parser::{Describable, ParseInputsFromIter};
 use std::collections::BTreeMap;
 
@@ -87,14 +89,15 @@ impl OperationId {
 
 macro_rules! parse_inputs_by_type {
     ($iterable:expr, $ty:ty) => {{
-        let input: Result<$ty, String> = ParseInputsFromIter::parse($iterable);
+        let input: anyhow::Result<$ty> = ParseInputsFromIter::parse($iterable)
+            .with_context(|| format!("Failed to parse value of type {}.", stringify!($ty)));
         input
     }};
 }
 
 impl OperationId {
     /// Constructs statements for image operations which are taken as input by the image engine.
-    pub fn mk_statement<'a, T>(self, inputs: T) -> Result<Instr, String>
+    pub fn mk_statement<'a, T>(self, inputs: T) -> anyhow::Result<Instr>
     where
         T: IntoIterator,
         T::Item: Into<Describable<'a>> + std::fmt::Debug,
@@ -142,7 +145,7 @@ impl OperationId {
             OperationId::ModResizeSamplingFilter => {
                 let input = parse_inputs_by_type!(inputs, String)?;
                 let filter = FilterTypeWrap::try_from_str(&input)
-                    .map_err(|_| "Error: resize sampling filter not found.".to_string())?;
+                    .map_err(|err| SicParserError::FilterTypeError(err))?;
                 Instr::EnvAdd(EnvItem::CustomSamplingFilter(filter))
             }
         };
@@ -234,7 +237,7 @@ pub(crate) fn extend_index_tree_with_unification(
     tree: &mut IndexTree,
     values_for_operation: Option<IndexedOps>,
     amount_of_values: usize,
-) -> Result<(), String> {
+) -> anyhow::Result<()> {
     match (amount_of_values, values_for_operation) {
         // The operation is not available within our input.
         (_, None) => Ok(()),
@@ -283,7 +286,7 @@ fn tree_extend_unifiable(
     tree: &mut IndexTree,
     nodes: IndexedOps,
     size: usize,
-) -> Result<(), String> {
+) -> anyhow::Result<()> {
     let unified = unify_arguments_of_operation(nodes, size)?;
     tree.extend(unified);
     Ok(())
@@ -291,7 +294,7 @@ fn tree_extend_unifiable(
 
 /// Chunk provided values and try to unify each chunk to a single [Op].
 /// Requires each chunk to be of the size of the `size` argument.
-fn unify_arguments_of_operation(nodes: IndexedOps, size: usize) -> Result<IndexedOps, String> {
+fn unify_arguments_of_operation(nodes: IndexedOps, size: usize) -> anyhow::Result<IndexedOps> {
     assert_ne!(size, 0);
 
     let chunks = nodes.chunks(size).clone();
@@ -299,11 +302,11 @@ fn unify_arguments_of_operation(nodes: IndexedOps, size: usize) -> Result<Indexe
 
     for chunk in chunks {
         if chunk.len() != size {
-            return Err(format!(
-                "Unification of multi valued argument(s) failed: arguments could't be \
+            bail!(
+                "Unification of multi valued argument(s) failed: arguments couldn't be \
                  partitioned in correct chunk sizes. Length of chunk: {}",
                 chunk.len()
-            ));
+            );
         }
 
         let unified_chunk = unify_chunk(chunk, None, size);
@@ -313,7 +316,8 @@ fn unify_arguments_of_operation(nodes: IndexedOps, size: usize) -> Result<Indexe
     Ok(vec)
 }
 
-const FAILED_UNIFICATION_MESSAGE: &str = "Unification of multi valued argument(s) failed: \
+const FAILED_UNIFICATION_MESSAGE: &str =
+    "Unification of multi valued argument(s) failed: \
      When using an image operation cli argument which requires n values, \
      all values should be provided at once. For example, `--crop` takes 4 values \
      so, n=4. Now, `--crop 0 0 1 1` would be valid, but `--crop 0 0 --crop 1 1` would not.";
@@ -323,12 +327,12 @@ fn unify_chunk(
     left: &[(usize, Op)],
     last: Option<(usize, Op)>,
     size: usize,
-) -> Result<(usize, Op), String> {
+) -> anyhow::Result<(usize, Op)> {
     // stop: complete unification of the chunk
     if left.is_empty() {
         match last {
             Some(ret) => Ok(ret),
-            None => Err(FAILED_UNIFICATION_MESSAGE.to_string()),
+            None => Err(anyhow!(FAILED_UNIFICATION_MESSAGE)),
         }
     } else {
         // continue (left.len() > 0):
@@ -368,10 +372,10 @@ fn unify_chunk(
 
                             unify_chunk(left[1..].as_ref(), Some(new_last), size)
                         }
-                        _ => Err("Can't unify bare values".to_string()),
+                        _ => Err(anyhow!("Can't unify bare values")),
                     }
                 } else {
-                    Err(FAILED_UNIFICATION_MESSAGE.to_string())
+                    Err(anyhow!(FAILED_UNIFICATION_MESSAGE))
                 }
             }
             // first value

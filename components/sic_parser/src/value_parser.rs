@@ -1,3 +1,5 @@
+use crate::errors::SicParserError;
+
 /// The value parser module has a goal to parse image operation inputs.
 
 #[derive(Clone, Debug)]
@@ -42,10 +44,11 @@ macro_rules! parse_next {
     ($iter:expr, $ty:ty, $err_msg:expr) => {
         $iter
             .next()
-            .ok_or_else(|| $err_msg.to_string())
+            .ok_or_else(|| SicParserError::ValueParsingError($err_msg.to_string()))
             .and_then(|v| {
                 let v: Describable = v.into();
-                v.0.parse::<$ty>().map_err(|_| $err_msg.to_string())
+                v.0.parse::<$ty>()
+                    .map_err(|_| SicParserError::ValueParsingError($err_msg.to_string()))
             })?;
     };
 }
@@ -53,7 +56,7 @@ macro_rules! parse_next {
 macro_rules! return_if_complete {
     ($iter:expr, $ok_value:expr, $err_msg:expr) => {
         if $iter.next().is_some() {
-            Err($err_msg.to_string())
+            Err(SicParserError::ValueParsingError($err_msg.to_string()))
         } else {
             Ok($ok_value)
         }
@@ -63,7 +66,7 @@ macro_rules! return_if_complete {
 macro_rules! define_parse_single_input {
     ($ty:ty, $err_msg:expr) => {
         impl ParseInputsFromIter for $ty {
-            type Error = String;
+            type Error = SicParserError;
 
             fn parse<'a, T>(iterable: T) -> Result<Self, Self::Error>
             where
@@ -90,7 +93,7 @@ define_parse_single_input!(bool, "Unable to map a value to bool. v2");
 
 // for: crop
 impl ParseInputsFromIter for (u32, u32, u32, u32) {
-    type Error = String;
+    type Error = SicParserError;
 
     fn parse<'a, T>(iterable: T) -> Result<Self, Self::Error>
     where
@@ -114,7 +117,7 @@ impl ParseInputsFromIter for (u32, u32, u32, u32) {
 
 // for: filter3x3
 impl ParseInputsFromIter for [f32; 9] {
-    type Error = String;
+    type Error = SicParserError;
 
     fn parse<'a, T>(iterable: T) -> Result<Self, Self::Error>
     where
@@ -146,7 +149,7 @@ impl ParseInputsFromIter for [f32; 9] {
 
 // for: resize
 impl ParseInputsFromIter for (u32, u32) {
-    type Error = String;
+    type Error = SicParserError;
 
     fn parse<'a, T>(iterable: T) -> Result<Self, Self::Error>
     where
@@ -168,7 +171,7 @@ impl ParseInputsFromIter for (u32, u32) {
 
 // for: unsharpen
 impl ParseInputsFromIter for (f32, i32) {
-    type Error = String;
+    type Error = SicParserError;
 
     fn parse<'a, T>(iterable: T) -> Result<Self, Self::Error>
     where
@@ -189,7 +192,7 @@ impl ParseInputsFromIter for (f32, i32) {
 }
 
 impl ParseInputsFromIter for String {
-    type Error = String;
+    type Error = SicParserError;
 
     fn parse<'a, T>(iterable: T) -> Result<Self, Self::Error>
     where
@@ -200,7 +203,10 @@ impl ParseInputsFromIter for String {
         let mut iter = iterable.into_iter();
         const ERR_MSG: &str = "Unable to map a value to (f32, i32). v2";
 
-        let res: Describable<'a> = iter.next().ok_or_else(|| ERR_MSG.to_string())?.into();
+        let res: Describable<'a> = iter
+            .next()
+            .ok_or_else(|| SicParserError::ValueParsingError(ERR_MSG.to_string()))?
+            .into();
 
         return_if_complete!(iter, String::from(res.0), ERR_MSG)
     }
@@ -238,7 +244,8 @@ mod tests_parse_from_iter {
             &[],                            // empty
         })]
         fn expected_failures(input: &[&str]) {
-            let result: Result<(u32, u32, u32, u32), String> = ParseInputsFromIter::parse(input);
+            let result: Result<(u32, u32, u32, u32), SicParserError> =
+                ParseInputsFromIter::parse(input);
             assert!(result.is_err());
         }
     }
@@ -265,7 +272,7 @@ mod tests_parse_from_iter {
             &[],                                                                    // empty
         })]
         fn expected_failures(input: &[&str]) {
-            let result: Result<[f32; 9], String> = ParseInputsFromIter::parse(input);
+            let result: Result<[f32; 9], SicParserError> = ParseInputsFromIter::parse(input);
             assert!(result.is_err())
         }
     }
@@ -287,7 +294,7 @@ mod tests_parse_from_iter {
             &[],            // empty
         })]
         fn expected_failures(input: &[&str]) {
-            let result: Result<(u32, u32), String> = ParseInputsFromIter::parse(input);
+            let result: Result<(u32, u32), SicParserError> = ParseInputsFromIter::parse(input);
             assert!(result.is_err());
         }
     }
@@ -309,7 +316,7 @@ mod tests_parse_from_iter {
             &[],                // empty
         })]
         fn expected_failures(input: &[&str]) {
-            let result: Result<(f32, i32), String> = ParseInputsFromIter::parse(input);
+            let result: Result<(f32, i32), SicParserError> = ParseInputsFromIter::parse(input);
             assert!(result.is_err());
         }
     }

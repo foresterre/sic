@@ -1,17 +1,16 @@
-use std::collections::BTreeMap;
-use std::str::FromStr;
-
-use clap::{App, AppSettings, Arg, ArgGroup, ArgMatches};
-use sic_image_engine::engine::Instr;
-
 use crate::app::config::{validate_jpeg_quality, Config, ConfigBuilder, SelectedLicenses};
 use crate::app::operations::{
     extend_index_tree_with_unification, IndexTree, IndexedOps, Op, OperationId,
 };
 use crate::get_tool_name;
 use crate::{op_valueless, op_with_values};
+use anyhow::{anyhow, bail};
 use arg_names::*;
+use clap::{App, AppSettings, Arg, ArgGroup, ArgMatches};
+use sic_image_engine::engine::Instr;
 use sic_io::load::FrameIndex;
+use std::collections::BTreeMap;
+use std::str::FromStr;
 
 const ABOUT: &str = include_str!("../../resources/help-pages/about.txt");
 const HELP_OPERATIONS_AVAILABLE: &str =
@@ -308,7 +307,7 @@ pub fn cli() -> App<'static, 'static> {
 
 // Here any argument should not panic when invalid.
 // Previously, it was allowed to panic within Config, but this is no longer the case.
-pub fn build_app_config<'a>(matches: &'a ArgMatches) -> Result<Config<'a>, String> {
+pub fn build_app_config<'a>(matches: &'a ArgMatches) -> anyhow::Result<Config<'a>> {
     let mut builder = ConfigBuilder::new();
 
     // organisational/licenses:
@@ -345,17 +344,17 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> Result<Config<'a>, Strin
             "last" => FrameIndex::Last,
             n => {
                 let pick = n.parse::<usize>().map_err(|_| {
-                    "Provided argument for --select-frame is not a valid option. \
-                     Valid options are 'first', 'last' or a (one-indexed) positive number."
-                        .to_string()
+                    anyhow!(
+                        "Provided argument for --select-frame is not a valid option. \
+                         Valid options are 'first', 'last' or a (one-indexed) positive number."
+                    )
                 })?;
 
                 if pick == 0 {
-                    return Err(
+                    bail!(
                         "Provided argument for --select-frame is not a valid option. \
                          If a number is provided, the number should be positive and larger than 0. \
                          To select the first frame, provide the argument '1'."
-                            .to_string(),
                     );
                 }
 
@@ -380,7 +379,7 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> Result<Config<'a>, Strin
     if let Some(value) = matches.value_of(ARG_JPEG_ENCODING_QUALITY) {
         let requested_jpeg_quality = u8::from_str(value)
             .map_err(|_| {
-                "JPEG Encoding quality should be a value between 1 and 100 (inclusive).".to_string()
+                anyhow!("JPEG Encoding quality should be a value between 1 and 100 (inclusive).")
             })
             .and_then(validate_jpeg_quality)?;
         builder = builder.jpeg_quality(requested_jpeg_quality);
@@ -427,7 +426,7 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> Result<Config<'a>, Strin
 fn build_ast_from_matches(
     matches: &ArgMatches,
     tree: &mut IndexTree,
-) -> Result<Vec<Instr>, String> {
+) -> anyhow::Result<Vec<Instr>> {
     let operations = vec![
         // operations
         OperationId::Blur,
@@ -459,7 +458,7 @@ fn ast_extend_with_operation<T: IntoIterator<Item = OperationId>>(
     tree: &mut IndexTree,
     matches: &ArgMatches,
     operations: T,
-) -> Result<(), String> {
+) -> anyhow::Result<()> {
     for operation in operations {
         let argc = operation.takes_number_of_arguments();
         let ops = mk_ops(operation, matches);
@@ -477,7 +476,7 @@ fn mk_ops(op: OperationId, matches: &ArgMatches) -> Option<IndexedOps> {
     }
 }
 
-fn ast_from_index_tree(tree: &mut IndexTree) -> Result<Vec<Instr>, String> {
+fn ast_from_index_tree(tree: &mut IndexTree) -> anyhow::Result<Vec<Instr>> {
     tree.iter()
         .map(|(_index, op)| match op {
             Op::Bare(id) => {
@@ -486,7 +485,7 @@ fn ast_from_index_tree(tree: &mut IndexTree) -> Result<Vec<Instr>, String> {
             }
             Op::WithValues(id, values) => id.mk_statement(values),
         })
-        .collect::<Result<Vec<Instr>, String>>()
+        .collect::<anyhow::Result<Vec<Instr>>>()
 }
 
 #[cfg(test)]

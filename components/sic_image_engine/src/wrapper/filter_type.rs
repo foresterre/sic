@@ -1,7 +1,7 @@
-use std::error::Error;
 use std::fmt::{Debug, Formatter};
 use std::hash::Hash;
 
+use crate::errors::SicImageEngineError;
 use sic_core::image::FilterType;
 
 #[derive(Clone, Copy)]
@@ -50,14 +50,14 @@ impl From<FilterTypeWrap> for FilterType {
 }
 
 impl FilterTypeWrap {
-    pub fn try_from_str(val: &str) -> Result<FilterTypeWrap, Box<dyn Error>> {
+    pub fn try_from_str(val: &str) -> Result<FilterTypeWrap, SicImageEngineError> {
         match val.to_lowercase().as_str() {
             "catmullrom" | "cubic" => Ok(FilterTypeWrap::new(FilterType::CatmullRom)),
             "gaussian" => Ok(FilterTypeWrap::new(FilterType::Gaussian)),
             "lanczos3" => Ok(FilterTypeWrap::new(FilterType::Lanczos3)),
             "nearest" => Ok(FilterTypeWrap::new(FilterType::Nearest)),
             "triangle" => Ok(FilterTypeWrap::new(FilterType::Triangle)),
-            fail => Err(format!("No such sampling filter: {}", fail).into()),
+            fail => Err(SicImageEngineError::UnknownFilterType(fail.to_string())),
         }
     }
 }
