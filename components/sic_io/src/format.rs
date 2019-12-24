@@ -1,32 +1,31 @@
 use std::path::Path;
 
 use sic_core::image;
-use std::error::Error;
+
+use crate::errors::{FormatError, SicIoError};
 
 pub trait EncodingFormatByExtension {
     /// Determine the encoding format based on the extension of a file path.
-    fn by_extension<P: AsRef<Path>>(
-        &self,
-        path: P,
-    ) -> Result<image::ImageOutputFormat, Box<dyn Error>>;
+    fn by_extension<P: AsRef<Path>>(&self, path: P)
+        -> Result<image::ImageOutputFormat, SicIoError>;
 }
 
 pub trait EncodingFormatByIdentifier {
     /// Determine the encoding format based on the method of exporting.
     /// Determine the encoding format based on a recognized given identifier.
-    fn by_identifier(&self, identifier: &str) -> Result<image::ImageOutputFormat, Box<dyn Error>>;
+    fn by_identifier(&self, identifier: &str) -> Result<image::ImageOutputFormat, SicIoError>;
 }
 
 pub trait EncodingFormatJPEGQuality {
     /// Returns a validated jpeg quality value.
     /// If no such value exists, it will return an error instead.
-    fn jpeg_quality(&self) -> Result<JPEGQuality, Box<dyn Error>>;
+    fn jpeg_quality(&self) -> Result<JPEGQuality, SicIoError>;
 }
 
 pub trait EncodingFormatPNMSampleEncoding {
     /// Returns a pnm sample encoding type.
     /// If no such value exists, it will return an error instead.
-    fn pnm_encoding_type(&self) -> Result<image::pnm::SampleEncoding, Box<dyn Error>>;
+    fn pnm_encoding_type(&self) -> Result<image::pnm::SampleEncoding, SicIoError>;
 }
 
 /// This struct ensures no invalid JPEG qualities can be stored.
@@ -46,12 +45,13 @@ impl Default for JPEGQuality {
 
 impl JPEGQuality {
     /// Returns an Ok result if the quality requested is between 1 and 100 (inclusive).
-    pub fn try_from(quality: u8) -> Result<Self, Box<dyn Error>> {
+    pub fn try_from(quality: u8) -> Result<Self, SicIoError> {
         if (1u8..=100u8).contains(&quality) {
             Ok(JPEGQuality { quality })
         } else {
-            let message = "JPEG Quality should range between 1 and 100 (inclusive).";
-            Err(From::from(message.to_string()))
+            Err(SicIoError::FormatError(
+                FormatError::JPEGQualityLevelNotInRange,
+            ))
         }
     }
 
@@ -69,15 +69,14 @@ impl EncodingFormatByExtension for DetermineEncodingFormat {
     fn by_extension<P: AsRef<Path>>(
         &self,
         path: P,
-    ) -> Result<image::ImageOutputFormat, Box<dyn Error>> {
+    ) -> Result<image::ImageOutputFormat, SicIoError> {
         let extension = path.as_ref().extension().and_then(|v| v.to_str());
 
         match extension {
             Some(some) => self.by_identifier(some),
-            None => Err(From::from({
-                let message = "Unable to determine output format from extension.";
-                message.to_string()
-            })),
+            None => Err(SicIoError::UnableToDetermineImageFormatFromFileExtension(
+                path.as_ref().to_path_buf(),
+            )),
         }
     }
 }
@@ -85,7 +84,7 @@ impl EncodingFormatByExtension for DetermineEncodingFormat {
 impl EncodingFormatByIdentifier for DetermineEncodingFormat {
     /// Determines an image output format based on a given `&str` identifier.
     /// Identifiers are based on common output file extensions.
-    fn by_identifier(&self, identifier: &str) -> Result<image::ImageOutputFormat, Box<dyn Error>> {
+    fn by_identifier(&self, identifier: &str) -> Result<image::ImageOutputFormat, SicIoError> {
         match identifier {
             "bmp" => Ok(image::ImageOutputFormat::BMP),
             "gif" => Ok(image::ImageOutputFormat::GIF),
@@ -104,10 +103,7 @@ impl EncodingFormatByIdentifier for DetermineEncodingFormat {
             "pam" => Ok(image::ImageOutputFormat::PNM(
                 image::pnm::PNMSubtype::ArbitraryMap,
             )),
-            _ => Err(From::from(format!(
-                "No supported image output format was found, input: {}.",
-                identifier
-            ))),
+            _ => Err(SicIoError::UnknownImageIdentifier(identifier.to_string())),
         }
     }
 }
@@ -118,21 +114,16 @@ pub struct DetermineEncodingFormat {
 }
 
 impl EncodingFormatPNMSampleEncoding for DetermineEncodingFormat {
-    fn pnm_encoding_type(&self) -> Result<image::pnm::SampleEncoding, Box<dyn Error>> {
-        self.pnm_sample_encoding.ok_or_else(|| {
-            let message = "Using PNM requires the sample encoding to be set.";
-            From::from(message.to_string())
-        })
+    fn pnm_encoding_type(&self) -> Result<image::pnm::SampleEncoding, SicIoError> {
+        self.pnm_sample_encoding
+            .ok_or_else(|| SicIoError::FormatError(FormatError::PNMSamplingEncodingNotSet))
     }
 }
 
 impl EncodingFormatJPEGQuality for DetermineEncodingFormat {
-    fn jpeg_quality(&self) -> Result<JPEGQuality, Box<dyn Error>> {
-        self.jpeg_quality.ok_or_else(|| {
-            let message = "Using JPEG requires the JPEG quality to be set.";
-
-            From::from(message.to_string())
-        })
+    fn jpeg_quality(&self) -> Result<JPEGQuality, SicIoError> {
+        self.jpeg_quality
+            .ok_or_else(|| SicIoError::FormatError(FormatError::JPEGQualityLevelNotSet))
     }
 }
 

@@ -4,13 +4,14 @@ use std::path::Path;
 use sic_core::image;
 
 use crate::conversion::{AutomaticColorTypeAdjustment, ConversionWriter};
+use crate::errors::SicIoError;
 
 pub fn export<W: Write>(
     image: &image::DynamicImage,
     writer: &mut W,
     format: image::ImageOutputFormat,
     export_settings: ExportSettings,
-) -> Result<(), String> {
+) -> Result<(), SicIoError> {
     let conv = ConversionWriter::new(image);
     conv.write(writer, format, export_settings.adjust_color_type)
 }

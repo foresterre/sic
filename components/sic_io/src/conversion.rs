@@ -1,6 +1,6 @@
-use std::io::Write;
-
+use crate::errors::SicIoError;
 use sic_core::image;
+use std::io::Write;
 
 #[derive(Clone, Copy, Debug)]
 pub enum AutomaticColorTypeAdjustment {
@@ -30,7 +30,7 @@ impl<'a> ConversionWriter<'a> {
         writer: &mut W,
         output_format: image::ImageOutputFormat,
         color_type_adjustment: AutomaticColorTypeAdjustment,
-    ) -> Result<(), String> {
+    ) -> Result<(), SicIoError> {
         let color_processing = &ConversionWriter::pre_process_color_type(
             &self.image,
             &output_format,
@@ -83,10 +83,10 @@ impl<'a> ConversionWriter<'a> {
         writer: &mut W,
         buffer: &image::DynamicImage,
         format: image::ImageOutputFormat,
-    ) -> Result<(), String> {
+    ) -> Result<(), SicIoError> {
         buffer
             .write_to(writer, format)
-            .map_err(|err| err.to_string())
+            .map_err(|err| SicIoError::ImageError(err))
     }
 }
 
