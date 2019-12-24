@@ -88,21 +88,6 @@ impl Default for FrameIndex {
     }
 }
 
-//#[deprecated(since = "0.2.0", note = "Errors as Strings to be phased out.")]
-//impl From<ImportError> for String {
-//    fn from(error: ImportError) -> String {
-//        match error {
-//            ImportError::Io(err) => err.description().to_string(),
-//            ImportError::Image(err) => err.to_string(),
-//            ImportError::NoSuchFrame(which, reason) => format!(
-//                "Unable to extract frame {} from the (animated) image. Reason given: {}",
-//                which + 1,
-//                reason,
-//            ),
-//        }
-//    }
-//}
-
 #[cfg(test)]
 mod tests {
     use super::*;
