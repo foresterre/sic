@@ -1,8 +1,8 @@
-use std::error::Error;
 use std::fs::File;
 use std::io::{BufReader, Cursor, Read};
 use std::path::Path;
 
+use crate::errors::SicIoError;
 use sic_core::image;
 use sic_core::image::{AnimationDecoder, ImageFormat};
 
@@ -12,13 +12,17 @@ pub fn load_image<R: Read>(
     reader: &mut R,
     config: &ImportConfig,
 ) -> ImportResult<image::DynamicImage> {
-    let reader = image::io::Reader::new(Cursor::new(load(reader)?)).with_guessed_format()?;
+    let reader = image::io::Reader::new(Cursor::new(load(reader)?))
+        .with_guessed_format()
+        .map_err(|err| SicIoError::Io(err))?;
+
     match reader.format() {
         Some(f) => match f {
             ImageFormat::GIF => {
-                let frames = image::gif::Decoder::new(reader.into_inner())?
-                    .into_frames()
-                    .collect_frames()?;
+                let frames = image::gif::Decoder::new(reader.into_inner())
+                    .and_then(|decoder| decoder.into_frames().collect_frames())
+                    .map_err(|err| SicIoError::ImageError(err))?;
+
                 let frame_index = match config.selected_frame {
                     FrameIndex::First => 0,
                     FrameIndex::Last => frames.len() - 1,
@@ -26,22 +30,22 @@ pub fn load_image<R: Read>(
                 };
                 match frames.into_iter().nth(frame_index) {
                     Some(frame) => Ok(image::DynamicImage::ImageRgba8(frame.into_buffer())),
-                    None => Err(ImportError::NoSuchFrame(
-                        frame_index,
+                    None => Err(SicIoError::NoSuchFrame(
+                        frame_index + 1,
                         "Frame index out of range.".to_string(),
                     )),
                 }
             }
-            _ => Ok(reader.decode()?),
+            _ => Ok(reader.decode().map_err(|err| SicIoError::ImageError(err))?),
         },
-        None => Err(ImportError::from(image::ImageError::FormatError(
+        None => Err(SicIoError::ImageError(image::ImageError::FormatError(
             "Image format not supported.".to_string(),
         ))),
     }
 }
 
 /// Result which is returned for operations within this module.
-type ImportResult<T> = Result<T, ImportError>;
+type ImportResult<T> = Result<T, SicIoError>;
 
 /// Constructs a reader which reads from the stdin.
 pub fn stdin_reader() -> ImportResult<Box<dyn Read>> {
@@ -50,13 +54,17 @@ pub fn stdin_reader() -> ImportResult<Box<dyn Read>> {
 
 /// Constructs a reader which reads from a file path.
 pub fn file_reader<P: AsRef<Path>>(path: P) -> ImportResult<Box<dyn Read>> {
-    Ok(Box::new(BufReader::new(File::open(path)?)))
+    Ok(Box::new(BufReader::new(
+        File::open(path).map_err(|err| SicIoError::Io(err))?,
+    )))
 }
 
 // Let the reader store the raw bytes into a buffer.
 fn load<R: Read>(reader: &mut R) -> ImportResult<Vec<u8>> {
     let mut buffer = Vec::new();
-    let _size = reader.read_to_end(&mut buffer)?;
+    let _size = reader
+        .read_to_end(&mut buffer)
+        .map_err(|err| SicIoError::Io(err))?;
     Ok(buffer)
 }
 
@@ -80,39 +88,20 @@ impl Default for FrameIndex {
     }
 }
 
-#[derive(Debug)]
-pub enum ImportError {
-    Image(image::ImageError),
-    Io(std::io::Error),
-    NoSuchFrame(usize, String),
-}
-
-impl From<std::io::Error> for ImportError {
-    fn from(error: std::io::Error) -> Self {
-        ImportError::Io(error)
-    }
-}
-
-impl From<image::ImageError> for ImportError {
-    fn from(error: image::ImageError) -> Self {
-        ImportError::Image(error)
-    }
-}
-
-#[deprecated(since = "0.2.0", note = "Errors as Strings to be phased out.")]
-impl From<ImportError> for String {
-    fn from(error: ImportError) -> String {
-        match error {
-            ImportError::Io(err) => err.description().to_string(),
-            ImportError::Image(err) => err.to_string(),
-            ImportError::NoSuchFrame(which, reason) => format!(
-                "Unable to extract frame {} from the (animated) image. Reason given: {}",
-                which + 1,
-                reason,
-            ),
-        }
-    }
-}
+//#[deprecated(since = "0.2.0", note = "Errors as Strings to be phased out.")]
+//impl From<ImportError> for String {
+//    fn from(error: ImportError) -> String {
+//        match error {
+//            ImportError::Io(err) => err.description().to_string(),
+//            ImportError::Image(err) => err.to_string(),
+//            ImportError::NoSuchFrame(which, reason) => format!(
+//                "Unable to extract frame {} from the (animated) image. Reason given: {}",
+//                which + 1,
+//                reason,
+//            ),
+//        }
+//    }
+//}
 
 #[cfg(test)]
 mod tests {

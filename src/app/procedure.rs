@@ -3,6 +3,7 @@ use std::fs::File;
 use std::io::{self, Read, Write};
 use std::path::Path;
 
+use anyhow::{anyhow, bail, Context};
 use clap::ArgMatches;
 use sic_core::image;
 use sic_image_engine::engine::ImageEngine;
@@ -17,12 +18,10 @@ use crate::app::cli::arg_names::{ARG_INPUT, ARG_INPUT_FILE};
 use crate::app::config::Config;
 use crate::app::license::PrintTextFor;
 
-const NO_INPUT_PATH_MSG: &str = "Input path was expected but could not be found.";
-
 /// The run function runs the sic application, taking the matches found by Clap.
 /// This function is separated from the main() function so that it can be used more easily in test cases.
 /// This function consumes the matches provided.
-pub fn run(matches: &ArgMatches, options: &Config) -> Result<(), String> {
+pub fn run(matches: &ArgMatches, options: &Config) -> anyhow::Result<()> {
     if options.output.is_none() {
         eprintln!(
             "The default output format is BMP. Use --output-format <FORMAT> to specify \
@@ -42,10 +41,10 @@ pub fn run(matches: &ArgMatches, options: &Config) -> Result<(), String> {
     let mut image_engine = ImageEngine::new(img);
     let buffer = image_engine
         .ignite(&options.image_operations_program)
-        .map_err(|err| err.to_string())?;
+        .context("Unable to apply image operations.")?;
 
-    let mut export_writer =
-        mk_export_writer(options.output.as_ref()).map_err(|err| err.to_string())?;
+    let mut export_writer = mk_export_writer(options.output.as_ref())
+        .map_err(|_err| anyhow!("TODO: Unable to construct image writer"))?;
 
     let encoding_format_determiner = DetermineEncodingFormat {
         pnm_sample_encoding: if options.encoding_settings.pnm_use_ascii_format {
@@ -54,10 +53,12 @@ pub fn run(matches: &ArgMatches, options: &Config) -> Result<(), String> {
             Some(image::pnm::SampleEncoding::Binary)
         },
         jpeg_quality: {
-            let quality = JPEGQuality::try_from(options.encoding_settings.jpeg_quality)
-                .map_err(|err| err.to_string());
+            let quality =
+                JPEGQuality::try_from(options.encoding_settings.jpeg_quality).map_err(|_err| {
+                    anyhow!("TODO: Chosen JPEG quality is not a valid number (1-100).")
+                })?;
 
-            Some(quality?)
+            Some(quality)
         },
     };
 
@@ -68,7 +69,7 @@ pub fn run(matches: &ArgMatches, options: &Config) -> Result<(), String> {
             None => Ok(image::ImageOutputFormat::BMP),
         },
     }
-    .map_err(|err| err.to_string())?;
+    .map_err(|_err| anyhow!("TODO"))?;
 
     export(
         buffer,
@@ -78,19 +79,21 @@ pub fn run(matches: &ArgMatches, options: &Config) -> Result<(), String> {
             adjust_color_type: AutomaticColorTypeAdjustment::default(),
         },
     )
+    .context("Unable to save image.")
 }
 
 /// Create a reader which will be used to load the image.
 /// The reader can be a file or the stdin.
 /// If no file path is provided, the stdin will be assumed.
-fn mk_reader(matches: &ArgMatches) -> Result<Box<dyn Read>, String> {
-    fn with_file_reader(matches: &ArgMatches, value_of: &str) -> Result<Box<dyn Read>, String> {
-        Ok(sic_io::load::file_reader(
+fn mk_reader(matches: &ArgMatches) -> anyhow::Result<Box<dyn Read>> {
+    fn with_file_reader(matches: &ArgMatches, value_of: &str) -> anyhow::Result<Box<dyn Read>> {
+        sic_io::load::file_reader(
             matches
                 .value_of(value_of)
-                .ok_or_else(|| NO_INPUT_PATH_MSG.to_string())?,
-        )?)
-    };
+                .context(format!("No such value: {}", value_of))?,
+        )
+        .context("No matching file reader could be found.")
+    }
 
     let reader = if matches.is_present(ARG_INPUT) {
         with_file_reader(matches, ARG_INPUT)?
@@ -98,10 +101,10 @@ fn mk_reader(matches: &ArgMatches) -> Result<Box<dyn Read>, String> {
         with_file_reader(matches, ARG_INPUT_FILE)?
     } else {
         if atty::is(atty::Stream::Stdin) {
-            return Err(
-                "An input image should be given by providing a path using the input argument or by \
-                piping an image to the stdin.".to_string(),
-            );
+            bail!(
+                "An input image should be given by providing a path using the input argument or \
+                 by piping an image to the stdin."
+            )
         }
         sic_io::load::stdin_reader()?
     };

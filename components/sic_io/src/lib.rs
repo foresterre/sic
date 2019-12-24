@@ -5,4 +5,5 @@ pub mod load;
 pub mod save;
 
 pub mod conversion;
+pub mod errors;
 pub mod format;
