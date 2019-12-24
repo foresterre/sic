@@ -86,7 +86,7 @@ impl<'a> ConversionWriter<'a> {
     ) -> Result<(), SicIoError> {
         buffer
             .write_to(writer, format)
-            .map_err(|err| SicIoError::ImageError(err))
+            .map_err(SicIoError::ImageError)
     }
 }
 

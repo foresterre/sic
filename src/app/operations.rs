@@ -145,7 +145,7 @@ impl OperationId {
             OperationId::ModResizeSamplingFilter => {
                 let input = parse_inputs_by_type!(inputs, String)?;
                 let filter = FilterTypeWrap::try_from_str(&input)
-                    .map_err(|err| SicParserError::FilterTypeError(err))?;
+                    .map_err(SicParserError::FilterTypeError)?;
                 Instr::EnvAdd(EnvItem::CustomSamplingFilter(filter))
             }
         };

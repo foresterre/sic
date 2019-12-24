@@ -14,14 +14,14 @@ pub fn load_image<R: Read>(
 ) -> ImportResult<image::DynamicImage> {
     let reader = image::io::Reader::new(Cursor::new(load(reader)?))
         .with_guessed_format()
-        .map_err(|err| SicIoError::Io(err))?;
+        .map_err(SicIoError::Io)?;
 
     match reader.format() {
         Some(f) => match f {
             ImageFormat::GIF => {
                 let frames = image::gif::Decoder::new(reader.into_inner())
                     .and_then(|decoder| decoder.into_frames().collect_frames())
-                    .map_err(|err| SicIoError::ImageError(err))?;
+                    .map_err(SicIoError::ImageError)?;
 
                 let frame_index = match config.selected_frame {
                     FrameIndex::First => 0,
@@ -36,7 +36,7 @@ pub fn load_image<R: Read>(
                     )),
                 }
             }
-            _ => Ok(reader.decode().map_err(|err| SicIoError::ImageError(err))?),
+            _ => Ok(reader.decode().map_err(SicIoError::ImageError)?),
         },
         None => Err(SicIoError::ImageError(image::ImageError::FormatError(
             "Image format not supported.".to_string(),
@@ -55,16 +55,14 @@ pub fn stdin_reader() -> ImportResult<Box<dyn Read>> {
 /// Constructs a reader which reads from a file path.
 pub fn file_reader<P: AsRef<Path>>(path: P) -> ImportResult<Box<dyn Read>> {
     Ok(Box::new(BufReader::new(
-        File::open(path).map_err(|err| SicIoError::Io(err))?,
+        File::open(path).map_err(SicIoError::Io)?,
     )))
 }
 
 // Let the reader store the raw bytes into a buffer.
 fn load<R: Read>(reader: &mut R) -> ImportResult<Vec<u8>> {
     let mut buffer = Vec::new();
-    let _size = reader
-        .read_to_end(&mut buffer)
-        .map_err(|err| SicIoError::Io(err))?;
+    let _size = reader.read_to_end(&mut buffer).map_err(SicIoError::Io)?;
     Ok(buffer)
 }
 
