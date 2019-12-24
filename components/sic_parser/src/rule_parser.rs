@@ -114,9 +114,7 @@ fn parse_set_resize_sampling_filter(pair: Pair<'_, Rule>) -> Result<EnvItem, Sic
             )))
         })
         .map(|val| val.as_str())
-        .and_then(|val| {
-            FilterTypeWrap::try_from_str(val).map_err(|err| SicParserError::FilterTypeError(err))
-        })
+        .and_then(|val| FilterTypeWrap::try_from_str(val).map_err(SicParserError::FilterTypeError))
         .map(EnvItem::CustomSamplingFilter)
 }
 
