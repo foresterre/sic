@@ -85,7 +85,7 @@ impl EncodingFormatByIdentifier for DetermineEncodingFormat {
     /// Determines an image output format based on a given `&str` identifier.
     /// Identifiers are based on common output file extensions.
     fn by_identifier(&self, identifier: &str) -> Result<image::ImageOutputFormat, SicIoError> {
-        match identifier {
+        match identifier.to_ascii_lowercase().as_str() {
             "bmp" => Ok(image::ImageOutputFormat::BMP),
             "gif" => Ok(image::ImageOutputFormat::GIF),
             "ico" => Ok(image::ImageOutputFormat::ICO),
@@ -229,6 +229,17 @@ mod tests {
 
         for (id, exp) in zipped {
             test_with_identifier(id, exp);
+        }
+    }
+    #[test]
+    fn uppercase_formats() {
+        let uppercase_formats = INPUT_FORMATS
+            .iter()
+            .map(|v| v.to_ascii_uppercase())
+            .zip(EXPECTED_VALUES.iter());
+
+        for (id, exp) in uppercase_formats {
+            test_with_identifier(id.as_str(), exp);
         }
     }
 
