@@ -23,8 +23,8 @@ use crate::app::license::PrintTextFor;
 pub fn run(matches: &ArgMatches, options: &Config) -> anyhow::Result<()> {
     if options.output.is_none() {
         eprintln!(
-            "The default output format is BMP. Use --output-format <FORMAT> to specify \
-             a different output format."
+            "Info: The default output format when using stdout output (the current output mode) is \
+             BMP. Other formats can be use by providing --output-format <FORMAT>."
         );
     }
 
