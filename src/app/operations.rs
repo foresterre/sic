@@ -316,8 +316,7 @@ fn unify_arguments_of_operation(nodes: IndexedOps, size: usize) -> anyhow::Resul
     Ok(vec)
 }
 
-const FAILED_UNIFICATION_MESSAGE: &str =
-    "Unification of multi valued argument(s) failed: \
+const FAILED_UNIFICATION_MESSAGE: &str = "Unification of multi valued argument(s) failed: \
      When using an image operation cli argument which requires n values, \
      all values should be provided at once. For example, `--crop` takes 4 values \
      so, n=4. Now, `--crop 0 0 1 1` would be valid, but `--crop 0 0 --crop 1 1` would not.";
