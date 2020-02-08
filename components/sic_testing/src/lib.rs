@@ -38,10 +38,9 @@ pub fn image_eq<T: Into<sic_core::image::DynamicImage>>(left: T, right: T) -> bo
     let left = left.into();
     let right = right.into();
 
-    left.pixels().zip(right.pixels()).all(|(l, r)| {
-        assert_eq!(l.0, r.0);
-        assert_eq!(l.1, r.1);
-
-        l.2 == r.2
-    })
+    left.dimensions() == right.dimensions()
+        && left
+            .pixels()
+            .zip(right.pixels())
+            .all(|(l, r)| l.0 == r.0 && l.1 == r.1 && l.2 == r.2)
 }
