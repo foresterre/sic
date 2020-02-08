@@ -31,3 +31,17 @@ pub fn clean_up_output_path(test_output_path: &str) {
 pub fn open_test_image<P: AsRef<Path>>(path: P) -> sic_core::image::DynamicImage {
     sic_core::image::open(path.as_ref()).unwrap()
 }
+
+pub fn image_eq<T: Into<sic_core::image::DynamicImage>>(left: T, right: T) -> bool {
+    use sic_core::image::GenericImageView;
+
+    let left = left.into();
+    let right = right.into();
+
+    left.pixels().zip(right.pixels()).all(|(l, r)| {
+        assert_eq!(l.0, r.0);
+        assert_eq!(l.1, r.1);
+
+        l.2 == r.2
+    })
+}
