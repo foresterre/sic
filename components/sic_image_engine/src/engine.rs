@@ -1,11 +1,8 @@
-/// This version of the operations module will use an AST like structure.
-/// Instead of evaluating a program, we apply 'a language' on an image.
+use std::cmp::max;
 use std::collections::HashMap;
 use std::hash::Hash;
 
-use sic_core::image::DynamicImage;
-use sic_core::image::FilterType;
-use sic_core::image::GenericImageView;
+use sic_core::image::{DynamicImage, FilterType, GenericImageView, ImageBuffer, Rgba};
 
 use crate::errors::SicImageEngineError;
 use crate::wrapper::filter_type::FilterTypeWrap;
@@ -135,6 +132,12 @@ impl ImageEngine {
                         *self.image = self.image.crop(*lx, *ly, rx - lx, ry - ly);
                     })
             }
+            ImgOp::Diff(img) => {
+                let other = img.open_image()?;
+                *self.image = produce_image_diff(&self.image, &other)?;
+
+                Ok(())
+            }
             // We need to ensure here that Filter3x3's `it` (&[f32]) has length 9.
             // Otherwise it will panic, see: https://docs.rs/image/0.19.0/src/image/dynimage.rs.html#349
             // This check already happens within the `parse` module.
@@ -214,6 +217,57 @@ impl ImageEngine {
 
         Ok(())
     }
+}
+
+// same -> white pixel
+const DIFF_PX_SAME: Rgba<u8> = Rgba([255, 255, 255, 255]);
+// different -> coloured pixel
+const DIFF_PX_DIFF: Rgba<u8> = Rgba([255, 0, 0, 255]);
+// non overlapping -> transparent pixel
+const DIFF_PX_NO_OVERLAP: Rgba<u8> = Rgba([0, 0, 0, 0]);
+
+/// Takes the diff of two images.
+///
+/// If a pixel at `(x, y)` in the image `this` (`P`) compared to the pixel at `(x, y)` in the image `that` (`Q`):
+/// * is the same: the output image will colour that pixel white.
+/// * differs: the output image will colour that pixel red.
+///
+/// The output image (`R`) will have width `w=max(width(this), width(that))` and height
+/// `h=max(height(this), height(that))`.
+///
+/// In case that two images when overlapped differ inversely in both width and height, so
+/// `(P_width > Q_width ∧ P_height < Q_height) ⊕ (P_width < Q_width ∧ P_height > Q_height)` then
+/// there will be pixels in `R`, for which for some pixels `p_{i, j} ∈ R | p_{i, j} ∉ P ∨ p_{i, j} ∉ Q`.
+/// That is, the part of output image which isn't part of either of the two original input images.
+/// These pixels will be 'coloured' black but with an alpha value of 0, so they will be transparent
+/// as to show they were not part of the input images.
+fn produce_image_diff(
+    this: &DynamicImage,
+    other: &DynamicImage,
+) -> Result<DynamicImage, SicImageEngineError> {
+    let (lw, lh) = this.dimensions();
+    let (rw, rh) = other.dimensions();
+
+    let w = max(lw, rw);
+    let h = max(lh, rh);
+
+    let mut buffer = ImageBuffer::new(w, h);
+
+    for (x, y, pixel) in buffer.enumerate_pixels_mut() {
+        if this.in_bounds(x, y) && other.in_bounds(x, y) {
+            if this.get_pixel(x, y) == other.get_pixel(x, y) {
+                *pixel = DIFF_PX_SAME;
+            } else {
+                *pixel = DIFF_PX_DIFF;
+            }
+        } else if this.in_bounds(x, y) || other.in_bounds(x, y) {
+            *pixel = DIFF_PX_DIFF;
+        } else {
+            *pixel = DIFF_PX_NO_OVERLAP;
+        }
+    }
+
+    Ok(DynamicImage::ImageRgba8(buffer))
 }
 
 struct CropSelection {
@@ -347,13 +401,16 @@ mod environment_tests {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::path::PathBuf;
 
+    use parameterized::parameterized as pm;
     use sic_core::image::DynamicImage;
     use sic_core::image::FilterType;
     use sic_core::image::GenericImageView;
     use sic_core::image::Rgba;
-
     use sic_testing::{in_, out_};
+
+    use crate::wrapper::image_path::ImageFromPath;
 
     // output images during tests to verify the results visually
     fn output_test_image_for_manual_inspection(img: &DynamicImage, path: &str) {
@@ -365,6 +422,90 @@ mod tests {
     fn setup_default_test_image() -> DynamicImage {
         const DEFAULT_TEST_IMAGE_PATH: &str = "unsplash_763569_cropped.jpg";
         sic_testing::open_test_image(sic_testing::in_!(DEFAULT_TEST_IMAGE_PATH))
+    }
+
+    #[test]
+    fn diff_check_out_pixels() {
+        const LEFT: &str = "2x3_wrabaa.png";
+        let left = sic_testing::open_test_image(sic_testing::in_!(LEFT));
+        const RIGHT: &str = "3x2_wbaaba.png";
+
+        let mut engine = ImageEngine::new(left);
+        let out = engine.ignite(&vec![Instr::Operation(ImgOp::Diff(ImageFromPath::new(
+            PathBuf::from(in_!(RIGHT)),
+        )))]);
+
+        let out = out.unwrap();
+
+        assert_eq!(out.width(), 3);
+        assert_eq!(out.height(), 3);
+
+        assert_eq!(out.get_pixel(0, 0), DIFF_PX_SAME);
+        assert_eq!(out.get_pixel(1, 0), DIFF_PX_DIFF);
+        assert_eq!(out.get_pixel(2, 0), DIFF_PX_DIFF);
+        assert_eq!(out.get_pixel(0, 1), DIFF_PX_SAME);
+        assert_eq!(out.get_pixel(1, 1), DIFF_PX_SAME);
+        assert_eq!(out.get_pixel(2, 1), DIFF_PX_DIFF);
+        assert_eq!(out.get_pixel(0, 2), DIFF_PX_DIFF);
+        assert_eq!(out.get_pixel(1, 2), DIFF_PX_DIFF);
+        assert_eq!(out.get_pixel(2, 2), DIFF_PX_NO_OVERLAP);
+
+        output_test_image_for_manual_inspection(&out, out_!("test_diff_3x3.png"));
+    }
+
+    mod sizes {
+        use super::*;
+        use parameterized::ide;
+
+        ide!();
+
+        #[pm(
+            left = {
+                "1x1_a.png",
+                "2x2_baab.png",
+                "2x3_yrgyyb.bmp",
+                "2x2_baab.png",
+            },
+            right = {
+                "1x1_b.png",
+                "1x1_b.png",
+                "3x2_ygyryb.bmp",
+                "2x3_rrgrbb.bmp",
+            },
+            expected_width = {
+                1,
+                2,
+                3,
+                2,
+            },
+            expected_height = {
+                1,
+                2,
+                3,
+                3,
+            },
+        )]
+        fn diff_has_expected_width_and_height(
+            left: &str,
+            right: &str,
+            expected_width: u32,
+            expected_height: u32,
+        ) {
+            let left_img = sic_testing::open_test_image(sic_testing::in_!(left));
+
+            let mut engine = ImageEngine::new(left_img);
+            let out = engine.ignite(&vec![Instr::Operation(ImgOp::Diff(ImageFromPath::new(
+                PathBuf::from(in_!(right)),
+            )))]);
+
+            let out = out.unwrap();
+
+            assert_eq!(out.width(), expected_width);
+            assert_eq!(out.height(), expected_height);
+
+            let name = format!("test_diff_{},{}.png", left, right);
+            output_test_image_for_manual_inspection(&out, out_!(&name));
+        }
     }
 
     #[test]

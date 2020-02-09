@@ -1,6 +1,8 @@
 #[macro_use]
 extern crate strum_macros;
 
+use crate::wrapper::image_path::ImageFromPath;
+
 pub mod engine;
 pub mod errors;
 pub mod wrapper;
@@ -11,6 +13,7 @@ pub enum ImgOp {
     Brighten(i32),
     Contrast(f32),
     Crop((u32, u32, u32, u32)),
+    Diff(ImageFromPath),
     Filter3x3([f32; 9]),
     FlipHorizontal,
     FlipVertical,

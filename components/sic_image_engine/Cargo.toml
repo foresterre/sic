@@ -9,6 +9,7 @@ repository = "https://github.com/foresterre/sic"
 
 [dependencies]
 sic_core = { path = "../sic_core", version = "0.10" }
+sic_io = { path = "../sic_io", version = "0.10" }
 
 strum = "0.17.1"
 strum_macros = "0.17.1"
@@ -16,6 +17,7 @@ thiserror = "1.0.10"
 
 [dev-dependencies]
 sic_testing = { path = "../sic_testing" }
+parameterized = "0.1.1"
 
 [features]
 output-test-images = []
