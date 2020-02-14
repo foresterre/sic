@@ -133,36 +133,39 @@ or <br>
 or <br>
 `sic -i in.png -o out.png --contrast 0.7`
 
-
 **crop** example: <br>
 `sic -i in.png -o out.png --apply-operations "crop 0 0 10 10;"` <br>
 or <br>
 `sic -i in.png -o out.png --crop 0 0 10 10`
 
+**diff** example: <br>
+_apply operations: n/a_ <br>
+or <br>
+`sic -i a.png -o diff_between_a_and_b.png --diff b.png`
+
+| a                                      | b                                      | Output                                                         |
+| -------------------------------------- |--------------------------------------- | -------------------------------------------------------------- |
+| ![a](resources/help-images/diff/a.png) | ![b](resources/help-images/diff/b.png) | ![output](resources/help-images/diff/diff_between_a_and_b.png) |
 
 **filter3x3** example: <br>
 `sic -i in.png -o out.png --apply-operations "filter3x3 1.0 1.0 1.0 0 0 0 0.5 0.5 0.5"` <br>
 or <br>
 `sic -i in.png -o out.png --filter3x3 1.0 1.0 1.0 0 0 0 0.5 0.5 0.5`
 
-
 **flip horizontal** example: <br>
 `sic -i in.png -o out.png --apply-operations "fliph"` <br>
 or <br>
 `sic -i in.png -o out.png --flip-horizontal`
-
 
 **flip vertical** example: <br>
 `sic -i in.png -o out.png --apply-operations "flipv"` <br>
 or <br>
 `sic -i in.png -o out.png --flip-vertical`
 
-
 **gray scale** example: <br>
 `sic -i in.png -o out.png --apply-operations "grayscale"` <br>
 or <br>
 `sic -i in.png -o out.png --grayscale`
-
 
 **hue rotate** example: <br>
 `sic -i in.png -o out.png --apply-operations "huerotate -90"` <br>
