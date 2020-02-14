@@ -81,6 +81,7 @@ The available image operations are:
 |brighten           | `brighten <int>`                      | Yes (0.7.0) 	    | |
 |contrast           | `contrast <fp>`                       | Yes (0.7.0) 	    | |
 |crop               | `crop <int> <int> <int> <int>`        | Yes (0.9.0)       | Syntax: `crop <lx> <ly> <rx> <ry>`, where `lx` is top left corner x pixel coordinate starting at 0, `ly` is the top left corner y pixel coordinate starting at 0, `rx` is the  bottom right corner x pixel coordinate and `ry` is the bottom right corner y pixel coordinate. `rx` and `ry` should be larger than `lx` and `ly` respectively. |
+|diff               | `diff <path>`                         | CLI only (unreleased) | Diff the input image against the argument image to show which pixels are the same (white), different (red) or not part of either image (transparent) |
 |filter3x3          | `filter3x3 <args9>`                   | Yes (0.7.0)       | |
 |flip horizontal    | `fliph`                               | Yes (0.5.0) 	    | Flips the image on the horizontal axis. |
 |flip vertical      | `flipv`                               | Yes (0.5.0) 	    | Flips the image on the vertical axis. |
@@ -112,6 +113,7 @@ _legend_:
 <fp> means any 32 bit floating point number is required as argument.
 <value> means a pre defined value. 
 <args9> means `<fp> <fp> <fp> <fp> <fp> <fp> <fp> <fp> <fp>`.
+<path> means a qualified path to, for example, an image.
 ```
 
 _Image operation example usage:_
