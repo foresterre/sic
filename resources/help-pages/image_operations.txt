@@ -17,6 +17,7 @@ Supported operations:
 |brighten           | `brighten <int>`                  | 0.7.0            |
 |contrast           | `contrast <fp>`                   | 0.7.0            |
 |crop               | `crop <uint> <uint> <uint> <uint>`| 0.9.0            |
+|diff               | `diff <path>                     `| cli only         |
 |filter3x3          | `filter3x3 <fp9x>`                | 0.7.0            |
 |flip horizontal    | `fliph`                           | 0.5.0            |
 |flip vertical      | `flipv`                           | 0.5.0            |
@@ -40,6 +41,7 @@ table legend:
 <int> means any 32 bit signed integer (positive or negative number) is required as argument.
 <fp> means any 32 bit floating point number is required as argument.
 <fp9x> means `<fp> <fp> <fp> <fp> <fp> <fp> <fp> <fp> <fp>`.
+<path> means a qualified path to, for example, an image reachable from your current platform.
 
 When using the AOS method, within a script, operation separators (';') are required. Image operations are separated by
 this separator and a required, even if using a multi-line script. The examples below may offer guidance and serve
