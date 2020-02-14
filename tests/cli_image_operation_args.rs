@@ -149,6 +149,39 @@ mod crop {
 }
 
 #[cfg(test)]
+mod diff {
+    use crate::common::*;
+
+    #[test]
+    fn diff() {
+        let mut process = command(
+            "2x3_wrabaa.png",
+            "cio_diff_1.png",
+            &[
+                "--diff",
+                setup_input_path("3x2_wbaaba.png").to_str().unwrap(),
+            ]
+            .join(" "),
+        );
+        let result = process.wait();
+        assert!(result.is_ok());
+        assert!(result.unwrap().success());
+    }
+
+    #[test]
+    fn diff_invalid_path() {
+        let mut process = command(
+            "2x3_wrabaa.png",
+            "cio_diff_2.png",
+            &["--diff", setup_input_path("0:1.png").to_str().unwrap()].join(" "),
+        );
+        let result = process.wait();
+        assert!(result.is_ok());
+        assert_not!(result.unwrap().success());
+    }
+}
+
+#[cfg(test)]
 mod filter3x3 {
     use crate::common::*;
 

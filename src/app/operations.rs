@@ -1,11 +1,13 @@
 use crate::app::cli::arg_names::{
     OPMOD_RESIZE_PRESERVE_ASPECT_RATIO, OPMOD_RESIZE_SAMPLING_FILTER, OP_BLUR, OP_BRIGHTEN,
-    OP_CONTRAST, OP_CROP, OP_FILTER3X3, OP_FLIP_HORIZONTAL, OP_FLIP_VERTICAL, OP_GRAYSCALE,
-    OP_HUE_ROTATE, OP_INVERT, OP_RESIZE, OP_ROTATE180, OP_ROTATE270, OP_ROTATE90, OP_UNSHARPEN,
+    OP_CONTRAST, OP_CROP, OP_DIFF, OP_FILTER3X3, OP_FLIP_HORIZONTAL, OP_FLIP_VERTICAL,
+    OP_GRAYSCALE, OP_HUE_ROTATE, OP_INVERT, OP_RESIZE, OP_ROTATE180, OP_ROTATE270, OP_ROTATE90,
+    OP_UNSHARPEN,
 };
 use anyhow::{anyhow, bail, Context};
 use sic_image_engine::engine::{EnvItem, Instr, ItemName};
 use sic_image_engine::wrapper::filter_type::FilterTypeWrap;
+use sic_image_engine::wrapper::image_path::ImageFromPath;
 use sic_image_engine::ImgOp;
 use sic_parser::errors::SicParserError;
 use sic_parser::value_parser::{Describable, ParseInputsFromIter};
@@ -18,6 +20,7 @@ pub(crate) enum OperationId {
     Brighten,
     Contrast,
     Crop,
+    Diff,
     Filter3x3,
     FlipH,
     FlipV,
@@ -41,6 +44,7 @@ impl OperationId {
             OperationId::Brighten => OP_BRIGHTEN,
             OperationId::Contrast => OP_CONTRAST,
             OperationId::Crop => OP_CROP,
+            OperationId::Diff => OP_DIFF,
             OperationId::Filter3x3 => OP_FILTER3X3,
             OperationId::FlipH => OP_FLIP_HORIZONTAL,
             OperationId::FlipV => OP_FLIP_VERTICAL,
@@ -70,6 +74,7 @@ impl OperationId {
             OperationId::Brighten => 1,
             OperationId::Contrast => 1,
             OperationId::Crop => 4,
+            OperationId::Diff => 1,
             OperationId::Filter3x3 => 9,
             OperationId::FlipH => 0,
             OperationId::FlipV => 0,
@@ -114,6 +119,9 @@ impl OperationId {
                 inputs,
                 (u32, u32, u32, u32)
             )?)),
+            OperationId::Diff => {
+                Instr::Operation(ImgOp::Diff(parse_inputs_by_type!(inputs, ImageFromPath)?))
+            }
             OperationId::Filter3x3 => {
                 Instr::Operation(ImgOp::Filter3x3(parse_inputs_by_type!(inputs, [f32; 9])?))
             }

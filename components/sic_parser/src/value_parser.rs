@@ -1,4 +1,7 @@
 use crate::errors::SicParserError;
+use sic_image_engine::wrapper::image_path::ImageFromPath;
+use std::convert::TryFrom;
+use std::path::PathBuf;
 
 /// The value parser module has a goal to parse image operation inputs.
 
@@ -209,6 +212,37 @@ impl ParseInputsFromIter for String {
             .into();
 
         return_if_complete!(iter, String::from(res.0), ERR_MSG)
+    }
+}
+
+impl ParseInputsFromIter for ImageFromPath {
+    type Error = SicParserError;
+
+    fn parse<'a, T>(iterable: T) -> Result<Self, Self::Error>
+    where
+        T: IntoIterator,
+        T::Item: Into<Describable<'a>> + std::fmt::Debug,
+        Self: std::marker::Sized,
+    {
+        let mut iter = iterable.into_iter();
+
+        let err_msg_no_such_element = || "A path was expected but none was found.".to_string();
+        let err_msg_invalid_path =
+            || "Unable to construct a valid path for the current platform.".to_string();
+
+        let path = iter
+            .next()
+            .map(Into::<Describable>::into)
+            .ok_or_else(|| SicParserError::ValueParsingError(err_msg_no_such_element()))
+            .and_then(|v: Describable| {
+                PathBuf::try_from(v.0)
+                    .map_err(|_| SicParserError::ValueParsingError(err_msg_invalid_path()))
+            })?;
+
+        let err_msg_too_many_elements =
+            || "Too many arguments found: a single path was expected".to_string();
+
+        return_if_complete!(iter, ImageFromPath::new(path), err_msg_too_many_elements())
     }
 }
 
