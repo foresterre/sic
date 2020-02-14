@@ -143,7 +143,7 @@ _apply operations: n/a_ <br>
 or <br>
 `sic -i a.png -o diff_between_a_and_b.png --diff b.png`
 
-| a                                      | b                                      | Output                                                         |
+| a                                      | b                                      | output                                                         |
 | -------------------------------------- |--------------------------------------- | -------------------------------------------------------------- |
 | ![a](resources/help-images/diff/a.png) | ![b](resources/help-images/diff/b.png) | ![output](resources/help-images/diff/diff_between_a_and_b.png) |
 
