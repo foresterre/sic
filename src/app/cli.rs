@@ -52,6 +52,7 @@ pub(crate) mod arg_names {
     pub(crate) const OP_BRIGHTEN: &str = "op_brighten";
     pub(crate) const OP_CONTRAST: &str = "op_contrast";
     pub(crate) const OP_CROP: &str = "op_crop";
+    pub(crate) const OP_DIFF: &str = "op_diff";
     pub(crate) const OP_FILTER3X3: &str = "op_filter3x3";
     pub(crate) const OP_FLIP_HORIZONTAL: &str = "op_fliph";
     pub(crate) const OP_FLIP_VERTICAL: &str = "op_flipv";
@@ -176,6 +177,7 @@ pub fn cli() -> App<'static, 'static> {
                 OP_BRIGHTEN,
                 OP_CONTRAST,
                 OP_CROP,
+                OP_DIFF,
                 OP_FILTER3X3,
                 OP_FLIP_HORIZONTAL,
                 OP_FLIP_VERTICAL,
@@ -223,6 +225,13 @@ pub fn cli() -> App<'static, 'static> {
             .takes_value(true)
             .value_name("uint uint uint uint")
             .number_of_values(4)
+            .multiple(true))
+        .arg(Arg::with_name(OP_DIFF)
+            .help("Operation: diff.")
+            .long("--diff")
+            .takes_value(true)
+            .value_name("path to image")
+            .number_of_values(1)
             .multiple(true))
         .arg(Arg::with_name(OP_FILTER3X3)
             .help("Operation: filter3x3.")
@@ -433,6 +442,7 @@ fn build_ast_from_matches(
         OperationId::Brighten,
         OperationId::Contrast,
         OperationId::Crop,
+        OperationId::Diff,
         OperationId::Filter3x3,
         OperationId::FlipH,
         OperationId::FlipV,
