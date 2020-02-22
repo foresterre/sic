@@ -2,7 +2,8 @@ use std::cmp::max;
 use std::collections::HashMap;
 use std::hash::Hash;
 
-use sic_core::image::{DynamicImage, FilterType, GenericImageView, ImageBuffer, Rgba};
+use sic_core::image::imageops::FilterType;
+use sic_core::image::{DynamicImage, GenericImageView, ImageBuffer, Rgba};
 
 use crate::errors::SicImageEngineError;
 use crate::wrapper::filter_type::FilterTypeWrap;
@@ -323,9 +324,32 @@ fn resize_filter_or_default(env: &mut Env) -> FilterType {
 }
 
 #[cfg(test)]
-mod environment_tests {
-    use sic_core::image::FilterType;
+mod compatibility {
 
+    // The raw_pixels() method was removed from the image crate in version 0.23
+    // We replace it for our test cases with this straightforward trait, and trait impl for
+    // DynamicImage.
+    pub(crate) trait RawPixels {
+        fn raw_pixels(&self) -> Vec<u8>;
+    }
+
+    impl RawPixels for sic_core::image::DynamicImage {
+        fn raw_pixels(&self) -> Vec<u8> {
+            match self {
+                sic_core::image::DynamicImage::ImageLuma8(buffer) => buffer.to_vec(),
+                sic_core::image::DynamicImage::ImageLumaA8(buffer) => buffer.to_vec(),
+                sic_core::image::DynamicImage::ImageRgb8(buffer) => buffer.to_vec(),
+                sic_core::image::DynamicImage::ImageRgba8(buffer) => buffer.to_vec(),
+                sic_core::image::DynamicImage::ImageBgr8(buffer) => buffer.to_vec(),
+                sic_core::image::DynamicImage::ImageBgra8(buffer) => buffer.to_vec(),
+                _ => unimplemented!(),
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod environment_tests {
     use super::*;
 
     #[test]
@@ -401,16 +425,14 @@ mod environment_tests {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::path::PathBuf;
-
+    use crate::engine::compatibility::*;
+    use crate::wrapper::image_path::ImageFromPath;
     use parameterized::parameterized as pm;
-    use sic_core::image::DynamicImage;
-    use sic_core::image::FilterType;
+    use sic_core::image::imageops::FilterType;
     use sic_core::image::GenericImageView;
     use sic_core::image::Rgba;
     use sic_testing::{in_, out_};
-
-    use crate::wrapper::image_path::ImageFromPath;
+    use std::path::PathBuf;
 
     // output images during tests to verify the results visually
     fn output_test_image_for_manual_inspection(img: &DynamicImage, path: &str) {

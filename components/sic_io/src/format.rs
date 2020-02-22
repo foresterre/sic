@@ -86,21 +86,21 @@ impl EncodingFormatByIdentifier for DetermineEncodingFormat {
     /// Identifiers are based on common output file extensions.
     fn by_identifier(&self, identifier: &str) -> Result<image::ImageOutputFormat, SicIoError> {
         match identifier.to_ascii_lowercase().as_str() {
-            "bmp" => Ok(image::ImageOutputFormat::BMP),
-            "gif" => Ok(image::ImageOutputFormat::GIF),
-            "ico" => Ok(image::ImageOutputFormat::ICO),
-            "jpeg" | "jpg" => Ok(image::ImageOutputFormat::JPEG(self.jpeg_quality()?.as_u8())),
-            "png" => Ok(image::ImageOutputFormat::PNG),
-            "pbm" => Ok(image::ImageOutputFormat::PNM(
+            "bmp" => Ok(image::ImageOutputFormat::Bmp),
+            "gif" => Ok(image::ImageOutputFormat::Gif),
+            "ico" => Ok(image::ImageOutputFormat::Ico),
+            "jpeg" | "jpg" => Ok(image::ImageOutputFormat::Jpeg(self.jpeg_quality()?.as_u8())),
+            "png" => Ok(image::ImageOutputFormat::Png),
+            "pbm" => Ok(image::ImageOutputFormat::Pnm(
                 image::pnm::PNMSubtype::Bitmap(self.pnm_encoding_type()?),
             )),
-            "pgm" => Ok(image::ImageOutputFormat::PNM(
+            "pgm" => Ok(image::ImageOutputFormat::Pnm(
                 image::pnm::PNMSubtype::Graymap(self.pnm_encoding_type()?),
             )),
-            "ppm" => Ok(image::ImageOutputFormat::PNM(
+            "ppm" => Ok(image::ImageOutputFormat::Pnm(
                 image::pnm::PNMSubtype::Pixmap(self.pnm_encoding_type()?),
             )),
-            "pam" => Ok(image::ImageOutputFormat::PNM(
+            "pam" => Ok(image::ImageOutputFormat::Pnm(
                 image::pnm::PNMSubtype::ArbitraryMap,
             )),
             _ => Err(SicIoError::UnknownImageIdentifier(identifier.to_string())),
@@ -135,22 +135,22 @@ mod tests {
         "bmp", "gif", "ico", "jpg", "jpeg", "png", "pbm", "pgm", "ppm", "pam",
     ];
     const EXPECTED_VALUES: &[image::ImageOutputFormat] = &[
-        image::ImageOutputFormat::BMP,
-        image::ImageOutputFormat::GIF,
-        image::ImageOutputFormat::ICO,
-        image::ImageOutputFormat::JPEG(80),
-        image::ImageOutputFormat::JPEG(80),
-        image::ImageOutputFormat::PNG,
-        image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::Bitmap(
+        image::ImageOutputFormat::Bmp,
+        image::ImageOutputFormat::Gif,
+        image::ImageOutputFormat::Ico,
+        image::ImageOutputFormat::Jpeg(80),
+        image::ImageOutputFormat::Jpeg(80),
+        image::ImageOutputFormat::Png,
+        image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Bitmap(
             image::pnm::SampleEncoding::Binary,
         )),
-        image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::Graymap(
+        image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Graymap(
             image::pnm::SampleEncoding::Binary,
         )),
-        image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::Pixmap(
+        image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Pixmap(
             image::pnm::SampleEncoding::Binary,
         )),
-        image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::ArbitraryMap),
+        image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::ArbitraryMap),
     ];
 
     fn setup_default_format_determiner() -> DetermineEncodingFormat {
@@ -262,7 +262,7 @@ mod tests {
         };
 
         let result = format_determiner.by_identifier("pbm").unwrap();
-        let expected = image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::Bitmap(
+        let expected = image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Bitmap(
             image::pnm::SampleEncoding::Ascii,
         ));
 
@@ -278,7 +278,7 @@ mod tests {
         };
 
         let result = format_determiner.by_identifier("pgm").unwrap();
-        let expected = image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::Graymap(
+        let expected = image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Graymap(
             image::pnm::SampleEncoding::Ascii,
         ));
 
@@ -294,7 +294,7 @@ mod tests {
         };
 
         let result = format_determiner.by_identifier("ppm").unwrap();
-        let expected = image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::Pixmap(
+        let expected = image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Pixmap(
             image::pnm::SampleEncoding::Ascii,
         ));
 
@@ -310,7 +310,7 @@ mod tests {
         };
 
         let result = format_determiner.by_identifier("jpg").unwrap();
-        let expected = image::ImageOutputFormat::JPEG(1);
+        let expected = image::ImageOutputFormat::Jpeg(1);
 
         assert_eq!(result, expected);
     }
@@ -324,7 +324,7 @@ mod tests {
         };
 
         let result = format_determiner.by_identifier("jpg").unwrap();
-        let expected = image::ImageOutputFormat::JPEG(100);
+        let expected = image::ImageOutputFormat::Jpeg(100);
 
         assert_eq!(result, expected);
     }

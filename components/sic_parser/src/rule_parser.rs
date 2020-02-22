@@ -136,7 +136,7 @@ fn parse_unset_environment(pair: Pair<'_, Rule>) -> Result<Instr, SicParserError
 mod tests {
     use crate::SICParser;
     use pest::Parser;
-    use sic_core::image;
+    use sic_core::image::imageops::FilterType;
     use sic_image_engine::engine::EnvItem;
 
     use super::*;
@@ -877,7 +877,7 @@ mod tests {
 
         assert_eq!(
             Ok(vec![Instr::EnvAdd(EnvItem::CustomSamplingFilter(
-                FilterTypeWrap::new(image::FilterType::CatmullRom)
+                FilterTypeWrap::new(FilterType::CatmullRom)
             ))]),
             parse_image_operations(pairs)
         );
@@ -890,7 +890,7 @@ mod tests {
 
         assert_eq!(
             Ok(vec![Instr::EnvAdd(EnvItem::CustomSamplingFilter(
-                FilterTypeWrap::new(image::FilterType::Gaussian)
+                FilterTypeWrap::new(FilterType::Gaussian)
             )),]),
             parse_image_operations(pairs)
         );
@@ -903,7 +903,7 @@ mod tests {
 
         assert_eq!(
             Ok(vec![Instr::EnvAdd(EnvItem::CustomSamplingFilter(
-                FilterTypeWrap::new(image::FilterType::Lanczos3)
+                FilterTypeWrap::new(FilterType::Lanczos3)
             )),]),
             parse_image_operations(pairs)
         );
@@ -916,7 +916,7 @@ mod tests {
 
         assert_eq!(
             Ok(vec![Instr::EnvAdd(EnvItem::CustomSamplingFilter(
-                FilterTypeWrap::new(image::FilterType::Nearest)
+                FilterTypeWrap::new(FilterType::Nearest)
             )),]),
             parse_image_operations(pairs)
         );
@@ -929,7 +929,7 @@ mod tests {
 
         assert_eq!(
             Ok(vec![Instr::EnvAdd(EnvItem::CustomSamplingFilter(
-                FilterTypeWrap::new(image::FilterType::Triangle)
+                FilterTypeWrap::new(FilterType::Triangle)
             )),]),
             parse_image_operations(pairs)
         );
@@ -946,7 +946,7 @@ mod tests {
         assert_eq!(
             Ok(vec![
                 Instr::EnvAdd(EnvItem::CustomSamplingFilter(FilterTypeWrap::new(
-                    image::FilterType::Gaussian
+                    FilterType::Gaussian
                 ))),
                 Instr::Operation(ImgOp::Resize((100, 200)))
             ]),
@@ -969,19 +969,19 @@ mod tests {
         assert_eq!(
             Ok(vec![
                 Instr::EnvAdd(EnvItem::CustomSamplingFilter(FilterTypeWrap::new(
-                    image::FilterType::CatmullRom
+                    FilterType::CatmullRom
                 ))),
                 Instr::EnvAdd(EnvItem::CustomSamplingFilter(FilterTypeWrap::new(
-                    image::FilterType::Gaussian
+                    FilterType::Gaussian
                 ))),
                 Instr::EnvAdd(EnvItem::CustomSamplingFilter(FilterTypeWrap::new(
-                    image::FilterType::Lanczos3
+                    FilterType::Lanczos3
                 ))),
                 Instr::EnvAdd(EnvItem::CustomSamplingFilter(FilterTypeWrap::new(
-                    image::FilterType::Nearest
+                    FilterType::Nearest
                 ))),
                 Instr::EnvAdd(EnvItem::CustomSamplingFilter(FilterTypeWrap::new(
-                    image::FilterType::Triangle
+                    FilterType::Triangle
                 ))),
             ]),
             parse_image_operations(pairs)
@@ -1040,10 +1040,10 @@ mod tests {
         assert_eq!(
             Ok(vec![
                 Instr::EnvAdd(EnvItem::CustomSamplingFilter(FilterTypeWrap::new(
-                    image::FilterType::CatmullRom
+                    FilterType::CatmullRom
                 ))),
                 Instr::EnvAdd(EnvItem::CustomSamplingFilter(FilterTypeWrap::new(
-                    image::FilterType::Gaussian
+                    FilterType::Gaussian
                 ))),
                 Instr::EnvRemove(ItemName::CustomSamplingFilter),
                 Instr::EnvRemove(ItemName::CustomSamplingFilter),
