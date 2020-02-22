@@ -18,8 +18,8 @@ pub fn load_image<R: Read>(
 
     match reader.format() {
         Some(f) => match f {
-            ImageFormat::GIF => {
-                let frames = image::gif::Decoder::new(reader.into_inner())
+            ImageFormat::Gif => {
+                let frames = image::gif::GifDecoder::new(reader.into_inner())
                     .and_then(|decoder| decoder.into_frames().collect_frames())
                     .map_err(SicIoError::ImageError)?;
 
@@ -38,8 +38,8 @@ pub fn load_image<R: Read>(
             }
             _ => Ok(reader.decode().map_err(SicIoError::ImageError)?),
         },
-        None => Err(SicIoError::ImageError(image::ImageError::FormatError(
-            "Image format not supported.".to_string(),
+        None => Err(SicIoError::ImageError(image::error::ImageError::Decoding(
+            image::error::DecodingError::from_format_hint(image::error::ImageFormatHint::Unknown),
         ))),
     }
 }

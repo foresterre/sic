@@ -71,7 +71,7 @@ fn convert_to_bmp_by_extension() {
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
-        image::ImageFormat::BMP
+        image::ImageFormat::Bmp
     ));
 
     clean_up_output_path(path_buf_str(&our_output));
@@ -90,7 +90,7 @@ fn convert_to_gif_by_extension() {
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
-        image::ImageFormat::GIF
+        image::ImageFormat::Gif
     ));
 
     clean_up_output_path(path_buf_str(&our_output));
@@ -109,7 +109,7 @@ fn convert_to_jpg_by_extension() {
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
-        image::ImageFormat::JPEG
+        image::ImageFormat::Jpeg
     ));
 
     clean_up_output_path(path_buf_str(&our_output));
@@ -128,7 +128,7 @@ fn convert_to_jpeg_by_extension() {
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
-        image::ImageFormat::JPEG
+        image::ImageFormat::Jpeg
     ));
 
     clean_up_output_path(path_buf_str(&our_output));
@@ -147,7 +147,7 @@ fn convert_to_png_by_extension() {
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
-        image::ImageFormat::PNG
+        image::ImageFormat::Png
     ));
 
     clean_up_output_path(path_buf_str(&our_output));
@@ -166,7 +166,7 @@ fn convert_to_ico_by_extension() {
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
-        image::ImageFormat::ICO
+        image::ImageFormat::Ico
     ));
 
     clean_up_output_path(path_buf_str(&our_output));
@@ -185,7 +185,7 @@ fn convert_to_pbm_by_extension() {
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
-        image::ImageFormat::PNM
+        image::ImageFormat::Pnm
     ));
 
     clean_up_output_path(path_buf_str(&our_output));
@@ -204,7 +204,7 @@ fn convert_to_pgm_by_extension() {
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
-        image::ImageFormat::PNM
+        image::ImageFormat::Pnm
     ));
 
     clean_up_output_path(path_buf_str(&our_output));
@@ -223,7 +223,7 @@ fn convert_to_ppm_by_extension() {
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
-        image::ImageFormat::PNM
+        image::ImageFormat::Pnm
     ));
 
     clean_up_output_path(path_buf_str(&our_output));
@@ -242,7 +242,7 @@ fn convert_to_pam_by_extension() {
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
-        image::ImageFormat::PNM
+        image::ImageFormat::Pnm
     ));
 
     clean_up_output_path(path_buf_str(&our_output));
@@ -278,7 +278,7 @@ fn convert_to_bmp_by_ff() {
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
-        image::ImageFormat::BMP
+        image::ImageFormat::Bmp
     ));
 
     clean_up_output_path(path_buf_str(&our_output));
@@ -300,7 +300,7 @@ fn convert_to_gif_by_ff() {
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
-        image::ImageFormat::GIF
+        image::ImageFormat::Gif
     ));
 
     clean_up_output_path(path_buf_str(&our_output));
@@ -322,7 +322,7 @@ fn convert_to_ico_by_ff() {
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
-        image::ImageFormat::ICO
+        image::ImageFormat::Ico
     ));
 
     clean_up_output_path(path_buf_str(&our_output));
@@ -344,7 +344,7 @@ fn convert_to_jpg_by_ff() {
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
-        image::ImageFormat::JPEG
+        image::ImageFormat::Jpeg
     ));
 
     clean_up_output_path(path_buf_str(&our_output));
@@ -366,7 +366,7 @@ fn convert_to_jpeg_by_ff() {
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
-        image::ImageFormat::JPEG
+        image::ImageFormat::Jpeg
     ));
 
     clean_up_output_path(path_buf_str(&our_output));
@@ -388,7 +388,7 @@ fn convert_to_png_by_ff() {
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
-        image::ImageFormat::PNG
+        image::ImageFormat::Png
     ));
 
     clean_up_output_path(path_buf_str(&our_output));
@@ -410,7 +410,7 @@ fn convert_to_pbm_by_ff() {
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
-        image::ImageFormat::PNM
+        image::ImageFormat::Pnm
     ));
 
     clean_up_output_path(path_buf_str(&our_output));
@@ -432,7 +432,7 @@ fn convert_to_pgm_by_ff() {
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
-        image::ImageFormat::PNM
+        image::ImageFormat::Pnm
     ));
 
     clean_up_output_path(path_buf_str(&our_output));
@@ -454,7 +454,7 @@ fn convert_to_ppm_by_ff() {
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
-        image::ImageFormat::PNM
+        image::ImageFormat::Pnm
     ));
 
     clean_up_output_path(path_buf_str(&our_output));
@@ -476,7 +476,7 @@ fn convert_to_pam_by_ff() {
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
-        image::ImageFormat::PNM
+        image::ImageFormat::Pnm
     ));
 
     clean_up_output_path(path_buf_str(&our_output));

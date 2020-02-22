@@ -64,13 +64,13 @@ impl<'a> ConversionWriter<'a> {
 
         match color_type_adjustment {
             AutomaticColorTypeAdjustment::Enabled => match output_format {
-                image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::Bitmap(_)) => {
+                image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Bitmap(_)) => {
                     Some(image.grayscale())
                 }
-                image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::Graymap(_)) => {
+                image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Graymap(_)) => {
                     Some(image.grayscale())
                 }
-                image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::Pixmap(_)) => {
+                image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Pixmap(_)) => {
                     Some(image::DynamicImage::ImageRgb8(image.to_rgb()))
                 }
                 _ => None,
@@ -110,7 +110,7 @@ mod tests {
         let output_path = setup_output_path(our_output);
 
         let buffer = image::open(setup_test_image(INPUT)).expect("Can't open test file.");
-        let example_output_format = image::ImageOutputFormat::PNG;
+        let example_output_format = image::ImageOutputFormat::Png;
         let conversion_processor = ConversionWriter::new(&buffer);
         conversion_processor
             .write(
@@ -132,7 +132,7 @@ mod tests {
         let output_path = setup_output_path(our_output);
 
         let buffer = image::open(setup_test_image(INPUT)).expect("Can't open test file.");
-        let example_output_format = image::ImageOutputFormat::PNG;
+        let example_output_format = image::ImageOutputFormat::Png;
         let conversion_processor = ConversionWriter::new(&buffer);
         conversion_processor
             .write(
@@ -157,7 +157,7 @@ mod tests {
         let output_path = setup_output_path(our_output);
 
         let buffer = image::open(setup_test_image(INPUT)).expect("Can't open test file.");
-        let example_output_format = image::ImageOutputFormat::PNG;
+        let example_output_format = image::ImageOutputFormat::Png;
         let conversion_processor = ConversionWriter::new(&buffer);
         conversion_processor
             .write(
@@ -174,7 +174,7 @@ mod tests {
             .expect("Unable to finish reading our test image.");
 
         assert_eq!(
-            image::ImageFormat::PNG,
+            image::ImageFormat::Png,
             image::guess_format(&bytes).expect("Format could not be guessed.")
         );
 
@@ -190,35 +190,35 @@ mod tests {
         "bmp", "gif", "ico", "jpg", "jpeg", "png", "pbm", "pgm", "ppm", "pam",
     ];
     const OUTPUT_FORMATS: &[image::ImageOutputFormat] = &[
-        image::ImageOutputFormat::BMP,
-        image::ImageOutputFormat::GIF,
-        image::ImageOutputFormat::ICO,
-        image::ImageOutputFormat::JPEG(80),
-        image::ImageOutputFormat::JPEG(80),
-        image::ImageOutputFormat::PNG,
-        image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::Bitmap(
+        image::ImageOutputFormat::Bmp,
+        image::ImageOutputFormat::Gif,
+        image::ImageOutputFormat::Ico,
+        image::ImageOutputFormat::Jpeg(80),
+        image::ImageOutputFormat::Jpeg(80),
+        image::ImageOutputFormat::Png,
+        image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Bitmap(
             image::pnm::SampleEncoding::Binary,
         )),
-        image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::Graymap(
+        image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Graymap(
             image::pnm::SampleEncoding::Binary,
         )),
-        image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::Pixmap(
+        image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Pixmap(
             image::pnm::SampleEncoding::Binary,
         )),
-        image::ImageOutputFormat::PNM(image::pnm::PNMSubtype::ArbitraryMap),
+        image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::ArbitraryMap),
     ];
 
     const EXPECTED_VALUES: &[image::ImageFormat] = &[
-        image::ImageFormat::BMP,
-        image::ImageFormat::GIF,
-        image::ImageFormat::ICO,
-        image::ImageFormat::JPEG,
-        image::ImageFormat::JPEG,
-        image::ImageFormat::PNG,
-        image::ImageFormat::PNM,
-        image::ImageFormat::PNM,
-        image::ImageFormat::PNM,
-        image::ImageFormat::PNM,
+        image::ImageFormat::Bmp,
+        image::ImageFormat::Gif,
+        image::ImageFormat::Ico,
+        image::ImageFormat::Jpeg,
+        image::ImageFormat::Jpeg,
+        image::ImageFormat::Png,
+        image::ImageFormat::Pnm,
+        image::ImageFormat::Pnm,
+        image::ImageFormat::Pnm,
+        image::ImageFormat::Pnm,
     ];
 
     fn test_conversion_with_header_match(

@@ -61,7 +61,7 @@ pub fn run(matches: &ArgMatches, options: &Config) -> anyhow::Result<()> {
         Some(format) => encoding_format_determiner.by_identifier(format),
         None => match options.output {
             Some(out) => encoding_format_determiner.by_extension(out),
-            None => Ok(image::ImageOutputFormat::BMP),
+            None => Ok(image::ImageOutputFormat::Bmp),
         },
     }?;
 
