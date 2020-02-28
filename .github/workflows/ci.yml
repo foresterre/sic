@@ -25,7 +25,7 @@ jobs:
             rust: 1.36.0
 
           # latest rust stable :: ubuntu
-          - build: ubuntu_stable
+          - build: stable
             os: ubuntu-latest
             rust: stable
 
@@ -40,17 +40,17 @@ jobs:
             rust: nightly
 
           # latest rust stable :: mac_os
-          - build: macos_stable
+          - build: macos
             os: macOS-latest
             rust: stable
 
           # latest rust stable :: windows + gnu
-          - build: windows_gnu_stable
+          - build: win-gnu
             os: windows-latest
             rust: stable-x86_64-gnu
 
           # latest rust stable :: windows + msvc
-          - build: windows_msvc_stable
+          - build: win-msvc
             os: windows-latest
             rust: stable
 
