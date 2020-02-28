@@ -4,18 +4,14 @@
 # which is licensed under Apache License, Version 2.0 or MIT license
 
 name: "GitHub Actions: CI"
-on:
-  pull_request:
-  push:
-    branches:
-      - master
+on: [push, pull_request]
 jobs:
   test:
-    name: test
+    name: pipeline_run_tests
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        build: [pinned, stable, nightly, macos, win-gnu, win-msvc]
+        build: [pinned, stable, beta, nightly, macos, win-gnu, win-msvc]
         include:
           # pinned rust version :: ubuntu
           - build: pinned
@@ -49,43 +45,61 @@ jobs:
 
 
     steps:
-      # checkout
-      - name: Checkout repository
-        uses: actions/checkout@v1
+      - name: checkout_repo
+        uses: actions/checkout@v2
         with:
           fetch-depth: 1
-
-      # install: rust
-      - name: Install Rust
-        uses: hecrj/setup-rust-action@v1
+      - name: install_rust
+        uses: actions-rs/toolchain@v1
         with:
-          rust-version: ${{ matrix.rust }}
+          toolchain: ${{ matrix.rust }}
+          override: true
+          profile: minimal
 
-      # build / doc / test
-      - name: Build all workspace crates
+      - name: build_workspace_crates
         run: cargo build --verbose --all
 
-# eventually we will want to enable this (luckily we are no library crate) =); for now, it shortens the build time.
-#      - name: Build documentation for all workspace crates
-#        run: cargo doc --verbose --all
+      # eventually we will want to enable this (luckily we are no library crate) =); for now, it shortens the build time.
+      # - name: Build documentation for all workspace crates
+      # run: cargo doc --verbose --all
 
-      - name: Test all workspace crates
+      - name: test_workspace_crates
         run: cargo test --verbose --all
 
   rustfmt:
-    name: rustfmt
+    name: pipeline_rustfmt
     runs-on: ubuntu-18.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
         with:
           fetch-depth: 1
-      - name: Install Rust
-        uses: hecrj/setup-rust-action@v1
+      - name: install_rust
+        uses: actions-rs/toolchain@v1
         with:
-          rust-version: stable
-      - name: Install rustfmt
-        run: rustup component add rustfmt
-      - name: Check formatting
+          toolchain: stable
+          override: true
+          profile: minimal
+          components: rustfmt
+      - name: check_formatting
         run: |
           cargo fmt --all -- --check
+
+  clippy:
+    name: pipeline_clippy
+    runs-on: ubuntu-18.04
+    steps:
+      - name: checkout_repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - name: install_rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+          components: clippy
+      - name: check_with_clippy
+        run: |
+          cargo clippy --all -- -D warnings
