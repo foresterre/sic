@@ -1,6 +1,6 @@
 # GitHub Actions workflow: CI for sic
 #
-# based on: https://github.com/BurntSushi/bstr/blob/master/.github/workflows/ci.yml
+# originally based on: https://github.com/BurntSushi/bstr/blob/master/.github/workflows/ci.yml
 # which is licensed under Apache License, Version 2.0 or MIT license
 
 name: "github_actions_ci"
@@ -61,14 +61,16 @@ jobs:
           profile: minimal
 
       - name: build_workspace_crates
-        run: cargo build --verbose --all
-
-      # eventually we will want to enable this (luckily we are no library crate) =); for now, it shortens the build time.
-      # - name: Build documentation for all workspace crates
-      # run: cargo doc --verbose --all
+        uses: actions-rs/cargo@v1
+          with:
+            command: build
+            args: --verbose --all
 
       - name: test_workspace_crates
-        run: cargo test --verbose --all
+        uses: actions-rs/cargo@v1
+          with:
+            command: test
+            args: --verbose --all
 
   rustfmt:
     name: pipeline_rustfmt
