@@ -25,7 +25,7 @@ jobs:
             rust: 1.36.0
 
           # latest rust stable :: ubuntu
-          - build: stable
+          - build: ubuntu_stable
             os: ubuntu-latest
             rust: stable
 
@@ -40,25 +40,23 @@ jobs:
             rust: nightly
 
           # latest rust stable :: mac_os
-          - build: macos
+          - build: macos_stable
             os: macOS-latest
             rust: stable
 
           # latest rust stable :: windows + gnu
-          - build: win-gnu
+          - build: windows_gnu_stable
             os: windows-latest
             rust: stable-x86_64-gnu
 
           # latest rust stable :: windows + msvc
-          - build: win-msvc
+          - build: windows_msvc_stable
             os: windows-latest
             rust: stable
 
     steps:
       - name: checkout_repo
-        uses: actions/checkout@v1
-        with:
-          fetch-depth: 1
+        uses: actions/checkout@v2
       - name: install_rust
         uses: actions-rs/toolchain@v1
         with:
@@ -84,8 +82,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 1
       - name: install_rust
         uses: actions-rs/toolchain@v1
         with:
@@ -102,9 +98,7 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - name: checkout_repo
-        uses: actions/checkout@v1
-        with:
-          fetch-depth: 1
+        uses: actions/checkout@v2
       - name: install_rust
         uses: actions-rs/toolchain@v1
         with:
