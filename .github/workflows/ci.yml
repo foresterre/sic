@@ -29,6 +29,11 @@ jobs:
             os: ubuntu-latest
             rust: stable
 
+          # latest rust beta :: ubuntu
+          - build: beta
+            os: ubuntu-latest
+            rust: beta
+
           # latest rust nightly :: ubuntu
           - build: nightly
             os: ubuntu-latest
@@ -48,7 +53,6 @@ jobs:
           - build: win-msvc
             os: windows-latest
             rust: stable
-
 
     steps:
       - name: checkout_repo
