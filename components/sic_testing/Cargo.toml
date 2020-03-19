@@ -9,3 +9,4 @@ repository = "https://github.com/foresterre/sic"
 
 [dependencies]
 sic_core = { path = "../sic_core", version = "0.10" }
+parameterized  = "0.1.1"

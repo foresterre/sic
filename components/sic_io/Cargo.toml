@@ -13,4 +13,4 @@ sic_core = { path = "../sic_core", version = "0.10" }
 thiserror = "1.0.11"
 
 [dev-dependencies]
-sic_testing = { path = "../sic_testing" }
+sic_testing = { path = "../sic_testing", version = "0.10" }

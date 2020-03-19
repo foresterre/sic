@@ -16,11 +16,11 @@ fn main() {
     };
 
     let or_out_dir = || {
-        std::env::args_os().nth(1).unwrap_or(
+        std::env::args_os().nth(1).unwrap_or_else(|| {
             std::env::current_dir()
                 .expect("Unable to receive current directory.")
-                .into_os_string(),
-        )
+                .into_os_string()
+        })
     };
 
     let out = option_env!("SIC_COMPLETIONS_OUT_DIR")

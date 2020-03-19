@@ -16,8 +16,7 @@ strum_macros = "0.18.0"
 thiserror = "1.0.11"
 
 [dev-dependencies]
-sic_testing = { path = "../sic_testing" }
-parameterized = "0.1.1"
+sic_testing = { path = "../sic_testing", version = "0.10" }
 
 [features]
 output-test-images = []

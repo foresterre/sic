@@ -544,7 +544,11 @@ mod tests {
         let ast = ast.unwrap();
         let mut iter = ast.iter();
 
-        assert_match!(iter, Instr::Operation(ImgOp::Blur(n)), assert_eq!(*n, 1f32));
+        assert_match!(
+            iter,
+            Instr::Operation(ImgOp::Blur(n)),
+            sic_testing::approx_eq_f32!(*n, 1f32)
+        );
 
         assert_match!(
             iter,
@@ -555,7 +559,7 @@ mod tests {
         assert_match!(
             iter,
             Instr::Operation(ImgOp::Contrast(n)),
-            assert_eq!(*n, 3f32)
+            sic_testing::approx_eq_f32!(*n, 3f32)
         );
 
         assert_match!(
