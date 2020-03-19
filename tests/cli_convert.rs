@@ -67,7 +67,7 @@ fn convert_to_bmp_by_extension() {
 
     let complete = run(&matches, &build_app_config(&matches).unwrap());
 
-    assert_eq!((), complete.unwrap());
+    complete.unwrap();
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
@@ -86,7 +86,7 @@ fn convert_to_gif_by_extension() {
     let matches = get_app().get_matches_from(args);
     let complete = run(&matches, &build_app_config(&matches).unwrap());
 
-    assert_eq!((), complete.unwrap());
+    complete.unwrap();
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
@@ -105,7 +105,7 @@ fn convert_to_jpg_by_extension() {
     let matches = get_app().get_matches_from(args);
     let complete = run(&matches, &build_app_config(&matches).unwrap());
 
-    assert_eq!((), complete.unwrap());
+    complete.unwrap();
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
@@ -124,7 +124,7 @@ fn convert_to_jpeg_by_extension() {
     let matches = get_app().get_matches_from(args);
     let complete = run(&matches, &build_app_config(&matches).unwrap());
 
-    assert_eq!((), complete.unwrap());
+    complete.unwrap();
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
@@ -143,7 +143,7 @@ fn convert_to_png_by_extension() {
     let matches = get_app().get_matches_from(args);
     let complete = run(&matches, &build_app_config(&matches).unwrap());
 
-    assert_eq!((), complete.unwrap());
+    complete.unwrap();
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
@@ -162,7 +162,7 @@ fn convert_to_ico_by_extension() {
     let matches = get_app().get_matches_from(args);
     let complete = run(&matches, &build_app_config(&matches).unwrap());
 
-    assert_eq!((), complete.unwrap());
+    complete.unwrap();
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
@@ -181,7 +181,7 @@ fn convert_to_pbm_by_extension() {
     let matches = get_app().get_matches_from(args);
     let complete = run(&matches, &build_app_config(&matches).unwrap());
 
-    assert_eq!((), complete.unwrap());
+    complete.unwrap();
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
@@ -200,7 +200,7 @@ fn convert_to_pgm_by_extension() {
     let matches = get_app().get_matches_from(args);
     let complete = run(&matches, &build_app_config(&matches).unwrap());
 
-    assert_eq!((), complete.unwrap());
+    complete.unwrap();
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
@@ -219,7 +219,7 @@ fn convert_to_ppm_by_extension() {
     let matches = get_app().get_matches_from(args);
     let complete = run(&matches, &build_app_config(&matches).unwrap());
 
-    assert_eq!((), complete.unwrap());
+    complete.unwrap();
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
@@ -238,7 +238,7 @@ fn convert_to_pam_by_extension() {
     let matches = get_app().get_matches_from(args);
     let complete = run(&matches, &build_app_config(&matches).unwrap());
 
-    assert_eq!((), complete.unwrap());
+    complete.unwrap();
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
@@ -274,7 +274,7 @@ fn convert_to_bmp_by_ff() {
     let matches = get_app().get_matches_from(args);
     let complete = run(&matches, &build_app_config(&matches).unwrap());
 
-    assert_eq!((), complete.unwrap());
+    complete.unwrap();
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
@@ -296,7 +296,7 @@ fn convert_to_gif_by_ff() {
     let matches = get_app().get_matches_from(args);
     let complete = run(&matches, &build_app_config(&matches).unwrap());
 
-    assert_eq!((), complete.unwrap());
+    complete.unwrap();
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
@@ -318,7 +318,7 @@ fn convert_to_ico_by_ff() {
     let matches = get_app().get_matches_from(args);
     let complete = run(&matches, &build_app_config(&matches).unwrap());
 
-    assert_eq!((), complete.unwrap());
+    complete.unwrap();
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
@@ -340,7 +340,7 @@ fn convert_to_jpg_by_ff() {
     let matches = get_app().get_matches_from(args);
     let complete = run(&matches, &build_app_config(&matches).unwrap());
 
-    assert_eq!((), complete.unwrap());
+    complete.unwrap();
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
@@ -362,7 +362,7 @@ fn convert_to_jpeg_by_ff() {
     let matches = get_app().get_matches_from(args);
     let complete = run(&matches, &build_app_config(&matches).unwrap());
 
-    assert_eq!((), complete.unwrap());
+    complete.unwrap();
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
@@ -384,7 +384,7 @@ fn convert_to_png_by_ff() {
     let matches = get_app().get_matches_from(args);
     let complete = run(&matches, &build_app_config(&matches).unwrap());
 
-    assert_eq!((), complete.unwrap());
+    complete.unwrap();
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
@@ -406,7 +406,7 @@ fn convert_to_pbm_by_ff() {
     let matches = get_app().get_matches_from(args);
     let complete = run(&matches, &build_app_config(&matches).unwrap());
 
-    assert_eq!((), complete.unwrap());
+    complete.unwrap();
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
@@ -428,7 +428,7 @@ fn convert_to_pgm_by_ff() {
     let matches = get_app().get_matches_from(args);
     let complete = run(&matches, &build_app_config(&matches).unwrap());
 
-    assert_eq!((), complete.unwrap());
+    complete.unwrap();
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
@@ -450,7 +450,7 @@ fn convert_to_ppm_by_ff() {
     let matches = get_app().get_matches_from(args);
     let complete = run(&matches, &build_app_config(&matches).unwrap());
 
-    assert_eq!((), complete.unwrap());
+    complete.unwrap();
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
@@ -472,7 +472,7 @@ fn convert_to_pam_by_ff() {
     let matches = get_app().get_matches_from(args);
     let complete = run(&matches, &build_app_config(&matches).unwrap());
 
-    assert_eq!((), complete.unwrap());
+    complete.unwrap();
     assert!(our_output.exists());
     assert!(is_image_format(
         path_buf_str(&our_output),
@@ -530,7 +530,7 @@ fn convert_pbm_ascii() {
     let matches = get_app().get_matches_from(args);
     let complete = run(&matches, &build_app_config(&matches).unwrap());
 
-    assert_eq!((), complete.unwrap());
+    complete.unwrap();
     assert!(our_output.exists());
 
     // read file contents
@@ -561,7 +561,7 @@ fn convert_pgm_ascii() {
     let matches = get_app().get_matches_from(args);
     let complete = run(&matches, &build_app_config(&matches).unwrap());
 
-    assert_eq!((), complete.unwrap());
+    complete.unwrap();
     assert!(our_output.exists());
 
     // read file contents
@@ -592,7 +592,7 @@ fn convert_ppm_ascii() {
     let matches = get_app().get_matches_from(args);
     let complete = run(&matches, &build_app_config(&matches).unwrap());
 
-    assert_eq!((), complete.unwrap());
+    complete.unwrap();
     assert!(our_output.exists());
 
     // read file contents
@@ -622,7 +622,7 @@ fn convert_pbm_not_ascii() {
     let matches = get_app().get_matches_from(args);
     let complete = run(&matches, &build_app_config(&matches).unwrap());
 
-    assert_eq!((), complete.unwrap());
+    complete.unwrap();
     assert!(our_output.exists());
 
     // read file contents
@@ -652,7 +652,7 @@ fn convert_pgm_not_ascii() {
     let matches = get_app().get_matches_from(args);
     let complete = run(&matches, &build_app_config(&matches).unwrap());
 
-    assert_eq!((), complete.unwrap());
+    complete.unwrap();
     assert!(our_output.exists());
 
     // read file contents
@@ -682,7 +682,7 @@ fn convert_ppm_not_ascii() {
     let matches = get_app().get_matches_from(args);
     let complete = run(&matches, &build_app_config(&matches).unwrap());
 
-    assert_eq!((), complete.unwrap());
+    complete.unwrap();
     assert!(our_output.exists());
 
     // read file contents

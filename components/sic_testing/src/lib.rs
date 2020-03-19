@@ -1,5 +1,17 @@
 use std::path::{Path, PathBuf};
 
+// re-export parameterized macro's
+pub use parameterized::ide;
+pub use parameterized::parameterized as pm;
+
+// just enough, absolute tolerance, floating point comparison.
+#[macro_export]
+macro_rules! approx_eq_f32 {
+    ($input:expr, $expected:expr) => {
+        assert!(($input - $expected).abs() <= std::f32::EPSILON);
+    };
+}
+
 #[macro_export]
 macro_rules! out_ {
     ($path:expr) => {

@@ -1182,7 +1182,7 @@ mod test_tree_extend {
     mod case_opmod_resize_sampling_filter {
         use super::*;
 
-        fn test<'a>(setup: (ArgMatches, String), expect: &str) {
+        fn test(setup: (ArgMatches, String), expect: &str) {
             let mut tree: IndexTree = BTreeMap::new();
             let matches = setup.0;
             let op = op_with_values!(matches, OperationId::ModResizeSamplingFilter);

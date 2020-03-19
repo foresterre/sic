@@ -249,12 +249,12 @@ impl ParseInputsFromIter for ImageFromPath {
 #[cfg(test)]
 mod tests_parse_from_iter {
     use super::*;
-    use parameterized::parameterized as pm;
+    use sic_testing::*;
 
     #[test]
     fn a_f32() {
         let some: f32 = ParseInputsFromIter::parse(&["-1.03"]).unwrap();
-        assert_eq!(some, -1.03f32)
+        sic_testing::approx_eq_f32!(some, -1.03f32)
     }
 
     mod tuple_u32_u32_u32_u32 {

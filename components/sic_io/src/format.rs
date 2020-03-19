@@ -183,10 +183,9 @@ mod tests {
     #[test]
     #[should_panic]
     fn extension_unknown_extension() {
-        let path = format!("w_ext.h");
-
+        let path = "w_ext.h";
         let format_determiner = setup_default_format_determiner();
-        let result = format_determiner.by_extension(path.as_str());
+        let result = format_determiner.by_extension(path);
 
         result.unwrap();
     }
@@ -195,10 +194,9 @@ mod tests {
     #[test]
     #[should_panic]
     fn extension_no_extension() {
-        let path = format!("png");
-
+        let path = "png";
         let format_determiner = setup_default_format_determiner();
-        let result = format_determiner.by_extension(path.as_str());
+        let result = format_determiner.by_extension(path);
 
         result.unwrap();
     }
@@ -207,10 +205,9 @@ mod tests {
     #[test]
     #[should_panic]
     fn extension_invalid_extension() {
-        let path = format!(".png");
-
+        let path = ".png";
         let format_determiner = setup_default_format_determiner();
-        let result = format_determiner.by_extension(path.as_str());
+        let result = format_determiner.by_extension(path);
 
         result.unwrap();
     }

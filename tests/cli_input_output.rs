@@ -14,31 +14,31 @@ enum RunWithIOArg {
 }
 
 impl RunWithIOArg {
-    fn both(&self, input: &str, output: &str) -> Command {
+    fn both(self, input: &str, output: &str) -> Command {
         let mut command = Command::new("cargo");
         command.args(&["run", "--", "-i", input, "-o", output]);
         command
     }
 
-    fn neither(&self, input: &str, output: &str) -> Command {
+    fn neither(self, input: &str, output: &str) -> Command {
         let mut command = Command::new("cargo");
         command.args(&["run", "--", input, output]);
         command
     }
 
-    fn only_i(&self, input: &str, output: &str) -> Command {
+    fn only_i(self, input: &str, output: &str) -> Command {
         let mut command = Command::new("cargo");
         command.args(&["run", "--", "-i", input, output]);
         command
     }
 
-    fn only_o(&self, input: &str, output: &str) -> Command {
+    fn only_o(self, input: &str, output: &str) -> Command {
         let mut command = Command::new("cargo");
         command.args(&["run", "--", "-o", output, input]);
         command
     }
 
-    fn start(&self, input: &str, output: &str) -> std::io::Result<Child> {
+    fn start(self, input: &str, output: &str) -> std::io::Result<Child> {
         match self {
             RunWithIOArg::BothIO => self.both(input, output).spawn(),
             RunWithIOArg::OnlyI => self.only_i(input, output).spawn(),
