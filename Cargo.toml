@@ -39,7 +39,7 @@ inflate = "0.4.5"
 sic_testing = { path = "components/sic_testing" }
 
 [build-dependencies]
-flate2 = "1.0.13"
+flate2 = "1.0.14"
 
 [[bin]]
 name = "sic"
