@@ -220,7 +220,7 @@ dependencies = [
 
 [[package]]
 name = "image"
-version = "0.23.1"
+version = "0.23.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "bytemuck 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -491,7 +491,7 @@ dependencies = [
 name = "sic_core"
 version = "0.10.0"
 dependencies = [
- "image 0.23.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "image 0.23.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -680,7 +680,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum gif 0.10.3 (registry+https://github.com/rust-lang/crates.io-index)" = "471d90201b3b223f3451cd4ad53e34295f16a1df17b1edf3736d47761c3981af"
 "checksum heck 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)" = "20564e78d53d2bb135c343b3f47714a56af2061f1c928fdb541dc7b9fdd94205"
 "checksum hermit-abi 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)" = "1010591b26bbfe835e9faeabeb11866061cc7dcebffd56ad7d0942d0e61aefd8"
-"checksum image 0.23.1 (registry+https://github.com/rust-lang/crates.io-index)" = "403f0c29211dc50a78eb53eeeae87945d44cb63071881834212f36677fccb2b4"
+"checksum image 0.23.2 (registry+https://github.com/rust-lang/crates.io-index)" = "9062b90712d25bc6bb165d110aa59c6b47c849246e341e7b86a98daff9d49f60"
 "checksum inflate 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)" = "1cdb29978cc5797bd8dcc8e5bf7de604891df2a8dc576973d71a281e916db2ff"
 "checksum jpeg-decoder 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)" = "0256f0aec7352539102a9efbcb75543227b7ab1117e0f95450023af730128451"
 "checksum lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
