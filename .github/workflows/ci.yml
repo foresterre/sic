@@ -109,3 +109,23 @@ jobs:
       - name: check_with_clippy
         run: |
           cargo clippy --all -- -D warnings
+
+  cargo_deny:
+    name: pipeline_cargo_deny
+    runs-on: ubuntu-18.04
+    steps:
+      - name: checkout_repo
+        uses: actions/checkout@v2
+      - name: install_rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+      - name: install_cargo_deny
+        run: |
+          cargo install cargo deny
+      - name: run_cargo_deny_check
+        run: |
+          cargo deny check all
+
