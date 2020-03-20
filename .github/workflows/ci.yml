@@ -124,7 +124,7 @@ jobs:
           profile: minimal
       - name: install_cargo_deny
         run: |
-          cargo install cargo deny
+          cargo install cargo-deny
       - name: run_cargo_deny_check
         run: |
           cargo deny check all
