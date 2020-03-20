@@ -112,20 +112,8 @@ jobs:
 
   cargo_deny:
     name: pipeline_cargo_deny
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
-      - name: checkout_repo
-        uses: actions/checkout@v2
-      - name: install_rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-          profile: minimal
-      - name: install_cargo_deny
-        run: |
-          cargo install cargo-deny
-      - name: run_cargo_deny_check
-        run: |
-          cargo deny check all
+      - uses: actions/checkout@v2
+      - uses: EmbarkStudios/cargo-deny-action@v0
 
