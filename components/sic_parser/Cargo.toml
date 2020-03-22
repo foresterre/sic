@@ -13,7 +13,7 @@ sic_image_engine = { path = "../sic_image_engine", version = "0.10" }
 
 pest = "2.1.2"
 pest_derive = "2.0.1"
-thiserror = "1.0.11"
+thiserror = "1.0.12"
 
 [dev-dependencies]
 sic_testing = { path = "../sic_testing", version = "0.10" }
