@@ -17,6 +17,7 @@ categories = ["multimedia::images", "command-line-utilities"]
 
 [workspace]
 members = [
+  "components/sic_cli_operations",
   "components/sic_core",
   "components/sic_image_engine",
   "components/sic_io",
@@ -25,6 +26,7 @@ members = [
 ]
 
 [dependencies]
+sic_cli_operations = { path = "components/sic_cli_operations" }
 sic_core = { path = "components/sic_core", version = "0.10" }
 sic_image_engine = { path = "components/sic_image_engine", version = "0.10" }
 sic_io  = { path = "components/sic_io", version = "0.10" }

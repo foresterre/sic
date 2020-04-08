@@ -480,11 +480,20 @@ dependencies = [
  "clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "flate2 1.0.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "inflate 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "sic_cli_operations 0.10.0-dev",
  "sic_core 0.10.0",
  "sic_image_engine 0.10.0",
  "sic_io 0.10.0",
  "sic_parser 0.10.0",
  "sic_testing 0.10.0",
+]
+
+[[package]]
+name = "sic_cli_operations"
+version = "0.10.0-dev"
+dependencies = [
+ "parameterized 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "thiserror 1.0.14 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

@@ -1,0 +1,14 @@
+[package]
+name = "sic_cli_operations"
+version = "0.10.0-dev"
+authors = ["Martijn Gribnau <garm@ilumeo.com>"]
+description = "Component of the sic cli: parses image operation cli arguments."
+edition = "2018"
+license-file = "../../LICENSE"
+repository = "https://github.com/foresterre/sic"
+
+[dependencies]
+thiserror = "1.0.14"
+
+[dev-dependencies]
+parameterized = "0.1.1"
