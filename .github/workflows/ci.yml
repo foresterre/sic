@@ -106,9 +106,10 @@ jobs:
           override: true
           profile: minimal
           components: clippy
-      - name: check_with_clippy
-        run: |
-          cargo clippy --all -- -D warnings
+      - uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --all-features
 
   cargo_deny:
     name: pipeline_cargo_deny
