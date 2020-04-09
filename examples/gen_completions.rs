@@ -1,8 +1,7 @@
-extern crate clap;
-extern crate sic_lib;
+extern crate sic_cli;
 
 fn main() {
-    let mut cli = sic_lib::app::cli::cli();
+    let mut cli = sic_cli::cli::cli();
 
     let program_name = option_env!("SIC_COMPLETIONS_APP_NAME").unwrap_or("sic");
 
@@ -17,8 +16,13 @@ fn main() {
 
     let or_out_dir = || {
         std::env::args_os().nth(1).unwrap_or_else(|| {
+            eprintln!(
+                "No argument found for the output directory, attempting to use the current \
+            directory instead..."
+            );
+
             std::env::current_dir()
-                .expect("Unable to receive current directory.")
+                .expect("A 'current directory' was not defined")
                 .into_os_string()
         })
     };
