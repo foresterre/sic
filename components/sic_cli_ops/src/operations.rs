@@ -8,16 +8,9 @@ use sic_image_engine::ImgOp;
 use sic_parser::errors::SicParserError;
 use sic_parser::value_parser::{Describable, ParseInputsFromIter};
 
-use crate::cli::arg_names::{
-    OPMOD_RESIZE_PRESERVE_ASPECT_RATIO, OPMOD_RESIZE_SAMPLING_FILTER, OP_BLUR, OP_BRIGHTEN,
-    OP_CONTRAST, OP_CROP, OP_DIFF, OP_FILTER3X3, OP_FLIP_HORIZONTAL, OP_FLIP_VERTICAL,
-    OP_GRAYSCALE, OP_HUE_ROTATE, OP_INVERT, OP_RESIZE, OP_ROTATE180, OP_ROTATE270, OP_ROTATE90,
-    OP_UNSHARPEN,
-};
-
 /// The enumeration of all supported operations.
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
-pub(crate) enum OperationId {
+#[derive(Debug, Copy, Clone, Eq, PartialEq, AsStaticStr)]
+pub enum OperationId {
     Blur,
     Brighten,
     Contrast,
@@ -41,26 +34,8 @@ pub(crate) enum OperationId {
 impl OperationId {
     /// A string representation for each operation.
     pub fn as_str(&self) -> &str {
-        match self {
-            OperationId::Blur => OP_BLUR,
-            OperationId::Brighten => OP_BRIGHTEN,
-            OperationId::Contrast => OP_CONTRAST,
-            OperationId::Crop => OP_CROP,
-            OperationId::Diff => OP_DIFF,
-            OperationId::Filter3x3 => OP_FILTER3X3,
-            OperationId::FlipH => OP_FLIP_HORIZONTAL,
-            OperationId::FlipV => OP_FLIP_VERTICAL,
-            OperationId::Grayscale => OP_GRAYSCALE,
-            OperationId::HueRotate => OP_HUE_ROTATE,
-            OperationId::Invert => OP_INVERT,
-            OperationId::Resize => OP_RESIZE,
-            OperationId::Rotate90 => OP_ROTATE90,
-            OperationId::Rotate180 => OP_ROTATE180,
-            OperationId::Rotate270 => OP_ROTATE270,
-            OperationId::Unsharpen => OP_UNSHARPEN,
-            OperationId::ModResizePreserveAspectRatio => OPMOD_RESIZE_PRESERVE_ASPECT_RATIO,
-            OperationId::ModResizeSamplingFilter => OPMOD_RESIZE_SAMPLING_FILTER,
-        }
+        use strum::AsStaticRef;
+        self.as_static()
     }
 
     /// Provides the number of arguments an operation takes.
@@ -164,7 +139,7 @@ impl OperationId {
     }
 }
 
-type Index = usize;
+pub type Index = usize;
 
 /// Represents an image operation which was obtained from CLI image operation commands.
 ///
@@ -176,7 +151,7 @@ type Index = usize;
 /// The operation argument values are not parsed yet within this structure.
 /// The values are also not necessarily unified yet.
 #[derive(Debug, Clone, Eq, PartialEq)]
-pub(crate) enum Op {
+pub enum Op {
     WithValues(OperationId, Vec<String>),
     Bare(OperationId),
 }
@@ -186,11 +161,11 @@ pub(crate) enum Op {
 /// [Op] by their provided indices.
 /// Note that unified [Op] could be given any index of the values they were originally unified
 /// from.
-pub(crate) type IndexTree = BTreeMap<Index, Op>;
+pub type IndexTree = BTreeMap<Index, Op>;
 
 /// Nodes which contain tuples with arity 2, where the first value is the Index,
 /// and the second value is an Operation
-pub(crate) type IndexedOps = Vec<(Index, Op)>;
+pub type IndexedOps = Vec<(Index, Op)>;
 
 // Pair operations with the index, which can be used to find the order in which arguments were provided.
 // It should only be used for operations which take one or more arguments.
@@ -509,9 +484,8 @@ mod test_tree_extend {
 
     use clap::ArgMatches;
 
+    use sic_cli::cli::cli;
     use sic_testing::{setup_output_path, setup_test_image};
-
-    use crate::cli::cli;
 
     use super::*;
 

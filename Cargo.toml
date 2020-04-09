@@ -18,6 +18,7 @@ categories = ["multimedia::images", "command-line-utilities"]
 [workspace]
 members = [
   "components/sic_cli",
+  "components/sic_cli_ops",
   "components/sic_core",
   "components/sic_image_engine",
   "components/sic_io",
