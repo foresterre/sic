@@ -46,10 +46,6 @@ pub(crate) mod arg_names {
 
     // image-operations(cli-arguments):
     pub(crate) const GROUP_IMAGE_OPERATIONS: &str = "group";
-
-    // image-operations(cli-arguments/modifiers):
-    pub(crate) const OPMOD_RESIZE_PRESERVE_ASPECT_RATIO: &str = "opmod_resize_par";
-    pub(crate) const OPMOD_RESIZE_SAMPLING_FILTER: &str = "opmod_resize_sampling_filter";
 }
 
 pub fn cli() -> App<'static, 'static> {
