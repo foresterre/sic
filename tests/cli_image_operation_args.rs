@@ -198,6 +198,18 @@ mod filter3x3 {
     }
 
     #[test]
+    fn filter3x3_emboss() {
+        let mut process = command(
+            DEFAULT_IN,
+            "cio_f3x3_emboss.png",
+            "--filter3x3 -1 -1 0 -1 1 1 0 1 1",
+        );
+        let result = process.wait();
+        assert!(result.is_ok());
+        assert!(result.unwrap().success());
+    }
+
+    #[test]
     fn filter3x3_not() {
         let mut process = command(
             DEFAULT_IN,
