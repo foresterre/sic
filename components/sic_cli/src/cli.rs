@@ -1,20 +1,22 @@
-use crate::app::config::{validate_jpeg_quality, Config, ConfigBuilder, SelectedLicenses};
-use crate::app::operations::{
-    extend_index_tree_with_unification, IndexTree, IndexedOps, Op, OperationId,
-};
-use crate::get_tool_name;
-use crate::{op_valueless, op_with_values};
-use anyhow::{anyhow, bail};
-use arg_names::*;
-use clap::{App, AppSettings, Arg, ArgGroup, ArgMatches};
-use sic_image_engine::engine::Instr;
-use sic_io::load::FrameIndex;
 use std::collections::BTreeMap;
 use std::str::FromStr;
 
-const ABOUT: &str = include_str!("../../resources/help-pages/about.txt");
+use clap::{App, AppSettings, Arg, ArgGroup, ArgMatches};
+
+use anyhow::{anyhow, bail};
+use arg_names::*;
+use sic_image_engine::engine::Instr;
+use sic_io::load::FrameIndex;
+
+use crate::config::{validate_jpeg_quality, Config, ConfigBuilder, SelectedLicenses};
+use crate::operations::{
+    extend_index_tree_with_unification, IndexTree, IndexedOps, Op, OperationId,
+};
+use crate::{op_valueless, op_with_values};
+
+const ABOUT: &str = include_str!("../../../resources/help-pages/about.txt");
 const HELP_OPERATIONS_AVAILABLE: &str =
-    include_str!("../../resources/help-pages/image_operations.txt");
+    include_str!("../../../resources/help-pages/image_operations.txt");
 
 // table of argument names
 pub(crate) mod arg_names {
@@ -71,7 +73,7 @@ pub(crate) mod arg_names {
 }
 
 pub fn cli() -> App<'static, 'static> {
-    App::new(get_tool_name())
+    App::new("sic")
         .version(env!("CARGO_PKG_VERSION"))
         .about(ABOUT)
         .after_help("For more information, visit: https://github.com/foresterre/sic")
@@ -500,10 +502,12 @@ fn ast_from_index_tree(tree: &mut IndexTree) -> anyhow::Result<Vec<Instr>> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::collections::BTreeMap;
+
     use sic_image_engine::engine::Instr;
     use sic_image_engine::ImgOp;
-    use std::collections::BTreeMap;
+
+    use super::*;
 
     macro_rules! assert_match {
         ($iter:expr, $clause:pat, $assert:expr) => {{

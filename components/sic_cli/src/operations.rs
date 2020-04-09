@@ -1,9 +1,5 @@
-use crate::app::cli::arg_names::{
-    OPMOD_RESIZE_PRESERVE_ASPECT_RATIO, OPMOD_RESIZE_SAMPLING_FILTER, OP_BLUR, OP_BRIGHTEN,
-    OP_CONTRAST, OP_CROP, OP_DIFF, OP_FILTER3X3, OP_FLIP_HORIZONTAL, OP_FLIP_VERTICAL,
-    OP_GRAYSCALE, OP_HUE_ROTATE, OP_INVERT, OP_RESIZE, OP_ROTATE180, OP_ROTATE270, OP_ROTATE90,
-    OP_UNSHARPEN,
-};
+use std::collections::BTreeMap;
+
 use anyhow::{anyhow, bail, Context};
 use sic_image_engine::engine::{EnvItem, Instr, ItemName};
 use sic_image_engine::wrapper::filter_type::FilterTypeWrap;
@@ -11,7 +7,13 @@ use sic_image_engine::wrapper::image_path::ImageFromPath;
 use sic_image_engine::ImgOp;
 use sic_parser::errors::SicParserError;
 use sic_parser::value_parser::{Describable, ParseInputsFromIter};
-use std::collections::BTreeMap;
+
+use crate::cli::arg_names::{
+    OPMOD_RESIZE_PRESERVE_ASPECT_RATIO, OPMOD_RESIZE_SAMPLING_FILTER, OP_BLUR, OP_BRIGHTEN,
+    OP_CONTRAST, OP_CROP, OP_DIFF, OP_FILTER3X3, OP_FLIP_HORIZONTAL, OP_FLIP_VERTICAL,
+    OP_GRAYSCALE, OP_HUE_ROTATE, OP_INVERT, OP_RESIZE, OP_ROTATE180, OP_ROTATE270, OP_ROTATE90,
+    OP_UNSHARPEN,
+};
 
 /// The enumeration of all supported operations.
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
@@ -396,8 +398,9 @@ mod test_unification {
     use super::*;
 
     mod cli_arg_values_unification {
-        use super::*;
         use std::collections::BTreeMap;
+
+        use super::*;
 
         #[test]
         fn tree_extend_unifiable_n1() {
@@ -501,12 +504,16 @@ mod test_unification {
 
 #[cfg(test)]
 mod test_tree_extend {
-    use super::*;
-    use crate::app::cli::cli;
-    use clap::ArgMatches;
-    use sic_testing::{setup_output_path, setup_test_image};
     use std::collections::hash_map::DefaultHasher;
     use std::hash::{Hash, Hasher};
+
+    use clap::ArgMatches;
+
+    use sic_testing::{setup_output_path, setup_test_image};
+
+    use crate::cli::cli;
+
+    use super::*;
 
     fn setup(cmd: &str) -> (ArgMatches, String) {
         let out = output(cmd);
@@ -618,6 +625,8 @@ mod test_tree_extend {
     }
 
     mod case_contrast {
+        use super::*;
+
         #[test]
         fn contrast_x1_pos() {
             let mut tree: IndexTree = BTreeMap::new();
@@ -637,8 +646,6 @@ mod test_tree_extend {
                 _ => panic!("test err"),
             }
         }
-
-        use super::*;
 
         #[test]
         fn contrast_x1_neg() {

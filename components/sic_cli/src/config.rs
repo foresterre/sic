@@ -1,4 +1,5 @@
 use anyhow::bail;
+
 use sic_image_engine::engine::Instr;
 use sic_io::load::FrameIndex;
 
@@ -74,8 +75,8 @@ impl Default for Config<'_> {
     }
 }
 
-/// Builder for [crate::app::config::Config]. Should be used with the Default implementation
-/// of [crate::app::config::Config].
+/// Builder for [crate::config::Config]. Should be used with the Default implementation
+/// of [crate::config::Config].
 /// If the default trait is not used with this builder, some settings may be inaccessible.
 /// For example, `output_path` can be set to some value, but not unset.
 ///
@@ -177,10 +178,12 @@ pub fn validate_jpeg_quality(quality: u8) -> anyhow::Result<u8> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::str::FromStr;
+
     use sic_image_engine::engine::Instr;
     use sic_image_engine::ImgOp;
-    use std::str::FromStr;
+
+    use super::*;
 
     #[test]
     fn jpeg_in_quality_range_lower_bound_inside() {

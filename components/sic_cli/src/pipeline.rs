@@ -2,8 +2,9 @@ use std::fs::File;
 use std::io::{self, Read, Write};
 use std::path::Path;
 
-use anyhow::{anyhow, bail, Context};
 use clap::ArgMatches;
+
+use anyhow::{anyhow, bail, Context};
 use sic_core::image;
 use sic_image_engine::engine::ImageEngine;
 use sic_io::conversion::AutomaticColorTypeAdjustment;
@@ -13,9 +14,10 @@ use sic_io::format::{
 use sic_io::load::{load_image, ImportConfig};
 use sic_io::save::{export, ExportSettings};
 
-use crate::app::cli::arg_names::{ARG_INPUT, ARG_INPUT_FILE};
-use crate::app::config::Config;
-use crate::app::license::PrintTextFor;
+use crate::cli::arg_names::{ARG_INPUT, ARG_INPUT_FILE};
+use crate::config::Config;
+use crate::license::LicenseTexts;
+use crate::license::PrintTextFor;
 
 /// The run function runs the sic application, taking the matches found by Clap.
 /// This function is separated from the main() function so that it can be used more easily in test cases.
@@ -115,9 +117,9 @@ fn mk_export_writer<P: AsRef<Path>>(output_path: Option<P>) -> anyhow::Result<Bo
     }
 }
 
-pub fn run_display_licenses(config: &Config) -> anyhow::Result<()> {
+pub fn run_display_licenses(config: &Config, texts: &LicenseTexts) -> anyhow::Result<()> {
     config
         .show_license_text_of
         .ok_or_else(|| anyhow!("Unable to determine which license texts should be displayed."))
-        .and_then(|license_text| license_text.print())
+        .and_then(|license_text| license_text.print(texts))
 }
