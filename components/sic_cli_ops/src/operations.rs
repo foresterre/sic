@@ -9,7 +9,7 @@ use sic_parser::errors::SicParserError;
 use sic_parser::value_parser::{Describable, ParseInputsFromIter};
 
 /// The enumeration of all supported operations.
-#[derive(Debug, Copy, Clone, Eq, PartialEq, AsStaticStr)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, AsStaticStr, EnumIter)]
 pub enum OperationId {
     Blur,
     Brighten,

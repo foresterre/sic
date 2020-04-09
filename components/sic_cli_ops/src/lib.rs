@@ -15,28 +15,9 @@ pub fn build_ast_from_matches(
     matches: &ArgMatches,
     tree: &mut IndexTree,
 ) -> anyhow::Result<Vec<Instr>> {
-    let operations = vec![
-        // operations
-        OperationId::Blur,
-        OperationId::Brighten,
-        OperationId::Contrast,
-        OperationId::Crop,
-        OperationId::Diff,
-        OperationId::Filter3x3,
-        OperationId::FlipH,
-        OperationId::FlipV,
-        OperationId::Grayscale,
-        OperationId::HueRotate,
-        OperationId::Invert,
-        OperationId::Resize,
-        OperationId::Rotate90,
-        OperationId::Rotate180,
-        OperationId::Rotate270,
-        OperationId::Unsharpen,
-        // modifiers
-        OperationId::ModResizeSamplingFilter,
-        OperationId::ModResizePreserveAspectRatio,
-    ];
+    use strum::IntoEnumIterator;
+
+    let operations = OperationId::iter();
     ast_extend_with_operation(tree, matches, operations)?;
 
     // Build!
