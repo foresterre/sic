@@ -13,7 +13,7 @@ sic_io = { path = "../sic_io", version = "0.10" }
 
 strum = "0.18.0"
 strum_macros = "0.18.0"
-thiserror = "1.0.14"
+thiserror = "1.0.15"
 
 [dev-dependencies]
 sic_testing = { path = "../sic_testing", version = "0.10" }
