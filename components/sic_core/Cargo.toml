@@ -8,4 +8,4 @@ license-file = "../../LICENSE"
 repository = "https://github.com/foresterre/sic"
 
 [dependencies]
-image = "0.23.3"
+image = "0.23.4"
