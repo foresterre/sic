@@ -14,6 +14,14 @@ impl FilterTypeWrap {
     }
 }
 
+impl Default for FilterTypeWrap {
+    fn default() -> Self {
+        Self {
+            inner: FilterType::Lanczos3,
+        }
+    }
+}
+
 impl PartialEq<FilterTypeWrap> for FilterTypeWrap {
     fn eq(&self, other: &FilterTypeWrap) -> bool {
         std::mem::discriminant(&self.inner) == std::mem::discriminant(&other.inner)
