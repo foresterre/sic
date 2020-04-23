@@ -314,13 +314,11 @@ impl CropSelection {
     }
 }
 
-const DEFAULT_RESIZE_FILTER: FilterType = FilterType::Gaussian;
-
 fn resize_filter_or_default(env: &mut Env) -> FilterType {
     env.get(ItemName::CustomSamplingFilter)
         .and_then(|item| item.resize_sampling_filter())
         .map(FilterType::from)
-        .unwrap_or(DEFAULT_RESIZE_FILTER)
+        .unwrap_or_else(|| FilterTypeWrap::default().into())
 }
 
 #[cfg(test)]
