@@ -64,6 +64,7 @@ mod convert_to_x {
 
     #[parameterized(ext = {
         "bmp",
+        "farbfeld",
         "gif",
         "jpg",
         "jpeg",
@@ -75,6 +76,7 @@ mod convert_to_x {
         "pam",
     }, expected_format = {
         image::ImageFormat::Bmp,
+        image::ImageFormat::Farbfeld,
         image::ImageFormat::Gif,
         image::ImageFormat::Jpeg,
         image::ImageFormat::Jpeg,
@@ -129,6 +131,7 @@ mod convert_to_x_by_ff {
 
     #[parameterized(which = {
         "bmp",
+        "farbfeld",
         "gif",
         "jpg",
         "jpeg",
@@ -140,6 +143,7 @@ mod convert_to_x_by_ff {
         "pam",
     }, expected_format = {
         image::ImageFormat::Bmp,
+        image::ImageFormat::Farbfeld,
         image::ImageFormat::Gif,
         image::ImageFormat::Jpeg,
         image::ImageFormat::Jpeg,
