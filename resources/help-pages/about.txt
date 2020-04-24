@@ -1,14 +1,14 @@
 sic is an image crate[1], CLI front-end. It allows you to perform image operations on images and to convert images between formats from the CLI.
 
 Currently, the following input (decoding) formats are supported:
-* BMP, GIF, ICO, JPEG, PNG, PBM, PGM, PPM, PAM and TIFF and WebP
+* BMP, GIF, DDS, Farbfeld, ICO, JPEG, PNG, PBM, PGM, PPM, PAM, TGA, TIFF and WebP
 
 The following output (encoding) formats are supported:
-* BMP, GIF, ICO, JPEG, PNG, PBM, PGM, PPM and PAM
+* BMP, GIF, Farbfeld, ICO, JPEG, PNG, PBM, PGM, PPM, PAM, TIFF
 
-For both encoding and decoding, not all variations of the supported formats are supported.
+For both encoding and decoding, some formats are partly supported (i.e. limitation may apply).
 Animated images are currently not supported, however a specific image frame may be selected if the image is a GIF.
 Other limitations can be found at:
-* https://github.com/image-rs/image/tree/bf93ebb36193fc40bafe066461cf2ee43a5fb536#21-supported-image-formats
+* https://github.com/image-rs/image/tree/v0.23.4#21-supported-image-formats
 
 [1] https://github.com/image-rs/image
