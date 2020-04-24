@@ -5,16 +5,18 @@ use clap::ArgMatches;
 
 use sic_image_engine::engine::Instr;
 
+use crate::errors::SicCliOpsError;
 use crate::operations::{
     extend_index_tree_with_unification, IndexTree, IndexedOps, Op, OperationId,
 };
 
+pub mod errors;
 pub mod operations;
 
 pub fn build_ast_from_matches(
     matches: &ArgMatches,
     tree: &mut IndexTree,
-) -> anyhow::Result<Vec<Instr>> {
+) -> Result<Vec<Instr>, SicCliOpsError> {
     use strum::IntoEnumIterator;
 
     let operations = OperationId::iter();
@@ -28,7 +30,7 @@ fn ast_extend_with_operation<T: IntoIterator<Item = OperationId>>(
     tree: &mut IndexTree,
     matches: &ArgMatches,
     operations: T,
-) -> anyhow::Result<()> {
+) -> Result<(), SicCliOpsError> {
     for operation in operations {
         let argc = operation.takes_number_of_arguments();
         let ops = mk_ops(operation, matches);
@@ -46,7 +48,7 @@ fn mk_ops(op: OperationId, matches: &ArgMatches) -> Option<IndexedOps> {
     }
 }
 
-fn ast_from_index_tree(tree: &mut IndexTree) -> anyhow::Result<Vec<Instr>> {
+fn ast_from_index_tree(tree: &mut IndexTree) -> Result<Vec<Instr>, SicCliOpsError> {
     tree.iter()
         .map(|(_index, op)| match op {
             Op::Bare(id) => {
@@ -55,7 +57,7 @@ fn ast_from_index_tree(tree: &mut IndexTree) -> anyhow::Result<Vec<Instr>> {
             }
             Op::WithValues(id, values) => id.mk_statement(values),
         })
-        .collect::<anyhow::Result<Vec<Instr>>>()
+        .collect::<Result<Vec<Instr>, SicCliOpsError>>()
 }
 
 #[cfg(test)]
