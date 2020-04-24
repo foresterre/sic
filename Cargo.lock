@@ -478,6 +478,7 @@ dependencies = [
  "anyhow 1.0.28 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "flate2 1.0.14 (registry+https://github.com/rust-lang/crates.io-index)",
+ "parameterized 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "sic_cli 0.10.0",
  "sic_core 0.10.0",
 ]

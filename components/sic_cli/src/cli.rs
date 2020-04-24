@@ -22,13 +22,9 @@ pub(crate) mod arg_names {
     pub(crate) const ARG_LICENSE: &str = "license";
     pub(crate) const ARG_DEP_LICENSES: &str = "dep_licenses";
 
-    // io(input):
+    // io(input, output):
     pub(crate) const ARG_INPUT: &str = "input";
     pub(crate) const ARG_OUTPUT: &str = "output";
-
-    // io(output):
-    pub(crate) const ARG_INPUT_FILE: &str = "input_file";
-    pub(crate) const ARG_OUTPUT_FILE: &str = "output_file";
 
     // config(in):
     pub(crate) const ARG_SELECT_FRAME: &str = "select_frame";
@@ -70,12 +66,12 @@ pub fn cli() -> App<'static, 'static> {
             .long("license")
             .help("Displays the license of this piece of software (`sic`).")
             .takes_value(false)
-            .conflicts_with_all(&[ARG_DEP_LICENSES, ARG_INPUT_FILE, ARG_OUTPUT_FILE, ARG_INPUT, ARG_OUTPUT]))
+            .conflicts_with_all(&[ARG_DEP_LICENSES, ARG_INPUT, ARG_OUTPUT]))
         .arg(Arg::with_name(ARG_DEP_LICENSES)
             .long("dep-licenses")
             .help("Displays the licenses of the dependencies on which this software relies.")
             .takes_value(false)
-            .conflicts_with_all(&[ARG_LICENSE, ARG_INPUT_FILE, ARG_OUTPUT_FILE, ARG_INPUT, ARG_OUTPUT]))
+            .conflicts_with_all(&[ARG_LICENSE, ARG_INPUT, ARG_OUTPUT]))
 
         // io(input):
         .arg(Arg::with_name(ARG_INPUT)
@@ -84,13 +80,7 @@ pub fn cli() -> App<'static, 'static> {
             .value_name("INPUT_PATH")
             .takes_value(true)
             .help("Input image path. When using this option, input piped from stdin will be ignored.")
-            .conflicts_with_all(&[ARG_INPUT_FILE, ARG_OUTPUT_FILE, ARG_LICENSE, ARG_DEP_LICENSES]))
-        .arg(Arg::with_name(ARG_INPUT_FILE)
-            .help("DEPRECATED. Use '--input' instead. (Sets the input file. Can only be used in combination with OUTPUT_FILE.)")
-            .value_name("INPUT_FILE")
-            .requires(ARG_OUTPUT_FILE)
-            .conflicts_with_all(&[ARG_INPUT, ARG_OUTPUT, ARG_LICENSE, ARG_DEP_LICENSES])
-            .index(1))
+            .conflicts_with_all(&[ARG_LICENSE, ARG_DEP_LICENSES]))
 
         // io(output):
         .arg(Arg::with_name(ARG_OUTPUT)
@@ -99,13 +89,7 @@ pub fn cli() -> App<'static, 'static> {
             .value_name("OUTPUT_PATH")
             .takes_value(true)
             .help("Output image path. When using this option, output won't be piped to stdout.")
-            .conflicts_with_all(&[ARG_INPUT_FILE, ARG_OUTPUT_FILE, ARG_LICENSE, ARG_DEP_LICENSES]))
-        .arg(Arg::with_name(ARG_OUTPUT_FILE)
-            .help("DEPRECATED. Use '--output' instead. (Sets the desired output file. Can only be used in combination with INPUT_FILE.)")
-            .value_name("OUTPUT_FILE")
-            .requires(ARG_INPUT_FILE)
-            .conflicts_with_all(&[ARG_INPUT, ARG_OUTPUT, ARG_LICENSE, ARG_DEP_LICENSES])
-            .index(2))
+            .conflicts_with_all(&[ARG_LICENSE, ARG_DEP_LICENSES]))
 
         // config(in):
         .arg(Arg::with_name(ARG_SELECT_FRAME)
@@ -317,10 +301,7 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> anyhow::Result<Config<'a
     };
 
     // io(output):
-    if let Some(path) = matches
-        .value_of(ARG_OUTPUT)
-        .or_else(|| matches.value_of(ARG_OUTPUT_FILE))
-    {
+    if let Some(path) = matches.value_of(ARG_OUTPUT) {
         builder = builder.output_path(path);
     }
 

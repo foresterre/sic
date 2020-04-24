@@ -32,13 +32,6 @@ From the source:
 * Shorthand: `sic -i <input> -o <output>`
 * Example: `sic -i input.png -o output.jpg` <br>
 
-Previously `sic <input> <output>` was used to specify the input and output image files. This method of specifying
-input and output image paths is still supported, if and only if no other input and output option ( such as
-'--input' and '--output') is  used. Using the '--input' and '--output' arguments is however the preferred way to specify
-input and output image file paths.
-
-<br>
-
 **Covert an image from one format to another while not caring about the output file extension.**
 * In general `sic --output-format "<format>" -i <input> -o <output>` (or  `sic -f "<format>" -i <input> -o <output>`)
 * Example `sic --output-format png -i input.bmp -o output.jpg` _(Note: `output.jpg` will have the PNG format even though the extension is `jpg`.)_

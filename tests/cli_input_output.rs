@@ -67,7 +67,7 @@ fn neither_i_and_o_args() {
     let result = kind.start(&input, &output).expect("process").wait();
 
     assert!(result.is_ok());
-    assert!(result.unwrap().success());
+    assert_not!(result.unwrap().success());
 }
 
 #[test]
