@@ -14,7 +14,7 @@ use sic_io::format::{
 use sic_io::load::{load_image, ImportConfig};
 use sic_io::save::{export, ExportSettings};
 
-use crate::cli::arg_names::{ARG_INPUT, ARG_INPUT_FILE};
+use crate::cli::arg_names::ARG_INPUT;
 use crate::config::Config;
 use crate::license::LicenseTexts;
 use crate::license::PrintTextFor;
@@ -93,8 +93,6 @@ fn mk_reader(matches: &ArgMatches) -> anyhow::Result<Box<dyn Read>> {
 
     let reader = if matches.is_present(ARG_INPUT) {
         with_file_reader(matches, ARG_INPUT)?
-    } else if matches.is_present(ARG_INPUT_FILE) {
-        with_file_reader(matches, ARG_INPUT_FILE)?
     } else {
         if atty::is(atty::Stream::Stdin) {
             bail!(

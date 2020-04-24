@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate parameterized;
+
 use std::io::Read;
 use std::path::{Path, PathBuf};
 
@@ -53,437 +56,115 @@ fn is_image_format(output_path: &str, hope: image::ImageFormat) -> bool {
 // convert_to_X_by_extension
 // BMP, GIF, JPEG, PNG, ICO, PBM, PGM, PPM, PAM
 
-#[test]
-fn convert_to_bmp_by_extension() {
-    let our_input = setup_input_path("palette_4x4.png");
-    let our_output = setup_output_path("out_01.bmp");
+#[cfg(test)]
+mod convert_to_x {
+    use super::*;
 
-    let args = vec![
-        "sic",
-        our_input.to_str().unwrap(),
-        path_buf_str(&our_output),
-    ];
-    let matches = get_app().get_matches_from(args);
+    ide!();
 
-    let complete = run(&matches, &build_app_config(&matches).unwrap());
+    #[parameterized(ext = {
+        "bmp",
+        "gif",
+        "jpg",
+        "jpeg",
+        "ico",
+        "png",
+        "pbm",
+        "pgm",
+        "ppm",
+        "pam",
+    }, expected_format = {
+        image::ImageFormat::Bmp,
+        image::ImageFormat::Gif,
+        image::ImageFormat::Jpeg,
+        image::ImageFormat::Jpeg,
+        image::ImageFormat::Ico,
+        image::ImageFormat::Png,
+        image::ImageFormat::Pnm,
+        image::ImageFormat::Pnm,
+        image::ImageFormat::Pnm,
+        image::ImageFormat::Pnm,
 
-    complete.unwrap();
-    assert!(our_output.exists());
-    assert!(is_image_format(
-        path_buf_str(&our_output),
-        image::ImageFormat::Bmp
-    ));
+    })]
+    fn convert_to_x_by_extension(ext: &str, expected_format: image::ImageFormat) {
+        let input_path = setup_input_path("palette_4x4.png");
+        let output_path = setup_output_path(&["cli_convert_to_x_by_extension", ext].join("."));
 
-    clean_up_output_path(path_buf_str(&our_output));
+        let args = vec![
+            "sic",
+            "--input",
+            input_path.to_str().unwrap(),
+            "--output",
+            path_buf_str(&output_path),
+        ];
+        let matches = get_app().get_matches_from(args);
+
+        let complete = run(&matches, &build_app_config(&matches).unwrap());
+
+        complete.unwrap();
+        assert!(output_path.exists());
+        assert!(is_image_format(path_buf_str(&output_path), expected_format));
+
+        clean_up_output_path(path_buf_str(&output_path));
+    }
 }
 
-#[test]
-fn convert_to_gif_by_extension() {
-    let our_input = setup_input_path("palette_4x4.png");
-    let our_output = setup_output_path("out_01.gif");
+#[cfg(test)]
+mod convert_to_x_by_ff {
+    use super::*;
 
-    let args = vec!["sic", path_buf_str(&our_input), path_buf_str(&our_output)];
-    let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, &build_app_config(&matches).unwrap());
+    ide!();
 
-    complete.unwrap();
-    assert!(our_output.exists());
-    assert!(is_image_format(
-        path_buf_str(&our_output),
-        image::ImageFormat::Gif
-    ));
+    fn args<'a>(which: &'a str, input: &'a PathBuf, output: &'a PathBuf) -> Vec<&'a str> {
+        vec![
+            "sic",
+            "--output-format",
+            which,
+            "--input",
+            path_buf_str(&input),
+            "--output",
+            path_buf_str(&output),
+        ]
+    }
 
-    clean_up_output_path(path_buf_str(&our_output));
+    #[parameterized(which = {
+        "bmp",
+        "gif",
+        "jpg",
+        "jpeg",
+        "ico",
+        "png",
+        "pbm",
+        "pgm",
+        "ppm",
+        "pam",
+    }, expected_format = {
+        image::ImageFormat::Bmp,
+        image::ImageFormat::Gif,
+        image::ImageFormat::Jpeg,
+        image::ImageFormat::Jpeg,
+        image::ImageFormat::Ico,
+        image::ImageFormat::Png,
+        image::ImageFormat::Pnm,
+        image::ImageFormat::Pnm,
+        image::ImageFormat::Pnm,
+        image::ImageFormat::Pnm,
+    })]
+    fn convert_to_bmp_by_ff(which: &str, expected_format: image::ImageFormat) {
+        let input_path = setup_input_path("palette_4x4.png");
+        let output_path = setup_output_path(&format!("cli_convert_to_x_by_extension_ff_{}", which));
+
+        let args = args(which, &input_path, &output_path);
+        let matches = get_app().get_matches_from(args);
+        let complete = run(&matches, &build_app_config(&matches).unwrap());
+
+        complete.unwrap();
+        assert!(output_path.exists());
+        assert!(is_image_format(path_buf_str(&output_path), expected_format));
+
+        clean_up_output_path(path_buf_str(&output_path));
+    }
 }
-
-#[test]
-fn convert_to_jpg_by_extension() {
-    let our_input = setup_input_path("palette_4x4.png");
-    let our_output = setup_output_path("out_01.jpg");
-
-    let args = vec!["sic", path_buf_str(&our_input), path_buf_str(&our_output)];
-    let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, &build_app_config(&matches).unwrap());
-
-    complete.unwrap();
-    assert!(our_output.exists());
-    assert!(is_image_format(
-        path_buf_str(&our_output),
-        image::ImageFormat::Jpeg
-    ));
-
-    clean_up_output_path(path_buf_str(&our_output));
-}
-
-#[test]
-fn convert_to_jpeg_by_extension() {
-    let our_input = setup_input_path("palette_4x4.png");
-    let our_output = setup_output_path("out_01.jpeg");
-
-    let args = vec!["sic", path_buf_str(&our_input), path_buf_str(&our_output)];
-    let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, &build_app_config(&matches).unwrap());
-
-    complete.unwrap();
-    assert!(our_output.exists());
-    assert!(is_image_format(
-        path_buf_str(&our_output),
-        image::ImageFormat::Jpeg
-    ));
-
-    clean_up_output_path(path_buf_str(&our_output));
-}
-
-#[test]
-fn convert_to_png_by_extension() {
-    let our_input = setup_input_path("rainbow_8x6.bmp");
-    let our_output = setup_output_path("out_01.png");
-
-    let args = vec!["sic", path_buf_str(&our_input), path_buf_str(&our_output)];
-    let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, &build_app_config(&matches).unwrap());
-
-    complete.unwrap();
-    assert!(our_output.exists());
-    assert!(is_image_format(
-        path_buf_str(&our_output),
-        image::ImageFormat::Png
-    ));
-
-    clean_up_output_path(path_buf_str(&our_output));
-}
-
-#[test]
-fn convert_to_ico_by_extension() {
-    let our_input = setup_input_path("palette_4x4.png");
-    let our_output = setup_output_path("out_01.ico");
-
-    let args = vec!["sic", path_buf_str(&our_input), path_buf_str(&our_output)];
-    let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, &build_app_config(&matches).unwrap());
-
-    complete.unwrap();
-    assert!(our_output.exists());
-    assert!(is_image_format(
-        path_buf_str(&our_output),
-        image::ImageFormat::Ico
-    ));
-
-    clean_up_output_path(path_buf_str(&our_output));
-}
-
-#[test]
-fn convert_to_pbm_by_extension() {
-    let our_input = setup_input_path("palette_4x4.png");
-    let our_output = setup_output_path("out_01.pbm");
-
-    let args = vec!["sic", path_buf_str(&our_input), path_buf_str(&our_output)];
-    let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, &build_app_config(&matches).unwrap());
-
-    complete.unwrap();
-    assert!(our_output.exists());
-    assert!(is_image_format(
-        path_buf_str(&our_output),
-        image::ImageFormat::Pnm
-    ));
-
-    clean_up_output_path(path_buf_str(&our_output));
-}
-
-#[test]
-fn convert_to_pgm_by_extension() {
-    let our_input = setup_input_path("palette_4x4.png");
-    let our_output = setup_output_path("out_01.pgm");
-
-    let args = vec!["sic", path_buf_str(&our_input), path_buf_str(&our_output)];
-    let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, &build_app_config(&matches).unwrap());
-
-    complete.unwrap();
-    assert!(our_output.exists());
-    assert!(is_image_format(
-        path_buf_str(&our_output),
-        image::ImageFormat::Pnm
-    ));
-
-    clean_up_output_path(path_buf_str(&our_output));
-}
-
-#[test]
-fn convert_to_ppm_by_extension() {
-    let our_input = setup_input_path("palette_4x4.png");
-    let our_output = setup_output_path("out_01.ppm");
-
-    let args = vec!["sic", path_buf_str(&our_input), path_buf_str(&our_output)];
-    let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, &build_app_config(&matches).unwrap());
-
-    complete.unwrap();
-    assert!(our_output.exists());
-    assert!(is_image_format(
-        path_buf_str(&our_output),
-        image::ImageFormat::Pnm
-    ));
-
-    clean_up_output_path(path_buf_str(&our_output));
-}
-
-#[test]
-fn convert_to_pam_by_extension() {
-    let our_input = setup_input_path("palette_4x4.png");
-    let our_output = setup_output_path("out_01.pam");
-
-    let args = vec!["sic", path_buf_str(&our_input), path_buf_str(&our_output)];
-    let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, &build_app_config(&matches).unwrap());
-
-    complete.unwrap();
-    assert!(our_output.exists());
-    assert!(is_image_format(
-        path_buf_str(&our_output),
-        image::ImageFormat::Pnm
-    ));
-
-    clean_up_output_path(path_buf_str(&our_output));
-}
-
-fn convert_to_x_by_ff_args<'a>(
-    which: &'a str,
-    input: &'a PathBuf,
-    output: &'a PathBuf,
-) -> Vec<&'a str> {
-    vec![
-        "sic",
-        "--output-format",
-        which,
-        path_buf_str(&input),
-        path_buf_str(&output),
-    ]
-}
-
-#[test]
-fn convert_to_bmp_by_ff() {
-    let which = "bmp";
-
-    let our_input = setup_input_path("palette_4x4.png");
-    let our_output = setup_output_path(&format!("out_01_{}", which));
-
-    let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
-
-    let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, &build_app_config(&matches).unwrap());
-
-    complete.unwrap();
-    assert!(our_output.exists());
-    assert!(is_image_format(
-        path_buf_str(&our_output),
-        image::ImageFormat::Bmp
-    ));
-
-    clean_up_output_path(path_buf_str(&our_output));
-}
-
-#[test]
-fn convert_to_gif_by_ff() {
-    let which = "gif";
-
-    let our_input = setup_input_path("palette_4x4.png");
-    let our_output = setup_output_path(&format!("out_01_{}", which));
-
-    let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
-
-    let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, &build_app_config(&matches).unwrap());
-
-    complete.unwrap();
-    assert!(our_output.exists());
-    assert!(is_image_format(
-        path_buf_str(&our_output),
-        image::ImageFormat::Gif
-    ));
-
-    clean_up_output_path(path_buf_str(&our_output));
-}
-
-#[test]
-fn convert_to_ico_by_ff() {
-    let which = "ico";
-
-    let our_input = setup_input_path("palette_4x4.png");
-    let our_output = setup_output_path(&format!("out_01_{}", which));
-
-    let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
-
-    let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, &build_app_config(&matches).unwrap());
-
-    complete.unwrap();
-    assert!(our_output.exists());
-    assert!(is_image_format(
-        path_buf_str(&our_output),
-        image::ImageFormat::Ico
-    ));
-
-    clean_up_output_path(path_buf_str(&our_output));
-}
-
-#[test]
-fn convert_to_jpg_by_ff() {
-    let which = "jpg";
-
-    let our_input = setup_input_path("palette_4x4.png");
-    let our_output = setup_output_path(&format!("out_01_{}", which));
-
-    let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
-
-    let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, &build_app_config(&matches).unwrap());
-
-    complete.unwrap();
-    assert!(our_output.exists());
-    assert!(is_image_format(
-        path_buf_str(&our_output),
-        image::ImageFormat::Jpeg
-    ));
-
-    clean_up_output_path(path_buf_str(&our_output));
-}
-
-#[test]
-fn convert_to_jpeg_by_ff() {
-    let which = "jpeg";
-
-    let our_input = setup_input_path("palette_4x4.png");
-    let our_output = setup_output_path(&format!("out_01_{}", which));
-
-    let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
-
-    let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, &build_app_config(&matches).unwrap());
-
-    complete.unwrap();
-    assert!(our_output.exists());
-    assert!(is_image_format(
-        path_buf_str(&our_output),
-        image::ImageFormat::Jpeg
-    ));
-
-    clean_up_output_path(path_buf_str(&our_output));
-}
-
-#[test]
-fn convert_to_png_by_ff() {
-    let which = "png";
-
-    let our_input = setup_input_path("palette_4x4.png");
-    let our_output = setup_output_path(&format!("out_01_{}", which));
-
-    let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
-
-    let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, &build_app_config(&matches).unwrap());
-
-    complete.unwrap();
-    assert!(our_output.exists());
-    assert!(is_image_format(
-        path_buf_str(&our_output),
-        image::ImageFormat::Png
-    ));
-
-    clean_up_output_path(path_buf_str(&our_output));
-}
-
-#[test]
-fn convert_to_pbm_by_ff() {
-    let which = "pbm";
-
-    let our_input = setup_input_path("palette_4x4.png");
-    let our_output = setup_output_path(&format!("out_01_{}", which));
-
-    let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
-
-    let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, &build_app_config(&matches).unwrap());
-
-    complete.unwrap();
-    assert!(our_output.exists());
-    assert!(is_image_format(
-        path_buf_str(&our_output),
-        image::ImageFormat::Pnm
-    ));
-
-    clean_up_output_path(path_buf_str(&our_output));
-}
-
-#[test]
-fn convert_to_pgm_by_ff() {
-    let which = "pgm";
-
-    let our_input = setup_input_path("palette_4x4.png");
-    let our_output = setup_output_path(&format!("out_01_{}", which));
-
-    let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
-
-    let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, &build_app_config(&matches).unwrap());
-
-    complete.unwrap();
-    assert!(our_output.exists());
-    assert!(is_image_format(
-        path_buf_str(&our_output),
-        image::ImageFormat::Pnm
-    ));
-
-    clean_up_output_path(path_buf_str(&our_output));
-}
-
-#[test]
-fn convert_to_ppm_by_ff() {
-    let which = "ppm";
-
-    let our_input = setup_input_path("palette_4x4.png");
-    let our_output = setup_output_path(&format!("out_01_{}", which));
-
-    let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
-
-    let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, &build_app_config(&matches).unwrap());
-
-    complete.unwrap();
-    assert!(our_output.exists());
-    assert!(is_image_format(
-        path_buf_str(&our_output),
-        image::ImageFormat::Pnm
-    ));
-
-    clean_up_output_path(path_buf_str(&our_output));
-}
-
-#[test]
-fn convert_to_pam_by_ff() {
-    let which = "pam";
-
-    let our_input = setup_input_path("palette_4x4.png");
-    let our_output = setup_output_path(&format!("out_01_{}", which));
-
-    let args = convert_to_x_by_ff_args(which, &our_input, &our_output);
-
-    let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, &build_app_config(&matches).unwrap());
-
-    complete.unwrap();
-    assert!(our_output.exists());
-    assert!(is_image_format(
-        path_buf_str(&our_output),
-        image::ImageFormat::Pnm
-    ));
-
-    clean_up_output_path(path_buf_str(&our_output));
-}
-
-// Try to determine that PBM, PGM, PPM in ascii mode (P1, P2, P3 resp.) are ascii encoded
-// and if they are 'binary' encoded (P4, P5, P6), they are obviously not ascii encoded.
 
 fn read_file_to_bytes<P: AsRef<Path>>(path: P) -> Vec<u8> {
     let mut f = std::fs::File::open(path).unwrap();
@@ -495,209 +176,92 @@ fn read_file_to_bytes<P: AsRef<Path>>(path: P) -> Vec<u8> {
     buffer
 }
 
-fn guess_is_ascii_encoded(input: &[u8]) -> bool {
-    // The character P in ascii encoding
-    let is_ascii_p = |c: u8| c == 0x50;
+// Try to determine that PBM, PGM, PPM in ascii mode (P1, P2, P3 resp.) are ascii encoded
+// and if they are 'binary' encoded (P4, P5, P6), they are obviously not ascii encoded.
+#[cfg(test)]
+mod pnm_ascii_and_binary {
+    use super::*;
 
-    // P1, P2, P3 are ascii
-    // Checks for numbers 1, 2, 3, binary known as: 0x31, 0x32, 0x33 respectively
-    let is_ascii_magic_number = |c| c == 0x31 || c == 0x32 || c == 0x33;
+    ide!();
 
-    let mut iter = input.iter();
-    let first = iter.next().unwrap();
-    let second = iter.next().unwrap();
+    fn guess_is_ascii_encoded(input: &[u8]) -> bool {
+        // The character P in ascii encoding
+        let is_ascii_p = |c: u8| c == 0x50;
 
-    // check also to be sure that every character in the file can be ascii encoded
-    is_ascii_p(*first) && is_ascii_magic_number(*second) && iter.all(|c| *c <= 0x7F)
-}
+        // P1, P2, P3 are ascii
+        // Checks for numbers 1, 2, 3, binary known as: 0x31, 0x32, 0x33 respectively
+        let is_ascii_magic_number = |c| c == 0x31 || c == 0x32 || c == 0x33;
 
-#[test]
-fn convert_pbm_ascii() {
-    let which = "pbm";
+        let mut iter = input.iter();
+        let first = iter.next().unwrap();
+        let second = iter.next().unwrap();
 
-    let our_input = setup_input_path("palette_4x4.png");
-    let our_output = setup_output_path(&format!("out_02a_{}", which));
+        // check also to be sure that every character in the file can be ascii encoded
+        is_ascii_p(*first) && is_ascii_magic_number(*second) && iter.all(|c| *c <= 0x7F)
+    }
 
-    let args = vec![
-        "sic",
-        "--pnm-encoding-ascii",
-        "--output-format",
-        which,
-        path_buf_str(&our_input),
-        path_buf_str(&our_output),
-    ];
+    fn pnm_encode_test_case(which: &str, is_ascii: bool) {
+        let input_path = setup_input_path("palette_4x4.png");
+        let ascii_str = |bool: bool| if bool { "ascii" } else { "binary" };
+        let output_path = setup_output_path(&format!(
+            "cli_convert_pnm_encoding_test_{}_{}",
+            which,
+            ascii_str(is_ascii)
+        ));
 
-    let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, &build_app_config(&matches).unwrap());
+        let mut args = Vec::with_capacity(8);
+        args.push("sic");
+        if is_ascii {
+            args.push("--pnm-encoding-ascii");
+        }
+        args.push("--output-format");
+        args.push(which);
+        args.push("--input");
+        args.push(path_buf_str(&input_path));
+        args.push("--output");
+        args.push(path_buf_str(&output_path));
 
-    complete.unwrap();
-    assert!(our_output.exists());
+        let matches = get_app().get_matches_from(args);
+        let complete = run(&matches, &build_app_config(&matches).unwrap());
 
-    // read file contents
-    let contents = read_file_to_bytes(path_buf_str(&our_output));
+        complete.unwrap();
+        assert!(output_path.exists());
 
-    // is it just ascii?
-    assert!(guess_is_ascii_encoded(&contents));
+        // read file contents
+        let contents = read_file_to_bytes(path_buf_str(&output_path));
 
-    clean_up_output_path(path_buf_str(&our_output));
-}
+        // is it just ascii?
+        if is_ascii {
+            assert!(guess_is_ascii_encoded(&contents));
+        } else {
+            assert!(!guess_is_ascii_encoded(&contents));
+        }
 
-#[test]
-fn convert_pgm_ascii() {
-    let which = "pgm";
+        clean_up_output_path(path_buf_str(&output_path));
+    }
 
-    let our_input = setup_input_path("palette_4x4.png");
-    let our_output = setup_output_path(&format!("out_02a_{}", which));
+    #[parameterized(which = {
+        "pbm",
+        "pgm",
+        "ppm",
+    })]
+    fn pnm_encode_ascii(which: &str) {
+        pnm_encode_test_case(which, true)
+    }
 
-    let args = vec![
-        "sic",
-        "--pnm-encoding-ascii",
-        "--output-format",
-        which,
-        path_buf_str(&our_input),
-        path_buf_str(&our_output),
-    ];
-
-    let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, &build_app_config(&matches).unwrap());
-
-    complete.unwrap();
-    assert!(our_output.exists());
-
-    // read file contents
-    let contents = read_file_to_bytes(path_buf_str(&our_output));
-
-    // is it just ascii?
-    assert!(guess_is_ascii_encoded(&contents));
-
-    clean_up_output_path(path_buf_str(&our_output));
-}
-
-#[test]
-fn convert_ppm_ascii() {
-    let which = "ppm";
-
-    let our_input = setup_input_path("palette_4x4.png");
-    let our_output = setup_output_path(&format!("out_02a_{}", which));
-
-    let args = vec![
-        "sic",
-        "--pnm-encoding-ascii",
-        "--output-format",
-        which,
-        path_buf_str(&our_input),
-        path_buf_str(&our_output),
-    ];
-
-    let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, &build_app_config(&matches).unwrap());
-
-    complete.unwrap();
-    assert!(our_output.exists());
-
-    // read file contents
-    let contents = read_file_to_bytes(path_buf_str(&our_output));
-
-    // is it just ascii?
-    assert!(guess_is_ascii_encoded(&contents));
-
-    clean_up_output_path(path_buf_str(&our_output));
-}
-
-#[test]
-fn convert_pbm_not_ascii() {
-    let which = "pbm";
-
-    let our_input = setup_input_path("palette_4x4.png");
-    let our_output = setup_output_path(&format!("out_02b_{}", which));
-
-    let args = vec![
-        "sic",
-        "--output-format",
-        which,
-        path_buf_str(&our_input),
-        path_buf_str(&our_output),
-    ];
-
-    let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, &build_app_config(&matches).unwrap());
-
-    complete.unwrap();
-    assert!(our_output.exists());
-
-    // read file contents
-    let contents = read_file_to_bytes(path_buf_str(&our_output));
-
-    // is it just ascii?
-    assert!(!guess_is_ascii_encoded(&contents));
-
-    clean_up_output_path(path_buf_str(&our_output));
-}
-
-#[test]
-fn convert_pgm_not_ascii() {
-    let which = "pgm";
-
-    let our_input = setup_input_path("palette_4x4.png");
-    let our_output = setup_output_path(&format!("out_02b_{}", which));
-
-    let args = vec![
-        "sic",
-        "--output-format",
-        which,
-        path_buf_str(&our_input),
-        path_buf_str(&our_output),
-    ];
-
-    let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, &build_app_config(&matches).unwrap());
-
-    complete.unwrap();
-    assert!(our_output.exists());
-
-    // read file contents
-    let contents = read_file_to_bytes(path_buf_str(&our_output));
-
-    // is it just ascii?
-    assert!(!guess_is_ascii_encoded(&contents));
-
-    clean_up_output_path(path_buf_str(&our_output));
-}
-
-#[test]
-fn convert_ppm_not_ascii() {
-    let which = "ppm";
-
-    let our_input = setup_input_path("palette_4x4.png");
-    let our_output = setup_output_path(&format!("out_02b_{}", which));
-
-    let args = vec![
-        "sic",
-        "--output-format",
-        which,
-        path_buf_str(&our_input),
-        path_buf_str(&our_output),
-    ];
-
-    let matches = get_app().get_matches_from(args);
-    let complete = run(&matches, &build_app_config(&matches).unwrap());
-
-    complete.unwrap();
-    assert!(our_output.exists());
-
-    // read file contents
-    let contents = read_file_to_bytes(path_buf_str(&our_output));
-
-    // is it just ascii?
-    assert!(!guess_is_ascii_encoded(&contents));
-
-    clean_up_output_path(path_buf_str(&our_output));
+    #[parameterized(which = {
+        "pbm",
+        "pgm",
+        "ppm",
+    })]
+    fn pnm_encode_binary(which: &str) {
+        pnm_encode_test_case(which, false)
+    }
 }
 
 // JPEG different quality
 // Currently just tested by default 80 ?!= not(80)
 // Can we do better?
-
 #[test]
 fn convert_jpeg_quality_different() {
     let which = "jpeg";
@@ -710,7 +274,9 @@ fn convert_jpeg_quality_different() {
         "sic",
         "--output-format",
         which,
+        "--input",
         path_buf_str(&our_input),
+        "--output",
         path_buf_str(&out1),
     ];
 
@@ -720,7 +286,9 @@ fn convert_jpeg_quality_different() {
         "81",
         "--output-format",
         which,
+        "--input",
         path_buf_str(&our_input),
+        "--output",
         path_buf_str(&out2),
     ];
 
