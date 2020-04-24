@@ -87,6 +87,7 @@ impl EncodingFormatByIdentifier for DetermineEncodingFormat {
     fn by_identifier(&self, identifier: &str) -> Result<image::ImageOutputFormat, SicIoError> {
         match identifier.to_ascii_lowercase().as_str() {
             "bmp" => Ok(image::ImageOutputFormat::Bmp),
+            "farbfeld" => Ok(image::ImageOutputFormat::Farbfeld),
             "gif" => Ok(image::ImageOutputFormat::Gif),
             "ico" => Ok(image::ImageOutputFormat::Ico),
             "jpeg" | "jpg" => Ok(image::ImageOutputFormat::Jpeg(self.jpeg_quality()?.as_u8())),
@@ -132,10 +133,12 @@ mod tests {
     use super::*;
 
     const INPUT_FORMATS: &[&str] = &[
-        "bmp", "gif", "ico", "jpg", "jpeg", "png", "pbm", "pgm", "ppm", "pam",
+        "bmp", "farbfeld", "gif", "ico", "jpg", "jpeg", "png", "pbm", "pgm", "ppm", "pam",
     ];
+
     const EXPECTED_VALUES: &[image::ImageOutputFormat] = &[
         image::ImageOutputFormat::Bmp,
+        image::ImageOutputFormat::Farbfeld,
         image::ImageOutputFormat::Gif,
         image::ImageOutputFormat::Ico,
         image::ImageOutputFormat::Jpeg(80),

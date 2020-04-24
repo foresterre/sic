@@ -1,4 +1,6 @@
 use crate::errors::SicIoError;
+use image::buffer::ConvertBuffer;
+use image::DynamicImage;
 use sic_core::image;
 use std::io::Write;
 
@@ -64,6 +66,9 @@ impl<'a> ConversionWriter<'a> {
 
         match color_type_adjustment {
             AutomaticColorTypeAdjustment::Enabled => match output_format {
+                image::ImageOutputFormat::Farbfeld => {
+                    Some(DynamicImage::ImageRgba16(image.to_rgba().convert()))
+                }
                 image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Bitmap(_)) => {
                     Some(image.grayscale())
                 }
@@ -187,10 +192,11 @@ mod tests {
 
     const INPUT_MULTI: &[&str] = &["blackwhite_2x2.bmp", "palette_4x4.png"];
     const INPUT_FORMATS: &[&str] = &[
-        "bmp", "gif", "ico", "jpg", "jpeg", "png", "pbm", "pgm", "ppm", "pam",
+        "bmp", "farbfeld", "gif", "ico", "jpg", "jpeg", "png", "pbm", "pgm", "ppm", "pam",
     ];
     const OUTPUT_FORMATS: &[image::ImageOutputFormat] = &[
         image::ImageOutputFormat::Bmp,
+        image::ImageOutputFormat::Farbfeld,
         image::ImageOutputFormat::Gif,
         image::ImageOutputFormat::Ico,
         image::ImageOutputFormat::Jpeg(80),
@@ -210,6 +216,7 @@ mod tests {
 
     const EXPECTED_VALUES: &[image::ImageFormat] = &[
         image::ImageFormat::Bmp,
+        image::ImageFormat::Farbfeld,
         image::ImageFormat::Gif,
         image::ImageFormat::Ico,
         image::ImageFormat::Jpeg,
