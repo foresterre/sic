@@ -1,15 +1,18 @@
-[![Build Status](https://travis-ci.org/foresterre/sic.svg?branch=master)](https://travis-ci.org/foresterre/sic)
-
 # sic image cli
 
-Enables you to perform operations on images and convert images to a variety of image formats.
-'sic' or 'sic image cli' is a (partial) image crate cli front-end.
+[![ci](https://github.com/foresterre/sic/workflows/github_actions_ci/badge.svg)](https://github.com/foresterre/sic/actions?query=workflow%3Agithub_actions_ci)
+[![Crates.io version shield](https://img.shields.io/crates/v/sic.svg)](https://crates.io/crates/sic)
+[![Docs](https://docs.rs/sic/badge.svg)](https://docs.rs/sic)
+[![Crates.io license shield](https://img.shields.io/crates/l/sic.svg)](https://crates.io/crates/sic)
 
-The image conversion and operations are performed by the awesome [image](https://crates.io/crates/image) crate  :balloon:.
-It was initially created to try out another awesome Rust library:  [clap](https://crates.io/crates/clap) :tada:.
+_Convert images and perform image operations from the command-line._
 
+The sic image cli (sic) is a front-end for the [image crate](https://github.com/image-rs/image).
+Aside from the image operations supplied by the image crate, we provide a few additional helpful commands, such
+as diff, ourselves. We intend to also support various operations provided by the [imageproc](https://github.com/image-rs/imageproc)
+crate.
 
-# Install
+### Installation
 
 Install with [cargo](https://crates.io/crates/sic): `cargo install sic`<br>
 Update with [cargo](https://crates.io/crates/sic): `cargo install --force sic`
@@ -25,7 +28,7 @@ From the source:
 - Build a release: `cargo build --release`
 
 
-# Usage
+### Usage
 
 **Convert an image from one format to another, for example from PNG to JPG.**
 * Command: `sic --input <input> --output <output>`
@@ -71,23 +74,23 @@ The available image operations are:
 |operations|syntax*|available (from version)|description|
 |---|---|---|---|
 |blur               | `blur <fp>`                           | Yes (0.5.0) 	    | Performs a Gaussian blur on the image ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.blur.html)). An argument below `0.0`, will use `1.0` instead. |
-|brighten           | `brighten <int>`                      | Yes (0.7.0) 	    | |
-|contrast           | `contrast <fp>`                       | Yes (0.7.0) 	    | |
+|brighten           | `brighten <int>`                      | Yes (0.7.0) 	    | Create a brightened version of the image. |
+|contrast           | `contrast <fp>`                       | Yes (0.7.0) 	    | Adjust the contrast of the image. |
 |crop               | `crop <int> <int> <int> <int>`        | Yes (0.9.0)       | Syntax: `crop <lx> <ly> <rx> <ry>`, where `lx` is top left corner x pixel coordinate starting at 0, `ly` is the top left corner y pixel coordinate starting at 0, `rx` is the  bottom right corner x pixel coordinate and `ry` is the bottom right corner y pixel coordinate. `rx` and `ry` should be larger than `lx` and `ly` respectively. |
 |diff               | `diff <path>`                         | CLI only (unreleased) | Diff the input image against the argument image to show which pixels are the same (white), different (red) or not part of either image (transparent) |
-|filter3x3          | `filter3x3 <args9>`                   | Yes (0.7.0)       | |
+|filter3x3          | `filter3x3 <args9>`                   | Yes (0.7.0)       | Apply a 3 by 3 convolution filter. |
 |flip horizontal    | `fliph`                               | Yes (0.5.0) 	    | Flips the image on the horizontal axis. |
 |flip vertical      | `flipv`                               | Yes (0.5.0) 	    | Flips the image on the vertical axis. |
-|gray scale         | `grayscale`                           | Yes (0.7.0) 	    | |
+|gray scale         | `grayscale`                           | Yes (0.7.0) 	    | Transform each pixel to only hold an intensity of light value. Reduces the color space to contain only gray monochromatic values.|
 |hue rotate         | `huerotate <int>`                     | Yes (0.7.0) 	    | Rotate's the hue, argument is in degrees. Rotates `<int>%360` degrees. |
-|invert             | `invert`                              | Yes (0.7.0) 	    | |
-|resize             | `resize <uint> <uint>`                | Yes (0.5.0) 	    | Resize the image to x by y pixels. Can both up- and downscale. Uses a gaussian sampling filter if no override value is set. |
+|invert             | `invert`                              | Yes (0.7.0) 	    | Invert the colours of an image. |
+|resize             | `resize <uint> <uint>`                | Yes (0.5.0) 	    | Resize the image to x by y pixels. Can both up- and downscale. Uses a `lanczos3` sampling filter if not overridden. Prior to sic v0.11, the default sampling filter was `gaussian`. |
 | >                 | `set resize preserve_aspect_ratio`    | Yes (0.9.0)       | Enables preservation of the aspect ratio when resizing. |
 | >                 | `set resize sampling_filter <value>`  | Yes (0.9.0)       | When resizing use the `<value>` sampling filter. Choices are `catmullrom`, `gaussian`,`lanczos3`,`nearest`,`triangle`. |
-|rotate90           | `rotate90`                            | Yes (0.7.0) 	    | |
-|rotate180          | `rotate180`                           | Yes (0.7.0) 	    | |
-|rotate270          | `rotate270`                           | Yes (0.7.0) 	    | |
-|unsharpen          | `unsharpen <fp> <int>`                | Yes (0.7.0) 	    | |
+|rotate90           | `rotate90`                            | Yes (0.7.0) 	    | Rotate an image 90 degrees. |
+|rotate180          | `rotate180`                           | Yes (0.7.0) 	    | Rotate an image 180 degrees. |
+|rotate270          | `rotate270`                           | Yes (0.7.0) 	    | Rotate an image 270 degrees. |
+|unsharpen          | `unsharpen <fp> <int>`                | Yes (0.7.0) 	    | Applies an unsharpen mask to the image. The first parameter defines how much the image should be blurred and the second parameter defines a threshold. If the difference between the original and blurred image is at least the threshold, they will be subtracted from each other. Can be used to sharpen an image. |
 
 `* The exact syntax applies to the --apply-operations method, but can also be used as a reference for the image operations as cli arguments method.`
 
@@ -141,9 +144,9 @@ or <br>
 | ![a](resources/help-images/diff/a.png) | ![b](resources/help-images/diff/b.png) | ![output](resources/help-images/diff/diff_between_a_and_b.png) |
 
 **filter3x3** example: <br>
-`sic -i in.png -o out.png --apply-operations "filter3x3 1.0 1.0 1.0 0 0 0 0.5 0.5 0.5"` <br>
+`sic -i in.png -o out.png --apply-operations "filter3x3 -1 -1 0 -1 0 1 0 1 1"` <br>
 or <br>
-`sic -i in.png -o out.png --filter3x3 1.0 1.0 1.0 0 0 0 0.5 0.5 0.5`
+`sic -i in.png -o out.png --filter3x3 -1 -1 0 -1 0 1 0 1 1`
 
 **flip horizontal** example: <br>
 `sic -i in.png -o out.png --apply-operations "fliph"` <br>
@@ -217,7 +220,7 @@ or <br>
 
 For additional information on available options and flags, run `sic --help`.
 
-# Suggestions, Questions, Bugs
+### Suggestions, Questions, Bugs
 
 Feel free to open an issue :mailbox_with_mail: if you have a suggestion, a question or found a bug =).
 
