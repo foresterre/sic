@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use anyhow::{anyhow, bail, Context};
+use crate::errors::SicCliOpsError;
 use sic_image_engine::engine::{EnvItem, Instr, ItemName};
 use sic_image_engine::wrapper::filter_type::FilterTypeWrap;
 use sic_image_engine::wrapper::image_path::ImageFromPath;
@@ -71,15 +71,20 @@ impl OperationId {
 
 macro_rules! parse_inputs_by_type {
     ($iterable:expr, $ty:ty) => {{
-        let input: anyhow::Result<$ty> = ParseInputsFromIter::parse($iterable)
-            .with_context(|| format!("Failed to parse value of type {}.", stringify!($ty)));
+        let input: Result<$ty, SicCliOpsError> =
+            ParseInputsFromIter::parse($iterable).map_err(|err| {
+                SicCliOpsError::UnableToParseValueOfType {
+                    err: err,
+                    typ: stringify!($ty).to_string(),
+                }
+            });
         input
     }};
 }
 
 impl OperationId {
     /// Constructs statements for image operations which are taken as input by the image engine.
-    pub fn mk_statement<'a, T>(self, inputs: T) -> anyhow::Result<Instr>
+    pub fn mk_statement<'a, T>(self, inputs: T) -> Result<Instr, SicCliOpsError>
     where
         T: IntoIterator,
         T::Item: Into<Describable<'a>> + std::fmt::Debug,
@@ -222,7 +227,7 @@ pub(crate) fn extend_index_tree_with_unification(
     tree: &mut IndexTree,
     values_for_operation: Option<IndexedOps>,
     amount_of_values: usize,
-) -> anyhow::Result<()> {
+) -> Result<(), SicCliOpsError> {
     match (amount_of_values, values_for_operation) {
         // The operation is not available within our input.
         (_, None) => Ok(()),
@@ -271,7 +276,7 @@ fn tree_extend_unifiable(
     tree: &mut IndexTree,
     nodes: IndexedOps,
     size: usize,
-) -> anyhow::Result<()> {
+) -> Result<(), SicCliOpsError> {
     let unified = unify_arguments_of_operation(nodes, size)?;
     tree.extend(unified);
     Ok(())
@@ -279,7 +284,10 @@ fn tree_extend_unifiable(
 
 /// Chunk provided values and try to unify each chunk to a single [Op].
 /// Requires each chunk to be of the size of the `size` argument.
-fn unify_arguments_of_operation(nodes: IndexedOps, size: usize) -> anyhow::Result<IndexedOps> {
+fn unify_arguments_of_operation(
+    nodes: IndexedOps,
+    size: usize,
+) -> Result<IndexedOps, SicCliOpsError> {
     assert_ne!(size, 0);
 
     let chunks = nodes.chunks(size).clone();
@@ -287,11 +295,7 @@ fn unify_arguments_of_operation(nodes: IndexedOps, size: usize) -> anyhow::Resul
 
     for chunk in chunks {
         if chunk.len() != size {
-            bail!(
-                "Unification of multi valued argument(s) failed: arguments couldn't be \
-                 partitioned in correct chunk sizes. Length of chunk: {}",
-                chunk.len()
-            );
+            return Err(SicCliOpsError::UnableToCorrectlyPartitionMultiParamArguments(chunk.len()));
         }
 
         let unified_chunk = unify_chunk(chunk, None, size);
@@ -301,22 +305,17 @@ fn unify_arguments_of_operation(nodes: IndexedOps, size: usize) -> anyhow::Resul
     Ok(vec)
 }
 
-const FAILED_UNIFICATION_MESSAGE: &str = "Unification of multi valued argument(s) failed: \
-     When using an image operation cli argument which requires n values, \
-     all values should be provided at once. For example, `--crop` takes 4 values \
-     so, n=4. Now, `--crop 0 0 1 1` would be valid, but `--crop 0 0 --crop 1 1` would not.";
-
 /// Try to unify a chunk of values to a single value.
 fn unify_chunk(
     left: &[(usize, Op)],
     last: Option<(usize, Op)>,
     size: usize,
-) -> anyhow::Result<(usize, Op)> {
+) -> Result<(usize, Op), SicCliOpsError> {
     // stop: complete unification of the chunk
     if left.is_empty() {
         match last {
             Some(ret) => Ok(ret),
-            None => Err(anyhow!(FAILED_UNIFICATION_MESSAGE)),
+            None => Err(SicCliOpsError::UnableToUnifyMultiValuedArguments),
         }
     } else {
         // continue (left.len() > 0):
@@ -356,10 +355,10 @@ fn unify_chunk(
 
                             unify_chunk(left[1..].as_ref(), Some(new_last), size)
                         }
-                        _ => Err(anyhow!("Can't unify bare values")),
+                        _ => Err(SicCliOpsError::UnableToUnifyBareValues),
                     }
                 } else {
-                    Err(anyhow!(FAILED_UNIFICATION_MESSAGE))
+                    Err(SicCliOpsError::UnableToUnifyMultiValuedArguments)
                 }
             }
             // first value

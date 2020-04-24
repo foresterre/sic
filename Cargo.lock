@@ -503,7 +503,6 @@ dependencies = [
 name = "sic_cli_ops"
 version = "0.10.0"
 dependencies = [
- "anyhow 1.0.28 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "sic_cli 0.10.0",
  "sic_image_engine 0.10.0",
@@ -511,6 +510,7 @@ dependencies = [
  "sic_testing 0.10.0",
  "strum 0.18.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "strum_macros 0.18.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "thiserror 1.0.15 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
