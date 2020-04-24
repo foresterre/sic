@@ -90,18 +90,18 @@ impl EncodingFormatByIdentifier for DetermineEncodingFormat {
             "gif" => Ok(image::ImageOutputFormat::Gif),
             "ico" => Ok(image::ImageOutputFormat::Ico),
             "jpeg" | "jpg" => Ok(image::ImageOutputFormat::Jpeg(self.jpeg_quality()?.as_u8())),
-            "png" => Ok(image::ImageOutputFormat::Png),
+            "pam" => Ok(image::ImageOutputFormat::Pnm(
+                image::pnm::PNMSubtype::ArbitraryMap,
+            )),
             "pbm" => Ok(image::ImageOutputFormat::Pnm(
                 image::pnm::PNMSubtype::Bitmap(self.pnm_encoding_type()?),
             )),
             "pgm" => Ok(image::ImageOutputFormat::Pnm(
                 image::pnm::PNMSubtype::Graymap(self.pnm_encoding_type()?),
             )),
+            "png" => Ok(image::ImageOutputFormat::Png),
             "ppm" => Ok(image::ImageOutputFormat::Pnm(
                 image::pnm::PNMSubtype::Pixmap(self.pnm_encoding_type()?),
-            )),
-            "pam" => Ok(image::ImageOutputFormat::Pnm(
-                image::pnm::PNMSubtype::ArbitraryMap,
             )),
             _ => Err(SicIoError::UnknownImageIdentifier(identifier.to_string())),
         }
