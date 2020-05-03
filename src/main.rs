@@ -1,6 +1,6 @@
 use sic_cli::cli::build_app_config;
 use sic_cli::license::LicenseTexts;
-use sic_cli::pipeline::{run, run_display_licenses};
+use sic_cli::pipeline::seq::{run, run_display_licenses};
 
 const LICENSE_SELF: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/LICENSE",));
 const LICENSE_DEPS: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/compressed_dep_licenses"));
