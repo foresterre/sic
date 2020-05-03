@@ -19,6 +19,6 @@ fn main() -> anyhow::Result<()> {
             &LicenseTexts::new(LICENSE_SELF, LICENSE_DEPS),
         )
     } else {
-        run(&matches, &configuration)
+        run(&configuration)
     }
 }

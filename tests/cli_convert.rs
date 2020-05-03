@@ -101,7 +101,7 @@ mod convert_to_x {
         ];
         let matches = get_app().get_matches_from(args);
 
-        let complete = run(&matches, &build_app_config(&matches).unwrap());
+        let complete = run(&build_app_config(&matches).unwrap());
 
         complete.unwrap();
         assert!(output_path.exists());
@@ -160,7 +160,7 @@ mod convert_to_x_by_ff {
 
         let args = args(which, &input_path, &output_path);
         let matches = get_app().get_matches_from(args);
-        let complete = run(&matches, &build_app_config(&matches).unwrap());
+        let complete = run(&build_app_config(&matches).unwrap());
 
         complete.unwrap();
         assert!(output_path.exists());
@@ -226,7 +226,7 @@ mod pnm_ascii_and_binary {
         args.push(path_buf_str(&output_path));
 
         let matches = get_app().get_matches_from(args);
-        let complete = run(&matches, &build_app_config(&matches).unwrap());
+        let complete = run(&build_app_config(&matches).unwrap());
 
         complete.unwrap();
         assert!(output_path.exists());
@@ -297,10 +297,10 @@ fn convert_jpeg_quality_different() {
     ];
 
     let matches1 = get_app().get_matches_from(args1);
-    run(&matches1, &build_app_config(&matches1).unwrap()).unwrap();
+    run(&build_app_config(&matches1).unwrap()).unwrap();
 
     let matches2 = get_app().get_matches_from(args2);
-    run(&matches2, &build_app_config(&matches2).unwrap()).unwrap();
+    run(&build_app_config(&matches2).unwrap()).unwrap();
 
     assert!(out1.exists() && out2.exists());
 

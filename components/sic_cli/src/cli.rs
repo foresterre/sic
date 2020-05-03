@@ -300,6 +300,10 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> anyhow::Result<Config<'a
         (false, false) => (),
     };
 
+    if let Some(path) = matches.value_of(ARG_INPUT) {
+        builder = builder.input_path(path);
+    }
+
     // io(output):
     if let Some(path) = matches.value_of(ARG_OUTPUT) {
         builder = builder.output_path(path);

@@ -11,26 +11,23 @@ pub struct Config<'a> {
     /// Display license of this software or its dependencies.
     pub show_license_text_of: Option<SelectedLicenses>,
 
-    // io(output)
+    ///
+    pub input: Option<&'a str>,
+
     /// The image output path.
     pub output: Option<&'a str>,
 
-    // config(in)
     pub selected_frame: FrameIndex,
 
-    // config(out)
     /// Disable color type adjustments on save.
     pub disable_automatic_color_type_adjustment: bool,
 
-    // config(out)
     /// Format to which an image will be converted (enforced).
     pub forced_output_format: Option<&'a str>,
 
-    // config(out)
     /// Encoding settings for specific output formats.
     pub encoding_settings: FormatEncodingSettings,
 
-    // image-operations
     /// If a user wants to perform image operations on input image, they will need to provide
     /// the image operation commands.
     /// THe value set here should be presented as a [sic_image_engine::engine::Program].
@@ -46,6 +43,10 @@ impl Default for Config<'_> {
 
             /// Defaults to no displayed license text.
             show_license_text_of: None,
+
+            /// Default input path is None. The program may require an input to be set
+            /// for most of its program behaviour.
+            input: None,
 
             /// Default output path is None. The program may require an output to be set
             /// for most of its program behaviour.
@@ -124,6 +125,11 @@ impl<'a> ConfigBuilder<'a> {
     // config(out)
     pub fn pnm_format_type(mut self, use_ascii: bool) -> ConfigBuilder<'a> {
         self.settings.encoding_settings.pnm_use_ascii_format = use_ascii;
+        self
+    }
+
+    pub fn input_path(mut self, path: &'a str) -> ConfigBuilder<'a> {
+        self.settings.input = Some(path);
         self
     }
 
