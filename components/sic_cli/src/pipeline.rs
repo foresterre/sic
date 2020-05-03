@@ -2,8 +2,6 @@ use std::fs::File;
 use std::io::{self, Read, Write};
 use std::path::Path;
 
-use clap::ArgMatches;
-
 use anyhow::{anyhow, bail, Context};
 use sic_core::image;
 use sic_image_engine::engine::ImageEngine;
@@ -11,10 +9,10 @@ use sic_io::conversion::AutomaticColorTypeAdjustment;
 use sic_io::format::{
     DetermineEncodingFormat, EncodingFormatByExtension, EncodingFormatByIdentifier, JPEGQuality,
 };
-use sic_io::load::{load_image, ImportConfig};
-use sic_io::save::{export, ExportSettings};
 
-use crate::cli::arg_names::ARG_INPUT;
+use sic_io::load;
+use sic_io::save;
+
 use crate::config::Config;
 use crate::license::LicenseTexts;
 use crate::license::PrintTextFor;
@@ -22,7 +20,7 @@ use crate::license::PrintTextFor;
 /// The run function runs the sic application, taking the matches found by Clap.
 /// This function is separated from the main() function so that it can be used more easily in test cases.
 /// This function consumes the matches provided.
-pub fn run(matches: &ArgMatches, options: &Config) -> anyhow::Result<()> {
+pub fn run(options: &Config) -> anyhow::Result<()> {
     if options.output.is_none() {
         eprintln!(
             "Info: The default output format when using stdout output (the current output mode) is \
@@ -30,11 +28,11 @@ pub fn run(matches: &ArgMatches, options: &Config) -> anyhow::Result<()> {
         );
     }
 
-    let mut reader = mk_reader(matches)?;
+    let mut reader = create_reader(options.input)?;
 
-    let img = load_image(
+    let img = load::load_image(
         &mut reader,
-        &ImportConfig {
+        &load::ImportConfig {
             selected_frame: options.selected_frame,
         },
     )?;
@@ -67,11 +65,11 @@ pub fn run(matches: &ArgMatches, options: &Config) -> anyhow::Result<()> {
         },
     }?;
 
-    export(
+    save::export(
         buffer,
         &mut export_writer,
         encoding_format,
-        ExportSettings {
+        save::ExportSettings {
             adjust_color_type: AutomaticColorTypeAdjustment::default(),
         },
     )
@@ -81,18 +79,9 @@ pub fn run(matches: &ArgMatches, options: &Config) -> anyhow::Result<()> {
 /// Create a reader which will be used to load the image.
 /// The reader can be a file or the stdin.
 /// If no file path is provided, the stdin will be assumed.
-fn mk_reader(matches: &ArgMatches) -> anyhow::Result<Box<dyn Read>> {
-    fn with_file_reader(matches: &ArgMatches, value_of: &str) -> anyhow::Result<Box<dyn Read>> {
-        sic_io::load::file_reader(
-            matches
-                .value_of(value_of)
-                .with_context(|| format!("No such value: {}", value_of))?,
-        )
-        .with_context(|| "No matching file reader could be found.")
-    }
-
-    let reader = if matches.is_present(ARG_INPUT) {
-        with_file_reader(matches, ARG_INPUT)?
+fn create_reader(path: Option<&str>) -> anyhow::Result<Box<dyn Read>> {
+    let reader = if let Some(path) = path {
+        sic_io::load::file_reader(path)?
     } else {
         if atty::is(atty::Stream::Stdin) {
             bail!(
