@@ -3,6 +3,8 @@ use std::path::Path;
 use sic_core::image;
 
 use crate::errors::{FormatError, SicIoError};
+use image::pnm::PNMSubtype;
+use image::ImageOutputFormat;
 
 pub trait EncodingFormatByExtension {
     /// Determine the encoding format based on the extension of a file path.
@@ -125,6 +127,30 @@ impl EncodingFormatJPEGQuality for DetermineEncodingFormat {
     fn jpeg_quality(&self) -> Result<JPEGQuality, SicIoError> {
         self.jpeg_quality
             .ok_or_else(|| SicIoError::FormatError(FormatError::JPEGQualityLevelNotSet))
+    }
+}
+
+pub trait FileExtension {
+    fn ext(&self) -> &str;
+}
+
+impl FileExtension for image::ImageOutputFormat {
+    fn ext(&self) -> &str {
+        match self {
+            ImageOutputFormat::Png => "png",
+            ImageOutputFormat::Jpeg(_) => "jpg",
+            ImageOutputFormat::Pnm(subtype) => match subtype {
+                PNMSubtype::Bitmap(_) => "pbm",
+                PNMSubtype::Graymap(_) => "pgm",
+                PNMSubtype::Pixmap(_) => "ppm",
+                PNMSubtype::ArbitraryMap => "pam",
+            },
+            ImageOutputFormat::Gif => "gif",
+            ImageOutputFormat::Ico => "ico",
+            ImageOutputFormat::Bmp => "bmp",
+            ImageOutputFormat::Farbfeld => "ff",
+            _ => "",
+        }
     }
 }
 
