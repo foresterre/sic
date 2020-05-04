@@ -67,7 +67,7 @@ impl Env {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Instr {
     Operation(ImgOp),
     EnvAdd(EnvItem),

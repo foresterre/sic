@@ -1,6 +1,7 @@
 use sic_cli::cli::build_app_config;
+use sic_cli::config::InputOutputMode;
 use sic_cli::license::LicenseTexts;
-use sic_cli::pipeline::{run, run_display_licenses};
+use sic_cli::pipeline::{run_display_licenses, run_with_devices};
 
 const LICENSE_SELF: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/LICENSE",));
 const LICENSE_DEPS: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/compressed_dep_licenses"));
@@ -19,6 +20,7 @@ fn main() -> anyhow::Result<()> {
             &LicenseTexts::new(LICENSE_SELF, LICENSE_DEPS),
         )
     } else {
-        run(&configuration)
+        let io_device = InputOutputMode::try_from_matches(&matches)?;
+        run_with_devices(io_device, &configuration)
     }
 }

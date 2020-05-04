@@ -1,21 +1,89 @@
+use crate::cli::arg_names::{ARG_INPUT, ARG_MODE, ARG_OUTPUT};
+use crate::common_dir::CommonDir;
 use anyhow::bail;
-
+use clap::ArgMatches;
 use sic_image_engine::engine::Instr;
 use sic_io::load::FrameIndex;
+use std::path::PathBuf;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
+pub enum PathVariant {
+    StdStream,
+    Path(PathBuf),
+}
+
+impl PathVariant {
+    pub fn is_std_stream(&self) -> bool {
+        match self {
+            PathVariant::StdStream => true,
+            PathVariant::Path(_) => false,
+        }
+    }
+}
+
+pub enum InputOutputMode {
+    Single {
+        input: PathVariant,
+        output: PathVariant,
+    },
+    Batch {
+        inputs: CommonDir,
+        output_root_folder: PathBuf,
+    },
+}
+
+impl InputOutputMode {
+    pub fn try_from_matches(matches: &ArgMatches) -> anyhow::Result<Self> {
+        let mode = matches.value_of(ARG_MODE);
+        let input = matches.value_of(ARG_INPUT);
+        let output = matches.value_of(ARG_OUTPUT);
+
+        let res = match (mode, input, output) {
+            (Some("simple"), input, output) => InputOutputMode::Single {
+                input: match input {
+                    Some(p) => PathVariant::Path(p.into()),
+                    None => PathVariant::StdStream,
+                },
+                output: match output {
+                    Some(p) => PathVariant::Path(p.into()),
+                    None => PathVariant::StdStream,
+                },
+            },
+            (Some("glob"), Some(inputs), Some(output)) => InputOutputMode::Batch {
+                inputs: {
+                    let inputs = globwalk::glob(inputs)?;
+                    let paths = inputs.map(|entry| entry.map_err(|err| {
+                        anyhow::anyhow!("Error while trying to find glob matches on the fs ({})", err)
+                    }).map(|f| f.into_path())).collect::<anyhow::Result<Vec<_>>>()?;
+
+                    CommonDir::try_new(paths)?
+                },
+                output_root_folder: {
+                    output.into()
+                },
+            },
+            _ => bail!("unable to set mode: found invalid combination of mode, input arguments, and output argument"),
+        };
+
+        Ok(res)
+    }
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub enum InputOutputModeType {
+    Simple,
+    Batch,
+}
+
+#[derive(Debug, Clone)]
 pub struct Config<'a> {
     pub tool_name: &'static str,
+
+    pub mode: InputOutputModeType,
 
     // organisational
     /// Display license of this software or its dependencies.
     pub show_license_text_of: Option<SelectedLicenses>,
-
-    ///
-    pub input: Option<&'a str>,
-
-    /// The image output path.
-    pub output: Option<&'a str>,
 
     pub selected_frame: FrameIndex,
 
@@ -41,16 +109,10 @@ impl Default for Config<'_> {
             /// If using default, requires the `CARGO_PKG_NAME` to be set.
             tool_name: env!("CARGO_PKG_NAME"),
 
+            mode: InputOutputModeType::Simple,
+
             /// Defaults to no displayed license text.
             show_license_text_of: None,
-
-            /// Default input path is None. The program may require an input to be set
-            /// for most of its program behaviour.
-            input: None,
-
-            /// Default output path is None. The program may require an output to be set
-            /// for most of its program behaviour.
-            output: None,
 
             /// By default the first frame of a gif is used.
             selected_frame: FrameIndex::First,
@@ -92,6 +154,11 @@ impl<'a> ConfigBuilder<'a> {
         ConfigBuilder::default()
     }
 
+    pub fn mode(mut self, mode: InputOutputModeType) -> ConfigBuilder<'a> {
+        self.settings.mode = mode;
+        self
+    }
+
     // organisational
     pub fn show_license_text_of(mut self, selection: SelectedLicenses) -> ConfigBuilder<'a> {
         self.settings.show_license_text_of = Some(selection);
@@ -125,17 +192,6 @@ impl<'a> ConfigBuilder<'a> {
     // config(out)
     pub fn pnm_format_type(mut self, use_ascii: bool) -> ConfigBuilder<'a> {
         self.settings.encoding_settings.pnm_use_ascii_format = use_ascii;
-        self
-    }
-
-    pub fn input_path(mut self, path: &'a str) -> ConfigBuilder<'a> {
-        self.settings.input = Some(path);
-        self
-    }
-
-    // config(out)
-    pub fn output_path(mut self, path: &'a str) -> ConfigBuilder<'a> {
-        self.settings.output = Some(path);
         self
     }
 
@@ -218,11 +274,9 @@ mod tests {
     #[test]
     fn config_builder_override_defaults() {
         let mut builder = ConfigBuilder::new();
-        builder = builder.output_path("lalala");
         builder = builder.image_operations_program(vec![Instr::Operation(ImgOp::Blur(1.0))]);
         let config = builder.build();
 
         assert!(!config.image_operations_program.is_empty());
-        assert_eq!(config.output.unwrap(), "lalala");
     }
 }

@@ -18,6 +18,7 @@ anyhow = "1.0.28"
 atty = "0.2.14"
 clap = "2.32.0"
 inflate = "0.4.5"
+globwalk = "0.8.0"
 
 [dev-dependencies]
 sic_testing = { path = "../../components/sic_testing" }
