@@ -3,8 +3,6 @@ use std::path::Path;
 use sic_core::image;
 
 use crate::errors::{FormatError, SicIoError};
-use image::pnm::PNMSubtype;
-use image::ImageOutputFormat;
 
 pub trait EncodingFormatByExtension {
     /// Determine the encoding format based on the extension of a file path.
