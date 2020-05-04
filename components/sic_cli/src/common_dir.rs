@@ -53,8 +53,13 @@ fn naive_find_common_dir<P: AsRef<Path>, I: IntoIterator<Item = P> + Clone>(
     paths: I,
 ) -> anyhow::Result<CommonDir> {
     let mut iter = paths.clone().into_iter();
-    let first_path = iter.next().unwrap();
-    let path_trunk = first_path.as_ref().parent().unwrap();
+    let first_path = iter
+        .next()
+        .ok_or_else(|| anyhow::anyhow!("No paths found (glob mode)"))?;
+    let path_trunk = first_path
+        .as_ref()
+        .parent()
+        .ok_or_else(|| anyhow::anyhow!("No root directory found (glob mode)"))?;
     let ancestors = path_trunk.ancestors();
 
     let set_of_paths = paths
