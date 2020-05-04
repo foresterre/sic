@@ -116,7 +116,14 @@ fn create_reader(io_device: &PathVariant) -> anyhow::Result<Box<dyn Read>> {
 
 fn create_writer(io_device: &PathVariant) -> anyhow::Result<Box<dyn Write>> {
     match io_device {
-        PathVariant::Path(out) => Ok(Box::new(File::create(out)?)),
+        PathVariant::Path(out) => {
+            let dirs = out.as_path().parent().ok_or_else(|| {
+                anyhow::anyhow!("Unable to create output directory for output path")
+            })?;
+            std::fs::create_dir_all(dirs)?;
+
+            Ok(Box::new(File::create(out)?))
+        }
         PathVariant::StdStream => Ok(Box::new(io::stdout())),
     }
 }
