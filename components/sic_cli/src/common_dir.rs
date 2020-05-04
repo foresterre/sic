@@ -9,7 +9,13 @@ use std::path::{Path, PathBuf};
 /// A common dir (1st element), and a set of paths (2nd element) which when concatenated with the
 /// common dir, result in a full path again.
 #[derive(Debug)]
-pub struct CommonDir(PathBuf, Vec<PathBuf>);
+pub struct CommonDir(
+    PathBuf, // The common directory
+    Vec<(
+        PathBuf, // The original input path
+        PathBuf, // The `k` in `concat(common dir, k)`
+    )>,
+);
 
 impl CommonDir {
     /// Expects canonicalized paths
@@ -23,8 +29,19 @@ impl CommonDir {
         self.0.as_path()
     }
 
-    pub fn path_stems(&self) -> Vec<&Path> {
-        self.1.iter().map(|p| p.as_path()).collect()
+    pub fn input_paths(&self) -> Vec<&Path> {
+        self.1.iter().map(|(lp, _)| lp.as_path()).collect()
+    }
+
+    pub fn path_branches(&self) -> Vec<&Path> {
+        self.1.iter().map(|(_, rp)| rp.as_path()).collect()
+    }
+
+    pub fn path_combinations(&self) -> Vec<(&Path, &Path)> {
+        self.1
+            .iter()
+            .map(|(lp, rp)| (lp.as_path(), rp.as_path()))
+            .collect()
     }
 }
 
@@ -44,9 +61,9 @@ fn naive_find_common_dir<P: AsRef<Path>, I: IntoIterator<Item = P> + Clone>(
     for ancestor in ancestors {
         // checks whether the current path has a common ancestors for all inputs
         if set_of_paths.iter().all(|path| path.starts_with(&ancestor)) {
-            let vec: Vec<PathBuf> = set_of_paths
+            let vec: Vec<(PathBuf, PathBuf)> = set_of_paths
                 .iter()
-                .map(|path| unroot(&ancestor, path))
+                .map(|path| (path.to_path_buf(), unroot(&ancestor, path)))
                 .collect();
 
             return Ok(CommonDir(ancestor.to_path_buf(), vec));
@@ -57,14 +74,14 @@ fn naive_find_common_dir<P: AsRef<Path>, I: IntoIterator<Item = P> + Clone>(
         .iter()
         .map(|p| {
             p.file_name()
-                .map(|str| PathBuf::from(str.to_os_string()))
+                .map(|str| (p.to_path_buf(), PathBuf::from(str.to_os_string())))
                 .ok_or_else(|| {
                     anyhow::anyhow!(
                         "Unable to mirror input directory to output: found an invalid file path"
                     )
                 })
         })
-        .collect::<anyhow::Result<Vec<PathBuf>>>()?;
+        .collect::<anyhow::Result<Vec<(PathBuf, PathBuf)>>>()?;
 
     Ok(CommonDir(path_trunk.to_path_buf(), set))
 }
@@ -115,7 +132,7 @@ mod test {
 
         assert_eq!(common.common_root(), Path::new("/my"));
 
-        let stem = common.path_stems();
+        let stem = common.path_branches();
 
         assert_eq!(stem[0], Path::new("common/path/a.png"));
         assert_eq!(stem[1], Path::new("common/path/b.png"));
@@ -133,7 +150,7 @@ mod test {
 
         assert_eq!(common.common_root(), Path::new("/my/common/path/"));
 
-        let stem = common.path_stems();
+        let stem = common.path_branches();
 
         assert_eq!(stem[0], Path::new("a.png"));
         assert_eq!(stem[1], Path::new("b.png"));
