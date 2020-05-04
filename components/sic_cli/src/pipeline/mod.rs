@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::io::{self, Read, Write};
+use std::path::PathBuf;
 
 use anyhow::{anyhow, bail, Context};
 use sic_core::image;
@@ -11,7 +12,7 @@ use sic_io::format::{
 use sic_io::load;
 use sic_io::save;
 
-use crate::config::{Config, InputOutputMode, PathVariant};
+use crate::config::{Config, InputOutputMode, InputOutputModeType, PathVariant};
 use crate::license::LicenseTexts;
 use crate::license::PrintTextFor;
 
@@ -27,7 +28,7 @@ pub fn run_with_devices<'c>(
 
             run(
                 || create_reader(&input),
-                || create_writer(&output),
+                |ext: Option<&str>| create_writer(&output, ext),
                 || create_format_decider(&output, config),
                 config,
             )
@@ -44,7 +45,7 @@ pub fn run_with_devices<'c>(
 
                 run(
                     || create_reader(&input),
-                    || create_writer(&output),
+                    |ext: Option<&str>| create_writer(&output, ext),
                     || create_format_decider(&output, config),
                     config,
                 )?
@@ -70,7 +71,7 @@ fn run<R, W, F>(
 ) -> anyhow::Result<()>
 where
     R: Fn() -> anyhow::Result<Box<dyn Read>>,
-    W: Fn() -> anyhow::Result<Box<dyn Write>>,
+    W: Fn(Option<&str>) -> anyhow::Result<Box<dyn Write>>,
     F: Fn() -> anyhow::Result<image::ImageOutputFormat>,
 {
     let mut reader = supply_reader()?;
@@ -86,7 +87,14 @@ where
         .ignite(&config.image_operations_program)
         .with_context(|| "Unable to apply image operations.")?;
 
-    let mut export_writer = supply_writer()?;
+    // FIXME: decide whether in simple mode, extension should also change by default,
+    //        unless an option is set e.g. --keep-extension-unmodified
+    let format = if config.mode == InputOutputModeType::Batch {
+        config.forced_output_format
+    } else {
+        None
+    };
+    let mut export_writer = supply_writer(format)?;
     let encoding_format = format_decider()?;
 
     save::export(
@@ -114,13 +122,23 @@ fn create_reader(io_device: &PathVariant) -> anyhow::Result<Box<dyn Read>> {
     }
 }
 
-fn create_writer(io_device: &PathVariant) -> anyhow::Result<Box<dyn Write>> {
+fn create_writer(
+    io_device: &PathVariant,
+    adjust_ext: Option<&str>,
+) -> anyhow::Result<Box<dyn Write>> {
     match io_device {
         PathVariant::Path(out) => {
             let dirs = out.as_path().parent().ok_or_else(|| {
                 anyhow::anyhow!("Unable to create output directory for output path")
             })?;
             std::fs::create_dir_all(dirs)?;
+
+            let out = match (adjust_ext, out.file_stem()) {
+                (Some(new_ext), Some(stem)) => {
+                    PathBuf::from(stem.to_os_string()).with_extension(new_ext)
+                }
+                _ => out.to_path_buf(),
+            };
 
             Ok(Box::new(File::create(out)?))
         }

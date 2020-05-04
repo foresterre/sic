@@ -130,30 +130,6 @@ impl EncodingFormatJPEGQuality for DetermineEncodingFormat {
     }
 }
 
-pub trait FileExtension {
-    fn ext(&self) -> &str;
-}
-
-impl FileExtension for image::ImageOutputFormat {
-    fn ext(&self) -> &str {
-        match self {
-            ImageOutputFormat::Png => "png",
-            ImageOutputFormat::Jpeg(_) => "jpg",
-            ImageOutputFormat::Pnm(subtype) => match subtype {
-                PNMSubtype::Bitmap(_) => "pbm",
-                PNMSubtype::Graymap(_) => "pgm",
-                PNMSubtype::Pixmap(_) => "ppm",
-                PNMSubtype::ArbitraryMap => "pam",
-            },
-            ImageOutputFormat::Gif => "gif",
-            ImageOutputFormat::Ico => "ico",
-            ImageOutputFormat::Bmp => "bmp",
-            ImageOutputFormat::Farbfeld => "ff",
-            _ => "",
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

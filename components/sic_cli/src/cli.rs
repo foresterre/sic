@@ -8,7 +8,9 @@ use sic_cli_ops::build_ast_from_matches;
 use sic_cli_ops::operations::{IndexTree, OperationId};
 use sic_io::load::FrameIndex;
 
-use crate::config::{validate_jpeg_quality, Config, ConfigBuilder, SelectedLicenses};
+use crate::config::{
+    validate_jpeg_quality, Config, ConfigBuilder, InputOutputModeType, SelectedLicenses,
+};
 
 const ABOUT: &str = include_str!("../../../resources/help-pages/about.txt");
 const HELP_OPERATIONS_AVAILABLE: &str =
@@ -313,6 +315,13 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> anyhow::Result<Config<'a
         }
         (false, false) => (),
     };
+
+    let io_mode = match matches.value_of(ARG_MODE) {
+        Some("glob") => InputOutputModeType::Batch,
+        _ => InputOutputModeType::Simple,
+    };
+
+    builder = builder.mode(io_mode);
 
     // config(in)/gif-select-frame:
     if let Some(frame_in) = matches.value_of(ARG_SELECT_FRAME) {

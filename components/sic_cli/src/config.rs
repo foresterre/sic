@@ -69,9 +69,17 @@ impl InputOutputMode {
     }
 }
 
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub enum InputOutputModeType {
+    Simple,
+    Batch,
+}
+
 #[derive(Debug, Clone)]
 pub struct Config<'a> {
     pub tool_name: &'static str,
+
+    pub mode: InputOutputModeType,
 
     // organisational
     /// Display license of this software or its dependencies.
@@ -100,6 +108,8 @@ impl Default for Config<'_> {
         Config {
             /// If using default, requires the `CARGO_PKG_NAME` to be set.
             tool_name: env!("CARGO_PKG_NAME"),
+
+            mode: InputOutputModeType::Simple,
 
             /// Defaults to no displayed license text.
             show_license_text_of: None,
@@ -142,6 +152,11 @@ pub struct ConfigBuilder<'a> {
 impl<'a> ConfigBuilder<'a> {
     pub fn new() -> Self {
         ConfigBuilder::default()
+    }
+
+    pub fn mode(mut self, mode: InputOutputModeType) -> ConfigBuilder<'a> {
+        self.settings.mode = mode;
+        self
     }
 
     // organisational
