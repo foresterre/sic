@@ -1,6 +1,5 @@
 use std::fs::File;
 use std::io::{self, Read, Write};
-use std::path::PathBuf;
 
 use anyhow::{anyhow, bail, Context};
 use sic_core::image;
@@ -128,15 +127,13 @@ fn create_writer(
 ) -> anyhow::Result<Box<dyn Write>> {
     match io_device {
         PathVariant::Path(out) => {
-            let dirs = out.as_path().parent().ok_or_else(|| {
+            let base = out.as_path().parent().ok_or_else(|| {
                 anyhow::anyhow!("Unable to create output directory for output path")
             })?;
-            std::fs::create_dir_all(dirs)?;
+            std::fs::create_dir_all(base)?;
 
             let out = match (adjust_ext, out.file_stem()) {
-                (Some(new_ext), Some(stem)) => {
-                    PathBuf::from(stem.to_os_string()).with_extension(new_ext)
-                }
+                (Some(new_ext), Some(stem)) => base.join(stem).with_extension(new_ext),
                 _ => out.to_path_buf(),
             };
 
