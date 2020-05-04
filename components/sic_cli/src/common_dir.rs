@@ -4,9 +4,7 @@
 //!
 //! In summary, we aim to mirror an unrooted file structure to a new root.
 
-use std::collections::VecDeque;
-use std::ffi::{OsStr, OsString};
-use std::path::{Component, Components, Path, PathBuf};
+use std::path::{Path, PathBuf};
 
 /// A common dir (1st element), and a set of paths (2nd element) which when concatenated with the
 /// common dir, result in a full path again.
@@ -46,12 +44,10 @@ fn naive_find_common_dir<P: AsRef<Path>, I: IntoIterator<Item = P> + Clone>(
     for ancestor in ancestors {
         // checks whether the current path has a common ancestors for all inputs
         if set_of_paths.iter().all(|path| path.starts_with(&ancestor)) {
-            let mut vec: Vec<PathBuf> = set_of_paths
+            let vec: Vec<PathBuf> = set_of_paths
                 .iter()
                 .map(|path| unroot(&ancestor, path))
                 .collect();
-
-            vec.push(unroot(&ancestor, first_path.as_ref()));
 
             return Ok(CommonDir(ancestor.to_path_buf(), vec));
         }
@@ -76,16 +72,14 @@ fn naive_find_common_dir<P: AsRef<Path>, I: IntoIterator<Item = P> + Clone>(
 // The intention of this function is to remove a common root path from a given path.
 pub(in crate::common_dir) fn unroot(root: &Path, path: &Path) -> PathBuf {
     let root_len = root.components().count();
-    let components = path
-        .components()
+
+    path.components()
         .skip(root_len)
         .fold(PathBuf::new(), |mut parent, child| {
             parent.push(child.as_os_str());
 
             parent
-        });
-
-    components
+        })
 }
 
 #[cfg(test)]
