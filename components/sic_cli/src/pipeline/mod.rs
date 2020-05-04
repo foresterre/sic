@@ -39,12 +39,8 @@ pub fn run_with_devices<'c>(
             for (input, branch) in inputs.path_combinations() {
                 let input = &PathVariant::Path(input.to_path_buf());
 
-                dbg!(input);
-
                 let output = output_root_folder.join(branch);
                 let output = &PathVariant::Path(output);
-
-                dbg!(output);
 
                 run(
                     || create_reader(&input),

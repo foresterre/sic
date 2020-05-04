@@ -81,7 +81,8 @@ pub fn cli() -> App<'static, 'static> {
             .short("i")
             .value_name("INPUT_PATH")
             .takes_value(true)
-            .help("Input image path. When using this option, input piped from stdin will be ignored.")
+            .help("Input image path. When using this option, input piped from stdin will be ignored. \
+                   In glob mode, depending on your shell you may need to add explicit quotation marks around the argument")
             .conflicts_with_all(&[ARG_LICENSE, ARG_DEP_LICENSES]))
 
         // io(output):
