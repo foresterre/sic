@@ -7,10 +7,8 @@ use std::path::{Path, PathBuf};
 use sic_core::image;
 
 use sic_cli::cli::{build_app_config, cli as get_app}; // build_app_config
-use sic_cli::pipeline::run;
-
-// Wish list for Rust tests: parameterized tests
-// Probably can be done with macro's too.
+use sic_cli::config::InputOutputMode;
+use sic_cli::pipeline::run_with_devices;
 
 // copied from sic_lib::processor::mod_test_includes
 // I preferred to not make that module public (2018-11-28)
@@ -101,7 +99,10 @@ mod convert_to_x {
         ];
         let matches = get_app().get_matches_from(args);
 
-        let complete = run(&build_app_config(&matches).unwrap());
+        let complete = run_with_devices(
+            InputOutputMode::try_from_matches(&matches).unwrap(),
+            &build_app_config(&matches).unwrap(),
+        );
 
         complete.unwrap();
         assert!(output_path.exists());
@@ -160,7 +161,10 @@ mod convert_to_x_by_ff {
 
         let args = args(which, &input_path, &output_path);
         let matches = get_app().get_matches_from(args);
-        let complete = run(&build_app_config(&matches).unwrap());
+        let complete = run_with_devices(
+            InputOutputMode::try_from_matches(&matches).unwrap(),
+            &build_app_config(&matches).unwrap(),
+        );
 
         complete.unwrap();
         assert!(output_path.exists());
@@ -226,7 +230,10 @@ mod pnm_ascii_and_binary {
         args.push(path_buf_str(&output_path));
 
         let matches = get_app().get_matches_from(args);
-        let complete = run(&build_app_config(&matches).unwrap());
+        let complete = run_with_devices(
+            InputOutputMode::try_from_matches(&matches).unwrap(),
+            &build_app_config(&matches).unwrap(),
+        );
 
         complete.unwrap();
         assert!(output_path.exists());
@@ -297,10 +304,18 @@ fn convert_jpeg_quality_different() {
     ];
 
     let matches1 = get_app().get_matches_from(args1);
-    run(&build_app_config(&matches1).unwrap()).unwrap();
+    run_with_devices(
+        InputOutputMode::try_from_matches(&matches1).unwrap(),
+        &build_app_config(&matches1).unwrap(),
+    )
+    .unwrap();
 
     let matches2 = get_app().get_matches_from(args2);
-    run(&build_app_config(&matches2).unwrap()).unwrap();
+    run_with_devices(
+        InputOutputMode::try_from_matches(&matches2).unwrap(),
+        &build_app_config(&matches2).unwrap(),
+    )
+    .unwrap();
 
     assert!(out1.exists() && out2.exists());
 

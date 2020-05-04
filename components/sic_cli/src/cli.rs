@@ -26,6 +26,8 @@ pub(crate) mod arg_names {
     pub(crate) const ARG_INPUT: &str = "input";
     pub(crate) const ARG_OUTPUT: &str = "output";
 
+    pub(crate) const ARG_MODE: &str = "mode";
+
     // config(in):
     pub(crate) const ARG_SELECT_FRAME: &str = "select_frame";
 
@@ -90,6 +92,17 @@ pub fn cli() -> App<'static, 'static> {
             .takes_value(true)
             .help("Output image path. When using this option, output won't be piped to stdout.")
             .conflicts_with_all(&[ARG_LICENSE, ARG_DEP_LICENSES]))
+
+        .arg(Arg::with_name(ARG_MODE)
+            .long("mode")
+            .value_name("MODE")
+            .takes_value(true)
+            .possible_values(&["simple", "glob"])
+            .default_value("simple")
+            .help("Use 'simple' mode when using a single input- and a single output-file;\
+                      Use 'glob' mode when using glob patterns as input, the output path should take \
+                      a root directory where output images will be copied, using a mirrored directory structure")
+        )
 
         // config(in):
         .arg(Arg::with_name(ARG_SELECT_FRAME)
@@ -299,15 +312,6 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> anyhow::Result<Config<'a
         }
         (false, false) => (),
     };
-
-    if let Some(path) = matches.value_of(ARG_INPUT) {
-        builder = builder.input_path(path);
-    }
-
-    // io(output):
-    if let Some(path) = matches.value_of(ARG_OUTPUT) {
-        builder = builder.output_path(path);
-    }
 
     // config(in)/gif-select-frame:
     if let Some(frame_in) = matches.value_of(ARG_SELECT_FRAME) {
