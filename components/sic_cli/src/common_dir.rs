@@ -25,18 +25,22 @@ impl CommonDir {
         naive_find_common_dir(paths)
     }
 
+    /// The found common root path
     pub fn common_root(&self) -> &Path {
         self.0.as_path()
     }
 
+    /// The original input paths
     pub fn input_paths(&self) -> Vec<&Path> {
         self.1.iter().map(|(lp, _)| lp.as_path()).collect()
     }
 
+    ///  The k's in `concat(common dir, k)`
     pub fn path_branches(&self) -> Vec<&Path> {
         self.1.iter().map(|(_, rp)| rp.as_path()).collect()
     }
 
+    /// A tuple of the original input path, and its path branch
     pub fn path_combinations(&self) -> Vec<(&Path, &Path)> {
         self.1
             .iter()
