@@ -235,7 +235,10 @@ impl ParseInputsFromIter for ImageFromPath {
             .map(Into::<Describable>::into)
             .ok_or_else(|| SicParserError::ValueParsingError(err_msg_no_such_element()))
             .and_then(|v: Describable| {
-                PathBuf::try_from(v.0)
+                let len = v.0.len();
+                let unquoted = &v.0[1..len - 1];
+
+                PathBuf::try_from(unquoted)
                     .map_err(|_| SicParserError::ValueParsingError(err_msg_invalid_path()))
             })?;
 

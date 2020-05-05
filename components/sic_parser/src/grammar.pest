@@ -4,7 +4,17 @@ sep = _{ ";" }
 fp = @{ int ~ ("." ~ ASCII_DIGIT+)? }
 uint = @{ ASCII_DIGIT+ }
 int  = @{ "-"? ~ ASCII_DIGIT+ }
-string = @{ ASCII_ALPHANUMERIC+ }
+string_ascii = @{ ASCII_ALPHANUMERIC+ }
+
+// string_unicode is based on https://pest.rs/book/examples/json.html
+string_unicode = ${ quotation ~ string_inner ~ quotation }
+string_inner = @{ char* }
+quotation = _{ "'" | "\"" }
+char = {
+    !quotation ~ ANY
+    | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
+    | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
+}
 
 triplet_sep = _{ WHITESPACE ~ "|" ~ WHITESPACE }
 triplet_fp3 = _{ fp ~ WHITESPACE ~ fp ~ WHITESPACE ~ fp }
@@ -16,6 +26,7 @@ blur = ${ ^"blur" ~ WHITESPACE ~ fp }
 brighten = ${ ^"brighten" ~ WHITESPACE ~ int }
 contrast = ${ ^"contrast" ~ WHITESPACE ~ fp }
 crop = ${ ^"crop" ~ WHITESPACE ~ uint ~ WHITESPACE ~ uint ~ WHITESPACE ~ uint ~ WHITESPACE ~ uint }
+diff = ${ ^"diff" ~ WHITESPACE ~ string_unicode }
 filter3x3 = ${ ^"filter3x3" ~ WHITESPACE ~ (f3x3_args_sep | f3x3_args_no_sep) }
 flip_horizontal = { ^"fliph" }
 flip_vertical = { ^"flipv"  }
@@ -36,7 +47,7 @@ env_available = _{
     | env_resize_preserve_aspect_ratio_name
 }
 
-set_resize_sampling_filter = ${env_resize_sampling_filter_name ~ WHITESPACE ~ string }
+set_resize_sampling_filter = ${env_resize_sampling_filter_name ~ WHITESPACE ~ string_ascii }
 set_resize_preserve_aspect_ratio = ${ env_resize_preserve_aspect_ratio_name }
 
 setenv_available = _{
@@ -52,6 +63,7 @@ operation = _{
     | brighten
     | contrast
     | crop
+    | diff
     | filter3x3
     | flip_horizontal
     | flip_vertical

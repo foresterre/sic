@@ -1,6 +1,10 @@
 #[macro_use]
 extern crate pest_derive;
 
+#[cfg(test)]
+#[macro_use]
+extern crate parameterized;
+
 use pest::Parser;
 
 use crate::errors::SicParserError;
