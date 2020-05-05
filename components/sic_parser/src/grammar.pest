@@ -5,6 +5,8 @@ fp = @{ int ~ ("." ~ ASCII_DIGIT+)? }
 uint = @{ ASCII_DIGIT+ }
 int  = @{ "-"? ~ ASCII_DIGIT+ }
 string = @{ ASCII_ALPHANUMERIC+ }
+path_tokens = @{ !("\"" | "'") ~ (ASCII_ALPHANUMERIC | LETTER | NUMBER | PUNCTUATION | SYMBOL) }
+path = @{ "\"" ~ path_tokens* ~ "\"" }
 
 triplet_sep = _{ WHITESPACE ~ "|" ~ WHITESPACE }
 triplet_fp3 = _{ fp ~ WHITESPACE ~ fp ~ WHITESPACE ~ fp }
@@ -16,6 +18,7 @@ blur = ${ ^"blur" ~ WHITESPACE ~ fp }
 brighten = ${ ^"brighten" ~ WHITESPACE ~ int }
 contrast = ${ ^"contrast" ~ WHITESPACE ~ fp }
 crop = ${ ^"crop" ~ WHITESPACE ~ uint ~ WHITESPACE ~ uint ~ WHITESPACE ~ uint ~ WHITESPACE ~ uint }
+diff = ${ ^"diff" ~ WHITESPACE ~ path }
 filter3x3 = ${ ^"filter3x3" ~ WHITESPACE ~ (f3x3_args_sep | f3x3_args_no_sep) }
 flip_horizontal = { ^"fliph" }
 flip_vertical = { ^"flipv"  }
@@ -52,6 +55,7 @@ operation = _{
     | brighten
     | contrast
     | crop
+    | diff
     | filter3x3
     | flip_horizontal
     | flip_vertical
