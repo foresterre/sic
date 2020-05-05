@@ -9,7 +9,7 @@ string_ascii = @{ ASCII_ALPHANUMERIC+ }
 // string_unicode is based on https://pest.rs/book/examples/json.html
 string_unicode = ${ quotation ~ string_inner ~ quotation }
 string_inner = @{ char* }
-quotation = _{ "\"" }
+quotation = _{ "'" | "\"" }
 char = {
     !quotation ~ ANY
     | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")

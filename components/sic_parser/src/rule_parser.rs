@@ -441,8 +441,16 @@ mod tests {
                 "diff \"input.jpg\";",
                 "diff \"C:/Users/Some Name/input.jpg\";",
                 "diff \"C:\\Users\\Some Name\\input.jpg\";",
+                "diff '/my/path/input.jpg';",
+                "diff 'input.jpg';",
+                "diff 'C:/Users/Some Name/input.jpg';",
+                "diff 'C:\\Users\\Some Name\\input.jpg';",
             },
             expected_ops = {
+                vec![Instr::Operation(ImgOp::Diff(ImageFromPath::new("/my/path/input.jpg".into())))],
+                vec![Instr::Operation(ImgOp::Diff(ImageFromPath::new("input.jpg".into())))],
+                vec![Instr::Operation(ImgOp::Diff(ImageFromPath::new("C:/Users/Some Name/input.jpg".into())))],
+                vec![Instr::Operation(ImgOp::Diff(ImageFromPath::new("C:\\Users\\Some Name\\input.jpg".into())))],
                 vec![Instr::Operation(ImgOp::Diff(ImageFromPath::new("/my/path/input.jpg".into())))],
                 vec![Instr::Operation(ImgOp::Diff(ImageFromPath::new("input.jpg".into())))],
                 vec![Instr::Operation(ImgOp::Diff(ImageFromPath::new("C:/Users/Some Name/input.jpg".into())))],
@@ -454,6 +462,17 @@ mod tests {
                 .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
 
             assert_eq!(parse_image_operations(pairs).unwrap(), expected_ops);
+        }
+
+        #[parameterized(
+            input = {
+                "diff \"/my/path/input.\"jpg\";",
+                "diff '/my/path/input.jpg'';",
+            }
+        )]
+        fn test_diff_err(input: &str) {
+            let pairs = SICParser::parse(Rule::main, input);
+            assert!(pairs.is_err());
         }
     }
 
