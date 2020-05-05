@@ -7,6 +7,7 @@ use sic_image_engine::wrapper::image_path::ImageFromPath;
 use sic_image_engine::ImgOp;
 use sic_parser::errors::SicParserError;
 use sic_parser::value_parser::{Describable, ParseInputsFromIter};
+use std::fmt::Debug;
 
 /// The enumeration of all supported operations.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, AsStaticStr, EnumIter)]
