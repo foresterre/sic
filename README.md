@@ -135,7 +135,7 @@ or <br>
 `sic -i in.png -o out.png --crop 0 0 10 10`
 
 **diff** example: <br>
-_apply operations: n/a_ <br>
+`sic -i a.png -o diff_between_a_and_b.png --apply-operations "diff \"b.png\""` <br>
 or <br>
 `sic -i a.png -o diff_between_a_and_b.png --diff b.png`
 
