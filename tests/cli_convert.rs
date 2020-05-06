@@ -97,7 +97,7 @@ mod convert_to_x {
             "--output",
             path_buf_str(&output_path),
         ];
-        let matches = get_app("", "").get_matches_from(args);
+        let matches = get_app("", "", "").get_matches_from(args);
 
         let complete = run_with_devices(
             InputOutputMode::try_from_matches(&matches).unwrap(),
@@ -160,7 +160,7 @@ mod convert_to_x_by_ff {
         let output_path = setup_output_path(&format!("cli_convert_to_x_by_extension_ff_{}", which));
 
         let args = args(which, &input_path, &output_path);
-        let matches = get_app("", "").get_matches_from(args);
+        let matches = get_app("", "", "").get_matches_from(args);
         let complete = run_with_devices(
             InputOutputMode::try_from_matches(&matches).unwrap(),
             &build_app_config(&matches).unwrap(),
@@ -229,7 +229,7 @@ mod pnm_ascii_and_binary {
         args.push("--output");
         args.push(path_buf_str(&output_path));
 
-        let matches = get_app("", "").get_matches_from(args);
+        let matches = get_app("", "", "").get_matches_from(args);
         let complete = run_with_devices(
             InputOutputMode::try_from_matches(&matches).unwrap(),
             &build_app_config(&matches).unwrap(),
@@ -303,14 +303,14 @@ fn convert_jpeg_quality_different() {
         path_buf_str(&out2),
     ];
 
-    let matches1 = get_app("", "").get_matches_from(args1);
+    let matches1 = get_app("", "", "").get_matches_from(args1);
     run_with_devices(
         InputOutputMode::try_from_matches(&matches1).unwrap(),
         &build_app_config(&matches1).unwrap(),
     )
     .unwrap();
 
-    let matches2 = get_app("", "").get_matches_from(args2);
+    let matches2 = get_app("", "", "").get_matches_from(args2);
     run_with_devices(
         InputOutputMode::try_from_matches(&matches2).unwrap(),
         &build_app_config(&matches2).unwrap(),

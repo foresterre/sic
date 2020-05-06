@@ -9,9 +9,10 @@ const LICENSE_DEPS: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/compressed
 const ABOUT: &str = include_str!("../resources/help-pages/about.txt");
 const HELP_OPERATIONS_AVAILABLE: &str =
     include_str!("../resources/help-pages/image_operations.txt");
+const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn main() -> anyhow::Result<()> {
-    let app = sic_cli::cli::cli(ABOUT, HELP_OPERATIONS_AVAILABLE);
+    let app = sic_cli::cli::cli(VERSION, ABOUT, HELP_OPERATIONS_AVAILABLE);
     let matches = app.get_matches();
 
     let license_display = matches.is_present("license") || matches.is_present("dep_licenses");

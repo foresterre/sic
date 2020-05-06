@@ -493,7 +493,7 @@ mod test_tree_extend {
         let out = output(cmd);
         let command = format!("sic -i {} -o {} {}", input().as_str(), out, cmd);
         let split = command.split_ascii_whitespace().collect::<Vec<_>>();
-        (cli("", "").get_matches_from_safe(&split).unwrap(), out)
+        (cli("", "", "").get_matches_from_safe(&split).unwrap(), out)
     }
 
     fn input() -> String {

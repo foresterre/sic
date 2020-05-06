@@ -44,9 +44,13 @@ pub(crate) mod arg_names {
     pub(crate) const GROUP_IMAGE_OPERATIONS: &str = "group";
 }
 
-pub fn cli(about: &'static str, help_ops: &'static str) -> App<'static, 'static> {
+pub fn cli(
+    version: &'static str,
+    about: &'static str,
+    help_ops: &'static str,
+) -> App<'static, 'static> {
     App::new("sic")
-        .version(env!("CARGO_PKG_VERSION"))
+        .version(version)
         .about(about)
         .after_help("For more information, visit: https://github.com/foresterre/sic")
         .author("Martijn Gribnau <garm@ilumeo.com>")
