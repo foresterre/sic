@@ -604,7 +604,7 @@ dependencies = [
  "sic_image_engine 0.10.0",
  "sic_io 0.10.0",
  "sic_parser 0.10.0",
- "sic_testing 0.10.0",
+ "sic_testing 0.11.0",
 ]
 
 [[package]]
@@ -615,7 +615,7 @@ dependencies = [
  "sic_cli 0.10.0",
  "sic_image_engine 0.10.0",
  "sic_parser 0.10.0",
- "sic_testing 0.10.0",
+ "sic_testing 0.11.0",
  "strum 0.18.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "strum_macros 0.18.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "thiserror 1.0.16 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -634,7 +634,7 @@ version = "0.10.0"
 dependencies = [
  "sic_core 0.11.0",
  "sic_io 0.10.0",
- "sic_testing 0.10.0",
+ "sic_testing 0.11.0",
  "strum 0.18.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "strum_macros 0.18.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "thiserror 1.0.16 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -645,7 +645,7 @@ name = "sic_io"
 version = "0.10.0"
 dependencies = [
  "sic_core 0.11.0",
- "sic_testing 0.10.0",
+ "sic_testing 0.11.0",
  "thiserror 1.0.16 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -658,13 +658,13 @@ dependencies = [
  "pest_derive 2.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "sic_core 0.11.0",
  "sic_image_engine 0.10.0",
- "sic_testing 0.10.0",
+ "sic_testing 0.11.0",
  "thiserror 1.0.16 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "sic_testing"
-version = "0.10.0"
+version = "0.11.0"
 dependencies = [
  "parameterized 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "sic_core 0.11.0",
