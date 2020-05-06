@@ -1,7 +1,7 @@
 [package]
 edition = "2018"
 name = "sic"
-version = "0.10.1"
+version = "0.11.0"
 authors = ["Martijn Gribnau <garm@ilumeo.com>"]
 description = "Accessible image processing and conversion from the terminal (and a front-end for the 'image' crate)."
 license = "MIT"
@@ -11,6 +11,8 @@ exclude = [
     ".idea/*",
     ".vscode/*",
     "*.iml",
+    ".travis.yml",
+    "RELEASE_STEPS.md",
 ]
 keywords = ["image", "converter", "cli", "front-end", "image-cli"]
 categories = ["multimedia::images", "command-line-utilities"]
@@ -27,12 +29,12 @@ members = [
 ]
 
 [dependencies]
-sic_cli = { path = "components/sic_cli" }
+sic_cli = { path = "components/sic_cli", version = "0.11" }
 
 anyhow = "1.0"
 
 [dev-dependencies]
-sic_core = { path = "components/sic_core", version = "0.10" }
+sic_core = { path = "components/sic_core", version = "0.11" }
 clap = "2.33.0" # for examples/gen_completions.rs
 parameterized = "0.1.1"
 

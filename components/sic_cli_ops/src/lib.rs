@@ -116,7 +116,7 @@ mod tests {
                      --unsharpen 1.5 1";
 
         let input = input.split_ascii_whitespace();
-        let matches = cli().get_matches_from(input);
+        let matches = cli("", "", "").get_matches_from(input);
         let mut tree: IndexTree = BTreeMap::new();
         let ast = build_ast_from_matches(&matches, &mut tree);
         let ast = ast.unwrap();
@@ -193,7 +193,7 @@ mod tests {
                      --rotate180";
 
         let input = input.split_ascii_whitespace();
-        let matches = cli().get_matches_from(input);
+        let matches = cli("", "", "").get_matches_from(input);
 
         let ops = mk_ops(OperationId::Rotate180, &matches);
         let ops = ops.unwrap();
@@ -207,7 +207,7 @@ mod tests {
         let input = "sic -i in -o out --unsharpen 1.5 2";
 
         let input = input.split_ascii_whitespace();
-        let matches = cli().get_matches_from(input);
+        let matches = cli("", "", "").get_matches_from(input);
 
         // note that at mk_ops no unification of arguments has taken place.
         let ops = mk_ops(OperationId::Unsharpen, &matches);

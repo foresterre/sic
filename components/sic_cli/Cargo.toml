@@ -1,6 +1,6 @@
 [package]
 name = "sic_cli"
-version = "0.10.0"
+version = "0.11.0"
 authors = ["Martijn Gribnau <garm@ilumeo.com>"]
 description = "Component of the sic cli: provides the cli interface."
 edition = "2018"
@@ -8,11 +8,11 @@ license-file = "../../LICENSE"
 repository = "https://github.com/foresterre/sic"
 
 [dependencies]
-sic_cli_ops = { path = "../../components/sic_cli_ops" }
-sic_core = { path = "../../components/sic_core", version = "0.10" }
-sic_io  = { path = "../../components/sic_io", version = "0.10" }
-sic_image_engine = { path = "../../components/sic_image_engine", version = "0.10" }
-sic_parser = { path = "../../components/sic_parser", version = "0.10" }
+sic_cli_ops = { path = "../../components/sic_cli_ops", version = "0.11.0" }
+sic_core = { path = "../../components/sic_core", version = "0.11" }
+sic_io  = { path = "../../components/sic_io", version = "0.11" }
+sic_image_engine = { path = "../../components/sic_image_engine", version = "0.11" }
+sic_parser = { path = "../../components/sic_parser", version = "0.11" }
 
 anyhow = "1.0.28"
 atty = "0.2.14"
@@ -21,4 +21,4 @@ inflate = "0.4.5"
 globwalk = "0.8.0"
 
 [dev-dependencies]
-sic_testing = { path = "../../components/sic_testing" }
+sic_testing = { path = "../../components/sic_testing", version = "0.11" }

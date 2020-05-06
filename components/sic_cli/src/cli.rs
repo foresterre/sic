@@ -12,10 +12,6 @@ use crate::config::{
     validate_jpeg_quality, Config, ConfigBuilder, InputOutputModeType, SelectedLicenses,
 };
 
-const ABOUT: &str = include_str!("../../../resources/help-pages/about.txt");
-const HELP_OPERATIONS_AVAILABLE: &str =
-    include_str!("../../../resources/help-pages/image_operations.txt");
-
 // table of argument names
 pub(crate) mod arg_names {
     // cli - possible arguments
@@ -48,10 +44,14 @@ pub(crate) mod arg_names {
     pub(crate) const GROUP_IMAGE_OPERATIONS: &str = "group";
 }
 
-pub fn cli() -> App<'static, 'static> {
+pub fn cli(
+    version: &'static str,
+    about: &'static str,
+    help_ops: &'static str,
+) -> App<'static, 'static> {
     App::new("sic")
-        .version(env!("CARGO_PKG_VERSION"))
-        .about(ABOUT)
+        .version(version)
+        .about(about)
         .after_help("For more information, visit: https://github.com/foresterre/sic")
         .author("Martijn Gribnau <garm@ilumeo.com>")
 
@@ -84,7 +84,7 @@ pub fn cli() -> App<'static, 'static> {
             .value_name("INPUT_PATH")
             .takes_value(true)
             .help("Input image path. When using this option, input piped from stdin will be ignored. \
-                   In glob mode, depending on your shell you may need to add explicit quotation marks around the argument")
+                      In glob mode, depending on your shell you may need to add explicit quotation marks around the argument")
             .conflicts_with_all(&[ARG_LICENSE, ARG_DEP_LICENSES]))
 
         // io(output):
@@ -112,29 +112,32 @@ pub fn cli() -> App<'static, 'static> {
             .long("select-frame")
             .value_name("#FRAME")
             .help("Frame to be loaded as still image if the input image is an animated image.\
-            To pick the first and last frame respectively, you can provide 'first' and 'last' as arguments. \
-            Otherwise provide a single one-indexed positive number which corresponds with the frame index. \
-            For example, to select the first frame, the argument would be '1', for the second '2', etc.")
+                      To pick the first and last frame respectively, you can provide 'first' and 'last' as arguments. \
+                      Otherwise provide a single one-indexed positive number which corresponds with the frame index. \
+                      For example, to select the first frame, the argument would be '1', for the second '2', etc.")
             .takes_value(true))
 
         // config(out):
         .arg(Arg::with_name(ARG_DISABLE_AUTOMATIC_COLOR_TYPE_ADJUSTMENT)
             .long("disable-automatic-color-type-adjustment")
             .help("Some image output formats do not support the color type of the image buffer prior to encoding. \
-            By default the program tries to adjust the color type. If this flag is provided, \
-            the program will not try to adjust the color type."))
+                      By default the program tries to adjust the color type. If this flag is provided, \
+                      the program will not try to adjust the color type."))
+
         .arg(Arg::with_name(ARG_FORCED_OUTPUT_FORMAT)
             .short("f")
             .long("output-format")
             .value_name("FORMAT")
             .help("Force the output image format to use FORMAT, regardless of the (if any) extension of the given output file path. \
-                Output formats (FORMAT values) supported: BMP, GIF, ICO, JPEG, PNG, PBM, PGM, PPM and PAM.")
+                      Output formats (FORMAT values) supported: BMP, GIF, ICO, JPEG, PNG, PBM, PGM, PPM and PAM.")
             .takes_value(true))
+
         .arg(Arg::with_name(ARG_JPEG_ENCODING_QUALITY)
             .long("jpeg-encoding-quality")
             .help("Set the jpeg quality to QUALITY. Valid values are positive numbers from 1 up to and including 100. Will only be used when the output format is determined to be jpeg.")
             .value_name("QUALITY")
             .takes_value(true))
+
         .arg(Arg::with_name(ARG_PNM_ENCODING_ASCII)
             .long("pnm-encoding-ascii")
             .help("Use ascii based encoding when using a PNM image output format (pbm, pgm or ppm). Doesn't apply to 'pam' (PNM Arbitrary Map)."))
@@ -144,7 +147,7 @@ pub fn cli() -> App<'static, 'static> {
             .long("apply-operations")
             .short("x")
             .alias("A")
-            .help(HELP_OPERATIONS_AVAILABLE)
+            .help(help_ops)
             .value_name("OPERATIONS")
             .takes_value(true))
 

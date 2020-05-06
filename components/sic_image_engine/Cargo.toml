@@ -1,6 +1,6 @@
 [package]
 name = "sic_image_engine"
-version = "0.10.0"
+version = "0.11.0"
 authors = ["Martijn Gribnau <garm@ilumeo.com>"]
 description = "Component of the sic cli: provides abstractions for (the application of) image operations."
 edition = "2018"
@@ -8,15 +8,15 @@ license-file = "../../LICENSE"
 repository = "https://github.com/foresterre/sic"
 
 [dependencies]
-sic_core = { path = "../sic_core", version = "0.10" }
-sic_io = { path = "../sic_io", version = "0.10" }
+sic_core = { path = "../sic_core", version = "0.11" }
+sic_io = { path = "../sic_io", version = "0.11" }
 
 strum = "0.18.0"
 strum_macros = "0.18.0"
 thiserror = "1.0.16"
 
 [dev-dependencies]
-sic_testing = { path = "../sic_testing", version = "0.10" }
+sic_testing = { path = "../sic_testing", version = "0.11" }
 
 [features]
 output-test-images = []
