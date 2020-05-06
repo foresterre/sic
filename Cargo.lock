@@ -599,7 +599,7 @@ dependencies = [
  "clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "globwalk 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "inflate 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "sic_cli_ops 0.10.0",
+ "sic_cli_ops 0.11.0",
  "sic_core 0.11.0",
  "sic_image_engine 0.11.0",
  "sic_io 0.11.0",
@@ -609,7 +609,7 @@ dependencies = [
 
 [[package]]
 name = "sic_cli_ops"
-version = "0.10.0"
+version = "0.11.0"
 dependencies = [
  "clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "sic_cli 0.10.0",

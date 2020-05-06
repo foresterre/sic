@@ -1,6 +1,6 @@
 [package]
 name = "sic_cli_ops"
-version = "0.10.0"
+version = "0.11.0"
 authors = ["Martijn Gribnau <garm@ilumeo.com>"]
 description = "Component of the sic cli: parses images operations invoked from the cli."
 edition = "2018"
@@ -17,5 +17,5 @@ strum_macros = "0.18.0"
 thiserror = "1.0.16"
 
 [dev-dependencies]
-sic_cli = { path = "../../components/sic_cli" } # careful! potential circular dependency!
-sic_testing = { path = "../../components/sic_testing" }
+sic_cli = { path = "../../components/sic_cli", version = "0.10" } # careful! potential circular dependency!
+sic_testing = { path = "../../components/sic_testing", version = "0.11" }
