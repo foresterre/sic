@@ -586,13 +586,13 @@ dependencies = [
  "clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "flate2 1.0.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "parameterized 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "sic_cli 0.10.0",
+ "sic_cli 0.11.0",
  "sic_core 0.11.0",
 ]
 
 [[package]]
 name = "sic_cli"
-version = "0.10.0"
+version = "0.11.0"
 dependencies = [
  "anyhow 1.0.28 (registry+https://github.com/rust-lang/crates.io-index)",
  "atty 0.2.14 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -612,7 +612,7 @@ name = "sic_cli_ops"
 version = "0.11.0"
 dependencies = [
  "clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sic_cli 0.10.0",
+ "sic_cli 0.11.0",
  "sic_image_engine 0.11.0",
  "sic_parser 0.11.0",
  "sic_testing 0.11.0",
