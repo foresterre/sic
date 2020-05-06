@@ -580,7 +580,7 @@ dependencies = [
 
 [[package]]
 name = "sic"
-version = "0.10.1"
+version = "0.11.0"
 dependencies = [
  "anyhow 1.0.28 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)",
