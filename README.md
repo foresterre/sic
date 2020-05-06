@@ -7,10 +7,10 @@
 
 _Convert images and perform image operations from the command-line._
 
-The sic image cli (sic) is a front-end for the [image crate](https://github.com/image-rs/image).
-Aside from the image operations supplied by the image crate, we provide a few additional helpful commands, such
-as diff, ourselves. We intend to also support various operations provided by the [imageproc](https://github.com/image-rs/imageproc)
-crate.
+`sic` (sic image cli) is a front-end for the [image crate](https://github.com/image-rs/image).
+Aside from image operations supplied by the image crate, a few additional helpful operations such
+as diff, are available. We intend to also support various operations provided by the [imageproc](https://github.com/image-rs/imageproc)
+crate in a future release.
 
 ### Installation
 
@@ -30,46 +30,71 @@ From the source:
 
 ### Usage
 
-**Convert an image from one format to another, for example from PNG to JPG.**
+##### Convert images
+
+Convert an image from one format to another, for example from PNG to JPG.
+
 * Command: `sic --input <input> --output <output>`
 * Shorthand: `sic -i <input> -o <output>`
 * Example: `sic -i input.png -o output.jpg` <br>
 
-**Covert an image from one format to another while not caring about the output file extension.**
-* In general `sic --output-format "<format>" -i <input> -o <output>` (or  `sic -f "<format>" -i <input> -o <output>`)
-* Example `sic --output-format png -i input.bmp -o output.jpg` _(Note: `output.jpg` will have the PNG format even though the extension is `jpg`.)_
+If you want to explicitly set the image output format, you may do so by providing the `--output-format <format>` argument.
+Otherwise, sic will attempt to infer the format from the output file extension.
 
-Supported image output formats are (as of 0.8.0): `bmp`, `gif`, `ico`, `jpg` (or `jpeg`), `png`, `pbm`, `pgm`, `ppm` and `pam`.
-The JPEG quality can optionally be set with `--jpeg-encoding-quality <value>` (value should be an integer from 1 up to (including) 100).
-Default value if not user overridden is 80.
+`--help` can be used to view a complete list of supported image output formats. Included are: `bmp`, `farbfeld`, `gif`, `ico`, `jpg` (`jpeg`), `png`, `pam`, `pbm`, `pgm` and `ppm`.
+The JPEG quality can optionally be set with `--jpeg-encoding-quality <value>`. The value should be in the range 1-100 (with default 80).
 The PNM format (specifically PBM, PGM and PPM) use binary encoding (PNM P4, P5 and P6 respectively) by default.
 To use ascii encoding, provide the following flag: `--pnm-encoding-ascii`.
 
+##### Convert or apply operations on a set of images
+
+For the use case where you have a directory several (hundred) images which you like to convert to different format, or
+perhaps image operations on a subset, `sic` provides built-in glob pattern matching. This mode has to be activated
+separately using the `--mode glob` option (as opposed to the single input, single output `simple` mode). 
+
+Examples:
+* To convert a directory of images from PNG to JPG, you can run sic with the following arguments: <br>
+    * `sic --mode glob -i "*.png" -o output_dir --output-format jpg"`
+* To convert all images with the `jpg`, `jpeg` and `png` extensions to BMP:
+    * `sic --mode glob -i "*.{jpg, jpeg, png}" -o output_dir --output-format bmp`
+* To emboss all images in a folder (assuming it contains only supported image files and no folders):
+    * `sic --mode glob -i "*" -o embossed_output -f png --filter3x3 -1 -1 0 -1 1 1 0 1 1`
+
+A few things worth noticing: 1) We use quotation marks (`"`) around the input argument, so our shell won't expand the
+glob pattern to a list of files. 2) When using glob mode, our output (`-o`) should be a folder instead of a file. 3) We
+need to explicitly state the output format with `--output-format`, since we can't infer it from an output extension. 
+
+Output images are placed in the output folder using the directory structure mirrored from the first common directory of
+all input files. If output directories do not exist, they will be created. 
+
+
 <br>
 
-**Apply image operations to an image.**
-As of release 0.10.0, there are two methods to apply image operations on an image.
-The first method is by using the `--apply-operations "<operations>"` (shorthand: `-x` or `-A`) cli argument and providing
+##### Apply image operations
+
+There are two methods to apply image operations. You can only use one at a time.
+
+The first method is called the _script operations method_ (or: _script_), and the second method is
+called the _cli operations method_ (or _cli ops_). <br><br>
+
+The operations are applied in the same order as they are provided (left-to-right) and are generally not commutative.
+
+
+###### 📜 script operations method
+
+Use this method by using the `--apply-operations "<operations>"` (shorthand: `-x`) cli argument and providing
 statements which tell `sic` what operations should be applied on the image, for example: <br>
 `sic -i input.jpg -o output.jpg --apply-operations "fliph; blur 10; resize 250 250"` <br>
-When more than one image operation is provided, the separator `;` should be used
-to separate each operation statement. <br>
-Any version of the program prior to 0.10.0 is limited to this method of applying image operations.
+When more than one image operation is provided, the separator `;` should be used to separate each operation statement. <br><br>
 
+###### ✏️ cli operations method
 
-From release 0.10.0 forward, there is a second method which can be used. This method uses cli arguments to inform
-`sic`, what image operations should be applied in what order. Do note that the order in which these arguments are provided
- *does* (not in every case though =D) matter.
-
-If we use the _image operations as cli arguments_ method the previously shown example becomes: <br>
+Use this method by providing cli image operation arguments, such as `--blur` and `--crop`, directly.  
+If we use the _cli operations_ method the previously shown example becomes: <br>
 `sic -i input.png -o output.jpg --flip-horizontal --blur 10 --resize 250 250` <br>
-Note that image operation cli arguments can not be combined with --apply-operations. <br>
+<br><br>
 
-The image operations are applied left-to-right for both methods. Additionally the methods can not be used both at the same
-time. Either the _--apply-operations_ method or the _image operations as cli arguments_ method should be used.
-
-
-The available image operations are:
+##### Supported operations
 
 |operations|syntax*|available (from version)|description|
 |---|---|---|---|
@@ -95,7 +120,7 @@ The available image operations are:
 `* The exact syntax applies to the --apply-operations method, but can also be used as a reference for the image operations as cli arguments method.`
 
 
-For some operations, their behaviour can be (slightly) changed by setting an operation modifier. These modifiers can be overwritten and they can also be reset (to their default behaviour).
+For some operations, their behaviour can be adapted by setting an operation modifier. These modifiers can be overwritten and they can also be reset (to their default behaviour).
 
 |environment operation|syntax|available (from version)|description|
 |---|---|---|---|

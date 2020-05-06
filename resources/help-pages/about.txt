@@ -1,4 +1,7 @@
-sic is an image crate[1], CLI front-end. It allows you to perform image operations on images and to convert images between formats from the CLI.
+sic is an image crate[1], CLI front-end. It allows you to perform image operations on images and to convert images to different formats from the CLI.
+
+Formats
+-------
 
 Currently, the following input (decoding) formats are supported:
 * BMP, GIF, DDS, Farbfeld, ICO, JPEG, PNG, PBM, PGM, PPM, PAM, TGA, TIFF and WebP
@@ -10,5 +13,30 @@ For both encoding and decoding, some formats are partly supported (i.e. limitati
 Animated images are currently not supported, however a specific image frame may be selected if the image is a GIF.
 Other limitations can be found at:
 * https://github.com/image-rs/image/tree/v0.23.4#21-supported-image-formats
+
+Glob patterns
+-------------
+
+By default, sic's --input and --output arguments expect a single input image and output image respectively.
+When using glob mode by setting --mode to 'glob', the --input argument expects to receive a single glob pattern instead.
+You may need to provide quotation marks around the pattern, so your shell will not superfluously expand the pattern.
+The --output argument should be given an output folder instead of a file path.
+
+Output image files will mirror the path (from the first common directory) from their respective input image paths in the output folder.
+If output folders do not exist, sic will attempt to create them for you.
+
+A thank you and request
+-----------------------
+
+We would like to explicitly state that the sic authors are not affiliated with the image crate authors.
+We do like to thank them for creating and maintaining an amazing set of libraries however!
+
+If you, a user of sic, run into an issue caused by the sic program, please report them to us by creating an issue here:
+* https://github.com/foresterre/sic/issues
+
+Thank you in advance!
+
+References
+----------
 
 [1] https://github.com/image-rs/image
