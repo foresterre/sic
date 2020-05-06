@@ -12,10 +12,6 @@ use crate::config::{
     validate_jpeg_quality, Config, ConfigBuilder, InputOutputModeType, SelectedLicenses,
 };
 
-const ABOUT: &str = include_str!("../../../resources/help-pages/about.txt");
-const HELP_OPERATIONS_AVAILABLE: &str =
-    include_str!("../../../resources/help-pages/image_operations.txt");
-
 // table of argument names
 pub(crate) mod arg_names {
     // cli - possible arguments
@@ -48,10 +44,10 @@ pub(crate) mod arg_names {
     pub(crate) const GROUP_IMAGE_OPERATIONS: &str = "group";
 }
 
-pub fn cli() -> App<'static, 'static> {
+pub fn cli(about: &'static str, help_ops: &'static str) -> App<'static, 'static> {
     App::new("sic")
         .version(env!("CARGO_PKG_VERSION"))
-        .about(ABOUT)
+        .about(about)
         .after_help("For more information, visit: https://github.com/foresterre/sic")
         .author("Martijn Gribnau <garm@ilumeo.com>")
 
@@ -147,7 +143,7 @@ pub fn cli() -> App<'static, 'static> {
             .long("apply-operations")
             .short("x")
             .alias("A")
-            .help(HELP_OPERATIONS_AVAILABLE)
+            .help(help_ops)
             .value_name("OPERATIONS")
             .takes_value(true))
 
