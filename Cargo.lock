@@ -603,7 +603,7 @@ dependencies = [
  "sic_core 0.11.0",
  "sic_image_engine 0.11.0",
  "sic_io 0.11.0",
- "sic_parser 0.10.0",
+ "sic_parser 0.11.0",
  "sic_testing 0.11.0",
 ]
 
@@ -614,7 +614,7 @@ dependencies = [
  "clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "sic_cli 0.10.0",
  "sic_image_engine 0.11.0",
- "sic_parser 0.10.0",
+ "sic_parser 0.11.0",
  "sic_testing 0.11.0",
  "strum 0.18.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "strum_macros 0.18.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -651,7 +651,7 @@ dependencies = [
 
 [[package]]
 name = "sic_parser"
-version = "0.10.0"
+version = "0.11.0"
 dependencies = [
  "parameterized 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "pest 2.1.3 (registry+https://github.com/rust-lang/crates.io-index)",

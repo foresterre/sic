@@ -9,7 +9,7 @@ repository = "https://github.com/foresterre/sic"
 
 [dependencies]
 sic_image_engine = { path = "../../components/sic_image_engine", version = "0.11" }
-sic_parser = { path = "../../components/sic_parser", version = "0.10" }
+sic_parser = { path = "../../components/sic_parser", version = "0.11" }
 
 clap = "2.33.0"
 strum = "0.18.0"
