@@ -9,7 +9,7 @@ repository = "https://github.com/foresterre/sic"
 
 [dependencies]
 sic_core = { path = "../sic_core", version = "0.11" }
-sic_io = { path = "../sic_io", version = "0.10" }
+sic_io = { path = "../sic_io", version = "0.11" }
 
 strum = "0.18.0"
 strum_macros = "0.18.0"

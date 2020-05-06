@@ -1,6 +1,6 @@
 [package]
 name = "sic_io"
-version = "0.10.0"
+version = "0.11.0"
 authors = ["Martijn Gribnau <garm@ilumeo.com>"]
 description = "Component of the sic cli: provides accessible i/o around image formats."
 edition = "2018"
