@@ -72,7 +72,7 @@ fn main() {
     // Next, we will use cargo-bom to generate the licenses from our dependencies.
     // These will be saved under <crate>/target/DEP_LICENSES.
     let dep_licenses_in_bytes = Command::new("cargo")
-        .args(&["bom"])
+        .args(&["bom", "--all"])
         .output()
         .expect(
             "Unable to read `cargo bom` output; `cargo-bom` and `cargo` should be in your path!",
