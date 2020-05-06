@@ -48,9 +48,10 @@ To use ascii encoding, provide the following flag: `--pnm-encoding-ascii`.
 
 ##### Convert or apply operations on a set of images
 
-For the use case where you have a directory several (hundred) images which you like to convert to different format, or
-perhaps image operations on a subset, `sic` provides built-in glob pattern matching. This mode has to be activated
-separately using the `--mode glob` option (as opposed to the single input, single output `simple` mode). 
+For the use case where you have a directory containing several (hundreds of) images which you like to convert to different
+format, or on which you perhaps want to apply certain image operations, `sic` provides built-in glob pattern matching.
+This mode has to be activated separately using the `--mode glob` option (as opposed to the single input, single output
+`simple` mode). 
 
 Examples:
 * To convert a directory of images from PNG to JPG, you can run sic with the following arguments: <br>
