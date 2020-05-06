@@ -1,3 +1,7 @@
+RELEASE PR: #<PR NUMBER>
+
+---
+
 <!-- Merge all PR's to the `master` branch, then: -->
 
 <!-- ### Release
@@ -7,14 +11,14 @@ A description about what is included in this update, a thank you or something
 else which is noteworthy :).
 -->
 
-### Changes from `current version` to `new version`:
+### Notable changes from `0.10` to `0.11`:
 - ... (issue: #X, PR: #Y)
 - ... (issue: #X, PR: #Y)
 - ... (issue: #X, PR: #Y)
 
 ---
 
-### Problems encountered & their resolutions
+### Open issues
 
 Blocking:
 - [ ] ... (issue: #X, PR: #Y)
@@ -25,17 +29,10 @@ Blocking:
 
 ### Release checklist
 
-**Create Release PR**
+**Initialize release**
 
-- [ ] Included this checklist. Already a step complete! :wink:
-
-**Verify**
-
-- [ ] Verify formatting with `cargo +nightly fmt`.
-- [ ] Does `cargo test` succeed?
-- [ ] Verify image output of images produced with `cargo test --features output-test-images`.
-- [ ] Do all CI runs complete successfully?
-
+- [ ] Create release issue. Already a step complete! :wink:
+- [ ] Create release branch
 
 **Update version number**
 
@@ -52,11 +49,21 @@ Blocking:
 
 - [ ] Run `cargo run --example update_dep_licenses` to update the licenses of dependencies, which will be included in a binary build.
 
-**Verify again**
+**Create Release PR**
 
-Same as above.
+- [ ] Create release PR 
 
-- [ ] Completed!
+**Verify**
+
+- [ ] Verify formatting with `cargo +nightly fmt`.
+- [ ] Does `cargo test` succeed?
+- [ ] Verify image output of images produced with `cargo test --features output-test-images`.
+- [ ] Do all CI runs complete successfully?
+- [ ] Are the versions indeed updated for all packages?
+- [ ] Is the application version updated?
+- [ ] Are the dependency licenses updated?
+
+Completed!
 
 **Merge Release PR**
 
@@ -70,18 +77,19 @@ we can move on to the next step.
 
 **Release, Tag & Binaries**
 
+<!-- TODO add changelist in the repo and modify per PR -->
+- [ ] Write release notes
+
 - [ ] Create a release with a version tag on [the github release page](https://github.com/foresterre/sic/releases)
     - tags are equal to crate version number e.g. `0.5.1`
     - release title is `sic-<version>` e.g. `sic-0.5.1`
 
-
-- [ ] Add Windows and Linux (Ubuntu compiled) binaries to the release
+- [ ] Add Windows and Linux binaries to the release
     - compile with `cargo build --release`
+
 
 ---
 
 [Release steps](https://github.com/foresterre/sic/blob/master/RELEASE_STEPS.md)
 
----
 
-PR: #<PR NUMBER>
