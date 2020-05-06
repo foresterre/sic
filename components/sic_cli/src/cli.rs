@@ -102,7 +102,7 @@ pub fn cli() -> App<'static, 'static> {
             .takes_value(true)
             .possible_values(&["simple", "glob"])
             .default_value("simple")
-            .help("Use 'simple' mode when using a single input- and a single output-file;\
+            .help("Use 'simple' mode when using a single input- and a single output-file; \
                       Use 'glob' mode when using glob patterns as input, the output path should take \
                       a root directory where output images will be copied, using a mirrored directory structure")
         )
