@@ -81,7 +81,7 @@ we can move on to the next step.
 - [ ] Write release notes
 
 - [ ] Create a release with a version tag on [the github release page](https://github.com/foresterre/sic/releases)
-    - tags are equal to crate version number e.g. `0.5.1`
+    - tags are equal to crate version number and prefixed with `v`, e.g. `v0.5.1`
     - release title is `sic-<version>` e.g. `sic-0.5.1`
 
 - [ ] Add Windows and Linux binaries to the release
