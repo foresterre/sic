@@ -22,10 +22,10 @@ Supported operations:
 |crop               | `crop <uint> <uint> <uint> <uint>`| 0.9.0                  |
 |diff               | `diff "<path>"                   `| 0.11.0                 |
 |filter3x3          | `filter3x3 <fp9x>`                | 0.7.0                  |
-|flip horizontal    | `fliph`                           | 0.5.0                  |
-|flip vertical      | `flipv`                           | 0.5.0                  |
+|flip horizontal    | `flip-horizontal`                 | 0.5.0                  |
+|flip vertical      | `flip-vertical`                   | 0.5.0                  |
 |gray scale         | `grayscale`                       | 0.7.0                  |
-|hue rotate         | `huerotate <int>`                 | 0.7.0                  |
+|hue rotate         | `hue-rotate <int>`                | 0.7.0                  |
 |invert             | `invert`                          | 0.7.0                  |
 |resize             | `resize <uint> <uint>`            | 0.5.0                  |
 |rotate90           | `rotate90`                        | 0.7.0                  |
@@ -80,9 +80,9 @@ The available image operation modifiers are:
 Examples: script mode
 ---------------------
 
-Example 1: sic --input input.png --output output.png --apply-operations "invert; huerotate -75; rotate90; contrast 0.25"
+Example 1: sic --input input.png --output output.png --apply-operations "invert; hue-rotate -75; rotate90; contrast 0.25"
 Example 2: sic -i input.png -o output.png --apply-operations "set resize preserve_aspect_ratio; set resize sampling_filter lanczos3; resize 250 250;"
-Example 3: sic -i in.png -o out.png --apply-operations "rotate180; fliph; set resize sampling_filter nearest; resize 75 80; huerotate 75"
+Example 3: sic -i in.png -o out.png --apply-operations "rotate180; flip-horizontal; set resize sampling_filter nearest; resize 75 80; huerotate 75"
 
 
 Examples: cli ops mode

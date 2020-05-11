@@ -85,7 +85,7 @@ The operations are applied in the same order as they are provided (left-to-right
 
 Use this method by using the `--apply-operations "<operations>"` (shorthand: `-x`) cli argument and providing
 statements which tell `sic` what operations should be applied on the image, for example: <br>
-`sic -i input.jpg -o output.jpg --apply-operations "fliph; blur 10; resize 250 250"` <br>
+`sic -i input.jpg -o output.jpg --apply-operations "flip-horizontal; blur 10; resize 250 250"` <br>
 When more than one image operation is provided, the separator `;` should be used to separate each operation statement. <br><br>
 
 ###### ✏️ cli operations method
@@ -102,13 +102,13 @@ If we use the _cli operations_ method the previously shown example becomes: <br>
 |blur               | `blur <fp>`                           | Yes (0.5.0) 	    | Performs a Gaussian blur on the image ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.blur.html)). An argument below `0.0`, will use `1.0` instead. |
 |brighten           | `brighten <int>`                      | Yes (0.7.0) 	    | Create a brightened version of the image. |
 |contrast           | `contrast <fp>`                       | Yes (0.7.0) 	    | Adjust the contrast of the image. |
-|crop               | `crop <int> <int> <int> <int>`        | Yes (0.9.0)       | Syntax: `crop <lx> <ly> <rx> <ry>`, where `lx` is top left corner x pixel coordinate starting at 0, `ly` is the top left corner y pixel coordinate starting at 0, `rx` is the  bottom right corner x pixel coordinate and `ry` is the bottom right corner y pixel coordinate. `rx` and `ry` should be larger than `lx` and `ly` respectively. |
+|crop               | `crop <uint> <uint> <uint> <uint>`    | Yes (0.9.0)       | Syntax: `crop <lx> <ly> <rx> <ry>`, where `lx` is top left corner x pixel coordinate starting at 0, `ly` is the top left corner y pixel coordinate starting at 0, `rx` is the  bottom right corner x pixel coordinate and `ry` is the bottom right corner y pixel coordinate. `rx` and `ry` should be larger than `lx` and `ly` respectively. |
 |diff               | `diff <path>`                         | Yes (0.11.0)      | Diff the input image against the argument image to show which pixels are the same (white), different (red) or not part of either image (transparent) |
 |filter3x3          | `filter3x3 <args9>`                   | Yes (0.7.0)       | Apply a 3 by 3 convolution filter. |
-|flip horizontal    | `fliph`                               | Yes (0.5.0) 	    | Flips the image on the horizontal axis. |
-|flip vertical      | `flipv`                               | Yes (0.5.0) 	    | Flips the image on the vertical axis. |
+|flip horizontal    | `flip-horizontal`                     | Yes (0.5.0) 	    | Flips the image on the horizontal axis. |
+|flip vertical      | `flip-vertical`                       | Yes (0.5.0) 	    | Flips the image on the vertical axis. |
 |gray scale         | `grayscale`                           | Yes (0.7.0) 	    | Transform each pixel to only hold an intensity of light value. Reduces the color space to contain only gray monochromatic values.|
-|hue rotate         | `huerotate <int>`                     | Yes (0.7.0) 	    | Rotate's the hue, argument is in degrees. Rotates `<int>%360` degrees. |
+|hue rotate         | `hue-rotate <int>`                    | Yes (0.7.0) 	    | Rotate's the hue, argument is in degrees. Rotates `<int>%360` degrees. |
 |invert             | `invert`                              | Yes (0.7.0) 	    | Invert the colours of an image. |
 |resize             | `resize <uint> <uint>`                | Yes (0.5.0) 	    | Resize the image to x by y pixels. Can both up- and downscale. Uses a `lanczos3` sampling filter if not overridden. Prior to sic v0.11, the default sampling filter was `gaussian`. |
 | >                 | `set resize preserve_aspect_ratio`    | Yes (0.9.0)       | Enables preservation of the aspect ratio when resizing. |
@@ -175,12 +175,12 @@ or <br>
 `sic -i in.png -o out.png --filter3x3 -1 -1 0 -1 0 1 0 1 1`
 
 **flip horizontal** example: <br>
-`sic -i in.png -o out.png --apply-operations "fliph"` <br>
+`sic -i in.png -o out.png --apply-operations "flip-horizontal"` <br>
 or <br>
 `sic -i in.png -o out.png --flip-horizontal`
 
 **flip vertical** example: <br>
-`sic -i in.png -o out.png --apply-operations "flipv"` <br>
+`sic -i in.png -o out.png --apply-operations "flip-vertical"` <br>
 or <br>
 `sic -i in.png -o out.png --flip-vertical`
 
@@ -190,7 +190,7 @@ or <br>
 `sic -i in.png -o out.png --grayscale`
 
 **hue rotate** example: <br>
-`sic -i in.png -o out.png --apply-operations "huerotate -90"` <br>
+`sic -i in.png -o out.png --apply-operations "hue-rotate -90"` <br>
 or <br>
 `sic -i in.png -o out.png --hue-rotate -90`
 
@@ -235,7 +235,7 @@ or <br>
 `sic -i in.png -o out.png --unsharpen -0.7 1`
 
 example with *multiple* image operations which are applied from left-to-right: <br>
-`sic -i in.png -o out.png --apply-operations "rotate180; fliph; set resize sampling_filter nearest; resize 75 80; huerotate 75"` <br>
+`sic -i in.png -o out.png --apply-operations "rotate180; flip-horizontal; set resize sampling_filter nearest; resize 75 80; hue-rotate 75"` <br>
 or <br>
 `sic -i in.png -o out.png --rotate180 --flip-horizontal --set-resize-sampling-filter nearest --resize 75 80 --hue-rotate 75`
 

@@ -48,7 +48,7 @@ mod tests {
 
     #[test]
     fn test_parsed() {
-        let input = "blur 15; flipv";
+        let input = "blur 15; flip-vertical";
         let parsed = parse_script(input);
 
         assert!(parsed.is_ok());
