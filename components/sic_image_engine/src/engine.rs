@@ -17,7 +17,7 @@ trait EnvironmentKey {
 #[strum_discriminants(name(ItemName), derive(Display, Hash))]
 pub enum EnvItem {
     CustomSamplingFilter(FilterTypeWrap),
-    PreserveAspectRatio,
+    PreserveAspectRatio(bool),
 }
 
 impl EnvItem {
@@ -33,7 +33,7 @@ impl EnvironmentKey for EnvItem {
     fn key(&self) -> ItemName {
         match self {
             EnvItem::CustomSamplingFilter(_) => ItemName::CustomSamplingFilter,
-            EnvItem::PreserveAspectRatio => ItemName::PreserveAspectRatio,
+            EnvItem::PreserveAspectRatio(_) => ItemName::PreserveAspectRatio,
         }
     }
 }
@@ -169,15 +169,18 @@ impl ImageEngine {
             ImgOp::Resize((new_x, new_y)) => {
                 let filter = resize_filter_or_default(&mut self.environment);
 
-                *self.image = if self
-                    .environment
-                    .get(ItemName::PreserveAspectRatio)
-                    .is_some()
-                {
-                    self.image.resize(*new_x, *new_y, filter)
+                if let Some(reg) = self.environment.get(ItemName::PreserveAspectRatio) {
+                    if let EnvItem::PreserveAspectRatio(preserve) = reg {
+                        if *preserve {
+                            *self.image = self.image.resize(*new_x, *new_y, filter);
+                        } else {
+                            *self.image = self.image.resize_exact(*new_x, *new_y, filter);
+                        }
+                    }
                 } else {
-                    self.image.resize_exact(*new_x, *new_y, filter)
-                };
+                    // default if preserve-aspect-ratio option has not been set
+                    *self.image = self.image.resize_exact(*new_x, *new_y, filter);
+                }
 
                 Ok(())
             }
@@ -534,7 +537,7 @@ mod tests {
         let mut engine = ImageEngine::new(img);
         let mut engine2 = engine.clone();
         let cmp_left = engine.ignite(&[
-            Instr::EnvAdd(EnvItem::PreserveAspectRatio),
+            Instr::EnvAdd(EnvItem::PreserveAspectRatio(true)),
             Instr::Operation(ImgOp::Resize((100, 100))),
         ]);
 
@@ -560,6 +563,42 @@ mod tests {
         output_test_image_for_manual_inspection(
             &right,
             out_!("test_resize_preserve_aspect_ratio_right_default.png"),
+        );
+    }
+
+    #[test]
+    fn resize_with_preserve_aspect_ratio_set_to_false() {
+        // W 217 H 447
+        let img: DynamicImage = setup_default_test_image();
+
+        let mut engine = ImageEngine::new(img);
+        let mut engine2 = engine.clone();
+        let cmp_left = engine.ignite(&[
+            Instr::EnvAdd(EnvItem::PreserveAspectRatio(false)),
+            Instr::Operation(ImgOp::Resize((100, 100))),
+        ]);
+
+        assert!(cmp_left.is_ok());
+
+        let cmp_right = engine2.ignite(&[Instr::Operation(ImgOp::Resize((100, 100)))]);
+
+        assert!(cmp_left.is_ok());
+
+        let left = cmp_left.unwrap();
+        let right = cmp_right.unwrap();
+
+        assert_eq!(left.raw_pixels(), right.raw_pixels());
+
+        assert_eq!((100, 100), left.dimensions());
+
+        output_test_image_for_manual_inspection(
+            &left,
+            out_!("test_resize_preserve_aspect_ratio_left_preserve_f.png"),
+        );
+
+        output_test_image_for_manual_inspection(
+            &right,
+            out_!("test_resize_preserve_aspect_ratio_right_default_f.png"),
         );
     }
 

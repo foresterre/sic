@@ -1,6 +1,7 @@
 WHITESPACE = _{ " "+ }
 sep = _{ ";" }
 
+bool = @{ "true" | "false" }
 fp = @{ int ~ ("." ~ ASCII_DIGIT+)? }
 uint = @{ ASCII_DIGIT+ }
 int  = @{ "-"? ~ ASCII_DIGIT+ }
@@ -39,8 +40,8 @@ rotate180 = { ^"rotate180" }
 rotate270 = { ^"rotate270" }
 unsharpen = ${ ^"unsharpen" ~ WHITESPACE ~ fp ~ WHITESPACE ~ int }
 
-env_resize_sampling_filter_name = ${^"resize" ~ WHITESPACE ~ ^"sampling_filter"}
-env_resize_preserve_aspect_ratio_name = ${^"resize" ~ WHITESPACE ~ ^"preserve_aspect_ratio"}
+env_resize_sampling_filter_name = {^"sampling-filter"}
+env_resize_preserve_aspect_ratio_name = {^"preserve-aspect-ratio"}
 
 env_available = _{
       env_resize_sampling_filter_name
@@ -48,7 +49,7 @@ env_available = _{
 }
 
 set_resize_sampling_filter = ${env_resize_sampling_filter_name ~ WHITESPACE ~ string_ascii }
-set_resize_preserve_aspect_ratio = ${ env_resize_preserve_aspect_ratio_name }
+set_resize_preserve_aspect_ratio = ${ env_resize_preserve_aspect_ratio_name ~ WHITESPACE ~ bool}
 
 setenv_available = _{
 	  set_resize_sampling_filter

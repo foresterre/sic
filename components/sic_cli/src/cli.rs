@@ -277,7 +277,7 @@ pub fn cli(
         // image-operations(cli-arguments/modifiers):
         .arg(Arg::with_name(OperationId::ModResizePreserveAspectRatio.as_str())
             .help("Operation modifier for: resize")
-            .long("--set-resize-preserve-aspect-ratio")
+            .long("--preserve-aspect-ratio")
             .takes_value(true)
             .value_name("bool")
             .number_of_values(1)
@@ -286,7 +286,7 @@ pub fn cli(
         )
         .arg(Arg::with_name(OperationId::ModResizeSamplingFilter.as_str())
             .help("Operation modifier for: resize")
-            .long("--set-resize-sampling-filter")
+            .long("--sampling-filter")
             .takes_value(true)
             .value_name("str")
             .number_of_values(1)

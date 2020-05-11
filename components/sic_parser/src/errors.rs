@@ -29,8 +29,8 @@ pub enum OperationParamError {
     #[error("Unable to parse `set` environment command. Error on element: {0}")]
     SetEnvironmentElement(String),
 
-    #[error("Unable to parse 'set resize_sampling_filter' option: {0}")]
-    SetResizeSamplingFilter(String),
+    #[error("Unable to parse operation argument(s): {0}")]
+    PestArgError(String),
 
     #[error(
         "Unable to parse `del` environment command. Error: expected a single `del` inner element."

@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use crate::errors::SicCliOpsError;
-use sic_image_engine::engine::{EnvItem, Instr, ItemName};
+use sic_image_engine::engine::{EnvItem, Instr};
 use sic_image_engine::wrapper::filter_type::FilterTypeWrap;
 use sic_image_engine::wrapper::image_path::ImageFromPath;
 use sic_image_engine::ImgOp;
@@ -125,14 +125,9 @@ impl OperationId {
                 Instr::Operation(ImgOp::Unsharpen(parse_inputs_by_type!(inputs, (f32, i32))?))
             }
 
-            OperationId::ModResizePreserveAspectRatio => {
-                let toggle = parse_inputs_by_type!(inputs, bool)?;
-                if toggle {
-                    Instr::EnvAdd(EnvItem::PreserveAspectRatio)
-                } else {
-                    Instr::EnvRemove(ItemName::PreserveAspectRatio)
-                }
-            }
+            OperationId::ModResizePreserveAspectRatio => Instr::EnvAdd(
+                EnvItem::PreserveAspectRatio(parse_inputs_by_type!(inputs, bool)?),
+            ),
             OperationId::ModResizeSamplingFilter => {
                 let input = parse_inputs_by_type!(inputs, String)?;
                 let filter = FilterTypeWrap::try_from_str(&input)
@@ -1106,7 +1101,7 @@ mod test_tree_extend {
         #[test]
         fn set_true() {
             let mut tree: IndexTree = BTreeMap::new();
-            let setup = setup("--set-resize-preserve-aspect-ratio true");
+            let setup = setup("--preserve-aspect-ratio true");
             let matches = setup.0;
             let op = op_with_values!(matches, OperationId::ModResizePreserveAspectRatio);
             extend_index_tree_with_unification(&mut tree, op, 1).unwrap();
@@ -1131,7 +1126,7 @@ mod test_tree_extend {
         #[test]
         fn set_false() {
             let mut tree: IndexTree = BTreeMap::new();
-            let setup = setup("--set-resize-preserve-aspect-ratio false");
+            let setup = setup("--preserve-aspect-ratio false");
             let matches = setup.0;
             let op = op_with_values!(matches, OperationId::ModResizePreserveAspectRatio);
             extend_index_tree_with_unification(&mut tree, op, 1).unwrap();
@@ -1156,7 +1151,7 @@ mod test_tree_extend {
         #[test]
         #[should_panic]
         fn not_allowed_value() {
-            setup("--set-resize-preserve-aspect-ratio yes");
+            setup("--set-preserve-aspect-ratio yes");
         }
     }
 
@@ -1190,38 +1185,38 @@ mod test_tree_extend {
 
         #[test]
         fn set_catmullrom() {
-            let setup = setup("--set-resize-sampling-filter catmullrom");
+            let setup = setup("--sampling-filter catmullrom");
             test(setup, "catmullrom");
         }
 
         #[test]
         fn set_gaussian() {
-            let setup = setup("--set-resize-sampling-filter gaussian");
+            let setup = setup("--sampling-filter gaussian");
             test(setup, "gaussian");
         }
 
         #[test]
         fn set_lanczos3() {
-            let setup = setup("--set-resize-sampling-filter lanczos3");
+            let setup = setup("--sampling-filter lanczos3");
             test(setup, "lanczos3");
         }
 
         #[test]
         fn set_nearest() {
-            let setup = setup("--set-resize-sampling-filter nearest");
+            let setup = setup("--sampling-filter nearest");
             test(setup, "nearest");
         }
 
         #[test]
         fn set_triangle() {
-            let setup = setup("--set-resize-sampling-filter triangle");
+            let setup = setup("--sampling-filter triangle");
             test(setup, "triangle");
         }
 
         #[test]
         #[should_panic]
         fn not_allowed_value() {
-            setup("--set-resize-sampling-filter yes");
+            setup("--sampling-filter yes");
         }
     }
 }
