@@ -84,10 +84,28 @@ parse_op_from_pair!(Resize, (u32, u32));
 parse_op_from_pair!(Unsharpen, (f32, i32));
 parse_op_from_pair!(Filter3x3, [f32; 9]);
 
+macro_rules! parse_setenv_from_pair {
+    ($env_item:tt, $ty:ty) => {
+        #[allow(non_snake_case)]
+        fn $env_item(pair: Pair<'_, Rule>) -> Result<Instr, SicParserError> {
+            let inner = pair.into_inner().skip(1);
+
+            let arg: Result<$ty, SicParserError> =
+                ParseInputsFromIter::parse(inner.map(|pair| pair.as_str()));
+
+            let stmt = Instr::EnvAdd(EnvItem::$env_item(arg?));
+            Ok(stmt)
+        }
+    };
+}
+
+parse_setenv_from_pair!(CustomSamplingFilter, FilterTypeWrap);
+parse_setenv_from_pair!(PreserveAspectRatio, bool);
+
 fn parse_set_environment(pair: Pair<'_, Rule>) -> Result<Instr, SicParserError> {
     let environment_item = match pair.as_rule() {
-        Rule::set_resize_sampling_filter => parse_set_resize_sampling_filter(pair)?,
-        Rule::set_resize_preserve_aspect_ratio => EnvItem::PreserveAspectRatio,
+        Rule::set_resize_sampling_filter => CustomSamplingFilter(pair)?,
+        Rule::set_resize_preserve_aspect_ratio => PreserveAspectRatio(pair)?,
         _ => {
             return Err(SicParserError::OperationError(
                 OperationParamError::SetEnvironmentElement(format!("{}", pair)),
@@ -95,30 +113,7 @@ fn parse_set_environment(pair: Pair<'_, Rule>) -> Result<Instr, SicParserError> 
         }
     };
 
-    Ok(Instr::EnvAdd(environment_item))
-}
-
-fn parse_set_resize_sampling_filter(pair: Pair<'_, Rule>) -> Result<EnvItem, SicParserError> {
-    let mut inner = pair.into_inner();
-
-    // skip over the compound atomic 'env_available' rule
-    inner.next().ok_or_else(|| {
-        SicParserError::OperationError(OperationParamError::SetResizeSamplingFilter(
-            "No option value found.".to_string(),
-        ))
-    })?;
-
-    inner
-        .next()
-        .ok_or_else(|| {
-            SicParserError::OperationError(OperationParamError::SetResizeSamplingFilter(format!(
-                "{}",
-                inner
-            )))
-        })
-        .map(|val| val.as_str())
-        .and_then(|val| FilterTypeWrap::try_from_str(val).map_err(SicParserError::FilterTypeError))
-        .map(EnvItem::CustomSamplingFilter)
+    Ok(environment_item)
 }
 
 fn parse_unset_environment(pair: Pair<'_, Rule>) -> Result<Instr, SicParserError> {
@@ -674,7 +669,7 @@ mod tests {
 
     #[test]
     fn test_flip_horizontal_single_stmt_parse_correct() {
-        let pairs = SICParser::parse(Rule::main, "fliph;")
+        let pairs = SICParser::parse(Rule::main, "flip-horizontal;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![Instr::Operation(ImgOp::FlipHorizontal)]),
@@ -691,7 +686,7 @@ mod tests {
 
     #[test]
     fn test_flip_vertical_single_stmt_parse_correct() {
-        let pairs = SICParser::parse(Rule::main, "flipv;")
+        let pairs = SICParser::parse(Rule::main, "flip-vertical;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![Instr::Operation(ImgOp::FlipVertical)]),
@@ -708,7 +703,7 @@ mod tests {
 
     #[test]
     fn test_hue_rotate_pos_single_stmt_parse_correct() {
-        let pairs = SICParser::parse(Rule::main, "huerotate 3579;")
+        let pairs = SICParser::parse(Rule::main, "hue-rotate 3579;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![Instr::Operation(ImgOp::HueRotate(3579))]),
@@ -718,7 +713,7 @@ mod tests {
 
     #[test]
     fn test_hue_rotate_neg_single_stmt_parse_correct() {
-        let pairs = SICParser::parse(Rule::main, "huerotate -3579;")
+        let pairs = SICParser::parse(Rule::main, "hue-rotate -3579;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![Instr::Operation(ImgOp::HueRotate(-3579))]),
@@ -814,8 +809,11 @@ mod tests {
 
     #[test]
     fn test_multi_stmt_parse_correct() {
-        let pairs = SICParser::parse(Rule::main, "blur 10;fliph;flipv;resize 100 200;")
-            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        let pairs = SICParser::parse(
+            Rule::main,
+            "blur 10;flip-horizontal;flip-vertical;resize 100 200;",
+        )
+        .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![
                 Instr::Operation(ImgOp::Blur(10.0)),
@@ -829,8 +827,11 @@ mod tests {
 
     #[test]
     fn test_multi_stmt_parse_diff_order_correct() {
-        let pairs = SICParser::parse(Rule::main, "fliph;flipv;resize 100 200;blur 10;")
-            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        let pairs = SICParser::parse(
+            Rule::main,
+            "flip-horizontal;flip-vertical;resize 100 200;blur 10;",
+        )
+        .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![
                 Instr::Operation(ImgOp::FlipHorizontal),
@@ -844,8 +845,11 @@ mod tests {
 
     #[test]
     fn test_multi_whitespace() {
-        let pairs = SICParser::parse(Rule::main, "fliph; flipv; resize 100 200; blur 10;")
-            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        let pairs = SICParser::parse(
+            Rule::main,
+            "flip-horizontal; flip-vertical; resize 100 200; blur 10;",
+        )
+        .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![
                 Instr::Operation(ImgOp::FlipHorizontal),
@@ -861,7 +865,7 @@ mod tests {
     fn test_multi_whitespace_2() {
         let pairs = SICParser::parse(
             Rule::main,
-            "fliph    ; flipv   ;      resize 100 200; blur 10;",
+            "flip-horizontal    ; flip-vertical   ;      resize 100 200; blur 10;",
         )
         .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
@@ -877,8 +881,11 @@ mod tests {
 
     #[test]
     fn test_multi_whitespace_3() {
-        let pairs = SICParser::parse(Rule::main, "fliph;\nflipv;\nresize 100 200;\nblur 10;")
-            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        let pairs = SICParser::parse(
+            Rule::main,
+            "flip-horizontal;\nflip-vertical;\nresize 100 200;\nblur 10;",
+        )
+        .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![
                 Instr::Operation(ImgOp::FlipHorizontal),
@@ -892,8 +899,11 @@ mod tests {
 
     #[test]
     fn test_multi_should_no_longer_end_with_sep() {
-        let pairs = SICParser::parse(Rule::main, "fliph; flipv; resize 100 200; blur 10")
-            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        let pairs = SICParser::parse(
+            Rule::main,
+            "flip-horizontal; flip-vertical; resize 100 200; blur 10",
+        )
+        .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![
                 Instr::Operation(ImgOp::FlipHorizontal),
@@ -907,8 +917,11 @@ mod tests {
 
     #[test]
     fn test_multi_sep() {
-        let pairs = SICParser::parse(Rule::main, "fliph; flipv;  resize 100 200;\nblur 10")
-            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        let pairs = SICParser::parse(
+            Rule::main,
+            "flip-horizontal; flip-vertical;  resize 100 200;\nblur 10",
+        )
+        .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
             Ok(vec![
                 Instr::Operation(ImgOp::FlipHorizontal),
@@ -922,7 +935,7 @@ mod tests {
 
     #[test]
     fn test_parse_setopt_resize_sampling_filter_catmullrom() {
-        let pairs = SICParser::parse(Rule::main, "set resize sampling_filter CatmullRom;")
+        let pairs = SICParser::parse(Rule::main, "set sampling-filter CatmullRom;")
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
@@ -935,7 +948,7 @@ mod tests {
 
     #[test]
     fn test_parse_setopt_resize_sampling_filter_gaussian() {
-        let pairs = SICParser::parse(Rule::main, "set resize sampling_filter GAUSSIAN;")
+        let pairs = SICParser::parse(Rule::main, "set sampling-filter GAUSSIAN;")
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
@@ -948,7 +961,7 @@ mod tests {
 
     #[test]
     fn test_parse_setopt_resize_sampling_filter_lanczos3() {
-        let pairs = SICParser::parse(Rule::main, "set resize sampling_filter Lanczos3;")
+        let pairs = SICParser::parse(Rule::main, "set sampling-filter Lanczos3;")
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
@@ -961,7 +974,7 @@ mod tests {
 
     #[test]
     fn test_parse_setopt_resize_sampling_filter_nearest() {
-        let pairs = SICParser::parse(Rule::main, "set resize sampling_filter nearest;")
+        let pairs = SICParser::parse(Rule::main, "set sampling-filter nearest;")
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
@@ -974,7 +987,7 @@ mod tests {
 
     #[test]
     fn test_parse_setopt_resize_sampling_filter_triangle() {
-        let pairs = SICParser::parse(Rule::main, "set resize sampling_filter triangle;")
+        let pairs = SICParser::parse(Rule::main, "set sampling-filter triangle;")
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
@@ -989,7 +1002,7 @@ mod tests {
     fn test_parse_setopt_resize_sampling_filter_with_resize() {
         let pairs = SICParser::parse(
             Rule::main,
-            "set   resize  sampling_filter   GAUSSIAN;\nresize 100 200",
+            "set   sampling-filter   GAUSSIAN;\nresize 100 200",
         )
         .unwrap_or_else(|e| panic!("error: {:?}", e));
 
@@ -1008,11 +1021,11 @@ mod tests {
     fn test_parse_setopt_resize_sampling_filter_multi() {
         let pairs = SICParser::parse(
             Rule::main,
-            "set resize sampling_filter catmullrom;\
-             set resize sampling_filter gaussian;\
-             set resize sampling_filter lanczos3;\
-             set resize sampling_filter nearest;\
-             set resize sampling_filter triangle;",
+            "set sampling-filter catmullrom;\
+             set sampling-filter gaussian;\
+             set sampling-filter lanczos3;\
+             set sampling-filter nearest;\
+             set sampling-filter triangle;",
         )
         .unwrap_or_else(|e| panic!("error: {:?}", e));
 
@@ -1039,16 +1052,33 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_setopt_resize_preserve_aspect_ratio() {
+    fn test_parse_setopt_resize_preserve_aspect_ratio_t() {
         let pairs = SICParser::parse(
             Rule::main,
-            "set resize preserve_aspect_ratio;\nresize 100 200",
+            "set preserve-aspect-ratio true;\nresize 100 200",
         )
         .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
             Ok(vec![
-                Instr::EnvAdd(EnvItem::PreserveAspectRatio),
+                Instr::EnvAdd(EnvItem::PreserveAspectRatio(true)),
+                Instr::Operation(ImgOp::Resize((100, 200)))
+            ]),
+            parse_image_operations(pairs)
+        );
+    }
+
+    #[test]
+    fn test_parse_setopt_resize_preserve_aspect_ratio_f() {
+        let pairs = SICParser::parse(
+            Rule::main,
+            "set preserve-aspect-ratio false;\nresize 100 200",
+        )
+        .unwrap_or_else(|e| panic!("error: {:?}", e));
+
+        assert_eq!(
+            Ok(vec![
+                Instr::EnvAdd(EnvItem::PreserveAspectRatio(false)),
                 Instr::Operation(ImgOp::Resize((100, 200)))
             ]),
             parse_image_operations(pairs)
@@ -1060,14 +1090,14 @@ mod tests {
     fn test_parse_setopt_resize_preserve_aspect_ratio_no_value() {
         SICParser::parse(
             Rule::main,
-            "set resize preserve_aspect_ratio true;\nresize 100 200",
+            "set resize preserve-aspect-ratio true;\nresize 100 200",
         )
         .unwrap_or_else(|e| panic!("error: {:?}", e));
     }
 
     #[test]
     fn test_parse_delopt_resize_sampling_filter_single() {
-        let pairs = SICParser::parse(Rule::main, "del resize sampling_filter;")
+        let pairs = SICParser::parse(Rule::main, "del sampling-filter;")
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
@@ -1080,10 +1110,10 @@ mod tests {
     fn test_parse_set_and_del_opt_resize_sampling_filter_multi() {
         let pairs = SICParser::parse(
             Rule::main,
-            "set resize sampling_filter catmullrom;\
-             set resize sampling_filter gaussian;\
-             del resize sampling_filter;\
-             del resize sampling_filter;",
+            "set sampling-filter catmullrom;\
+             set sampling-filter gaussian;\
+             del sampling-filter;\
+             del sampling-filter;",
         )
         .unwrap_or_else(|e| panic!("error: {:?}", e));
 
@@ -1104,7 +1134,7 @@ mod tests {
 
     #[test]
     fn test_parse_delopt_resize_preserve_aspect_ratio_single() {
-        let pairs = SICParser::parse(Rule::main, "del resize preserve_aspect_ratio;")
+        let pairs = SICParser::parse(Rule::main, "del preserve-aspect-ratio;")
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
