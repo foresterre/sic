@@ -8,7 +8,7 @@ use sic_cli_ops::build_ast_from_matches;
 use sic_cli_ops::operations::{IndexTree, OperationId};
 use sic_io::load::FrameIndex;
 
-use crate::config::{
+use crate::cli::config::{
     validate_jpeg_quality, Config, ConfigBuilder, InputOutputModeType, SelectedLicenses,
 };
 

@@ -19,7 +19,6 @@ categories = ["multimedia::images", "command-line-utilities"]
 
 [workspace]
 members = [
-  "components/sic_cli",
   "components/sic_cli_ops",
   "components/sic_core",
   "components/sic_image_engine",
@@ -29,21 +28,25 @@ members = [
 ]
 
 [dependencies]
-sic_cli = { path = "components/sic_cli", version = "0.11" }
+sic_cli_ops = { path = "components/sic_cli_ops" }
+sic_core = { path = "components/sic_core" }
+sic_io  = { path = "components/sic_io" }
+sic_image_engine = { path = "components/sic_image_engine" }
+sic_parser = { path = "components/sic_parser"}
 
-anyhow = "1.0"
+anyhow = "1.0.28"
+atty = "0.2.14"
+clap = "2.32.0"
+inflate = "0.4.5"
+globwalk = "0.8.0"
 
 [dev-dependencies]
-sic_core = { path = "components/sic_core", version = "0.11" }
+sic_core = { path = "components/sic_core" }
 clap = "2.33.0" # for examples/gen_completions.rs
 parameterized = "0.1.1"
 
 [build-dependencies]
 flate2 = "1.0.14"
-
-[[bin]]
-name = "sic"
-path = "src/main.rs"
 
 [features]
 output-test-images = []

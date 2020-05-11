@@ -11,9 +11,9 @@ use sic_io::format::{
 use sic_io::load;
 use sic_io::save;
 
-use crate::config::{Config, InputOutputMode, InputOutputModeType, PathVariant};
-use crate::license::LicenseTexts;
-use crate::license::PrintTextFor;
+use crate::cli::config::{Config, InputOutputMode, InputOutputModeType, PathVariant};
+use crate::cli::license::LicenseTexts;
+use crate::cli::license::PrintTextFor;
 
 pub fn run_with_devices<'c>(
     in_and_output: InputOutputMode,

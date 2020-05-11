@@ -8,15 +8,18 @@ license-file = "../../LICENSE"
 repository = "https://github.com/foresterre/sic"
 
 [dependencies]
-sic_core = { path = "../sic_core", version = "0.11" }
-sic_io = { path = "../sic_io", version = "0.11" }
+sic_core = { path = "../sic_core" }
+sic_io = { path = "../sic_io" }
 
 strum = "0.18.0"
 strum_macros = "0.18.0"
 thiserror = "1.0.16"
 
+imageproc = {version = "0.20.0", optional = true }
+
 [dev-dependencies]
-sic_testing = { path = "../sic_testing", version = "0.11" }
+sic_testing = { path = "../sic_testing" }
 
 [features]
+imageproc-ops = ["imageproc"]
 output-test-images = []
