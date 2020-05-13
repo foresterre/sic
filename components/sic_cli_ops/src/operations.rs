@@ -479,7 +479,7 @@ mod test_tree_extend {
 
     use clap::ArgMatches;
 
-    use sic_cli::cli::cli;
+    use sic::cli::app::create_app;
     use sic_testing::{setup_output_path, setup_test_image};
 
     use super::*;
@@ -488,7 +488,12 @@ mod test_tree_extend {
         let out = output(cmd);
         let command = format!("sic -i {} -o {} {}", input().as_str(), out, cmd);
         let split = command.split_ascii_whitespace().collect::<Vec<_>>();
-        (cli("", "", "").get_matches_from_safe(&split).unwrap(), out)
+        (
+            create_app("", "", "")
+                .get_matches_from_safe(&split)
+                .unwrap(),
+            out,
+        )
     }
 
     fn input() -> String {

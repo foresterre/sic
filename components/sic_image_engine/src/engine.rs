@@ -82,12 +82,6 @@ pub struct ImageEngine {
 
 impl ImageEngine {
     pub fn new(image: DynamicImage) -> Self {
-        if cfg!(feature = "imageproc-ops") {
-            dbg!("yay!");
-        } else {
-            dbg!("awww...");
-        }
-
         Self {
             environment: Box::from(Env::default()),
             image: Box::from(image),

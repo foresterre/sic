@@ -77,7 +77,7 @@ fn ast_from_index_tree(tree: &mut IndexTree) -> Result<Vec<Instr>, SicCliOpsErro
 mod tests {
     use std::collections::BTreeMap;
 
-    use sic_cli::cli::cli;
+    use sic::cli::app::create_app as cli;
     use sic_image_engine::engine::Instr;
     use sic_image_engine::ImgOp;
 

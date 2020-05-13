@@ -12,7 +12,7 @@ const HELP_OPERATIONS_AVAILABLE: &str =
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn main() -> anyhow::Result<()> {
-    let app = sic::cli::app::cli(VERSION, ABOUT, HELP_OPERATIONS_AVAILABLE);
+    let app = sic::cli::app::create_app(VERSION, ABOUT, HELP_OPERATIONS_AVAILABLE);
     let matches = app.get_matches();
 
     let license_display = matches.is_present("license") || matches.is_present("dep_licenses");

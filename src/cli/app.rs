@@ -44,7 +44,7 @@ pub(crate) mod arg_names {
     pub(crate) const GROUP_IMAGE_OPERATIONS: &str = "group";
 }
 
-pub fn cli(
+pub fn create_app(
     version: &'static str,
     about: &'static str,
     help_ops: &'static str,
