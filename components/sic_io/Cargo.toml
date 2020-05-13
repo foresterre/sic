@@ -10,7 +10,7 @@ repository = "https://github.com/foresterre/sic"
 [dependencies]
 sic_core = { path = "../sic_core", version = "0.11" }
 
-thiserror = "1.0.16"
+thiserror = "1.0.17"
 
 [dev-dependencies]
 sic_testing = { path = "../sic_testing", version = "0.11" }
