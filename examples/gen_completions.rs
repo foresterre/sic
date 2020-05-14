@@ -1,12 +1,14 @@
-extern crate sic_cli;
+extern crate sic;
 
 const ABOUT: &str = include_str!("../resources/help-pages/about.txt");
 const HELP_OPERATIONS_AVAILABLE: &str =
     include_str!("../resources/help-pages/image_operations.txt");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
+use sic::cli::app::create_app;
+
 fn main() {
-    let mut cli = sic_cli::cli::cli(VERSION, ABOUT, HELP_OPERATIONS_AVAILABLE);
+    let mut cli = create_app(VERSION, ABOUT, HELP_OPERATIONS_AVAILABLE);
 
     let program_name = option_env!("SIC_COMPLETIONS_APP_NAME").unwrap_or("sic");
 

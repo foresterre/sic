@@ -8,7 +8,7 @@ use sic_cli_ops::build_ast_from_matches;
 use sic_cli_ops::operations::{IndexTree, OperationId};
 use sic_io::load::FrameIndex;
 
-use crate::config::{
+use crate::cli::config::{
     validate_jpeg_quality, Config, ConfigBuilder, InputOutputModeType, SelectedLicenses,
 };
 
@@ -44,7 +44,7 @@ pub(crate) mod arg_names {
     pub(crate) const GROUP_IMAGE_OPERATIONS: &str = "group";
 }
 
-pub fn cli(
+pub fn create_app(
     version: &'static str,
     about: &'static str,
     help_ops: &'static str,

@@ -2,7 +2,7 @@ use inflate::inflate_bytes;
 
 use anyhow::anyhow;
 
-use crate::config::SelectedLicenses;
+use crate::cli::config::SelectedLicenses;
 
 pub struct LicenseTexts<'a> {
     pub(crate) this_software: &'a str,

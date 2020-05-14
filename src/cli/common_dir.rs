@@ -96,7 +96,7 @@ fn naive_find_common_dir<P: AsRef<Path>, I: IntoIterator<Item = P> + Clone>(
 }
 
 // The intention of this function is to remove a common root path from a given path.
-pub(in crate::common_dir) fn unroot(root: &Path, path: &Path) -> PathBuf {
+pub(in crate::cli::common_dir) fn unroot(root: &Path, path: &Path) -> PathBuf {
     let root_len = root.components().count();
 
     path.components()

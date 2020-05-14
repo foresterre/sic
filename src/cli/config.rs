@@ -1,5 +1,5 @@
-use crate::cli::arg_names::{ARG_INPUT, ARG_MODE, ARG_OUTPUT};
-use crate::common_dir::CommonDir;
+use crate::cli::app::arg_names::{ARG_INPUT, ARG_MODE, ARG_OUTPUT};
+use crate::cli::common_dir::CommonDir;
 use anyhow::bail;
 use clap::ArgMatches;
 use sic_image_engine::engine::Instr;

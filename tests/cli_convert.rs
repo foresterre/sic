@@ -6,9 +6,9 @@ use std::path::{Path, PathBuf};
 
 use sic_core::image;
 
-use sic_cli::cli::{build_app_config, cli as get_app}; // build_app_config
-use sic_cli::config::InputOutputMode;
-use sic_cli::pipeline::run_with_devices;
+use sic::cli::app::{build_app_config, create_app as get_app}; // build_app_config
+use sic::cli::config::InputOutputMode;
+use sic::cli::pipeline::run_with_devices;
 
 // copied from sic_lib::processor::mod_test_includes
 // I preferred to not make that module public (2018-11-28)
