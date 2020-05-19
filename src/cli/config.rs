@@ -1,7 +1,9 @@
 use crate::cli::app::arg_names::{ARG_INPUT, ARG_MODE, ARG_OUTPUT};
 use crate::cli::common_dir::CommonDir;
-use anyhow::bail;
+use crate::cli::glob_base_dir::glob_builder_base;
+use anyhow::{bail, Context};
 use clap::ArgMatches;
+use globwalk::{FileType, GlobWalker};
 use sic_image_engine::engine::Instr;
 use sic_io::load::FrameIndex;
 use std::path::PathBuf;
@@ -51,7 +53,7 @@ impl InputOutputMode {
             },
             (Some("glob"), Some(inputs), Some(output)) => InputOutputMode::Batch {
                 inputs: {
-                    let inputs = globwalk::glob(inputs)?;
+                    let inputs = Self::create_glob_walker(inputs)?;
                     let paths = inputs.map(|entry| entry.map_err(|err| {
                         anyhow::anyhow!("Error while trying to find glob matches on the fs ({})", err)
                     }).map(|f| f.into_path())).collect::<anyhow::Result<Vec<_>>>()?;
@@ -66,6 +68,14 @@ impl InputOutputMode {
         };
 
         Ok(res)
+    }
+
+    fn create_glob_walker<PAT: AsRef<str>>(pattern: PAT) -> anyhow::Result<GlobWalker> {
+        glob_builder_base(pattern)
+            .follow_links(true)
+            .file_type(FileType::FILE)
+            .build()
+            .with_context(|| "Unable to parse the given glob pattern")
     }
 }
 
