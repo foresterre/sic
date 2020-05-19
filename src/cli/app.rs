@@ -12,37 +12,43 @@ use crate::cli::config::{
     validate_jpeg_quality, Config, ConfigBuilder, InputOutputModeType, SelectedLicenses,
 };
 
-// table of argument names
-pub(crate) mod arg_names {
-    // cli - possible arguments
-
-    // organisational:
-    pub(crate) const ARG_LICENSE: &str = "license";
-    pub(crate) const ARG_DEP_LICENSES: &str = "dep_licenses";
-
-    // io(input, output):
-    pub(crate) const ARG_INPUT: &str = "input";
-    pub(crate) const ARG_OUTPUT: &str = "output";
-
-    pub(crate) const ARG_MODE: &str = "mode";
-
-    // config(in):
-    pub(crate) const ARG_SELECT_FRAME: &str = "select_frame";
-
-    // config(out):
-    pub(crate) const ARG_DISABLE_AUTOMATIC_COLOR_TYPE_ADJUSTMENT: &str =
-        "disable_automatic_color_type_adjustment";
-    pub(crate) const ARG_FORCED_OUTPUT_FORMAT: &str = "forced_output_format";
-    pub(crate) const ARG_JPEG_ENCODING_QUALITY: &str = "jpeg_encoding_quality";
-
-    pub(crate) const ARG_PNM_ENCODING_ASCII: &str = "pnm_encoding_ascii";
-
-    // image-operations(script):
-    pub(crate) const ARG_APPLY_OPERATIONS: &str = "script";
-
-    // image-operations(cli-arguments):
-    pub(crate) const GROUP_IMAGE_OPERATIONS: &str = "group";
+macro_rules! define_arg_consts {
+    ($mod:ident, { $($argdef:ident),+ $(,)? } ) => {
+            pub mod $mod {
+                $(
+                    pub const $argdef: &str = stringify!($argdef);
+                )+
+            }
+    };
 }
+
+define_arg_consts!(arg_names, {
+    // organisational:
+    ARG_LICENSE,
+    ARG_DEP_LICENSES,
+
+    // input and output images
+    ARG_INPUT,
+    ARG_OUTPUT,
+
+    // select whether to use the single input, single output mode or glob/batch mode
+    ARG_MODE,
+
+    // set specific configurations for decoding
+    ARG_SELECT_FRAME,
+
+    // set specific configurations for encoding
+    ARG_DISABLE_AUTOMATIC_COLOR_TYPE_ADJUSTMENT,
+    ARG_FORCED_OUTPUT_FORMAT,
+    ARG_JPEG_ENCODING_QUALITY,
+    ARG_PNM_ENCODING_ASCII,
+
+    // provide image operations using image script
+    ARG_APPLY_OPERATIONS,
+
+    // group: image operations
+    GROUP_IMAGE_OPERATIONS,
+});
 
 pub fn create_app(
     version: &'static str,

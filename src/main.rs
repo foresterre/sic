@@ -1,3 +1,4 @@
+use sic::cli::app::arg_names::{ARG_DEP_LICENSES, ARG_LICENSE};
 use sic::cli::app::build_app_config;
 use sic::cli::config::InputOutputMode;
 use sic::cli::license::LicenseTexts;
@@ -15,7 +16,7 @@ fn main() -> anyhow::Result<()> {
     let app = sic::cli::app::create_app(VERSION, ABOUT, HELP_OPERATIONS_AVAILABLE);
     let matches = app.get_matches();
 
-    let license_display = matches.is_present("license") || matches.is_present("dep_licenses");
+    let license_display = matches.is_present(ARG_LICENSE) || matches.is_present(ARG_DEP_LICENSES);
 
     let configuration = build_app_config(&matches)?;
 
