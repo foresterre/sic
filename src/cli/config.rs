@@ -140,6 +140,9 @@ impl Default for Config<'_> {
 
                 /// Default encoding type of PNM files (excluding PAM) is set to binary.
                 pnm_use_ascii_format: false,
+
+                /// Do not fallback to image crate output recognition by default
+                image_output_format_fallback: false,
             },
 
             /// Defaults to no provided image operations script.
@@ -205,6 +208,14 @@ impl<'a> ConfigBuilder<'a> {
         self
     }
 
+    pub fn image_output_format_decider_fallback(
+        mut self,
+        enable_fallback: bool,
+    ) -> ConfigBuilder<'a> {
+        self.settings.encoding_settings.image_output_format_fallback = enable_fallback;
+        self
+    }
+
     // image-operations
     pub fn image_operations_program(mut self, program: Vec<Instr>) -> ConfigBuilder<'a> {
         self.settings.image_operations_program = program;
@@ -228,6 +239,9 @@ pub enum SelectedLicenses {
 pub struct FormatEncodingSettings {
     pub jpeg_quality: u8,
     pub pnm_use_ascii_format: bool,
+
+    // Whether to fallback on the image crate to determine the output format if sic doesn't support it yet
+    pub image_output_format_fallback: bool,
 }
 
 /// Strictly speaking not necessary here since the responsible owners will validate the quality as well.
