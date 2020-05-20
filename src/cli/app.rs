@@ -42,6 +42,7 @@ define_arg_consts!(arg_names, {
     ARG_FORCED_OUTPUT_FORMAT,
     ARG_JPEG_ENCODING_QUALITY,
     ARG_PNM_ENCODING_ASCII,
+    ARG_IMAGE_CRATE_FALLBACK,
 
     // provide image operations using image script
     ARG_APPLY_OPERATIONS,
@@ -147,6 +148,11 @@ pub fn create_app(
         .arg(Arg::with_name(ARG_PNM_ENCODING_ASCII)
             .long("pnm-encoding-ascii")
             .help("Use ascii based encoding when using a PNM image output format (pbm, pgm or ppm). Doesn't apply to 'pam' (PNM Arbitrary Map)."))
+
+        .arg(Arg::with_name(ARG_IMAGE_CRATE_FALLBACK)
+            .long("enable-output-format-decider-fallback")
+            .help("[experimental] When this flag is set, sic will attempt to fallback to an alternative output format decider (image crate version), \
+            *if* sic's own decider can't find a suitable format. Setting this flag may introduce unwanted behaviour; use with caution."))
 
         // image-operations(script):
         .arg(Arg::with_name(ARG_APPLY_OPERATIONS)
@@ -384,6 +390,10 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> anyhow::Result<Config<'a
     if matches.is_present(ARG_PNM_ENCODING_ASCII) {
         builder = builder.pnm_format_type(true);
     }
+
+    // config(out)/ARG_IMAGE_CRATE_FALLBACK:
+    builder =
+        builder.image_output_format_decider_fallback(matches.is_present(ARG_IMAGE_CRATE_FALLBACK));
 
     // image-operations:
     //

@@ -208,6 +208,14 @@ impl<'a> ConfigBuilder<'a> {
         self
     }
 
+    pub fn image_output_format_decider_fallback(
+        mut self,
+        enable_fallback: bool,
+    ) -> ConfigBuilder<'a> {
+        self.settings.encoding_settings.image_output_format_fallback = enable_fallback;
+        self
+    }
+
     // image-operations
     pub fn image_operations_program(mut self, program: Vec<Instr>) -> ConfigBuilder<'a> {
         self.settings.image_operations_program = program;
