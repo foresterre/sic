@@ -1,3 +1,5 @@
+#![deny(clippy::all)]
+
 use std::path::{Path, PathBuf};
 
 // re-export parameterized macro's
