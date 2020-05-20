@@ -1,3 +1,5 @@
+#![deny(clippy::all)]
+
 use sic::cli::app::arg_names::{ARG_DEP_LICENSES, ARG_LICENSE};
 use sic::cli::app::build_app_config;
 use sic::cli::config::InputOutputMode;
