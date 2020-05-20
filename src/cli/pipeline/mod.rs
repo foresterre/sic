@@ -14,6 +14,9 @@ use sic_io::save;
 use crate::cli::config::{Config, InputOutputMode, InputOutputModeType, PathVariant};
 use crate::cli::license::LicenseTexts;
 use crate::cli::license::PrintTextFor;
+use crate::cli::pipeline::fallback::{guess_output_by_identifier, guess_output_by_path};
+
+pub mod fallback;
 
 pub fn run_with_devices<'c>(
     in_and_output: InputOutputMode,
@@ -161,9 +164,19 @@ fn create_format_decider(
     };
 
     let format = match &config.forced_output_format {
-        Some(format) => encoding_format_determiner.by_identifier(format)?,
+        Some(format) => encoding_format_determiner
+            .by_identifier(format)
+            .fallback_if(
+                config.encoding_settings.image_output_format_fallback,
+                guess_output_by_identifier,
+                format,
+            )?,
         None => match io_device {
-            PathVariant::Path(out) => encoding_format_determiner.by_extension(out)?,
+            PathVariant::Path(out) => encoding_format_determiner.by_extension(out).fallback_if(
+                config.encoding_settings.image_output_format_fallback,
+                guess_output_by_path,
+                out,
+            )?,
             PathVariant::StdStream => image::ImageOutputFormat::Bmp,
         },
     };
@@ -176,4 +189,27 @@ pub fn run_display_licenses(config: &Config, texts: &LicenseTexts) -> anyhow::Re
         .show_license_text_of
         .ok_or_else(|| anyhow!("Unable to determine which license texts should be displayed."))
         .and_then(|license_text| license_text.print(texts))
+}
+
+trait FallbackIf<T, E> {
+    fn fallback_if<P, F, V>(self, predicate: P, f: F, alternative: V) -> Result<T, E>
+    where
+        P: Into<bool>,
+        F: FnOnce(V) -> Result<T, E>;
+}
+
+impl<T, E> FallbackIf<T, E> for Result<T, E> {
+    /// Fallback to an alternative when a result produces an error and the predicate evaluates to true,
+    /// otherwise keep the current result
+    fn fallback_if<P, F, V>(self, predicate: P, f: F, alternative: V) -> Result<T, E>
+    where
+        P: Into<bool>,
+        F: FnOnce(V) -> Result<T, E>,
+    {
+        if self.is_err() && predicate.into() {
+            f(alternative)
+        } else {
+            self
+        }
+    }
 }
