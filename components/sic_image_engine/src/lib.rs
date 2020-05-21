@@ -5,6 +5,9 @@ extern crate strum_macros;
 
 use crate::wrapper::image_path::ImageFromPath;
 
+#[cfg(feature = "imageproc-ops")]
+use wrapper::font_options::*;
+
 pub mod engine;
 pub mod errors;
 pub mod wrapper;
@@ -27,4 +30,7 @@ pub enum ImgOp {
     Rotate180,
     Rotate270,
     Unsharpen((f32, i32)),
+
+    #[cfg(feature = "imageproc-ops")]
+    DrawText(String, FontOptions),
 }

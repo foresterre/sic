@@ -49,6 +49,8 @@ parameterized = "0.1.1"
 flate2 = "1.0.14"
 
 [features]
+imageproc-ops = ["sic_image_engine/imageproc-ops"]
+
 output-test-images = []
 
 [profile.release]

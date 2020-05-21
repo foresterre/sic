@@ -139,6 +139,21 @@ impl ImageEngine {
 
                 Ok(())
             }
+
+            #[cfg(feature = "imageproc-ops")]
+            ImgOp::DrawText(text, font_options) => {
+                *self.image = DynamicImage::ImageRgba8(imageproc::drawing::draw_text(
+                    &mut *self.image,
+                    font_options.color,
+                    25,
+                    25,
+                    font_options.scale.clone(),
+                    &font_options.font,
+                    text.as_str(),
+                ));
+
+                Ok(())
+            }
             // We need to ensure here that Filter3x3's `it` (&[f32]) has length 9.
             // Otherwise it will panic, see: https://docs.rs/image/0.19.0/src/image/dynimage.rs.html#349
             // This check already happens within the `parse` module.
@@ -1316,5 +1331,29 @@ mod tests {
         assert_eq!(yb, 80);
 
         output_test_image_for_manual_inspection(&done_image, out_!("test_multi.png"));
+    }
+
+    #[cfg(feature = "imageproc-ops")]
+    mod imageproc_ops_tests {
+        use super::*;
+        use crate::wrapper::font_options::FontOptions;
+
+        #[test]
+        fn draw_text_proof_of_concept() {
+            let img: DynamicImage =
+                DynamicImage::ImageRgb8(sic_core::image::RgbImage::new(200, 200));
+            let operation = ImgOp::DrawText("HELLO WORLD".to_string(), FontOptions::default());
+
+            let mut operator = ImageEngine::new(img);
+            let done = operator.ignite(&[Instr::Operation(operation)]);
+            assert!(done.is_ok());
+
+            let result_img = done.unwrap();
+
+            output_test_image_for_manual_inspection(
+                &result_img,
+                out_!("test_imageproc_ops_draw__text.png"),
+            );
+        }
     }
 }

@@ -20,4 +20,8 @@ pub enum SicImageEngineError {
 
     #[error("filter type '{0}' not found")]
     UnknownFilterType(String),
+
+    #[cfg(feature = "imageproc-ops")]
+    #[error("Unable to load font")]
+    FontError,
 }
