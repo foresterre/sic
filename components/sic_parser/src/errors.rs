@@ -1,7 +1,7 @@
 use sic_image_engine::errors::SicImageEngineError;
 use thiserror::Error;
 
-#[derive(Debug, Error, Eq, PartialEq)]
+#[derive(Debug, Error)]
 pub enum SicParserError {
     #[error("sic parser error > {0}")]
     FilterTypeError(SicImageEngineError),
@@ -19,7 +19,7 @@ pub enum SicParserError {
     ValueParsingError(String),
 }
 
-#[derive(Debug, Error, Eq, PartialEq)]
+#[derive(Debug, Error)]
 pub enum OperationParamError {
     #[error(
         "Unable to parse `set` environment command. Error: expected a single `set` inner element."

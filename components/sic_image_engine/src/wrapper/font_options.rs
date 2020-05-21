@@ -1,38 +1,29 @@
-use rusttype::{Font, FontCollection, Scale};
+use rusttype::Scale;
 use sic_core::image::Rgba;
+use std::path::PathBuf;
 
 type FontColor = Rgba<u8>;
 
 #[derive(Debug, Clone)]
 pub struct FontOptions {
-    pub font: Font<'static>,
+    pub font_path: PathBuf,
     pub color: FontColor,
     pub scale: Scale,
 }
 
-impl Default for FontOptions {
-    fn default() -> Self {
-        let font = FontCollection::from_bytes(Vec::from(include_bytes!(
-            "../../../../resources/font/Lato-Regular.ttf"
-        ) as &[u8]))
-        .expect("Unable to load font")
-        .into_font()
-        .expect("Unable to load font");
-
-        FontOptions {
-            font,
-            color: Rgba([255u8, 255u8, 77u8, 250u8]),
-            scale: Scale { x: 16.0, y: 16.0 },
+impl FontOptions {
+    pub fn new(font_path: PathBuf, color: FontColor, scale: Scale) -> Self {
+        Self {
+            font_path,
+            color,
+            scale,
         }
     }
 }
 
 impl PartialEq for FontOptions {
     fn eq(&self, other: &Self) -> bool {
-        // Equality for these font options is defined by the font, specifically its names.
-        self.font
-            .font_name_strings()
-            .zip(other.font.font_name_strings())
-            .all(|(l, r)| l.0 == r.0)
+        // Equality for these font options is defined by the font, specifically its path.
+        self.font_path.eq(&other.font_path)
     }
 }

@@ -142,13 +142,21 @@ impl ImageEngine {
 
             #[cfg(feature = "imageproc-ops")]
             ImgOp::DrawText(text, font_options) => {
+                use rusttype::Font;
+
+                let font_file = std::fs::read(&font_options.font_path)
+                    .map_err(SicImageEngineError::FontFileLoadError)?;
+
+                let font =
+                    Font::from_bytes(&font_file).map_err(|_| SicImageEngineError::FontError)?;
+
                 *self.image = DynamicImage::ImageRgba8(imageproc::drawing::draw_text(
                     &mut *self.image,
                     font_options.color,
                     25,
                     25,
                     font_options.scale,
-                    &font_options.font,
+                    &font,
                     text.as_str(),
                 ));
 
@@ -1337,12 +1345,20 @@ mod tests {
     mod imageproc_ops_tests {
         use super::*;
         use crate::wrapper::font_options::FontOptions;
+        use rusttype::Scale;
 
         #[test]
         fn draw_text_proof_of_concept() {
             let img: DynamicImage =
                 DynamicImage::ImageRgb8(sic_core::image::RgbImage::new(200, 200));
-            let operation = ImgOp::DrawText("HELLO WORLD".to_string(), FontOptions::default());
+
+            let font_file = Into::<PathBuf>::into(env!("CARGO_MANIFEST_DIR"))
+                .join("../../resources/font/Lato-Regular.ttf");
+
+            let operation = ImgOp::DrawText(
+                "HELLO WORLD".to_string(),
+                FontOptions::new(font_file, Rgba([255, 255, 0, 255]), Scale::uniform(16.0)),
+            );
 
             let mut operator = ImageEngine::new(img);
             let done = operator.ignite(&[Instr::Operation(operation)]);

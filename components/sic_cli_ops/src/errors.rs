@@ -1,7 +1,7 @@
 use sic_parser::errors::SicParserError;
 use thiserror::Error;
 
-#[derive(Debug, Error, PartialEq, Eq)]
+#[derive(Debug, Error)]
 pub enum SicCliOpsError {
     #[error("Unable to parse: {0}")]
     ParserError(#[from] SicParserError),
