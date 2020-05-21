@@ -74,7 +74,13 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --verbose --all
+          args: --verbose --workspace
+
+      - name: test_workspace_with_all_features
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --verbose --workspace --all-features
 
   rustfmt:
     name: pipeline_rustfmt
