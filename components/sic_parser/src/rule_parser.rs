@@ -49,6 +49,13 @@ pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Vec<Instr>, SicP
                     SicParserError::OperationError(OperationParamError::UnsetEnvironment)
                 })?)
             }
+
+            #[cfg(feature = "imageproc-ops")]
+            Rule::draw_text => {
+                dbg!(pair.into_inner());
+                Err(SicParserError::UnknownOperationError)
+            }
+
             _ => Err(SicParserError::UnknownOperationError),
         })
         .collect::<Result<Vec<_>, SicParserError>>()
@@ -1136,5 +1143,37 @@ mod tests {
             vec![Instr::EnvRemove(ItemName::PreserveAspectRatio),],
             parse_image_operations(pairs).unwrap()
         );
+    }
+
+    #[cfg(feature = "imageproc-ops")]
+    mod imageproc_ops_tests {
+        use super::*;
+        use sic_core::image::Rgba;
+        use sic_image_engine::wrapper::font_options::{FontOptions, FontScale};
+        use std::path::PathBuf;
+
+        #[test]
+        fn draw_text() {
+            let pairs = SICParser::parse(
+                Rule::main,
+                r#"draw-text "my text" rgba(10, 10, 255, 255) size(16) font("resources/font/Lato-Regular.ttf");"#,
+            )
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+
+            let font_file = PathBuf::from("".to_string());
+            let font_options = FontOptions::new(
+                font_file,
+                Rgba([255, 255, 0, 255]),
+                FontScale::Uniform(16.0),
+            );
+
+            let expected = vec![Instr::Operation(ImgOp::DrawText(
+                "my text".to_string(),
+                font_options,
+            ))];
+            let actual = parse_image_operations(pairs).unwrap();
+
+            assert_eq!(actual, expected);
+        }
     }
 }

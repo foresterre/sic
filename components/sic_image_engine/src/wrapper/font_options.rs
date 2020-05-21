@@ -4,6 +4,11 @@ use std::path::PathBuf;
 
 type FontColor = Rgba<u8>;
 
+pub enum FontScale {
+    Uniform(f32),
+    Scaling(f32, f32),
+}
+
 #[derive(Debug, Clone)]
 pub struct FontOptions {
     pub font_path: PathBuf,
@@ -12,11 +17,17 @@ pub struct FontOptions {
 }
 
 impl FontOptions {
-    pub fn new(font_path: PathBuf, color: FontColor, scale: Scale) -> Self {
+    pub fn new(font_path: PathBuf, color: FontColor, scale: FontScale) -> Self {
         Self {
             font_path,
             color,
-            scale,
+            scale: match scale {
+                FontScale::Uniform(value) => Scale::uniform(value),
+                FontScale::Scaling(horizontal, vertical) => Scale {
+                    x: horizontal,
+                    y: vertical,
+                },
+            },
         }
     }
 }

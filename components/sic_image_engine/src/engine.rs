@@ -1344,11 +1344,10 @@ mod tests {
     #[cfg(feature = "imageproc-ops")]
     mod imageproc_ops_tests {
         use super::*;
-        use crate::wrapper::font_options::FontOptions;
-        use rusttype::Scale;
+        use crate::wrapper::font_options::{FontOptions, FontScale};
 
         #[test]
-        fn draw_text_proof_of_concept() {
+        fn draw_text() {
             let img: DynamicImage =
                 DynamicImage::ImageRgb8(sic_core::image::RgbImage::new(200, 200));
 
@@ -1357,7 +1356,11 @@ mod tests {
 
             let operation = ImgOp::DrawText(
                 "HELLO WORLD".to_string(),
-                FontOptions::new(font_file, Rgba([255, 255, 0, 255]), Scale::uniform(16.0)),
+                FontOptions::new(
+                    font_file,
+                    Rgba([255, 255, 0, 255]),
+                    FontScale::Uniform(16.0),
+                ),
             );
 
             let mut operator = ImageEngine::new(img);
