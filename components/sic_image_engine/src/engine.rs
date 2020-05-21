@@ -147,7 +147,7 @@ impl ImageEngine {
                     font_options.color,
                     25,
                     25,
-                    font_options.scale.clone(),
+                    font_options.scale,
                     &font_options.font,
                     text.as_str(),
                 ));

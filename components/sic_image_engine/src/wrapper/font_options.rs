@@ -12,14 +12,15 @@ pub struct FontOptions {
 
 impl Default for FontOptions {
     fn default() -> Self {
-        FontOptions {
-            font: FontCollection::from_bytes(Vec::from(include_bytes!(
-                "../../../../resources/font/Lato-Regular.ttf"
-            ) as &[u8]))
-            .expect("Unable to load font")
-            .into_font()
-            .expect("Unable to load font"),
+        let font = FontCollection::from_bytes(Vec::from(include_bytes!(
+            "../../../../resources/font/Lato-Regular.ttf"
+        ) as &[u8]))
+        .expect("Unable to load font")
+        .into_font()
+        .expect("Unable to load font");
 
+        FontOptions {
+            font,
             color: Rgba([255u8, 255u8, 77u8, 250u8]),
             scale: Scale { x: 16.0, y: 16.0 },
         }
@@ -28,6 +29,10 @@ impl Default for FontOptions {
 
 impl PartialEq for FontOptions {
     fn eq(&self, other: &Self) -> bool {
-        unimplemented!()
+        // Equality for these font options is defined by the font, specifically its names.
+        self.font
+            .font_name_strings()
+            .zip(other.font.font_name_strings())
+            .all(|(l, r)| l.0 == r.0)
     }
 }
