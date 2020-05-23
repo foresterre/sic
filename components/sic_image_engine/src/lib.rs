@@ -32,5 +32,5 @@ pub enum ImgOp {
     Unsharpen((f32, i32)),
 
     #[cfg(feature = "imageproc-ops")]
-    DrawText(String, FontOptions),
+    DrawText(String, (u32, u32), FontOptions),
 }

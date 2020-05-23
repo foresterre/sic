@@ -14,7 +14,7 @@ mod tests {
 
     #[parameterized(
         ops = {
-            r#"draw-text "example" rgba(0,0,0,255) size(24) font("%font%");"#,
+            r#"draw-text "example" coord(0,1) rgba(0,0,0,255) size(24) font("%font%");"#,
         },
         output_file = {
             "imageproc_ops_draw_text"

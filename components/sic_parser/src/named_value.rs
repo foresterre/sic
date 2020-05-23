@@ -67,6 +67,9 @@ pub enum Ident {
 
     // font("<path>")
     Font,
+
+    // coord(<u32>, <u32>)
+    Coord,
 }
 
 impl Display for Ident {
@@ -75,6 +78,7 @@ impl Display for Ident {
             Self::Rgba => f.write_str("Rgba"),
             Self::Size => f.write_str("Size"),
             Self::Font => f.write_str("Font"),
+            Self::Coord => f.write_str("Coord"),
         }
     }
 }
@@ -84,6 +88,7 @@ fn parse_ident(pair: Pair<'_, Rule>) -> NVResult<Ident> {
         "rgba" => Ident::Rgba,
         "size" => Ident::Size,
         "font" => Ident::Font,
+        "coord" => Ident::Coord,
         _ => {
             return Err(NamedValueError::IdentifierInvalid(
                 pair.as_str().to_string(),
@@ -108,6 +113,7 @@ impl<'a> Value<'a> {
         match (pair.as_rule(), ident) {
             (Rule::fp, Ident::Rgba) => Ok(Value::parse_byte(pair.as_str())?),
             (Rule::fp, Ident::Size) => Ok(Value::parse_float(pair.as_str())?),
+            (Rule::fp, Ident::Coord) => Ok(Value::parse_nat_num(pair.as_str())?),
             (Rule::string_unicode, _) => Ok(Value::parse_string(pair.into_inner().as_str())?),
             _ => Err(NamedValueError::InvalidArgumentType),
         }
@@ -176,10 +182,15 @@ impl<'a> Value<'a> {
     }
 
     fn parse_float(value: &str) -> NVResult<Self> {
-        value
-            .parse::<f32>()
-            .map(Value::Float)
-            .map_err(|_err| NamedValueError::UnableToParse(value.to_string(), String::from("Byte")))
+        value.parse::<f32>().map(Value::Float).map_err(|_err| {
+            NamedValueError::UnableToParse(value.to_string(), String::from("Float"))
+        })
+    }
+
+    fn parse_nat_num(value: &str) -> NVResult<Self> {
+        value.parse::<u32>().map(Value::NatNum).map_err(|_err| {
+            NamedValueError::UnableToParse(value.to_string(), String::from("NatNum"))
+        })
     }
 
     fn parse_string(value: &'a str) -> NVResult<Self> {
@@ -221,6 +232,7 @@ pub enum NamedValue {
     Rgba(u8, u8, u8, u8),
     Size(f32),
     Font(PathBuf),
+    Coord((u32, u32)),
 }
 
 impl NamedValue {
@@ -229,6 +241,7 @@ impl NamedValue {
             Ident::Rgba => NamedValue::create_rgba(args.arguments()),
             Ident::Size => NamedValue::create_size(args.arguments()),
             Ident::Font => NamedValue::create_font(args.arguments()),
+            Ident::Coord => NamedValue::create_coord(args.arguments()),
         }
     }
 
@@ -260,6 +273,17 @@ impl NamedValue {
         } else {
             Err(NamedValueError::UnableToExtractValue(
                 String::from("Font"),
+                self.error_type(),
+            ))
+        }
+    }
+
+    pub fn extract_coord(&self) -> NVResult<(u32, u32)> {
+        if let Self::Coord(coords) = self {
+            Ok(*coords)
+        } else {
+            Err(NamedValueError::UnableToExtractValue(
+                String::from("Coord"),
                 self.error_type(),
             ))
         }
@@ -297,11 +321,21 @@ impl NamedValue {
         }
     }
 
+    fn create_coord(args: &[Value]) -> NVResult<Self> {
+        match args {
+            [x, y] => Ok(Self::Coord((x.extract_nat_num()?, y.extract_nat_num()?))),
+            _ => Err(NamedValueError::UnableToCreateNamedValueWithArgs(
+                Ident::Coord,
+            )),
+        }
+    }
+
     fn error_type(&self) -> String {
         let typ = match self {
             Self::Rgba(_, _, _, _) => "Rgba",
             Self::Size(_) => "Size",
             Self::Font(_) => "Font",
+            Self::Coord(_) => "Coord",
         };
 
         typ.to_string()

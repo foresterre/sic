@@ -141,7 +141,7 @@ impl ImageEngine {
             }
 
             #[cfg(feature = "imageproc-ops")]
-            ImgOp::DrawText(text, font_options) => {
+            ImgOp::DrawText(text, coords, font_options) => {
                 use rusttype::Font;
 
                 let font_file = std::fs::read(&font_options.font_path)
@@ -153,8 +153,8 @@ impl ImageEngine {
                 *self.image = DynamicImage::ImageRgba8(imageproc::drawing::draw_text(
                     &mut *self.image,
                     font_options.color,
-                    25, // TODO: custom location: coord(x, y) [xor] positional with: anchor(top-left), anchor(center) etc
-                    25,
+                    coords.0,
+                    coords.1,
                     font_options.scale,
                     &font,
                     text.as_str(),
@@ -1356,6 +1356,7 @@ mod tests {
 
             let operation = ImgOp::DrawText(
                 "HELLO WORLD".to_string(),
+                (0, 0),
                 FontOptions::new(
                     font_file,
                     Rgba([255, 255, 0, 255]),

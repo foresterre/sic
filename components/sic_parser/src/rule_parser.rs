@@ -150,32 +150,39 @@ fn parse_draw_text(pair: Pair<'_, Rule>) -> Result<Instr, SicParserError> {
     // text
     let text_pair = pairs
         .next()
-        .ok_or_else(|| SicParserError::UnknownOperationError)?
+        .ok_or_else(|| SicParserError::ExpectedValue(String::from("String")))?
         .into_inner()
         .next()
-        .ok_or_else(|| SicParserError::UnknownOperationError)?
+        .ok_or_else(|| SicParserError::ExpectedValue(String::from("String")))?
         .as_str();
 
-    let color = pairs
-        .next()
-        .ok_or_else(|| SicParserError::UnknownOperationError)?;
+    let coord = pairs.next().ok_or_else(|| {
+        SicParserError::ExpectedNamedValue(String::from("coord(x: NatNum, y: NatNum)"))
+    })?;
+
+    let coord = parse_named_value(coord).map_err(SicParserError::NamedValueParsingError)?;
+
+    let color = pairs.next().ok_or_else(|| {
+        SicParserError::ExpectedNamedValue(String::from("rgba(r: Byte, g: Byte, b: Byte, a: Byte)"))
+    })?;
 
     let color = parse_named_value(color).map_err(SicParserError::NamedValueParsingError)?;
 
     let size = pairs
         .next()
-        .ok_or_else(|| SicParserError::UnknownOperationError)?;
+        .ok_or_else(|| SicParserError::ExpectedNamedValue(String::from("size(v: Float)")))?;
 
     let size = parse_named_value(size).map_err(SicParserError::NamedValueParsingError)?;
 
-    let font_file = pairs
-        .next()
-        .ok_or_else(|| SicParserError::UnknownOperationError)?;
+    let font_file = pairs.next().ok_or_else(|| {
+        SicParserError::ExpectedNamedValue(String::from("coord(font_path: String)"))
+    })?;
 
     let font_file = parse_named_value(font_file).map_err(SicParserError::NamedValueParsingError)?;
 
     Ok(Instr::Operation(ImgOp::DrawText(
         text_pair.to_string(),
+        (coord.extract_coord()).map_err(SicParserError::NamedValueParsingError)?,
         FontOptions::new(
             font_file
                 .extract_font()
@@ -1212,7 +1219,7 @@ mod tests {
         fn draw_text() {
             let pairs = SICParser::parse(
                 Rule::main,
-                r#"draw-text "my text" rgba(10, 10, 255, 255) size(16.0) font("resources/font/Lato-Regular.ttf");"#,
+                r#"draw-text "my text" coord(0,1) rgba(10, 10, 255, 255) size(16.0) font("resources/font/Lato-Regular.ttf");"#,
             )
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
 
@@ -1225,6 +1232,7 @@ mod tests {
 
             let expected = vec![Instr::Operation(ImgOp::DrawText(
                 "my text".to_string(),
+                (0, 1),
                 font_options,
             ))];
             let actual = parse_image_operations(pairs).unwrap();
@@ -1236,9 +1244,8 @@ mod tests {
         fn draw_text_ordering() {
             let pairs = SICParser::parse(
                 Rule::main,
-                r#"draw-text "my text" size(16.0) rgba(10, 10, 255, 255) font("resources/font/Lato-Regular.ttf");"#,
-            )
-                .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+                r#"draw-text "my text" coord(0, 1) size(16.0) rgba(10, 10, 255, 255) font("resources/font/Lato-Regular.ttf");"#,
+            ).unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
 
             let actual = parse_image_operations(pairs);
 
