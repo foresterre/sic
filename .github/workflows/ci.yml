@@ -22,7 +22,7 @@ jobs:
           # pinned rust version :: ubuntu
           - build: pinned
             os: ubuntu-18.04
-            rust: 1.36.0
+            rust: 1.42.0
 
           # latest rust stable :: ubuntu
           - build: stable
