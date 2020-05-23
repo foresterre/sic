@@ -16,10 +16,11 @@ strum_macros = "0.18.0"
 thiserror = "1.0.18"
 
 imageproc = { version = "0.20.0", optional = true }
+rusttype = { version = "0.8.2", optional = true }
 
 [dev-dependencies]
 sic_testing = { path = "../sic_testing" }
 
 [features]
-imageproc-ops = ["imageproc"]
+imageproc-ops = ["imageproc", "rusttype"]
 output-test-images = []

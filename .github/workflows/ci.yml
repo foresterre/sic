@@ -22,7 +22,7 @@ jobs:
           # pinned rust version :: ubuntu
           - build: pinned
             os: ubuntu-18.04
-            rust: 1.36.0
+            rust: 1.42.0
 
           # latest rust stable :: ubuntu
           - build: stable
@@ -75,6 +75,12 @@ jobs:
         with:
           command: test
           args: --verbose --all
+
+      - name: test_workspace_with_all_features
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --verbose --all --all-features
 
   rustfmt:
     name: pipeline_rustfmt

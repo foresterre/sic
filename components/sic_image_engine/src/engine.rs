@@ -139,6 +139,29 @@ impl ImageEngine {
 
                 Ok(())
             }
+
+            #[cfg(feature = "imageproc-ops")]
+            ImgOp::DrawText(text, coords, font_options) => {
+                use rusttype::Font;
+
+                let font_file = std::fs::read(&font_options.font_path)
+                    .map_err(SicImageEngineError::FontFileLoadError)?;
+
+                let font =
+                    Font::from_bytes(&font_file).map_err(|_| SicImageEngineError::FontError)?;
+
+                *self.image = DynamicImage::ImageRgba8(imageproc::drawing::draw_text(
+                    &mut *self.image,
+                    font_options.color,
+                    coords.0,
+                    coords.1,
+                    font_options.scale,
+                    &font,
+                    text.as_str(),
+                ));
+
+                Ok(())
+            }
             // We need to ensure here that Filter3x3's `it` (&[f32]) has length 9.
             // Otherwise it will panic, see: https://docs.rs/image/0.19.0/src/image/dynimage.rs.html#349
             // This check already happens within the `parse` module.
@@ -1316,5 +1339,41 @@ mod tests {
         assert_eq!(yb, 80);
 
         output_test_image_for_manual_inspection(&done_image, out_!("test_multi.png"));
+    }
+
+    #[cfg(feature = "imageproc-ops")]
+    mod imageproc_ops_tests {
+        use super::*;
+        use crate::wrapper::font_options::{FontOptions, FontScale};
+
+        #[test]
+        fn draw_text() {
+            let img: DynamicImage =
+                DynamicImage::ImageRgb8(sic_core::image::RgbImage::new(200, 200));
+
+            let font_file = Into::<PathBuf>::into(env!("CARGO_MANIFEST_DIR"))
+                .join("../../resources/font/Lato-Regular.ttf");
+
+            let operation = ImgOp::DrawText(
+                "HELLO WORLD".to_string(),
+                (0, 0),
+                FontOptions::new(
+                    font_file,
+                    Rgba([255, 255, 0, 255]),
+                    FontScale::Uniform(16.0),
+                ),
+            );
+
+            let mut operator = ImageEngine::new(img);
+            let done = operator.ignite(&[Instr::Operation(operation)]);
+            assert!(done.is_ok());
+
+            let result_img = done.unwrap();
+
+            output_test_image_for_manual_inspection(
+                &result_img,
+                out_!("test_imageproc_ops_draw__text.png"),
+            );
+        }
     }
 }

@@ -1,25 +1,35 @@
+use crate::named_value::NamedValueError;
 use sic_image_engine::errors::SicImageEngineError;
 use thiserror::Error;
 
-#[derive(Debug, Error, Eq, PartialEq)]
+#[derive(Debug, Error)]
 pub enum SicParserError {
-    #[error("sic parser error > {0}")]
+    #[error("expected named value with signature '{0}', but got no more inputs")]
+    ExpectedNamedValue(String),
+
+    #[error("expected value with of type '{0}', but got no more inputs")]
+    ExpectedValue(String),
+
+    #[error("unable to parse filter type: {0}")]
     FilterTypeError(SicImageEngineError),
 
-    #[error("sic parser error > {0}")]
+    #[error("unable to parse named value: {0}")]
+    NamedValueParsingError(NamedValueError),
+
+    #[error("unable to parse script: {0}")]
     PestGrammarError(String),
 
     #[error("{0}")]
     OperationError(OperationParamError),
 
-    #[error("Parse failed: Operation doesn't exist")]
+    #[error("parsing failed: operation doesn't exist")]
     UnknownOperationError,
 
-    #[error("Unable to parse value '{0}'")]
+    #[error("unable to parse value '{0}'")]
     ValueParsingError(String),
 }
 
-#[derive(Debug, Error, Eq, PartialEq)]
+#[derive(Debug, Error)]
 pub enum OperationParamError {
     #[error(
         "Unable to parse `set` environment command. Error: expected a single `set` inner element."

@@ -1,13 +1,13 @@
-/// The rule parser module has a goal to parse pairs/span from Pest data structures to image operations.
-use pest::iterators::{Pair, Pairs};
-use sic_image_engine::engine::{EnvItem, Instr, ItemName};
-use sic_image_engine::wrapper::filter_type::FilterTypeWrap;
-use sic_image_engine::ImgOp;
+//! The rule parser module has a goal to parse pairs/span from Pest data structures to image operations.
 
 use super::Rule;
 use crate::errors::{OperationParamError, SicParserError};
 use crate::value_parser::ParseInputsFromIter;
+use pest::iterators::{Pair, Pairs};
+use sic_image_engine::engine::{EnvItem, Instr, ItemName};
+use sic_image_engine::wrapper::filter_type::FilterTypeWrap;
 use sic_image_engine::wrapper::image_path::ImageFromPath;
+use sic_image_engine::ImgOp;
 
 // This function parses statements provided as a single 'script' to an image operations program.
 // An image operations program is currently a linear list of image operations which are applied
@@ -49,6 +49,10 @@ pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Vec<Instr>, SicP
                     SicParserError::OperationError(OperationParamError::UnsetEnvironment)
                 })?)
             }
+
+            #[cfg(feature = "imageproc-ops")]
+            Rule::draw_text => Ok(parse_draw_text(pair)?),
+
             _ => Err(SicParserError::UnknownOperationError),
         })
         .collect::<Result<Vec<_>, SicParserError>>()
@@ -130,6 +134,72 @@ fn parse_unset_environment(pair: Pair<'_, Rule>) -> Result<Instr, SicParserError
     Ok(Instr::EnvRemove(environment_item))
 }
 
+#[cfg(feature = "imageproc-ops")]
+// expected pair with inner pairs:
+// - rule: 'string_unicode'; represents: text to draw
+// - rule: 'named_value'; which: rgba(r, g, b, a) with r,g,b,a =: u8; represents: color of the text
+// - rule: 'named_value'; which: size(s) with s =: u32; represents: size of the text
+// - rule: 'named_value'; which: font(f) with f =: string (->into path); represents: which font file to use
+fn parse_draw_text(pair: Pair<'_, Rule>) -> Result<Instr, SicParserError> {
+    use crate::named_value::parse_named_value;
+    use sic_core::image::Rgba;
+    use sic_image_engine::wrapper::font_options::{FontOptions, FontScale};
+
+    let mut pairs = pair.into_inner();
+
+    // text
+    let text_pair = pairs
+        .next()
+        .ok_or_else(|| SicParserError::ExpectedValue(String::from("String")))?
+        .into_inner()
+        .next()
+        .ok_or_else(|| SicParserError::ExpectedValue(String::from("String")))?
+        .as_str();
+
+    let coord = pairs.next().ok_or_else(|| {
+        SicParserError::ExpectedNamedValue(String::from("coord(x: NatNum, y: NatNum)"))
+    })?;
+
+    let coord = parse_named_value(coord).map_err(SicParserError::NamedValueParsingError)?;
+
+    let color = pairs.next().ok_or_else(|| {
+        SicParserError::ExpectedNamedValue(String::from("rgba(r: Byte, g: Byte, b: Byte, a: Byte)"))
+    })?;
+
+    let color = parse_named_value(color).map_err(SicParserError::NamedValueParsingError)?;
+
+    let size = pairs
+        .next()
+        .ok_or_else(|| SicParserError::ExpectedNamedValue(String::from("size(v: Float)")))?;
+
+    let size = parse_named_value(size).map_err(SicParserError::NamedValueParsingError)?;
+
+    let font_file = pairs.next().ok_or_else(|| {
+        SicParserError::ExpectedNamedValue(String::from("coord(font_path: String)"))
+    })?;
+
+    let font_file = parse_named_value(font_file).map_err(SicParserError::NamedValueParsingError)?;
+
+    Ok(Instr::Operation(ImgOp::DrawText(
+        text_pair.to_string(),
+        (coord.extract_coord()).map_err(SicParserError::NamedValueParsingError)?,
+        FontOptions::new(
+            font_file
+                .extract_font()
+                .map_err(SicParserError::NamedValueParsingError)?,
+            Rgba(
+                color
+                    .extract_rgba()
+                    .map_err(SicParserError::NamedValueParsingError)?,
+            ),
+            FontScale::Uniform(
+                size.extract_size()
+                    .map_err(SicParserError::NamedValueParsingError)?,
+            ),
+        ),
+    )))
+}
+
 #[cfg(test)]
 mod tests {
     use crate::SICParser;
@@ -145,11 +215,11 @@ mod tests {
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![
+            vec![
                 Instr::Operation(ImgOp::Blur(1.0)),
                 Instr::Operation(ImgOp::Brighten(2))
-            ]),
-            parse_image_operations(pairs)
+            ],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -159,11 +229,11 @@ mod tests {
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![
+            vec![
                 Instr::Operation(ImgOp::Blur(1.0)),
                 Instr::Operation(ImgOp::Brighten(2))
-            ]),
-            parse_image_operations(pairs)
+            ],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -173,11 +243,11 @@ mod tests {
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![
+            vec![
                 Instr::Operation(ImgOp::Blur(1.0)),
                 Instr::Operation(ImgOp::Brighten(2))
-            ]),
-            parse_image_operations(pairs)
+            ],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -187,11 +257,11 @@ mod tests {
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![
+            vec![
                 Instr::Operation(ImgOp::Blur(1.0)),
                 Instr::Operation(ImgOp::Brighten(2))
-            ]),
-            parse_image_operations(pairs)
+            ],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -201,11 +271,11 @@ mod tests {
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![
+            vec![
                 Instr::Operation(ImgOp::Blur(1.0)),
                 Instr::Operation(ImgOp::Brighten(2))
-            ]),
-            parse_image_operations(pairs)
+            ],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -215,11 +285,11 @@ mod tests {
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![
+            vec![
                 Instr::Operation(ImgOp::Blur(1.0)),
                 Instr::Operation(ImgOp::Brighten(2))
-            ]),
-            parse_image_operations(pairs)
+            ],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -247,11 +317,11 @@ mod tests {
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![
+            vec![
                 Instr::Operation(ImgOp::Blur(1.0)),
                 Instr::Operation(ImgOp::Brighten(2))
-            ]),
-            parse_image_operations(pairs)
+            ],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -267,8 +337,8 @@ mod tests {
         let pairs = SICParser::parse(Rule::main, "blur 15;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Instr::Operation(ImgOp::Blur(15.0))]),
-            parse_image_operations(pairs)
+            vec![Instr::Operation(ImgOp::Blur(15.0))],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -278,8 +348,8 @@ mod tests {
         let pairs = SICParser::parse(Rule::main, "blur 15.0;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Instr::Operation(ImgOp::Blur(15.0))]),
-            parse_image_operations(pairs)
+            vec![Instr::Operation(ImgOp::Blur(15.0))],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -288,8 +358,8 @@ mod tests {
         let pairs = SICParser::parse(Rule::main, "blur -15.0;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Instr::Operation(ImgOp::Blur(-15.0))]),
-            parse_image_operations(pairs)
+            vec![Instr::Operation(ImgOp::Blur(-15.0))],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -305,8 +375,8 @@ mod tests {
         let pairs = SICParser::parse(Rule::main, "crop 1 2 3 4;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Instr::Operation(ImgOp::Crop((1, 2, 3, 4)))]),
-            parse_image_operations(pairs)
+            vec![Instr::Operation(ImgOp::Crop((1, 2, 3, 4)))],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -322,8 +392,8 @@ mod tests {
         let pairs = SICParser::parse(Rule::main, "crop 1 1 1 1;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Instr::Operation(ImgOp::Crop((1, 1, 1, 1)))]),
-            parse_image_operations(pairs)
+            vec![Instr::Operation(ImgOp::Crop((1, 1, 1, 1)))],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -332,8 +402,8 @@ mod tests {
         let pairs = SICParser::parse(Rule::main, "crop 0 0 0 0;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Instr::Operation(ImgOp::Crop((0, 0, 0, 0)))]),
-            parse_image_operations(pairs)
+            vec![Instr::Operation(ImgOp::Crop((0, 0, 0, 0)))],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -388,13 +458,8 @@ mod tests {
             .unwrap_or_else(|_| panic!("Unable to parse sic image operations script."));
 
         assert_eq!(
-            Ok(vec![Instr::Operation(ImgOp::Crop((
-                0,
-                0,
-                0,
-                std::u32::MAX,
-            )))]),
-            parse_image_operations(pairs)
+            vec![Instr::Operation(ImgOp::Crop((0, 0, 0, std::u32::MAX,)))],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -403,8 +468,8 @@ mod tests {
         let pairs = SICParser::parse(Rule::main, "contrast 15;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Instr::Operation(ImgOp::Contrast(15.0))]),
-            parse_image_operations(pairs)
+            vec![Instr::Operation(ImgOp::Contrast(15.0))],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -413,8 +478,8 @@ mod tests {
         let pairs = SICParser::parse(Rule::main, "contrast 15.8;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Instr::Operation(ImgOp::Contrast(15.8))]),
-            parse_image_operations(pairs)
+            vec![Instr::Operation(ImgOp::Contrast(15.8))],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -482,8 +547,8 @@ mod tests {
         let pairs = SICParser::parse(Rule::main, "brighten 3579;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Instr::Operation(ImgOp::Brighten(3579))]),
-            parse_image_operations(pairs)
+            vec![Instr::Operation(ImgOp::Brighten(3579))],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -492,8 +557,8 @@ mod tests {
         let pairs = SICParser::parse(Rule::main, "brighten -3579;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Instr::Operation(ImgOp::Brighten(-3579))]),
-            parse_image_operations(pairs)
+            vec![Instr::Operation(ImgOp::Brighten(-3579))],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -512,10 +577,10 @@ mod tests {
         )
         .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Instr::Operation(ImgOp::Filter3x3([
+            vec![Instr::Operation(ImgOp::Filter3x3([
                 0.0, 0.1, 0.2, 1.3, 1.4, 1.5, 2.6, 2.7, 2.8
-            ]))]),
-            parse_image_operations(pairs)
+            ]))],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -524,10 +589,10 @@ mod tests {
         let pairs = SICParser::parse(Rule::main, "filter3x3 0 0 0 | 1 1 1 | 2 2 2")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Instr::Operation(ImgOp::Filter3x3([
+            vec![Instr::Operation(ImgOp::Filter3x3([
                 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0
-            ]))]),
-            parse_image_operations(pairs)
+            ]))],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -536,10 +601,10 @@ mod tests {
         let pairs = SICParser::parse(Rule::main, "filter3x3 0 0 0 1 1 1 2 2 3.0")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Instr::Operation(ImgOp::Filter3x3([
+            vec![Instr::Operation(ImgOp::Filter3x3([
                 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 2.0, 2.0, 3.0
-            ]))]),
-            parse_image_operations(pairs)
+            ]))],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -548,10 +613,10 @@ mod tests {
         let pairs = SICParser::parse(Rule::main, "filter3x3 0 0 0 1 1 1 2 2 3.0;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Instr::Operation(ImgOp::Filter3x3([
+            vec![Instr::Operation(ImgOp::Filter3x3([
                 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 2.0, 2.0, 3.0
-            ]))]),
-            parse_image_operations(pairs)
+            ]))],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -585,15 +650,15 @@ mod tests {
         .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
 
         assert_eq!(
-            Ok(vec![
+            vec![
                 Instr::Operation(ImgOp::Filter3x3([
                     1.9, 2.0, 3.0, 4.0, 5.9, 6.0, 7.0, 8.0, 9.9
                 ])),
                 Instr::Operation(ImgOp::Filter3x3([
                     10.9, 2.0, 3.0, 4.0, 11.9, 6.0, 7.0, 8.0, 12.9
                 ])),
-            ]),
-            parse_image_operations(pairs)
+            ],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -672,8 +737,8 @@ mod tests {
         let pairs = SICParser::parse(Rule::main, "flip-horizontal;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Instr::Operation(ImgOp::FlipHorizontal)]),
-            parse_image_operations(pairs)
+            vec![Instr::Operation(ImgOp::FlipHorizontal)],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -689,8 +754,8 @@ mod tests {
         let pairs = SICParser::parse(Rule::main, "flip-vertical;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Instr::Operation(ImgOp::FlipVertical)]),
-            parse_image_operations(pairs)
+            vec![Instr::Operation(ImgOp::FlipVertical)],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -706,8 +771,8 @@ mod tests {
         let pairs = SICParser::parse(Rule::main, "hue-rotate 3579;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Instr::Operation(ImgOp::HueRotate(3579))]),
-            parse_image_operations(pairs)
+            vec![Instr::Operation(ImgOp::HueRotate(3579))],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -716,8 +781,8 @@ mod tests {
         let pairs = SICParser::parse(Rule::main, "hue-rotate -3579;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Instr::Operation(ImgOp::HueRotate(-3579))]),
-            parse_image_operations(pairs)
+            vec![Instr::Operation(ImgOp::HueRotate(-3579))],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -726,8 +791,8 @@ mod tests {
         let pairs = SICParser::parse(Rule::main, "invert;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Instr::Operation(ImgOp::Invert)]),
-            parse_image_operations(pairs)
+            vec![Instr::Operation(ImgOp::Invert)],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -736,8 +801,8 @@ mod tests {
         let pairs = SICParser::parse(Rule::main, "resize 99 88;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Instr::Operation(ImgOp::Resize((99, 88)))]),
-            parse_image_operations(pairs)
+            vec![Instr::Operation(ImgOp::Resize((99, 88)))],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -746,8 +811,8 @@ mod tests {
         let pairs = SICParser::parse(Rule::main, "rotate90;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Instr::Operation(ImgOp::Rotate90)]),
-            parse_image_operations(pairs)
+            vec![Instr::Operation(ImgOp::Rotate90)],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -756,8 +821,8 @@ mod tests {
         let pairs = SICParser::parse(Rule::main, "rotate180;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Instr::Operation(ImgOp::Rotate180)]),
-            parse_image_operations(pairs)
+            vec![Instr::Operation(ImgOp::Rotate180)],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -766,8 +831,8 @@ mod tests {
         let pairs = SICParser::parse(Rule::main, "rotate270;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Instr::Operation(ImgOp::Rotate270)]),
-            parse_image_operations(pairs)
+            vec![Instr::Operation(ImgOp::Rotate270)],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -776,8 +841,8 @@ mod tests {
         let pairs = SICParser::parse(Rule::main, "unsharpen 99 88;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Instr::Operation(ImgOp::Unsharpen((99.0, 88)))]),
-            parse_image_operations(pairs)
+            vec![Instr::Operation(ImgOp::Unsharpen((99.0, 88)))],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -786,8 +851,8 @@ mod tests {
         let pairs = SICParser::parse(Rule::main, "unsharpen 99.0 88;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Instr::Operation(ImgOp::Unsharpen((99.0, 88)))]),
-            parse_image_operations(pairs)
+            vec![Instr::Operation(ImgOp::Unsharpen((99.0, 88)))],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -796,8 +861,8 @@ mod tests {
         let pairs = SICParser::parse(Rule::main, "unsharpen -99.0 -88;")
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![Instr::Operation(ImgOp::Unsharpen((-99.0, -88)))]),
-            parse_image_operations(pairs)
+            vec![Instr::Operation(ImgOp::Unsharpen((-99.0, -88)))],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -815,13 +880,13 @@ mod tests {
         )
         .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![
+            vec![
                 Instr::Operation(ImgOp::Blur(10.0)),
                 Instr::Operation(ImgOp::FlipHorizontal),
                 Instr::Operation(ImgOp::FlipVertical),
                 Instr::Operation(ImgOp::Resize((100, 200)))
-            ]),
-            parse_image_operations(pairs)
+            ],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -833,13 +898,13 @@ mod tests {
         )
         .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![
+            vec![
                 Instr::Operation(ImgOp::FlipHorizontal),
                 Instr::Operation(ImgOp::FlipVertical),
                 Instr::Operation(ImgOp::Resize((100, 200))),
                 Instr::Operation(ImgOp::Blur(10.0))
-            ]),
-            parse_image_operations(pairs)
+            ],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -851,13 +916,13 @@ mod tests {
         )
         .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![
+            vec![
                 Instr::Operation(ImgOp::FlipHorizontal),
                 Instr::Operation(ImgOp::FlipVertical),
                 Instr::Operation(ImgOp::Resize((100, 200))),
                 Instr::Operation(ImgOp::Blur(10.0))
-            ]),
-            parse_image_operations(pairs)
+            ],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -869,13 +934,13 @@ mod tests {
         )
         .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![
+            vec![
                 Instr::Operation(ImgOp::FlipHorizontal),
                 Instr::Operation(ImgOp::FlipVertical),
                 Instr::Operation(ImgOp::Resize((100, 200))),
                 Instr::Operation(ImgOp::Blur(10.0))
-            ]),
-            parse_image_operations(pairs)
+            ],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -887,13 +952,13 @@ mod tests {
         )
         .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![
+            vec![
                 Instr::Operation(ImgOp::FlipHorizontal),
                 Instr::Operation(ImgOp::FlipVertical),
                 Instr::Operation(ImgOp::Resize((100, 200))),
                 Instr::Operation(ImgOp::Blur(10.0))
-            ]),
-            parse_image_operations(pairs)
+            ],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -905,13 +970,13 @@ mod tests {
         )
         .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![
+            vec![
                 Instr::Operation(ImgOp::FlipHorizontal),
                 Instr::Operation(ImgOp::FlipVertical),
                 Instr::Operation(ImgOp::Resize((100, 200))),
                 Instr::Operation(ImgOp::Blur(10.0))
-            ]),
-            parse_image_operations(pairs)
+            ],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -923,13 +988,13 @@ mod tests {
         )
         .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         assert_eq!(
-            Ok(vec![
+            vec![
                 Instr::Operation(ImgOp::FlipHorizontal),
                 Instr::Operation(ImgOp::FlipVertical),
                 Instr::Operation(ImgOp::Resize((100, 200))),
                 Instr::Operation(ImgOp::Blur(10.0))
-            ]),
-            parse_image_operations(pairs)
+            ],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -939,10 +1004,10 @@ mod tests {
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![Instr::EnvAdd(EnvItem::CustomSamplingFilter(
+            vec![Instr::EnvAdd(EnvItem::CustomSamplingFilter(
                 FilterTypeWrap::new(FilterType::CatmullRom)
-            ))]),
-            parse_image_operations(pairs)
+            ))],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -952,10 +1017,10 @@ mod tests {
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![Instr::EnvAdd(EnvItem::CustomSamplingFilter(
+            vec![Instr::EnvAdd(EnvItem::CustomSamplingFilter(
                 FilterTypeWrap::new(FilterType::Gaussian)
-            )),]),
-            parse_image_operations(pairs)
+            )),],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -965,10 +1030,10 @@ mod tests {
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![Instr::EnvAdd(EnvItem::CustomSamplingFilter(
+            vec![Instr::EnvAdd(EnvItem::CustomSamplingFilter(
                 FilterTypeWrap::new(FilterType::Lanczos3)
-            )),]),
-            parse_image_operations(pairs)
+            )),],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -978,10 +1043,10 @@ mod tests {
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![Instr::EnvAdd(EnvItem::CustomSamplingFilter(
+            vec![Instr::EnvAdd(EnvItem::CustomSamplingFilter(
                 FilterTypeWrap::new(FilterType::Nearest)
-            )),]),
-            parse_image_operations(pairs)
+            )),],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -991,10 +1056,10 @@ mod tests {
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![Instr::EnvAdd(EnvItem::CustomSamplingFilter(
+            vec![Instr::EnvAdd(EnvItem::CustomSamplingFilter(
                 FilterTypeWrap::new(FilterType::Triangle)
-            )),]),
-            parse_image_operations(pairs)
+            )),],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -1007,13 +1072,13 @@ mod tests {
         .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![
+            vec![
                 Instr::EnvAdd(EnvItem::CustomSamplingFilter(FilterTypeWrap::new(
                     FilterType::Gaussian
                 ))),
                 Instr::Operation(ImgOp::Resize((100, 200)))
-            ]),
-            parse_image_operations(pairs)
+            ],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -1030,7 +1095,7 @@ mod tests {
         .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![
+            vec![
                 Instr::EnvAdd(EnvItem::CustomSamplingFilter(FilterTypeWrap::new(
                     FilterType::CatmullRom
                 ))),
@@ -1046,8 +1111,8 @@ mod tests {
                 Instr::EnvAdd(EnvItem::CustomSamplingFilter(FilterTypeWrap::new(
                     FilterType::Triangle
                 ))),
-            ]),
-            parse_image_operations(pairs)
+            ],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -1060,11 +1125,11 @@ mod tests {
         .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![
+            vec![
                 Instr::EnvAdd(EnvItem::PreserveAspectRatio(true)),
                 Instr::Operation(ImgOp::Resize((100, 200)))
-            ]),
-            parse_image_operations(pairs)
+            ],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -1077,11 +1142,11 @@ mod tests {
         .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![
+            vec![
                 Instr::EnvAdd(EnvItem::PreserveAspectRatio(false)),
                 Instr::Operation(ImgOp::Resize((100, 200)))
-            ]),
-            parse_image_operations(pairs)
+            ],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -1101,8 +1166,8 @@ mod tests {
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![Instr::EnvRemove(ItemName::CustomSamplingFilter),]),
-            parse_image_operations(pairs)
+            vec![Instr::EnvRemove(ItemName::CustomSamplingFilter),],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -1118,7 +1183,7 @@ mod tests {
         .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![
+            vec![
                 Instr::EnvAdd(EnvItem::CustomSamplingFilter(FilterTypeWrap::new(
                     FilterType::CatmullRom
                 ))),
@@ -1127,8 +1192,8 @@ mod tests {
                 ))),
                 Instr::EnvRemove(ItemName::CustomSamplingFilter),
                 Instr::EnvRemove(ItemName::CustomSamplingFilter),
-            ]),
-            parse_image_operations(pairs)
+            ],
+            parse_image_operations(pairs).unwrap()
         );
     }
 
@@ -1138,8 +1203,53 @@ mod tests {
             .unwrap_or_else(|e| panic!("error: {:?}", e));
 
         assert_eq!(
-            Ok(vec![Instr::EnvRemove(ItemName::PreserveAspectRatio),]),
-            parse_image_operations(pairs)
+            vec![Instr::EnvRemove(ItemName::PreserveAspectRatio),],
+            parse_image_operations(pairs).unwrap()
         );
+    }
+
+    #[cfg(feature = "imageproc-ops")]
+    mod imageproc_ops_tests {
+        use super::*;
+        use sic_core::image::Rgba;
+        use sic_image_engine::wrapper::font_options::{FontOptions, FontScale};
+        use std::path::PathBuf;
+
+        #[test]
+        fn draw_text() {
+            let pairs = SICParser::parse(
+                Rule::main,
+                r#"draw-text "my text" coord(0,1) rgba(10, 10, 255, 255) size(16.0) font("resources/font/Lato-Regular.ttf");"#,
+            )
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+
+            let font_file = PathBuf::from("resources/font/Lato-Regular.ttf".to_string());
+            let font_options = FontOptions::new(
+                font_file,
+                Rgba([255, 255, 0, 255]),
+                FontScale::Uniform(16.0),
+            );
+
+            let expected = vec![Instr::Operation(ImgOp::DrawText(
+                "my text".to_string(),
+                (0, 1),
+                font_options,
+            ))];
+            let actual = parse_image_operations(pairs).unwrap();
+
+            assert_eq!(actual, expected);
+        }
+
+        #[test]
+        fn draw_text_ordering() {
+            let pairs = SICParser::parse(
+                Rule::main,
+                r#"draw-text "my text" coord(0, 1) size(16.0) rgba(10, 10, 255, 255) font("resources/font/Lato-Regular.ttf");"#,
+            ).unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+
+            let actual = parse_image_operations(pairs);
+
+            assert!(actual.is_err());
+        }
     }
 }

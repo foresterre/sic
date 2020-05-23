@@ -800,6 +800,7 @@ name = "sic_image_engine"
 version = "0.11.0"
 dependencies = [
  "imageproc 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rusttype 0.8.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "sic_core 0.11.0",
  "sic_io 0.11.0",
  "sic_testing 0.11.0",
