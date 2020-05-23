@@ -19,7 +19,9 @@ char = {
 }
 
 named_value = ${ ident ~ "(" ~ arguments ~ ")" }
-arg = _{ bool | uint | int | string_unicode }
+// note that all numbers (floating point, unsigned integers, integers etc.) are represented
+// as "fp" (floating point representation) in the grammar
+arg = _{ bool | fp | string_unicode }
 arguments = _{ arg ~ (WS_OPT ~ "," ~ WS_OPT ~ arg)* }
 
 triplet_sep = _{ WHITESPACE ~ "|" ~ WHITESPACE }

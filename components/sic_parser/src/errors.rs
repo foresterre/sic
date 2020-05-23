@@ -1,3 +1,4 @@
+use crate::named_value::NamedValueError;
 use sic_image_engine::errors::SicImageEngineError;
 use thiserror::Error;
 
@@ -5,6 +6,9 @@ use thiserror::Error;
 pub enum SicParserError {
     #[error("sic parser error > {0}")]
     FilterTypeError(SicImageEngineError),
+
+    #[error("unable to parse named value: {0}")]
+    NamedValueParsingError(NamedValueError),
 
     #[error("sic parser error > {0}")]
     PestGrammarError(String),

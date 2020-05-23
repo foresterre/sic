@@ -14,6 +14,7 @@ use crate::rule_parser::parse_image_operations;
 use sic_image_engine::engine::Instr;
 
 pub mod errors;
+pub mod named_value;
 pub mod rule_parser;
 pub mod value_parser;
 

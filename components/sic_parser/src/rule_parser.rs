@@ -1,13 +1,16 @@
-/// The rule parser module has a goal to parse pairs/span from Pest data structures to image operations.
-use pest::iterators::{Pair, Pairs};
-use sic_image_engine::engine::{EnvItem, Instr, ItemName};
-use sic_image_engine::wrapper::filter_type::FilterTypeWrap;
-use sic_image_engine::ImgOp;
+//! The rule parser module has a goal to parse pairs/span from Pest data structures to image operations.
 
 use super::Rule;
 use crate::errors::{OperationParamError, SicParserError};
+use crate::named_value::parse_named_value;
 use crate::value_parser::ParseInputsFromIter;
+use pest::iterators::{Pair, Pairs};
+use sic_core::image::Rgba;
+use sic_image_engine::engine::{EnvItem, Instr, ItemName};
+use sic_image_engine::wrapper::filter_type::FilterTypeWrap;
+use sic_image_engine::wrapper::font_options::{FontOptions, FontScale};
 use sic_image_engine::wrapper::image_path::ImageFromPath;
+use sic_image_engine::ImgOp;
 
 // This function parses statements provided as a single 'script' to an image operations program.
 // An image operations program is currently a linear list of image operations which are applied
@@ -51,10 +54,7 @@ pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Vec<Instr>, SicP
             }
 
             #[cfg(feature = "imageproc-ops")]
-            Rule::draw_text => {
-                dbg!(pair.into_inner());
-                Err(SicParserError::UnknownOperationError)
-            }
+            Rule::draw_text => Ok(parse_draw_text(pair)?),
 
             _ => Err(SicParserError::UnknownOperationError),
         })
@@ -135,6 +135,61 @@ fn parse_unset_environment(pair: Pair<'_, Rule>) -> Result<Instr, SicParserError
     };
 
     Ok(Instr::EnvRemove(environment_item))
+}
+
+#[cfg(feature = "imageproc-ops")]
+// expected pair with inner pairs:
+// - rule: 'string_unicode'; represents: text to draw
+// - rule: 'named_value'; which: rgba(r, g, b, a) with r,g,b,a =: u8; represents: color of the text
+// - rule: 'named_value'; which: size(s) with s =: u32; represents: size of the text
+// - rule: 'named_value'; which: font(f) with f =: string (->into path); represents: which font file to use
+fn parse_draw_text(pair: Pair<'_, Rule>) -> Result<Instr, SicParserError> {
+    let mut pairs = pair.into_inner();
+
+    // text
+    let text_pair = pairs
+        .next()
+        .ok_or_else(|| SicParserError::UnknownOperationError)?
+        .into_inner()
+        .next()
+        .ok_or_else(|| SicParserError::UnknownOperationError)?
+        .as_str();
+
+    let color = pairs
+        .next()
+        .ok_or_else(|| SicParserError::UnknownOperationError)?;
+
+    let color = parse_named_value(color).map_err(SicParserError::NamedValueParsingError)?;
+
+    let size = pairs
+        .next()
+        .ok_or_else(|| SicParserError::UnknownOperationError)?;
+
+    let size = parse_named_value(size).map_err(SicParserError::NamedValueParsingError)?;
+
+    let font_file = pairs
+        .next()
+        .ok_or_else(|| SicParserError::UnknownOperationError)?;
+
+    let font_file = parse_named_value(font_file).map_err(SicParserError::NamedValueParsingError)?;
+
+    Ok(Instr::Operation(ImgOp::DrawText(
+        text_pair.to_string(),
+        FontOptions::new(
+            font_file
+                .extract_font()
+                .map_err(SicParserError::NamedValueParsingError)?,
+            Rgba(
+                color
+                    .extract_rgba()
+                    .map_err(SicParserError::NamedValueParsingError)?,
+            ),
+            FontScale::Uniform(
+                size.extract_size()
+                    .map_err(SicParserError::NamedValueParsingError)?,
+            ),
+        ),
+    )))
 }
 
 #[cfg(test)]
@@ -1156,11 +1211,11 @@ mod tests {
         fn draw_text() {
             let pairs = SICParser::parse(
                 Rule::main,
-                r#"draw-text "my text" rgba(10, 10, 255, 255) size(16) font("resources/font/Lato-Regular.ttf");"#,
+                r#"draw-text "my text" rgba(10, 10, 255, 255) size(16.0) font("resources/font/Lato-Regular.ttf");"#,
             )
             .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
 
-            let font_file = PathBuf::from("".to_string());
+            let font_file = PathBuf::from("resources/font/Lato-Regular.ttf".to_string());
             let font_options = FontOptions::new(
                 font_file,
                 Rgba([255, 255, 0, 255]),
@@ -1174,6 +1229,26 @@ mod tests {
             let actual = parse_image_operations(pairs).unwrap();
 
             assert_eq!(actual, expected);
+        }
+
+        #[test]
+        fn draw_text_ordering() {
+            let pairs = SICParser::parse(
+                Rule::main,
+                r#"draw-text "my text" size(16.0) rgba(10, 10, 255, 255) font("resources/font/Lato-Regular.ttf");"#,
+            )
+                .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+
+            let font_file = PathBuf::from("resources/font/Lato-Regular.ttf".to_string());
+            let font_options = FontOptions::new(
+                font_file,
+                Rgba([255, 255, 0, 255]),
+                FontScale::Uniform(16.0),
+            );
+
+            let actual = parse_image_operations(pairs);
+
+            assert!(actual.is_err());
         }
     }
 }
