@@ -56,8 +56,6 @@ pub fn command_with_features(
 
     arguments.extend(provided);
 
-    dbg!(&arguments);
-
     command.args(arguments);
     command.spawn().expect("Couldn't spawn child process.")
 }
