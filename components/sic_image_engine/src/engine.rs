@@ -153,7 +153,7 @@ impl ImageEngine {
                 *self.image = DynamicImage::ImageRgba8(imageproc::drawing::draw_text(
                     &mut *self.image,
                     font_options.color,
-                    25,
+                    25, // TODO: custom location: coord(x, y) [xor] positional with: anchor(top-left), anchor(center) etc
                     25,
                     font_options.scale,
                     &font,
