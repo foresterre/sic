@@ -32,9 +32,6 @@ pub enum NamedValueError {
 
     #[error("Unable to parse value '{0}', with type '{1}'")]
     UnableToParse(String, String),
-
-    #[error("This error has to be defined, TODO <3")]
-    TODOError,
 }
 
 type NVResult<T> = Result<T, NamedValueError>;
