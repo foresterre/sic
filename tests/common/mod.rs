@@ -15,12 +15,13 @@ pub fn setup_output_path(test_output_path: &str) -> PathBuf {
 
 /// In and output path prefixes are pre-defined.
 pub fn command(input: &str, output: &str, args: &str) -> Child {
-    command_with_features(input, output, args, &[], true)
+    command_with_features(input, output, None, args, &[], true)
 }
 
 pub fn command_with_features(
     input: &str,
     output: &str,
+    cmd_arg: Option<&str>,
     args: &str,
     features: &[&str],
     split: bool,
@@ -47,6 +48,10 @@ pub fn command_with_features(
     arguments.push(input);
     arguments.push("-o");
     arguments.push(output);
+
+    if let Some(cmd) = cmd_arg {
+        arguments.push(cmd);
+    }
 
     let provided: Vec<&str> = if split {
         args.split_whitespace().collect()

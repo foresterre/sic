@@ -14,7 +14,7 @@ mod tests {
 
     #[parameterized(
         ops = {
-            "--apply-operations \'draw-text \"example\" rgba(0,0,0,255) size(16) font(\"%font%\");\'",
+            r#"draw-text "example" rgba(0,0,0,255) size(24) font("%font%");"#,
         },
         output_file = {
             "imageproc_ops_draw_text"
@@ -32,6 +32,7 @@ mod tests {
         let mut process = command_with_features(
             "unsplash_763569_cropped.jpg",
             format!("{}.png", output_file).as_str(),
+            Some("--apply-operations"),
             &ops,
             &["imageproc-ops"],
             false,
