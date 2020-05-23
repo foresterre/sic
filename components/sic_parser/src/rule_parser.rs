@@ -1240,13 +1240,6 @@ mod tests {
             )
                 .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
 
-            let font_file = PathBuf::from("resources/font/Lato-Regular.ttf".to_string());
-            let font_options = FontOptions::new(
-                font_file,
-                Rgba([255, 255, 0, 255]),
-                FontScale::Uniform(16.0),
-            );
-
             let actual = parse_image_operations(pairs);
 
             assert!(actual.is_err());
