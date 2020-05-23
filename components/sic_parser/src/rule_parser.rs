@@ -2,13 +2,10 @@
 
 use super::Rule;
 use crate::errors::{OperationParamError, SicParserError};
-use crate::named_value::parse_named_value;
 use crate::value_parser::ParseInputsFromIter;
 use pest::iterators::{Pair, Pairs};
-use sic_core::image::Rgba;
 use sic_image_engine::engine::{EnvItem, Instr, ItemName};
 use sic_image_engine::wrapper::filter_type::FilterTypeWrap;
-use sic_image_engine::wrapper::font_options::{FontOptions, FontScale};
 use sic_image_engine::wrapper::image_path::ImageFromPath;
 use sic_image_engine::ImgOp;
 
@@ -144,6 +141,10 @@ fn parse_unset_environment(pair: Pair<'_, Rule>) -> Result<Instr, SicParserError
 // - rule: 'named_value'; which: size(s) with s =: u32; represents: size of the text
 // - rule: 'named_value'; which: font(f) with f =: string (->into path); represents: which font file to use
 fn parse_draw_text(pair: Pair<'_, Rule>) -> Result<Instr, SicParserError> {
+    use crate::named_value::parse_named_value;
+    use sic_core::image::Rgba;
+    use sic_image_engine::wrapper::font_options::{FontOptions, FontScale};
+
     let mut pairs = pair.into_inner();
 
     // text
