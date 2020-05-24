@@ -67,6 +67,7 @@ pub fn command_with_features(
 
 pub const DEFAULT_IN: &str = "rainbow_8x6.bmp";
 
+#[allow(unused)]
 macro_rules! assert_not {
     ($e:expr) => {
         assert!(!$e)

@@ -1,6 +1,5 @@
 #![cfg(feature = "imageproc-ops")]
 
-#[macro_use]
 pub mod common;
 
 #[macro_use]
