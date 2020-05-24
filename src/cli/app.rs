@@ -46,6 +46,7 @@ define_arg_consts!(arg_names, {
 
     // provide image operations using image script
     ARG_APPLY_OPERATIONS,
+    ARG_OPERATIONS_SCRIPT,
 
     // group: image operations
     GROUP_IMAGE_OPERATIONS,
@@ -161,7 +162,15 @@ pub fn create_app(
             .alias("A")
             .help(help_ops)
             .value_name("OPERATIONS")
-            .takes_value(true))
+            .takes_value(true)
+            .conflicts_with(ARG_OPERATIONS_SCRIPT))
+
+        .arg(Arg::with_name(ARG_OPERATIONS_SCRIPT)
+            .long("operations-script")
+            .help("Like '--apply-operations' but takes a file path where the file contains the script instead of taking it as value directly")
+            .value_name("SCRIPT_FILE")
+            .takes_value(true)
+            .conflicts_with(ARG_APPLY_OPERATIONS))
 
         // image-operations(cli-arguments):
         .group(ArgGroup::with_name(GROUP_IMAGE_OPERATIONS)
