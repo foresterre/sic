@@ -11,6 +11,7 @@ use sic_io::load::FrameIndex;
 use crate::cli::config::{
     validate_jpeg_quality, Config, ConfigBuilder, InputOutputModeType, SelectedLicenses,
 };
+use std::path::Path;
 
 macro_rules! define_arg_consts {
     ($mod:ident, { $($argdef:ident),+ $(,)? } ) => {
@@ -428,6 +429,10 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> anyhow::Result<Config<'a
     // the name of the argument, we just know that for `crop` we have values 0,0,1,1.
     let program = if let Some(script) = matches.value_of(ARG_APPLY_OPERATIONS) {
         sic_parser::parse_script(script)?
+    } else if let Some(path) = matches.value_of(ARG_OPERATIONS_SCRIPT) {
+        let contents = std::fs::read_to_string(Path::new(path))
+            .map_err(|err| anyhow::anyhow!("unable to read script file: {}", err))?;
+        sic_parser::parse_script(&contents)?
     } else {
         let mut tree: IndexTree = BTreeMap::new();
         build_ast_from_matches(matches, &mut tree)?
