@@ -1,6 +1,5 @@
 #![cfg(feature = "imageproc-ops")]
 
-#[macro_use]
 pub mod common;
 
 #[macro_use]
@@ -28,14 +27,11 @@ mod tests {
         .concat();
 
         let ops = ops.replace("%font%", font_file);
-
-        let mut process = command_with_features(
+        let mut process = command_unsplit_with_features(
             "unsplash_763569_cropped.jpg",
             format!("{}.png", output_file).as_str(),
-            Some("--apply-operations"),
-            &ops,
+            &["--apply-operations", &ops],
             &["imageproc-ops"],
-            false,
         );
         let result = process.wait();
         assert!(result.is_ok());

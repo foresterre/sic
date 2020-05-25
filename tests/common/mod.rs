@@ -13,19 +13,20 @@ pub fn setup_output_path(test_output_path: &str) -> PathBuf {
         .join(test_output_path)
 }
 
-/// In and output path prefixes are pre-defined.
-pub fn command(input: &str, output: &str, args: &str) -> Child {
-    command_with_features(input, output, None, args, &[], true)
-}
-
-pub fn command_with_features(
+pub fn command_unsplit_with_features(
     input: &str,
     output: &str,
-    cmd_arg: Option<&str>,
-    args: &str,
+    args: &[&str],
     features: &[&str],
-    split: bool,
 ) -> Child {
+    command_unsplit_impl(input, output, args, features)
+}
+
+pub fn command_unsplit(input: &str, output: &str, args: &[&str]) -> Child {
+    command_unsplit_impl(input, output, args, &[])
+}
+
+fn command_unsplit_impl(input: &str, output: &str, args: &[&str], features: &[&str]) -> Child {
     let input = setup_input_path(&input);
     let input = input.to_str().unwrap();
     let output = setup_output_path(&output);
@@ -48,18 +49,30 @@ pub fn command_with_features(
     arguments.push(input);
     arguments.push("-o");
     arguments.push(output);
+    arguments.extend(args);
+    command.args(arguments);
 
-    if let Some(cmd) = cmd_arg {
-        arguments.push(cmd);
-    }
+    command.spawn().expect("Couldn't spawn child process.")
+}
 
-    let provided: Vec<&str> = if split {
-        args.split_whitespace().collect()
-    } else {
-        vec![args]
-    };
+/// In and output path prefixes are pre-defined.
+pub fn command(input: &str, output: &str, args: &str) -> Child {
+    let input = setup_input_path(&input);
+    let input = input.to_str().unwrap();
+    let output = setup_output_path(&output);
+    let output = output.to_str().unwrap();
 
-    arguments.extend(provided);
+    let mut command = Command::new("cargo");
+    let mut arguments = Vec::with_capacity(128);
+    arguments.push("run");
+
+    arguments.push("--");
+    arguments.push("-i");
+    arguments.push(input);
+    arguments.push("-o");
+    arguments.push(output);
+
+    arguments.extend(args.split_whitespace());
 
     command.args(arguments);
     command.spawn().expect("Couldn't spawn child process.")
@@ -67,6 +80,7 @@ pub fn command_with_features(
 
 pub const DEFAULT_IN: &str = "rainbow_8x6.bmp";
 
+#[allow(unused)]
 macro_rules! assert_not {
     ($e:expr) => {
         assert!(!$e)
