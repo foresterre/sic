@@ -28,7 +28,11 @@ pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Vec<Instr>, SicP
             Rule::brighten => Brighten(pair),
             Rule::contrast => Contrast(pair),
             Rule::crop => Crop(pair),
-            Rule::diff => Diff(pair),
+            Rule::diff => Diff(
+                pair.into_inner()
+                    .next()
+                    .ok_or_else(|| SicParserError::NoInnerString)?,
+            ),
             Rule::filter3x3 => Filter3x3(pair),
             Rule::flip_horizontal => Ok(Instr::Operation(ImgOp::FlipHorizontal)),
             Rule::flip_vertical => Ok(Instr::Operation(ImgOp::FlipVertical)),

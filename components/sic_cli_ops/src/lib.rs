@@ -57,19 +57,7 @@ fn ast_from_index_tree(tree: &mut IndexTree) -> Result<Vec<Instr>, SicCliOpsErro
                 let empty: &[&str; 0] = &[];
                 id.mk_statement(empty)
             }
-            Op::WithValues(OperationId::Diff, values) => {
-                // HACK: From Pest we receive back a string including quotation marks, but
-                //       the terminal doesn't; we'll have to figure out how we can instruct Pest
-                //       to just give back the string contents without quotation marks
-                let mut values = values.to_vec();
-
-                #[allow(clippy::needless_range_loop)]
-                for i in 0..values.len() {
-                    values[i] = format!("\"{}\"", values[i]);
-                }
-
-                (OperationId::Diff).mk_statement(&values)
-            }
+            Op::WithValues(OperationId::Diff, values) => (OperationId::Diff).mk_statement(values),
             Op::WithValues(id, values) => id.mk_statement(values),
         })
         .collect::<Result<Vec<Instr>, SicCliOpsError>>()
