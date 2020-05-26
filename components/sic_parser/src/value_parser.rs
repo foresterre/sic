@@ -236,13 +236,7 @@ impl ParseInputsFromIter for ImageFromPath {
             .map(Into::<Describable>::into)
             .ok_or_else(|| SicParserError::ValueParsingError(err_msg_no_such_element()))
             .and_then(|v: Describable| {
-                let len = v.0.len();
-
-                // TODO: this is unnecessary: this is necessary when using the outer rule 'string_unicode'
-                //  but we should use the inner rule 'string_inner', which spans just the text
-                let unquoted = &v.0[1..len - 1];
-
-                PathBuf::try_from(unquoted)
+                PathBuf::try_from(v.0)
                     .map_err(|_| SicParserError::ValueParsingError(err_msg_invalid_path()))
             })?;
 

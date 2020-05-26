@@ -16,11 +16,14 @@ pub enum SicParserError {
     #[error("unable to parse named value: {0}")]
     NamedValueParsingError(NamedValueError),
 
-    #[error("unable to parse script: {0}")]
-    PestGrammarError(String),
+    #[error("string value expected an inner value, but none was found")]
+    NoInnerString,
 
     #[error("{0}")]
     OperationError(OperationParamError),
+
+    #[error("unable to parse script: {0}")]
+    PestGrammarError(String),
 
     #[error("parsing failed: operation doesn't exist")]
     UnknownOperationError,
