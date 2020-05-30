@@ -17,5 +17,5 @@ strum_macros = "0.18.0"
 thiserror = "1.0.19"
 
 [dev-dependencies]
-sic = { path = "../../" } # careful! potential circular dependency!
 sic_testing = { path = "../../components/sic_testing" }
+parameterized = "0.1.1"

@@ -78,15 +78,6 @@ mod crop {
         assert!(result.unwrap().success());
     }
 
-    // The following will succeed, even though it shouldn't,
-    // however since this part (parsing of the directly given cli arguments) is handled by Clap,
-    // we can't detect it (without parsing the argv ourselves).
-    //
-    // Clap gives us for a cli argument, i.e. --crop only the amount of values and the indices of the
-    // values (as far as I am aware). Since we don't known how much times --crop was provided, we
-    // don't have the information we need to solve this issue.
-    //
-    // Perhaps in the future, we will check argv ourselves, or find another solution.
     #[test]
     fn crop_multiple_one_empty() {
         let mut process = command(
@@ -98,7 +89,7 @@ mod crop {
         assert!(result.is_ok());
 
         // Here we would like to assert_not! instead
-        assert!(result.unwrap().success());
+        assert_not!(result.unwrap().success());
     }
 
     // This one however will fail, as we tell Clap we require 4 values for this cli argument.

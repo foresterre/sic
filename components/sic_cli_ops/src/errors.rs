@@ -9,20 +9,15 @@ pub enum SicCliOpsError {
     #[error("Failed to parse value of type {typ} ({err})")]
     UnableToParseValueOfType { err: SicParserError, typ: String },
 
-    #[error(
-        "Unification of multi valued argument(s) failed: arguments couldn't be \
-         partitioned in correct chunk sizes. Length of chunk: {0}"
-    )]
-    UnableToCorrectlyPartitionMultiParamArguments(usize),
+    #[error("Internal Error: {0}")]
+    InternalError(InternalErrorSource),
 
-    #[error(
-        "Unification of multi valued argument(s) failed: \
-        When using an image operation cli argument which requires n values, \
-        all values should be provided at once. For example, `--crop` takes 4 values \
-        so, n=4. Now, `--crop 0 0 1 1` would be valid, but `--crop 0 0 --crop 1 1` would not."
-    )]
-    UnableToUnifyMultiValuedArguments,
+    #[error("Expected argument for image operation '{0}' (argument #{1})")]
+    ExpectedArgumentForImageOperation(String, usize),
+}
 
-    #[error("Values which take no arguments can't be unified")]
-    UnableToUnifyBareValues,
+#[derive(Debug, Error)]
+pub enum InternalErrorSource {
+    #[error("no matching image operation found")]
+    NoMatchingOperator,
 }

@@ -3,261 +3,240 @@
 #[macro_use]
 extern crate strum_macros;
 
-use clap::ArgMatches;
-
-use sic_image_engine::engine::Instr;
+#[cfg(test)]
+#[macro_use]
+extern crate parameterized;
 
 use crate::errors::SicCliOpsError;
-use crate::operations::{
-    extend_index_tree_with_unification, IndexTree, IndexedOps, Op, OperationId,
-};
+use crate::operations::OperationId;
+use sic_image_engine::engine::Instr;
+use strum::VariantNames;
 
 pub mod errors;
 pub mod operations;
 
-pub fn build_ast_from_matches(
-    matches: &ArgMatches,
-    tree: &mut IndexTree,
-) -> Result<Vec<Instr>, SicCliOpsError> {
-    use strum::IntoEnumIterator;
+pub type TResult<T> = Result<T, SicCliOpsError>;
 
-    let operations = OperationId::iter();
-    ast_extend_with_operation(tree, matches, operations)?;
+/// Parses cli image operation definitions to image engine image operations.
+/// This parser however doesn't replace Clap, and specifically its validator.
+/// For example, `--flip-horizontal 0` will not be allowed
+/// by Clap's validator. The function below however does allow it, since we parse
+/// only the amount of arguments we expect to receive, in this case 0.
+/// Since we can rely on Clap, we left the added complexity out here.  
+pub fn create_image_ops<I: IntoIterator<Item = String>>(iter: I) -> TResult<Vec<Instr>> {
+    let mut iter = iter.into_iter();
 
-    // Build!
-    ast_from_index_tree(tree)
-}
+    let size = if let Some(size) = iter.size_hint().1 {
+        size
+    } else {
+        128
+    };
 
-fn ast_extend_with_operation<T: IntoIterator<Item = OperationId>>(
-    tree: &mut IndexTree,
-    matches: &ArgMatches,
-    operations: T,
-) -> Result<(), SicCliOpsError> {
-    for operation in operations {
-        let argc = operation.takes_number_of_arguments();
-        let ops = mk_ops(operation, matches);
-        extend_index_tree_with_unification(tree, ops, argc)?;
+    let mut ast: Vec<Instr> = Vec::with_capacity(size);
+
+    while let Some(ref program_argument) = iter.next() {
+        if program_argument.starts_with("--")
+            && OperationId::VARIANTS.contains(&&program_argument[2..])
+        {
+            let operation = OperationId::try_from_name(&program_argument[2..])?;
+            let inputs = take_n(&mut iter, operation)?;
+            let inputs = inputs.iter().map(|v| v.as_str()).collect::<Vec<&str>>();
+            ast.push(operation.create_instruction(inputs)?);
+        }
+        // else: skip
     }
 
-    Ok(())
+    Ok(ast)
 }
 
-fn mk_ops(op: OperationId, matches: &ArgMatches) -> Option<IndexedOps> {
-    let argc = op.takes_number_of_arguments();
-    match argc {
-        0 => op_valueless!(matches, op),
-        _n => op_with_values!(matches, op),
+fn take_n<I: Iterator<Item = String>>(
+    iter: &mut I,
+    operation: OperationId,
+) -> TResult<Vec<String>> {
+    let mut operation_arguments: Vec<String> = Vec::new();
+
+    for i in 0..operation.takes_number_of_arguments() {
+        if let Some(op_arg) = iter.next() {
+            operation_arguments.push(op_arg)
+        } else {
+            return Err(SicCliOpsError::ExpectedArgumentForImageOperation(
+                operation.as_str().to_string(),
+                i,
+            ));
+        }
     }
-}
 
-fn ast_from_index_tree(tree: &mut IndexTree) -> Result<Vec<Instr>, SicCliOpsError> {
-    tree.iter()
-        .map(|(_index, op)| match op {
-            Op::Bare(id) => {
-                let empty: &[&str; 0] = &[];
-                id.mk_statement(empty)
-            }
-            Op::WithValues(OperationId::Diff, values) => (OperationId::Diff).mk_statement(values),
-            Op::WithValues(id, values) => id.mk_statement(values),
-        })
-        .collect::<Result<Vec<Instr>, SicCliOpsError>>()
+    Ok(operation_arguments)
 }
 
 #[cfg(test)]
 mod tests {
-    use std::collections::BTreeMap;
-
-    use sic::cli::app::create_app as cli;
-    use sic_image_engine::engine::Instr;
-    use sic_image_engine::ImgOp;
-
     use super::*;
 
-    macro_rules! assert_match {
-        ($iter:expr, $clause:pat, $assert:expr) => {{
-            match $iter.next().unwrap() {
-                $clause => $assert,
-                err => panic!(format!(
-                    "Assertion: {} failed. Value found was: {:?}",
-                    stringify!($assert),
-                    err
-                )),
+    mod individual_args {
+        use super::*;
+        use sic_image_engine::engine::EnvItem;
+        use sic_image_engine::wrapper::filter_type::FilterTypeWrap;
+        use sic_image_engine::wrapper::image_path::ImageFromPath;
+        use sic_image_engine::ImgOp;
+        use sic_testing::setup_test_image;
+
+        macro_rules! op {
+            ($expr:expr) => {
+                vec![Instr::Operation($expr)]
+            };
+        }
+
+        macro_rules! ops {
+            ($($expr:expr),*) => {{
+                let mut vec = Vec::new();
+
+                $(
+                    vec.push(Instr::Operation($expr));
+                )*
+
+               vec
+            }};
+        }
+
+        macro_rules! modifier {
+            ($expr:expr) => {
+                vec![Instr::EnvAdd($expr)]
+            };
+        }
+
+        fn interweave(ops: &[&str]) -> Vec<String> {
+            ops.iter()
+                .map(|f| {
+                    f.replace(
+                        '▲',
+                        &setup_test_image("aaa.png").to_string_lossy().to_string(),
+                    )
+                })
+                .collect::<Vec<_>>()
+        }
+
+        ide!();
+
+        #[parameterized(
+            ops = {
+                vec!["--blur", "1.0"],
+                vec!["--brighten", "-1"],
+                vec!["--contrast", "1.0"],
+                vec!["--crop", "0", "1", "2", "3"],
+                vec!["--diff", "▲"],
+                vec!["--filter3x3", "1.0", "1.0", "1.0", "-1.0", "-1.0", "-1.0", "0.0", "0.0", "0.0"],
+                vec!["--flip-horizontal"],
+                vec!["--flip-vertical"],
+                vec!["--grayscale"],
+                vec!["--hue-rotate", "-1"],
+                vec!["--invert"],
+                vec!["--resize", "1", "1"],
+                vec!["--preserve-aspect-ratio", "true"],
+                vec!["--sampling-filter", "catmullrom"],
+                vec!["--sampling-filter", "gaussian"],
+                vec!["--sampling-filter", "lanczos3"],
+                vec!["--sampling-filter", "nearest"],
+                vec!["--sampling-filter", "triangle"],
+                vec!["--rotate90"],
+                vec!["--rotate180"],
+                vec!["--rotate270"],
+                vec!["--unsharpen", "-1.0", "-1"],
+            },
+            expected = {
+                op![ImgOp::Blur(1.0)],
+                op![ImgOp::Brighten(-1)],
+                op![ImgOp::Contrast(1.0)],
+                op![ImgOp::Crop((0, 1, 2, 3))],
+                op![ImgOp::Diff(ImageFromPath::new(setup_test_image("aaa.png")))],
+                op![ImgOp::Filter3x3([1.0, 1.0, 1.0, -1.0, -1.0, -1.0, 0.0, 0.0, 0.0])],
+                op![ImgOp::FlipHorizontal],
+                op![ImgOp::FlipVertical],
+                op![ImgOp::GrayScale],
+                op![ImgOp::HueRotate(-1)],
+                op![ImgOp::Invert],
+                op![ImgOp::Resize((1, 1))],
+                modifier![EnvItem::PreserveAspectRatio(true)],
+                modifier![EnvItem::CustomSamplingFilter(FilterTypeWrap::try_from_str("catmullrom").unwrap())],
+                modifier![EnvItem::CustomSamplingFilter(FilterTypeWrap::try_from_str("gaussian").unwrap())],
+                modifier![EnvItem::CustomSamplingFilter(FilterTypeWrap::try_from_str("lanczos3").unwrap())],
+                modifier![EnvItem::CustomSamplingFilter(FilterTypeWrap::try_from_str("nearest").unwrap())],
+                modifier![EnvItem::CustomSamplingFilter(FilterTypeWrap::try_from_str("triangle").unwrap())],
+                op![ImgOp::Rotate90],
+                op![ImgOp::Rotate180],
+                op![ImgOp::Rotate270],
+                op![ImgOp::Unsharpen((-1.0, -1))],
+            },
+        )]
+        fn create_image_ops_t_sunny(ops: Vec<&str>, expected: Vec<Instr>) {
+            let result = create_image_ops(interweave(&ops));
+            assert_eq!(result.unwrap(), expected);
+        }
+
+        #[test]
+        fn combined() {
+            let input = vec![
+                "--blur",
+                "1.0",
+                "--brighten",
+                "-1",
+                "--contrast",
+                "1.0",
+                "--crop",
+                "0",
+                "1",
+                "2",
+                "3",
+                "--diff",
+                &setup_test_image("aaa.png").to_string_lossy().to_string(),
+                "--filter3x3",
+                "1.0",
+                "1.0",
+                "1.0",
+                "-1.0",
+                "-1.0",
+                "-1.0",
+                "0.0",
+                "0.0",
+                "0.0",
+                "--flip-horizontal",
+            ]
+            .iter()
+            .map(|v| (*v).to_string())
+            .collect::<Vec<_>>();
+
+            let expected = ops![
+                ImgOp::Blur(1.0),
+                ImgOp::Brighten(-1),
+                ImgOp::Contrast(1.0),
+                ImgOp::Crop((0, 1, 2, 3)),
+                ImgOp::Diff(ImageFromPath::new(setup_test_image("aaa.png"))),
+                ImgOp::Filter3x3([1.0, 1.0, 1.0, -1.0, -1.0, -1.0, 0.0, 0.0, 0.0]),
+                ImgOp::FlipHorizontal
+            ];
+
+            assert_eq!(create_image_ops(input).unwrap(), expected);
+        }
+
+        #[parameterized(
+            ops = {
+                vec!["--blur", "A"],
+                vec!["--brighten", "-1.0"],
+                vec!["--contrast", ""],
+                vec!["--crop", "--crop", "0", "1", "2", "3"],
+                vec!["--diff"],
+                vec!["--filter3x3", "[", "1.0", "1.0", "1.0", "-1.0", "-1.0", "-1.0", "0.0", "0.0", "0.0", "]"],
+                vec!["--hue-rotate", "-100.8"],
+                vec!["--resize", "1", "1", "--crop"],
+                vec!["--preserve-aspect-ratio", "yes"],
+                vec!["--sampling-filter", "tri"],
+                vec!["--sampling-filter", ""],
+                vec!["--unsharpen", "-1.0", "-1.0"],
             }
-        }};
-    }
-
-    #[test]
-    fn build_from_args_all() {
-        let input = "sic -i in -o out \
-                     --blur 1 \
-                     --brighten 2 \
-                     --contrast 3 \
-                     --crop 0 0 2 2 \
-                     --filter3x3 0 1 2 3 4 5 6 7 8 \
-                     --flip-horizontal \
-                     --flip-vertical \
-                     --grayscale \
-                     --hue-rotate -90 \
-                     --invert \
-                     --resize 10 10 \
-                     --rotate90 \
-                     --rotate180 \
-                     --rotate270 \
-                     --unsharpen 1.5 1";
-
-        let input = input.split_ascii_whitespace();
-        let matches = cli("", "", "").get_matches_from(input);
-        let mut tree: IndexTree = BTreeMap::new();
-        let ast = build_ast_from_matches(&matches, &mut tree);
-        let ast = ast.unwrap();
-        let mut iter = ast.iter();
-
-        assert_match!(
-            iter,
-            Instr::Operation(ImgOp::Blur(n)),
-            sic_testing::approx_eq_f32!(*n, 1f32)
-        );
-
-        assert_match!(
-            iter,
-            Instr::Operation(ImgOp::Brighten(n)),
-            assert_eq!(*n, 2i32)
-        );
-
-        assert_match!(
-            iter,
-            Instr::Operation(ImgOp::Contrast(n)),
-            sic_testing::approx_eq_f32!(*n, 3f32)
-        );
-
-        assert_match!(
-            iter,
-            Instr::Operation(ImgOp::Crop(n)),
-            assert_eq!(*n, (0u32, 0u32, 2u32, 2u32))
-        );
-
-        assert_match!(
-            iter,
-            Instr::Operation(ImgOp::Filter3x3(n)),
-            assert_eq!(*n, [0f32, 1f32, 2f32, 3f32, 4f32, 5f32, 6f32, 7f32, 8f32])
-        );
-
-        assert_match!(iter, Instr::Operation(ImgOp::FlipHorizontal), ());
-
-        assert_match!(iter, Instr::Operation(ImgOp::FlipVertical), ());
-
-        assert_match!(iter, Instr::Operation(ImgOp::GrayScale), ());
-
-        assert_match!(
-            iter,
-            Instr::Operation(ImgOp::HueRotate(n)),
-            assert_eq!(*n, -90i32)
-        );
-
-        assert_match!(iter, Instr::Operation(ImgOp::Invert), ());
-
-        assert_match!(
-            iter,
-            Instr::Operation(ImgOp::Resize(n)),
-            assert_eq!(*n, (10u32, 10u32))
-        );
-
-        assert_match!(iter, Instr::Operation(ImgOp::Rotate90), ());
-
-        assert_match!(iter, Instr::Operation(ImgOp::Rotate180), ());
-
-        assert_match!(iter, Instr::Operation(ImgOp::Rotate270), ());
-
-        assert_match!(
-            iter,
-            Instr::Operation(ImgOp::Unsharpen(n)),
-            assert_eq!(*n, (1.5f32, 1i32))
-        );
-
-        assert_eq!(iter.next(), None);
-    }
-
-    #[test]
-    fn mk_ops_0() {
-        let input = "sic -i in -o out \
-                     --rotate180";
-
-        let input = input.split_ascii_whitespace();
-        let matches = cli("", "", "").get_matches_from(input);
-
-        let ops = mk_ops(OperationId::Rotate180, &matches);
-        let ops = ops.unwrap();
-        let (i, v) = ops.get(0).unwrap();
-        assert_eq!(*i, 5usize);
-        assert_eq!(*v, Op::Bare(OperationId::Rotate180))
-    }
-
-    #[test]
-    fn mk_ops_n() {
-        let input = "sic -i in -o out --unsharpen 1.5 2";
-
-        let input = input.split_ascii_whitespace();
-        let matches = cli("", "", "").get_matches_from(input);
-
-        // note that at mk_ops no unification of arguments has taken place.
-        let ops = mk_ops(OperationId::Unsharpen, &matches);
-
-        let ops = ops.unwrap();
-        let (i, v) = ops.get(0).unwrap();
-        assert_eq!(*i, 6usize);
-        assert_eq!(
-            *v,
-            Op::WithValues(OperationId::Unsharpen, vec![String::from("1.5")])
-        );
-
-        let (i, v) = ops.get(1).unwrap();
-        assert_eq!(*i, 7usize);
-        assert_eq!(
-            *v,
-            Op::WithValues(OperationId::Unsharpen, vec![String::from("2")])
-        );
-    }
-
-    #[test]
-    fn ast_from_index_tree_empty() {
-        let mut tree: IndexTree = BTreeMap::new();
-        let ast = ast_from_index_tree(&mut tree);
-
-        assert!(ast.unwrap().is_empty())
-    }
-
-    #[test]
-    fn ast_from_index_tree_with_vals() {
-        let mut tree: IndexTree = BTreeMap::new();
-        tree.insert(
-            1,
-            Op::WithValues(OperationId::Brighten, vec![String::from("10")]),
-        );
-        tree.insert(2, Op::Bare(OperationId::FlipV));
-        tree.insert(
-            3,
-            Op::WithValues(OperationId::HueRotate, vec![String::from("-90")]),
-        );
-        let ast = ast_from_index_tree(&mut tree);
-
-        let iter = ast.unwrap();
-        let mut iter = iter.iter();
-
-        // can't assert eq, because Operation does not implement Eq, since f32 doesn't support it
-        assert_match!(
-            iter,
-            Instr::Operation(ImgOp::Brighten(n)),
-            assert_eq!(*n, 10)
-        );
-
-        assert_match!(iter, Instr::Operation(ImgOp::FlipVertical), ());
-
-        assert_match!(
-            iter,
-            Instr::Operation(ImgOp::HueRotate(n)),
-            assert_eq!(*n, -90)
-        );
-
-        assert_eq!(iter.next(), None);
+        )]
+        fn create_image_ops_t_expected_failure(ops: Vec<&str>) {
+            let result = create_image_ops(interweave(&ops));
+            assert!(result.is_err());
+        }
     }
 }
