@@ -5,6 +5,8 @@ use crate::errors::{OperationParamError, SicParserError};
 use crate::value_parser::ParseInputsFromIter;
 use pest::iterators::{Pair, Pairs};
 use sic_image_engine::engine::{EnvItem, Instr, ItemName};
+#[cfg(feature = "imageproc-ops")]
+use sic_image_engine::wrapper::draw_text_inner::DrawTextInner;
 use sic_image_engine::wrapper::filter_type::FilterTypeWrap;
 use sic_image_engine::wrapper::image_path::ImageFromPath;
 use sic_image_engine::ImgOp;
@@ -184,7 +186,7 @@ fn parse_draw_text(pair: Pair<'_, Rule>) -> Result<Instr, SicParserError> {
 
     let font_file = parse_named_value(font_file).map_err(SicParserError::NamedValueParsingError)?;
 
-    Ok(Instr::Operation(ImgOp::DrawText(
+    Ok(Instr::Operation(ImgOp::DrawText(DrawTextInner::new(
         text_pair.to_string(),
         (coord.extract_coord()).map_err(SicParserError::NamedValueParsingError)?,
         FontOptions::new(
@@ -201,7 +203,7 @@ fn parse_draw_text(pair: Pair<'_, Rule>) -> Result<Instr, SicParserError> {
                     .map_err(SicParserError::NamedValueParsingError)?,
             ),
         ),
-    )))
+    ))))
 }
 
 #[cfg(test)]
@@ -1234,11 +1236,11 @@ mod tests {
                 FontScale::Uniform(16.0),
             );
 
-            let expected = vec![Instr::Operation(ImgOp::DrawText(
+            let expected = vec![Instr::Operation(ImgOp::DrawText(DrawTextInner::new(
                 "my text".to_string(),
                 (0, 1),
                 font_options,
-            ))];
+            )))];
             let actual = parse_image_operations(pairs).unwrap();
 
             assert_eq!(actual, expected);

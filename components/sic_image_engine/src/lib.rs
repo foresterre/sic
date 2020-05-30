@@ -3,10 +3,9 @@
 #[macro_use]
 extern crate strum_macros;
 
-use crate::wrapper::image_path::ImageFromPath;
-
 #[cfg(feature = "imageproc-ops")]
-use wrapper::font_options::*;
+use crate::wrapper::draw_text_inner::DrawTextInner;
+use crate::wrapper::image_path::ImageFromPath;
 
 pub mod engine;
 pub mod errors;
@@ -32,5 +31,5 @@ pub enum ImgOp {
     Unsharpen((f32, i32)),
 
     #[cfg(feature = "imageproc-ops")]
-    DrawText(String, (u32, u32), FontOptions),
+    DrawText(DrawTextInner),
 }

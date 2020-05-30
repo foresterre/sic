@@ -141,7 +141,11 @@ impl ImageEngine {
             }
 
             #[cfg(feature = "imageproc-ops")]
-            ImgOp::DrawText(text, coords, font_options) => {
+            ImgOp::DrawText(inner) => {
+                let text = inner.text();
+                let coords = inner.coords();
+                let font_options = inner.font_options();
+
                 use rusttype::Font;
 
                 let font_file = std::fs::read(&font_options.font_path)
@@ -157,7 +161,7 @@ impl ImageEngine {
                     coords.1,
                     font_options.scale,
                     &font,
-                    text.as_str(),
+                    text,
                 ));
 
                 Ok(())
@@ -1344,6 +1348,7 @@ mod tests {
     #[cfg(feature = "imageproc-ops")]
     mod imageproc_ops_tests {
         use super::*;
+        use crate::wrapper::draw_text_inner::DrawTextInner;
         use crate::wrapper::font_options::{FontOptions, FontScale};
 
         #[test]
@@ -1354,7 +1359,7 @@ mod tests {
             let font_file = Into::<PathBuf>::into(env!("CARGO_MANIFEST_DIR"))
                 .join("../../resources/font/Lato-Regular.ttf");
 
-            let operation = ImgOp::DrawText(
+            let operation = ImgOp::DrawText(DrawTextInner::new(
                 "HELLO WORLD".to_string(),
                 (0, 0),
                 FontOptions::new(
@@ -1362,7 +1367,7 @@ mod tests {
                     Rgba([255, 255, 0, 255]),
                     FontScale::Uniform(16.0),
                 ),
-            );
+            ));
 
             let mut operator = ImageEngine::new(img);
             let done = operator.ignite(&[Instr::Operation(operation)]);
