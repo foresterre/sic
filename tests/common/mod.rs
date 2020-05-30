@@ -36,7 +36,7 @@ fn command_unsplit_impl(input: &str, output: &str, args: &[&str], features: &[&s
     let mut arguments = Vec::with_capacity(128);
     arguments.push("run");
 
-    if features.len() >= 1 {
+    if !features.is_empty() {
         arguments.push("--features");
 
         for feature in features {

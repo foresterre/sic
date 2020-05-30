@@ -1,17 +1,15 @@
-use std::collections::BTreeMap;
-use std::str::FromStr;
-
-use anyhow::{anyhow, bail};
-use arg_names::*;
-use clap::{App, AppSettings, Arg, ArgGroup, ArgMatches};
-use sic_cli_ops::build_ast_from_matches;
-use sic_cli_ops::operations::{IndexTree, OperationId};
-use sic_io::load::FrameIndex;
-
 use crate::cli::config::{
     validate_jpeg_quality, Config, ConfigBuilder, InputOutputModeType, SelectedLicenses,
 };
+use anyhow::{anyhow, bail};
+use arg_names::*;
+use clap::{App, AppSettings, Arg, ArgGroup, ArgMatches};
+use sic_cli_ops::create_image_ops;
+use sic_cli_ops::operations::OperationId;
+use sic_io::load::FrameIndex;
 use std::path::Path;
+use std::str::FromStr;
+use strum::VariantNames;
 
 macro_rules! define_arg_consts {
     ($mod:ident, { $($argdef:ident),+ $(,)? } ) => {
@@ -175,32 +173,12 @@ pub fn create_app(
 
         // image-operations(cli-arguments):
         .group(ArgGroup::with_name(GROUP_IMAGE_OPERATIONS)
-            .args(&[
-                OperationId::Blur.as_str(),
-                OperationId::Brighten.as_str(),
-                OperationId::Contrast.as_str(),
-                OperationId::Crop.as_str(),
-                OperationId::Diff.as_str(),
-                OperationId::Filter3x3.as_str(),
-                OperationId::FlipH.as_str(),
-                OperationId::FlipV.as_str(),
-                OperationId::Grayscale.as_str(),
-                OperationId::HueRotate.as_str(),
-                OperationId::Invert.as_str(),
-                OperationId::Resize.as_str(),
-                OperationId::Rotate90.as_str(),
-                OperationId::Rotate180.as_str(),
-                OperationId::Rotate270.as_str(),
-                OperationId::Unsharpen.as_str(),
-
-                OperationId::ModResizePreserveAspectRatio.as_str(),
-                OperationId::ModResizeSamplingFilter.as_str(),
-            ])
+            .args(&OperationId::VARIANTS)
             .conflicts_with(ARG_APPLY_OPERATIONS)
             .multiple(true))
         .arg(Arg::with_name(OperationId::Blur.as_str())
             .help("Operation: blur.")
-            .long("--blur")
+            .long(OperationId::Blur.as_str())
             .takes_value(true)
             .value_name("fp")
             .number_of_values(1)
@@ -208,7 +186,7 @@ pub fn create_app(
             .allow_hyphen_values(true))
         .arg(Arg::with_name(OperationId::Brighten.as_str())
             .help("Operation: brighten.")
-            .long("--brighten")
+            .long(OperationId::Brighten.as_str())
             .takes_value(true)
             .value_name("int")
             .number_of_values(1)
@@ -216,7 +194,7 @@ pub fn create_app(
             .allow_hyphen_values(true))
         .arg(Arg::with_name(OperationId::Contrast.as_str())
             .help("Operation: contrast.")
-            .long("--contrast")
+            .long(OperationId::Contrast.as_str())
             .takes_value(true)
             .value_name("fp")
             .number_of_values(1)
@@ -224,72 +202,72 @@ pub fn create_app(
             .allow_hyphen_values(true))
         .arg(Arg::with_name(OperationId::Crop.as_str())
             .help("Operation: crop.")
-            .long("--crop")
+            .long(OperationId::Crop.as_str())
             .takes_value(true)
             .value_name("uint uint uint uint")
             .number_of_values(4)
             .multiple(true))
         .arg(Arg::with_name(OperationId::Diff.as_str())
             .help("Operation: diff.")
-            .long("--diff")
+            .long(OperationId::Diff.as_str())
             .takes_value(true)
             .value_name("path to image")
             .number_of_values(1)
             .multiple(true))
         .arg(Arg::with_name(OperationId::Filter3x3.as_str())
             .help("Operation: filter3x3.")
-            .long("--filter3x3")
+            .long(OperationId::Filter3x3.as_str())
             .takes_value(true)
             .value_name("fp fp fp fp fp fp fp fp fp")
             .number_of_values(9)
             .multiple(true)
             .allow_hyphen_values(true))
-        .arg(Arg::with_name(OperationId::FlipH.as_str())
+        .arg(Arg::with_name(OperationId::FlipHorizontal.as_str())
             .help("Operation: flip horizontal.")
-            .long("--flip-horizontal")
+            .long(OperationId::FlipHorizontal.as_str())
             .multiple(true))
-        .arg(Arg::with_name(OperationId::FlipV.as_str())
+        .arg(Arg::with_name(OperationId::FlipVertical.as_str())
             .help("Operation: flip vertical.")
-            .long("--flip-vertical")
+            .long(OperationId::FlipVertical.as_str())
             .multiple(true))
         .arg(Arg::with_name(OperationId::Grayscale.as_str())
             .help("Operation: grayscale.")
-            .long("--grayscale")
-            .multiple(true))
-        .arg(Arg::with_name(OperationId::Invert.as_str())
-            .help("Operation: invert.")
-            .long("--invert")
+            .long(OperationId::Grayscale.as_str())
             .multiple(true))
         .arg(Arg::with_name(OperationId::HueRotate.as_str())
             .help("Operation: hue rotate.")
-            .long("--hue-rotate")
+            .long(OperationId::HueRotate.as_str())
             .takes_value(true)
             .value_name("int")
             .number_of_values(1)
             .multiple(true)
             .allow_hyphen_values(true))
+        .arg(Arg::with_name(OperationId::Invert.as_str())
+            .help("Operation: invert.")
+            .long(OperationId::Invert.as_str())
+            .multiple(true))
         .arg(Arg::with_name(OperationId::Resize.as_str())
             .help("Operation: resize.")
-            .long("--resize")
+            .long(OperationId::Resize.as_str())
             .takes_value(true)
             .value_name("uint uint")
             .number_of_values(2)
             .multiple(true))
         .arg(Arg::with_name(OperationId::Rotate90.as_str())
             .help("Operation: rotate 90 degree.")
-            .long("--rotate90")
+            .long(OperationId::Rotate90.as_str())
             .multiple(true))
         .arg(Arg::with_name(OperationId::Rotate180.as_str())
             .help("Operation: rotate 180 degree.")
-            .long("--rotate180")
+            .long(OperationId::Rotate180.as_str())
             .multiple(true))
         .arg(Arg::with_name(OperationId::Rotate270.as_str())
             .help("Operation: rotate 270 degree.")
-            .long("--rotate270")
+            .long(OperationId::Rotate270.as_str())
             .multiple(true))
         .arg(Arg::with_name(OperationId::Unsharpen.as_str())
             .help("Operation: unsharpen.")
-            .long("--unsharpen")
+            .long(OperationId::Unsharpen.as_str())
             .takes_value(true)
             .value_name("fp int")
             .number_of_values(2)
@@ -297,18 +275,18 @@ pub fn create_app(
             .allow_hyphen_values(true))
 
         // image-operations(cli-arguments/modifiers):
-        .arg(Arg::with_name(OperationId::ModResizePreserveAspectRatio.as_str())
+        .arg(Arg::with_name(OperationId::PreserveAspectRatio.as_str())
             .help("Operation modifier for: resize")
-            .long("--preserve-aspect-ratio")
+            .long(OperationId::PreserveAspectRatio.as_str())
             .takes_value(true)
             .value_name("bool")
             .number_of_values(1)
             .multiple(true)
             .possible_values(&["true", "false"])
         )
-        .arg(Arg::with_name(OperationId::ModResizeSamplingFilter.as_str())
+        .arg(Arg::with_name(OperationId::SamplingFilter.as_str())
             .help("Operation modifier for: resize")
-            .long("--sampling-filter")
+            .long(OperationId::SamplingFilter.as_str())
             .takes_value(true)
             .value_name("str")
             .number_of_values(1)
@@ -434,9 +412,9 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> anyhow::Result<Config<'a
             .map_err(|err| anyhow::anyhow!("unable to read script file: {}", err))?;
         sic_parser::parse_script(&contents)?
     } else {
-        let mut tree: IndexTree = BTreeMap::new();
-        build_ast_from_matches(matches, &mut tree)?
+        create_image_ops(std::env::args())?
     };
+
     builder = builder.image_operations_program(program);
 
     Ok(builder.build())
