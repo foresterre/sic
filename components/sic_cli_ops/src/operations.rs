@@ -21,6 +21,10 @@ pub enum OperationId {
     Contrast,
     Crop,
     Diff,
+
+    #[cfg(feature = "imageproc-ops")]
+    DrawText,
+
     Filter3x3,
     FlipHorizontal,
     FlipVertical,
@@ -64,6 +68,8 @@ impl OperationId {
             OperationId::Contrast => 1,
             OperationId::Crop => 4,
             OperationId::Diff => 1,
+            #[cfg(feature = "imageproc-ops")]
+            OperationId::DrawText => 5,
             OperationId::Filter3x3 => 9,
             OperationId::FlipHorizontal => 0,
             OperationId::FlipVertical => 0,
@@ -115,6 +121,10 @@ impl OperationId {
             )?)),
             OperationId::Diff => {
                 Instr::Operation(ImgOp::Diff(parse_inputs_by_type!(inputs, ImageFromPath)?))
+            }
+            #[cfg(feature = "imageproc-ops")]
+            OperationId::DrawText => {
+                unimplemented!();
             }
             OperationId::Filter3x3 => {
                 Instr::Operation(ImgOp::Filter3x3(parse_inputs_by_type!(inputs, [f32; 9])?))
