@@ -103,15 +103,15 @@ If we use the _cli operations_ method the previously shown example becomes: <br>
 |brighten           | `brighten <int>`                          | 0.7.0       | Create a brightened version of the image. |
 |contrast           | `contrast <fp>`                           | 0.7.0 	  | Adjust the contrast of the image. |
 |crop               | `crop <uint> <uint> <uint> <uint>`        | 0.9.0       | Syntax: `crop <lx> <ly> <rx> <ry>`, where `lx` is top left corner x pixel coordinate starting at 0, `ly` is the top left corner y pixel coordinate starting at 0, `rx` is the  bottom right corner x pixel coordinate and `ry` is the bottom right corner y pixel coordinate. `rx` and `ry` should be larger than `lx` and `ly` respectively. |
-|diff               | `diff <path>`                             | 0.11.0      | Diff the input image against the argument image to show which pixels are the same (white), different (red) or not part of either image (transparent) |
-|draw-text          | `draw-text <string> <nv:coord> <nv:rgba> <nv:size> <nv:font>` | 0.12.0 + feature: `imageproc-ops` | Draw text on top of an image (note: alpha-blending is not yet supported);  |
-|filter3x3          | `filter3x3 <args9>`                       | 0.7.0       | Apply a 3 by 3 convolution filter. |
+|diff               | `diff <path>`                             | 0.11.0      | Diff the input image against the argument image to show which pixels are the same (white), different (red) or not part of either image (transparent). |
+|draw-text          | `draw-text <string> <nv:coord> <nv:rgba> <nv:size> <nv:font>` | 0.12.0 + feature: `imageproc-ops` | Draw text on top of an image (note: alpha-blending is not yet supported).  |
+|filter3x3          | `filter3x3 <fp9x> `                       | 0.7.0       | Apply a 3 by 3 convolution filter. |
 |flip horizontal    | `flip-horizontal`                         | 0.5.0 	  | Flips the image on the horizontal axis. |
 |flip vertical      | `flip-vertical`                           | 0.5.0 	  | Flips the image on the vertical axis. |
 |gray scale         | `grayscale`                               | 0.7.0 	  | Transform each pixel to only hold an intensity of light value. Reduces the color space to contain only gray monochromatic values.|
 |hue rotate         | `hue-rotate <int>`                        | 0.7.0 	  | Rotate's the hue, argument is in degrees. Rotates `<int>%360` degrees. |
 |invert             | `invert`                                  | 0.7.0 	  | Invert the colours of an image. |
-|resize             | `resize <uint> <uint>`                    | 0.5.0 	  | Resize the image to x by y pixels. Can both up- and downscale. Uses a `lanczos3` sampling filter if not overridden. Prior to sic v0.11, the default sampling filter was `gaussian`. |
+|resize             | `resize <uint> <uint>`                    | 0.5.0 	  | Resize the image to x by y pixels. Can both up- and downscale. Uses a `lanczos3` sampling filter unless overridden. Prior to sic v0.11, the default sampling filter was `gaussian`. |
 | >                 | `set preserve-aspect-ratio <bool>`        | 0.9.0       | Enables preservation of the aspect ratio when resizing. |
 | >                 | `set sampling-filter <value>`             | 0.9.0       | When resizing use the `<value>` sampling filter. Choices are `catmullrom`, `gaussian`,`lanczos3`,`nearest`,`triangle`. |
 |rotate90           | `rotate90`                                | 0.7.0 	  | Rotate an image 90 degrees. |
@@ -130,20 +130,20 @@ For some operations, their behaviour can be adapted by setting an operation modi
 |unset environment option | `del <option>`               | 0.9.0 | Resets the modifier value. Any operation which looks at the value of this modifier will use the default value instead.|
 
 _legend_:
-```
-<byte>: an 8 bit unsigned integer (positive number in range 0-255
-<uint>: a 32 bit unsigned integer (positive number)
-<int>: a 32 bit signed integer (positive or negative number)
-<fp>: a 32 bit floating point number (real number)
-<fp9x>: 9 succeeding 32 bit floating point numbers, 
-<path>: a qualified path to an image reachable from your current platform (the path should be surrounded by quotation marks, i.e. " or ')
-<string>: a valid unicode string
 
-<nv:coord>: a named value representing a coordinate (top left is (0, 0)), with syntax `coord(<uint>, <uint>)`
-<nv:rgba>: a named value representing an RGBA color, with syntax: `rgba(<byte>, <byte>, <byte>, <byte>) `
-<nv:size>: a named value representing a font size, with syntax: `size(<fp>)`
-<nv:font>: a named value representing a (TrueType) font file location, with syntax: `font(<path>)`
-```
+`<byte>`: an 8 bit unsigned integer (positive number in range 0-255
+`<uint>`: a 32 bit unsigned integer (positive number)
+`<int>`: a 32 bit signed integer (positive or negative number)
+`<fp>`: a 32 bit floating-point number (real number)
+`<fp9x>`: 9 succeeding 32 bit floating-point numbers
+`<path>`: a qualified path to an image reachable from your current platform (the path should be surrounded by quotation marks, i.e. " or ')
+`<string>`: a valid unicode string
+
+`<nv:coord>`: a named value representing a coordinate (top left is (0, 0)), with syntax `coord(<uint>, <uint>)`
+`<nv:rgba>`: a named value representing an RGBA color, with syntax: `rgba(<byte>, <byte>, <byte>, <byte>)`
+`<nv:size>`: a named value representing a font size, with syntax: `size(<fp>)`
+`<nv:font>`: a named value representing a (TrueType) font file location, with syntax: `font(<path>)`
+
 
 _Image operation example usage:_
 
