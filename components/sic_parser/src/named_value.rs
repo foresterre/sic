@@ -6,10 +6,18 @@ use super::Rule;
 use pest::iterators::Pair;
 use std::fmt::{Display, Formatter};
 use std::path::PathBuf;
+use std::str::FromStr;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum NamedValueError {
+    #[error(
+        "Named value argument expected a string, but given value `{0}` is not valid (note: \
+        the value of the string should be wrapped in either single or double quotation marks, \
+        e.g. 'hello' or \"hello\")"
+    )]
+    FaultyString(String),
+
     #[error("Named value expected an identifier but none was found")]
     IdentifierNotFound,
 
@@ -45,7 +53,7 @@ pub fn parse_named_value(pair: Pair<'_, Rule>) -> NVResult<NamedValue> {
         .ok_or_else(|| NamedValueError::IdentifierNotFound)?;
 
     let ident = match ident.as_rule() {
-        Rule::ident => parse_ident(ident)?,
+        Rule::ident => parse_ident(ident.as_str())?,
         _ => return Err(NamedValueError::IdentifierNotFound),
     };
 
@@ -55,6 +63,32 @@ pub fn parse_named_value(pair: Pair<'_, Rule>) -> NVResult<NamedValue> {
         .collect::<NVResult<Vec<_>>>()?;
 
     NamedValue::try_from_annotated(AnnotatedArgs { ident, arguments })
+}
+
+impl FromStr for NamedValue {
+    type Err = NamedValueError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut inputs = s.splitn(2, '(');
+
+        let ident = inputs
+            .next()
+            .ok_or_else(|| NamedValueError::IdentifierNotFound)?;
+
+        let ident = parse_ident(ident)?;
+
+        let arguments = inputs
+            .next()
+            .and_then(|right_side| right_side.rsplitn(2, ')').last())
+            .ok_or_else(|| NamedValueError::UnableToCreateNamedValueWithArgs(ident))?;
+
+        let arguments = arguments
+            .split(',')
+            .map(|arg| Value::try_from_str(arg.trim(), ident))
+            .collect::<NVResult<Vec<_>>>()?;
+
+        NamedValue::try_from_annotated(AnnotatedArgs { ident, arguments })
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -83,26 +117,23 @@ impl Display for Ident {
     }
 }
 
-fn parse_ident(pair: Pair<'_, Rule>) -> NVResult<Ident> {
-    let ident = match pair.as_str() {
+fn parse_ident(ident: &str) -> NVResult<Ident> {
+    let ident = match ident {
         "rgba" => Ident::Rgba,
         "size" => Ident::Size,
         "font" => Ident::Font,
         "coord" => Ident::Coord,
-        _ => {
-            return Err(NamedValueError::IdentifierInvalid(
-                pair.as_str().to_string(),
-            ))
-        }
+        _ => return Err(NamedValueError::IdentifierInvalid(ident.to_string())),
     };
 
     Ok(ident)
 }
 
 #[derive(Debug, Clone)]
-pub enum Value<'a> {
+enum Value<'a> {
     Byte(u8),
     Float(f32),
+    #[allow(unused)]
     Integer(i32),
     NatNum(u32),
     String(&'a str),
@@ -116,6 +147,15 @@ impl<'a> Value<'a> {
             (Rule::fp, Ident::Coord) => Ok(Value::parse_nat_num(pair.as_str())?),
             (Rule::string_unicode, _) => Ok(Value::parse_string(pair.into_inner().as_str())?),
             _ => Err(NamedValueError::InvalidArgumentType),
+        }
+    }
+
+    pub fn try_from_str(s: &'a str, ident: Ident) -> NVResult<Self> {
+        match ident {
+            Ident::Rgba => Ok(Value::parse_byte(s)?),
+            Ident::Size => Ok(Value::parse_float(s)?),
+            Ident::Coord => Ok(Value::parse_nat_num(s)?),
+            Ident::Font => Ok(Value::parse_string(slice_str_tokens(s)?)?),
         }
     }
 
@@ -141,6 +181,7 @@ impl<'a> Value<'a> {
         }
     }
 
+    #[allow(unused)]
     pub fn extract_integer(&self) -> NVResult<i32> {
         if let Self::Integer(inner) = self {
             Ok(*inner)
@@ -211,7 +252,7 @@ impl<'a> Value<'a> {
 }
 
 #[derive(Debug, Clone)]
-pub struct AnnotatedArgs<'a> {
+struct AnnotatedArgs<'a> {
     ident: Ident,
     arguments: Vec<Value<'a>>,
 }
@@ -236,7 +277,7 @@ pub enum NamedValue {
 }
 
 impl NamedValue {
-    pub fn try_from_annotated(args: AnnotatedArgs) -> NVResult<Self> {
+    fn try_from_annotated(args: AnnotatedArgs) -> NVResult<Self> {
         match args.ident() {
             Ident::Rgba => NamedValue::create_rgba(args.arguments()),
             Ident::Size => NamedValue::create_size(args.arguments()),
@@ -339,5 +380,13 @@ impl NamedValue {
         };
 
         typ.to_string()
+    }
+}
+
+fn slice_str_tokens(s: &str) -> NVResult<&str> {
+    if (s.starts_with('"') && s.ends_with('"')) || (s.starts_with('\'') && s.ends_with('\'')) {
+        Ok(&s[1..s.len() - 1])
+    } else {
+        Err(NamedValueError::FaultyString(s.to_string()))
     }
 }

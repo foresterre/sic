@@ -30,6 +30,9 @@ pub enum SicParserError {
 
     #[error("unable to parse value '{0}'")]
     ValueParsingError(String),
+
+    #[error("unable to parse value '{0}', error:\n\t{1}")]
+    ValueParsingErrorWithInnerError(String, Box<dyn std::error::Error + Send + Sync>),
 }
 
 #[derive(Debug, Error)]

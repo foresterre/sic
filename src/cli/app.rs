@@ -51,12 +51,32 @@ define_arg_consts!(arg_names, {
     GROUP_IMAGE_OPERATIONS,
 });
 
+#[cfg(not(feature = "imageproc-ops"))]
+fn wrap_with(app: App<'static, 'static>) -> App<'static, 'static> {
+    app
+}
+
+#[cfg(feature = "imageproc-ops")]
+fn wrap_with(app: App<'static, 'static>) -> App<'static, 'static> {
+    app.arg(
+        Arg::with_name(OperationId::DrawText.as_str())
+            .help("Operation: draw-text.")
+            .long(OperationId::DrawText.as_str())
+            .takes_value(true)
+            .value_name(
+                "<text> <coord(x, y)> <rgba(r,g,b,a)> <size(s)> <font(\"path/to/font.ttf\">)",
+            )
+            .number_of_values(5)
+            .multiple(true),
+    )
+}
+
 pub fn create_app(
     version: &'static str,
     about: &'static str,
     help_ops: &'static str,
 ) -> App<'static, 'static> {
-    App::new("sic")
+    wrap_with(App::new("sic")
         .version(version)
         .about(about)
         .after_help("For more information, visit: https://github.com/foresterre/sic")
@@ -214,6 +234,7 @@ pub fn create_app(
             .value_name("path to image")
             .number_of_values(1)
             .multiple(true))
+
         .arg(Arg::with_name(OperationId::Filter3x3.as_str())
             .help("Operation: filter3x3.")
             .long(OperationId::Filter3x3.as_str())
@@ -292,7 +313,7 @@ pub fn create_app(
             .number_of_values(1)
             .multiple(true)
             .possible_values(&["catmullrom", "gaussian", "lanczos3", "nearest", "triangle"])
-        )
+        ))
 }
 
 // Here any argument should not panic when invalid.

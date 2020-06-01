@@ -269,10 +269,6 @@ mod tests {
                 .zip(EXPECTED_VALUES.iter());
 
             for ((ext, to_format), expected_format) in zipped {
-                println!(
-                    "testing `test_conversion_with_header_match`, converting {} => : {}",
-                    test_image, ext
-                );
                 test_conversion_with_header_match(test_image, ext, to_format, *expected_format)?;
             }
         }
