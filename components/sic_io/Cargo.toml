@@ -1,6 +1,6 @@
 [package]
 name = "sic_io"
-version = "0.11.0"
+version = "0.12.0"
 authors = ["Martijn Gribnau <garm@ilumeo.com>"]
 description = "Component of the sic cli: provides accessible i/o around image formats."
 edition = "2018"
@@ -8,9 +8,9 @@ license-file = "../../LICENSE"
 repository = "https://github.com/foresterre/sic"
 
 [dependencies]
-sic_core = { path = "../sic_core"}
+sic_core = { version = "0.12.0", path = "../sic_core"}
 
 thiserror = "1.0.19"
 
 [dev-dependencies]
-sic_testing = { path = "../sic_testing" }
+sic_testing = { version = "0.12.0", path = "../sic_testing" }
