@@ -20,7 +20,9 @@ Supported operations:
 |brighten           | `brighten <int>`                  | 0.7.0                  |
 |contrast           | `contrast <fp>`                   | 0.7.0                  |
 |crop               | `crop <uint> <uint> <uint> <uint>`| 0.9.0                  |
-|diff               | `diff "<path>"                   `| 0.11.0                 |
+|diff               | `diff <path>`                     | 0.11.0                 |
+|draw-text          | `draw-text <string> <nv:coord>    | 0.12.0                 |
+|                   |    <nv:rgba> <nv:size> <nv:font>` |                        |
 |filter3x3          | `filter3x3 <fp9x>`                | 0.7.0                  |
 |flip horizontal    | `flip-horizontal`                 | 0.5.0                  |
 |flip vertical      | `flip-vertical`                   | 0.5.0                  |
@@ -33,23 +35,36 @@ Supported operations:
 |rotate270          | `rotate270`                       | 0.7.0                  |
 |unsharpen          | `unsharpen <fp> <int>`            | 0.7.0                  |
 |-------------------|-----------------------------------|------------------------|
+Table 1: Supported operations
 
 * this is the syntax as used by the script method. If you like to use cli arguments instead, invoke sic with the '--help'
 flag; it will provide an overview of all arguments including the cli ops. This table can however still be used as a
 reference for supported image operations and image operation modifiers.
 
-table legend:
+_Table 1 legend:_
 
-<uint> means a 32 bit unsigned integer (positive number) is required as argument.
-<int> means a 32 bit signed integer (positive or negative number) is required as argument.
-<fp> means a 32 bit floating point number is required as argument.
-<fp9x> means 9 succeeding 32 bit floating point numbers are required as arguments.
-<path> means a qualified path to an image reachable from your current platform. The path should be
-  surrounded by quotation marks.
+The table specifies the following types which are required as argument(s) for certain image operations:
+
+<byte>: an 8 bit unsigned integer (positive number in range 0-255
+<uint>: a 32 bit unsigned integer (positive number)
+<int>: a 32 bit signed integer (positive or negative number)
+<fp>: a 32 bit floating point number (real number)
+<fp9x>: 9 succeeding 32 bit floating point numbers
+<path>: a qualified path to an image reachable from your current platform (the path should be surrounded by quotation marks)
+<string>: a valid unicode string
+
+<nv:coord>: a named value representing a coordinate (top left is (0, 0)), with syntax `coord(<uint>, <uint>)`
+<nv:rgba>: a named value representing an RGBA color, with syntax: `rgba(<byte>, <byte>, <byte>, <byte>) `
+<nv:size>: a named value representing a font size, with syntax: `size(<fp>)`
+<nv:font>: a named value representing a (TrueType) font file location, with syntax: `font(<path>)`
+
+**separators**
 
 Script mode requires that operations are separated by the operation separator (the ';' character).
 The separator must be used with both single line and multi-line scripts.
 Below you'll find examples which can help you and serve as examples on where this separator should be used.
+
+**modifiers**
 
 Some image operations have extra options which may change the behaviour of an operation. We call these options
 image operation modifiers, or modifiers for short.
@@ -83,6 +98,7 @@ Examples: script mode
 Example 1: sic --input input.png --output output.png --apply-operations "invert; hue-rotate -75; rotate90; contrast 0.25"
 Example 2: sic -i input.png -o output.png --apply-operations "set preserve-aspect-ratio true; set sampling-filter lanczos3; resize 250 250;"
 Example 3: sic -i in.png -o out.png --apply-operations "rotate180; flip-horizontal; set sampling-filter nearest; resize 75 80; huerotate 75"
+Example 4: sic -i in.png -o out.png --apply-operations "draw-text 'we can draw text <3' coord(10, 10) rgba(200, 10, 40, 255) size(14) font('resources/font/Lato-Regular.ttf')"
 
 
 Examples: cli ops mode
@@ -93,5 +109,7 @@ If we modify the above examples to use the cli ops mode instead, we will get the
 Example 1: sic --input input.png --output output.png --invert --hue-rotate -75 --rotate90 --contrast 0.25
 Example 2: sic -i input.png -o output.png --preserve-aspect-ratio true --sampling-filter lanczos3 --resize 250 250
 Example 3: sic -i in.png -o out.png --rotate180 --flip-horizontal --sampling-filter nearest --resize 75 80 --hue-rotate 75"
+Example 3: sic -i in.png -o out.png --draw-text "we can draw text <3" "coord(10, 10)" "rgba(200, 10, 40, 255)" "size(14)" "font('Lato-Regular.ttf')"
+
 
 ---
