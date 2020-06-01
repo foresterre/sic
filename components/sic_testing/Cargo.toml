@@ -8,5 +8,5 @@ license-file = "../../LICENSE"
 repository = "https://github.com/foresterre/sic"
 
 [dependencies]
-sic_core = { path = "../sic_core" }
+sic_core = { version = "0.12.0", path = "../sic_core" }
 parameterized  = "0.1.1"
