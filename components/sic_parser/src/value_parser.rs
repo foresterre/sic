@@ -4,6 +4,9 @@ use sic_image_engine::wrapper::image_path::ImageFromPath;
 use std::convert::TryFrom;
 use std::path::PathBuf;
 
+#[cfg(feature = "imageproc-ops")]
+use sic_image_engine::wrapper::draw_text_inner::DrawTextInner;
+
 /// The value parser module has a goal to parse image operation inputs.
 
 #[derive(Clone, Debug)]
@@ -51,8 +54,12 @@ macro_rules! parse_next {
             .ok_or_else(|| SicParserError::ValueParsingError($err_msg.to_string()))
             .and_then(|v| {
                 let v: Describable = v.into();
-                v.0.parse::<$ty>()
-                    .map_err(|_| SicParserError::ValueParsingError($err_msg.to_string()))
+                v.0.parse::<$ty>().map_err(|err| {
+                    SicParserError::ValueParsingErrorWithInnerError(
+                        $err_msg.to_string(),
+                        Box::new(err),
+                    )
+                })
             })?;
     };
 }
@@ -246,6 +253,7 @@ impl ParseInputsFromIter for ImageFromPath {
         return_if_complete!(iter, ImageFromPath::new(path), err_msg_too_many_elements())
     }
 }
+
 impl ParseInputsFromIter for FilterTypeWrap {
     type Error = SicParserError;
 
@@ -272,6 +280,56 @@ impl ParseInputsFromIter for FilterTypeWrap {
             || "Too many arguments found: a single filter type was expected".to_string();
 
         return_if_complete!(iter, filter_type, err_msg_too_many_elements())
+    }
+}
+
+#[cfg(feature = "imageproc-ops")]
+impl ParseInputsFromIter for DrawTextInner {
+    type Error = SicParserError;
+
+    fn parse<'a, T>(iterable: T) -> Result<Self, Self::Error>
+    where
+        T: IntoIterator,
+        T::Item: Into<Describable<'a>> + std::fmt::Debug,
+        Self: std::marker::Sized,
+    {
+        use crate::named_value::NamedValue;
+        use sic_core::image::Rgba;
+        use sic_image_engine::wrapper::font_options::{FontOptions, FontScale};
+
+        let mut iter = iterable.into_iter();
+        const ERR_MSG: &str = "Unable to parse draw-text arguments";
+
+        let text = iter
+            .next()
+            .map(Into::<Describable>::into)
+            .ok_or_else(|| SicParserError::ExpectedValue(String::from("String")))?
+            .0;
+        let coord = parse_next!(iter, NamedValue, "Coord");
+        let color = parse_next!(iter, NamedValue, "Rgba");
+        let size = parse_next!(iter, NamedValue, "Float");
+        let font_file = parse_next!(iter, NamedValue, "String");
+
+        let res = DrawTextInner::new(
+            text.to_string(),
+            (coord.extract_coord()).map_err(SicParserError::NamedValueParsingError)?,
+            FontOptions::new(
+                font_file
+                    .extract_font()
+                    .map_err(SicParserError::NamedValueParsingError)?,
+                Rgba(
+                    color
+                        .extract_rgba()
+                        .map_err(SicParserError::NamedValueParsingError)?,
+                ),
+                FontScale::Uniform(
+                    size.extract_size()
+                        .map_err(SicParserError::NamedValueParsingError)?,
+                ),
+            ),
+        );
+
+        return_if_complete!(iter, res, ERR_MSG)
     }
 }
 

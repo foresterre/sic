@@ -181,7 +181,7 @@ fn parse_draw_text(pair: Pair<'_, Rule>) -> Result<Instr, SicParserError> {
     let size = parse_named_value(size).map_err(SicParserError::NamedValueParsingError)?;
 
     let font_file = pairs.next().ok_or_else(|| {
-        SicParserError::ExpectedNamedValue(String::from("coord(font_path: String)"))
+        SicParserError::ExpectedNamedValue(String::from("font(font_path: String)"))
     })?;
 
     let font_file = parse_named_value(font_file).map_err(SicParserError::NamedValueParsingError)?;

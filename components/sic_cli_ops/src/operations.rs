@@ -124,7 +124,11 @@ impl OperationId {
             }
             #[cfg(feature = "imageproc-ops")]
             OperationId::DrawText => {
-                unimplemented!();
+                use sic_image_engine::wrapper::draw_text_inner::DrawTextInner;
+                Instr::Operation(ImgOp::DrawText(parse_inputs_by_type!(
+                    inputs,
+                    DrawTextInner
+                )?))
             }
             OperationId::Filter3x3 => {
                 Instr::Operation(ImgOp::Filter3x3(parse_inputs_by_type!(inputs, [f32; 9])?))

@@ -173,6 +173,43 @@ mod tests {
             assert_eq!(result.unwrap(), expected);
         }
 
+        #[cfg(feature = "imageproc-ops")]
+        mod imageproc_ops_tests {
+            use super::*;
+            use sic_core::image::Rgba;
+            use sic_image_engine::wrapper::draw_text_inner::DrawTextInner;
+            use sic_image_engine::wrapper::font_options::{FontOptions, FontScale};
+            use std::path::PathBuf;
+
+            ide!();
+
+            #[parameterized(
+                ops = {
+                    vec!["--draw-text", "my text", "coord(0, 1)", "rgba(10, 10, 255, 255)", "size(16.0)", r#"font("resources/font/Lato-Regular.ttf")"#],
+                    vec!["--draw-text", "my text", "coord(0, 1)", "rgba(10, 10, 255, 255)", "size(16.0)", r#"font("resources/font/Lato-Regular()".ttf")"#],
+                },
+                expected = {
+                    op![ImgOp::DrawText(DrawTextInner::new("my text".to_string(),
+                        (0, 1),
+                        FontOptions::new(
+                        PathBuf::from("resources/font/Lato-Regular.ttf".to_string()),
+                        Rgba([10, 10, 255, 255]),
+                        FontScale::Uniform(16.0))))],
+                    op![ImgOp::DrawText(DrawTextInner::new("my text".to_string(),
+                        (0, 1),
+                        FontOptions::new(
+                        PathBuf::from("resources/font/Lato-Regular()\".ttf".to_string()),
+                        Rgba([10, 10, 255, 255]),
+                        FontScale::Uniform(16.0))))]
+                }
+            )]
+            fn create_image_ops_t_sunny_imageproc_ops(ops: Vec<&str>, expected: Vec<Instr>) {
+                let result = create_image_ops(interweave(&ops));
+
+                assert_eq!(result.unwrap(), expected);
+            }
+        }
+
         #[test]
         fn combined() {
             let input = vec![

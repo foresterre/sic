@@ -9,9 +9,12 @@ uint = @{ ASCII_DIGIT+ }
 int  = @{ "-"? ~ ASCII_DIGIT+ }
 
 // string_unicode is based on https://pest.rs/book/examples/json.html
-string_unicode = ${ (quotation ~ string_inner ~ quotation)* }
+string_unicode = ${ (quot_double ~ string_inner ~ quot_double) | (quot_single ~ string_inner ~ quot_single) }
 string_inner = @{ char* }
-quotation = _{ "'" | "\"" }
+quotation = _{ quot_single | quot_double }
+quot_single = _{ "'" }
+quot_double = _{ "\"" }
+
 char = {
     !quotation ~ ANY
     | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
