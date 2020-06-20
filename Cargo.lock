@@ -379,6 +379,11 @@ version = "0.2.71"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
+name = "linked-hash-map"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
 name = "log"
 version = "0.4.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -534,17 +539,18 @@ dependencies = [
 
 [[package]]
 name = "parameterized"
-version = "0.1.1"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "parameterized-macro 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "parameterized-macro 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "parameterized-macro"
-version = "0.1.1"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
+ "linked-hash-map 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "proc-macro2 1.0.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "quote 1.0.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "syn 1.0.31 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -767,7 +773,7 @@ dependencies = [
  "flate2 1.0.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "globwalk 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "inflate 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "parameterized 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "parameterized 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "sic_cli_ops 0.12.0",
  "sic_core 0.12.0",
  "sic_image_engine 0.12.0",
@@ -781,7 +787,7 @@ name = "sic_cli_ops"
 version = "0.12.0"
 dependencies = [
  "clap 2.33.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "parameterized 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "parameterized 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "sic_core 0.12.0",
  "sic_image_engine 0.12.0",
  "sic_parser 0.12.0",
@@ -825,7 +831,7 @@ dependencies = [
 name = "sic_parser"
 version = "0.12.0"
 dependencies = [
- "parameterized 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "parameterized 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "pest 2.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "pest_derive 2.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "sic_core 0.12.0",
@@ -838,7 +844,7 @@ dependencies = [
 name = "sic_testing"
 version = "0.12.0"
 dependencies = [
- "parameterized 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "parameterized 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "sic_core 0.12.0",
 ]
 
@@ -1043,6 +1049,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum jpeg-decoder 0.1.19 (registry+https://github.com/rust-lang/crates.io-index)" = "5b47b4c4e017b01abdc5bcc126d2d1002e5a75bbe3ce73f9f4f311a916363704"
 "checksum lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 "checksum libc 0.2.71 (registry+https://github.com/rust-lang/crates.io-index)" = "9457b06509d27052635f90d6466700c65095fdf75409b3fbdd903e988b886f49"
+"checksum linked-hash-map 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)" = "8dd5a6d5999d9907cda8ed67bbd137d3af8085216c2ac62de5be860bd41f304a"
 "checksum log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)" = "14b6052be84e6b71ab17edffc2eeabf5c2c3ae1fdb464aae35ac50c67a44e1f7"
 "checksum lzw 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)" = "7d947cbb889ed21c2a84be6ffbaebf5b4e0f4340638cba0444907e38b56be084"
 "checksum maplit 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)" = "3e2e65a1a2e43cfcb47a895c4c8b10d1f4a61097f9f254f183aee60cad9c651d"
@@ -1062,8 +1069,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum num_cpus 1.13.0 (registry+https://github.com/rust-lang/crates.io-index)" = "05499f3756671c15885fee9034446956fff3f243d6077b91e5767df161f766b3"
 "checksum opaque-debug 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)" = "2839e79665f131bdb5782e51f2c6c9599c133c6098982a54c794358bf432529c"
 "checksum ordered-float 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)" = "18869315e81473c951eb56ad5558bbc56978562d3ecfb87abb7a1e944cea4518"
-"checksum parameterized 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "c90f4967be855698ec6ad2f3711c3bac48044f3f92d236157938502603df75f3"
-"checksum parameterized-macro 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "8a01df7a2035840851c9bc9bcf132255a150b7914883e8d6958b3d628b7dd15b"
+"checksum parameterized 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "4b71f64f20ea2670c68680576b4e5dcebde46c6724b1999fa0e078b867eb99ff"
+"checksum parameterized-macro 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "a28065af8de1867c0eee6b63abe828452fe3e886ab37b45f566c5c36a7d55f35"
 "checksum pest 2.1.3 (registry+https://github.com/rust-lang/crates.io-index)" = "10f4872ae94d7b90ae48754df22fd42ad52ce740b8f370b03da4835417403e53"
 "checksum pest_derive 2.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "833d1ae558dc601e9a60366421196a8d94bc0ac980476d0b67e1d0988d72b2d0"
 "checksum pest_generator 2.1.3 (registry+https://github.com/rust-lang/crates.io-index)" = "99b8db626e31e5b81787b9783425769681b347011cc59471e33ea46d2ea0cf55"
