@@ -92,7 +92,7 @@ macro_rules! parse_inputs_by_type {
         let input: Result<$ty, SicCliOpsError> =
             ParseInputsFromIter::parse($iterable).map_err(|err| {
                 SicCliOpsError::UnableToParseValueOfType {
-                    err: err,
+                    err,
                     typ: stringify!($ty).to_string(),
                 }
             });
