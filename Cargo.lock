@@ -846,6 +846,7 @@ dependencies = [
 name = "sic_io"
 version = "0.12.0"
 dependencies = [
+ "parameterized 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "sic_core 0.12.0",
  "sic_testing 0.12.0",
  "thiserror 1.0.20 (registry+https://github.com/rust-lang/crates.io-index)",
