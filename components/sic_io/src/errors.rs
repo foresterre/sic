@@ -19,8 +19,8 @@ pub enum SicIoError {
     )]
     NoInputImage,
 
-    #[error("Unable to extract frame {0} from the (animated) image. Reason given: {1}.")]
-    NoSuchFrame(usize, String),
+    #[error("Unable to extract frame {0} from the (animated) image; please use a frame index between 0 and {1}.")]
+    NoSuchFrame(usize, usize),
 
     #[error(
         "No supported image output format was found. The following identifier was provided: {0}."

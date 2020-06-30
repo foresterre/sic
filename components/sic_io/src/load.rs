@@ -17,27 +17,9 @@ pub fn load_image<R: Read>(
         .map_err(SicIoError::Io)?;
 
     match reader.format() {
-        Some(f) => match f {
-            ImageFormat::Gif => {
-                let frames = image::gif::GifDecoder::new(reader.into_inner())
-                    .and_then(|decoder| decoder.into_frames().collect_frames())
-                    .map_err(SicIoError::ImageError)?;
-
-                let frame_index = match config.selected_frame {
-                    FrameIndex::First => 0,
-                    FrameIndex::Last => frames.len() - 1,
-                    FrameIndex::Nth(n) => n,
-                };
-                match frames.into_iter().nth(frame_index) {
-                    Some(frame) => Ok(image::DynamicImage::ImageRgba8(frame.into_buffer())),
-                    None => Err(SicIoError::NoSuchFrame(
-                        frame_index + 1,
-                        "Frame index out of range.".to_string(),
-                    )),
-                }
-            }
-            _ => Ok(reader.decode().map_err(SicIoError::ImageError)?),
-        },
+        Some(ImageFormat::Png) => decode_png(reader, config.selected_frame),
+        Some(ImageFormat::Gif) => decode_gif(reader, config.selected_frame),
+        Some(_) => reader.decode().map_err(SicIoError::ImageError),
         None => Err(SicIoError::ImageError(image::error::ImageError::Decoding(
             image::error::DecodingError::from_format_hint(image::error::ImageFormatHint::Unknown),
         ))),
@@ -72,6 +54,28 @@ pub struct ImportConfig {
     pub selected_frame: FrameIndex,
 }
 
+/// Decode an image into frames
+fn frames<'decoder, D: AnimationDecoder<'decoder>>(decoder: D) -> ImportResult<Vec<image::Frame>> {
+    decoder
+        .into_frames()
+        .collect_frames()
+        .map_err(SicIoError::ImageError)
+}
+
+/// Select an image frame from a slice of frames and a frame index
+fn select_frame(frames: &[image::Frame], index: FrameIndex) -> ImportResult<image::DynamicImage> {
+    let frame_index = match index {
+        FrameIndex::First => 0,
+        FrameIndex::Last => frames.len() - 1,
+        FrameIndex::Nth(n) => n,
+    };
+
+    frames
+        .get(frame_index)
+        .ok_or_else(|| SicIoError::NoSuchFrame(frame_index, frames.len() - 1))
+        .map(|f| image::DynamicImage::ImageRgba8(f.clone().into_buffer()))
+}
+
 /// Zero-indexed frame index.
 #[derive(Clone, Copy, Debug)]
 pub enum FrameIndex {
@@ -86,10 +90,35 @@ impl Default for FrameIndex {
     }
 }
 
+fn decode_gif<R: Read>(
+    reader: image::io::Reader<R>,
+    frame: FrameIndex,
+) -> ImportResult<image::DynamicImage> {
+    let decoder =
+        image::gif::GifDecoder::new(reader.into_inner()).map_err(SicIoError::ImageError)?;
+
+    frames(decoder).and_then(|f| select_frame(&f, frame))
+}
+
+fn decode_png<R: Read>(
+    reader: image::io::Reader<R>,
+    frame: FrameIndex,
+) -> ImportResult<image::DynamicImage> {
+    let decoder =
+        image::png::PngDecoder::new(reader.into_inner()).map_err(SicIoError::ImageError)?;
+
+    if decoder.is_apng() {
+        frames(decoder.apng()).and_then(|f| select_frame(&f, frame))
+    } else {
+        image::DynamicImage::from_decoder(decoder).map_err(SicIoError::ImageError)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use image::GenericImageView;
+    use parameterized::parameterized;
     use sic_testing::*;
 
     const GIF_LOOP: &str = "loop.gif";
@@ -264,6 +293,46 @@ mod tests {
             let config = ImportConfig::default();
             let result = load_image(&mut file_reader(load_path).unwrap(), &config);
             assert!(result.is_ok());
+        }
+    }
+
+    mod apng {
+        use super::*;
+
+        const APNG_SAMPLE: &str = "apng_sample.png";
+
+        #[parameterized(
+            frame = {
+                FrameIndex::First,
+                FrameIndex::Nth(0),
+                FrameIndex::Nth(1),
+                FrameIndex::Nth(2),
+                FrameIndex::Last,
+                FrameIndex::Nth(3),
+            },
+            expected_color = {
+                Some([255, 255, 255, 255]),
+                Some([255, 255, 255, 255]),
+                Some([237, 28, 36, 255]), // default red in paint.exe
+                Some([0, 0, 0, 255]),
+                Some([0, 0, 0, 255]),
+                None,
+            }
+        )]
+        fn apng(frame: FrameIndex, expected_color: Option<[u8; 4]>) {
+            let load_path = setup_test_image(APNG_SAMPLE);
+
+            let config = ImportConfig {
+                selected_frame: frame,
+            };
+
+            let image = load_image(&mut file_reader(load_path).unwrap(), &config);
+
+            if expected_color.is_some() {
+                assert_eq!(image.unwrap().get_pixel(0, 0).0, expected_color.unwrap());
+            } else {
+                assert!(image.is_err())
+            }
         }
     }
 }
