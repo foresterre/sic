@@ -1,8 +1,11 @@
-use crate::cli::app::arg_names::{ARG_INPUT, ARG_MODE, ARG_OUTPUT};
+use crate::cli::app::arg_names::{
+    ARG_GLOB_SKIP_UNSUPPORTED_EXTENSIONS, ARG_IMAGE_CRATE_FALLBACK, ARG_INPUT, ARG_MODE, ARG_OUTPUT,
+};
 use crate::cli::common_dir::CommonDir;
 use crate::cli::glob_base_dir::glob_builder_base;
 use anyhow::{bail, Context};
-use clap::ArgMatches;
+use boolean::Boolean;
+use clap::{value_t, ArgMatches};
 use globwalk::{FileType, GlobWalker};
 use sic_image_engine::engine::Instr;
 use sic_io::load::FrameIndex;
@@ -54,9 +57,7 @@ impl InputOutputMode {
             (Some("glob"), Some(inputs), Some(output)) => InputOutputMode::Batch {
                 inputs: {
                     let inputs = Self::create_glob_walker(inputs)?;
-                    let paths = inputs.map(|entry| entry.map_err(|err| {
-                        anyhow::anyhow!("Error while trying to find glob matches on the fs ({})", err)
-                    }).map(|f| f.into_path())).collect::<anyhow::Result<Vec<_>>>()?;
+                    let paths = Self::lookup_paths(inputs, value_t!(matches.value_of(ARG_GLOB_SKIP_UNSUPPORTED_EXTENSIONS), Boolean)?, matches.is_present(ARG_IMAGE_CRATE_FALLBACK))?;
 
                     CommonDir::try_new(paths)?
                 },
@@ -77,6 +78,51 @@ impl InputOutputMode {
             .build()
             .with_context(|| "Unable to parse the given glob pattern")
     }
+
+    fn lookup_paths(
+        inputs: impl Iterator<Item = Result<globwalk::DirEntry, globwalk::WalkError>>,
+        filter_unsupported: Boolean,
+        imagecrate_fallback_enabled: bool,
+    ) -> anyhow::Result<Vec<PathBuf>> {
+        let paths: Vec<PathBuf> = inputs
+            .map(|entry| {
+                entry
+                    .map_err(|err| {
+                        anyhow::anyhow!(
+                            "Error while trying to find glob matches on the fs ({})",
+                            err
+                        )
+                    })
+                    .map(|f| f.into_path())
+            })
+            .collect::<anyhow::Result<Vec<PathBuf>>>()?;
+
+        Ok(if filter_unsupported.is_true() {
+            filter_unsupported_paths(paths, imagecrate_fallback_enabled)
+        } else {
+            paths
+        })
+    }
+}
+
+// remove paths with extensions we don't recognise
+fn filter_unsupported_paths(paths: Vec<PathBuf>, fallback_enabled: bool) -> Vec<PathBuf> {
+    use crate::cli::pipeline::fallback::guess_output_by_path;
+    use crate::combinators::FallbackIf;
+    use sic_io::format::DetermineEncodingFormat;
+    use sic_io::format::EncodingFormatByExtension;
+
+    let checker = DetermineEncodingFormat::default();
+
+    paths
+        .into_iter()
+        .filter(|path| {
+            checker
+                .by_extension(path)
+                .fallback_if(fallback_enabled, guess_output_by_path, path)
+                .is_ok()
+        })
+        .collect()
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
@@ -302,5 +348,67 @@ mod tests {
         let config = builder.build();
 
         assert!(!config.image_operations_program.is_empty());
+    }
+
+    #[test]
+    fn skip_unsupported_paths() {
+        fn to_path_bufs<'s>(paths: impl IntoIterator<Item = &'s &'s str>) -> Vec<PathBuf> {
+            paths
+                .into_iter()
+                .map(|s| FromStr::from_str(s).expect("test should have valid input"))
+                .collect::<Vec<_>>()
+        }
+
+        let paths = &[
+            "/scope/0.png",
+            "/scope/1.jpg",
+            "/scope/2.jpeg",
+            "/scope/2.unsupported",
+            "/scope/2",
+        ];
+
+        let path_bufs = to_path_bufs(paths);
+        let expected_path_bufs = to_path_bufs(&[paths[0], paths[1], paths[2]]);
+        let filtered = filter_unsupported_paths(path_bufs, false);
+
+        assert_eq!(filtered, expected_path_bufs);
+    }
+
+    mod glob_skip_unsupported {
+        use super::*;
+        use parameterized::parameterized;
+
+        parameterized::ide!();
+
+        #[parameterized(paths_in = {
+            &["/test/0.png", "/test/1.jpg", "/test/2.jpeg", "/test/2.unsupported", "/test/2"],
+            &[],
+            &["a.farbfeld", "a.ff"],
+            &["a.farbfeld", "a.ff"],
+        }, paths_expected = {
+            &["/test/0.png", "/test/1.jpg", "/test/2.jpeg"],
+            &[],
+            &["a.farbfeld", "a.ff"],
+            &["a.farbfeld"],
+        }, fallback_on_imagecrate = {
+            false,
+            false,
+            true,
+            false,
+        })]
+        fn p(paths_in: &[&str], paths_expected: &[&str], fallback_on_imagecrate: bool) {
+            fn to_path_bufs<'s>(paths: impl IntoIterator<Item = &'s &'s str>) -> Vec<PathBuf> {
+                paths
+                    .into_iter()
+                    .map(|s| FromStr::from_str(s).expect("test should have valid input"))
+                    .collect::<Vec<_>>()
+            }
+
+            let path_bufs = to_path_bufs(paths_in);
+            let expected_path_bufs = to_path_bufs(paths_expected);
+            let filtered = filter_unsupported_paths(path_bufs, fallback_on_imagecrate);
+
+            assert_eq!(filtered, expected_path_bufs);
+        }
     }
 }
