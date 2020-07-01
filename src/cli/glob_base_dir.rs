@@ -3,8 +3,9 @@
 //! Copied and modified as allowed per [`MIT license`], also listed below.
 //!
 //! Changes made:
-//! * Now returns the builder instead of a glob walker, so it can be further adapted to one's wishes.
-//!
+//! * Now split to a function which returns the base/pattern instead of a glob walker and a function
+//!     which creates the a GlobWalkerBuilder which can be further adapted to one's wishes
+//! * Added error handling
 //!
 //! ```text
 //! Copyright (c) 2017 Gilad Naaman
@@ -30,25 +31,51 @@
 //!
 //! [`MIT license`]: https://docs.rs/crate/globwalk/0.8.0/source/LICENSE
 
+use anyhow::anyhow;
 use globwalk::GlobWalkerBuilder;
 use std::path::PathBuf;
 
-/// Function to determine the base directory and (remaining) pattern.
+/// Create a generic glob builder
+pub fn glob_builder_base<PAT: AsRef<str>>(
+    pattern: PAT,
+    filters: &[PAT],
+) -> anyhow::Result<GlobWalkerBuilder> {
+    let (base, pat) = glob_base_unrooted(pattern.as_ref())?;
+
+    let base_str: &str = base
+        .to_str()
+        .ok_or_else(|| anyhow!("Glob base path is not valid"))?;
+    let pat_str: &str = pat
+        .to_str()
+        .ok_or_else(|| anyhow!("Glob pattern is not valid"))?;
+
+    let mut filters = filters.iter().map(|f| f.as_ref()).collect::<Vec<_>>();
+    filters.push(pat_str);
+
+    Ok(GlobWalkerBuilder::from_patterns(base_str, &filters))
+}
+
+pub type BasePath = PathBuf;
+pub type Pattern = PathBuf;
+
+/// Determine the longest possible base path
 ///
-/// This function contains a partial copy of the [`globwalker::glob`] function w
+/// This function contains a partial copy of the [`globwalker::glob`] function
 ///
 /// [`globwalker::glob`]: https://docs.rs/globwalk/0.8.0/src/globwalk/lib.rs.html#430
-pub fn glob_builder_base<PAT: AsRef<str>>(pattern: PAT) -> GlobWalkerBuilder {
-    let path_pattern: PathBuf = pattern.as_ref().into();
-    if path_pattern.is_absolute() {
+pub fn glob_base_unrooted(path_pattern: &str) -> anyhow::Result<(BasePath, Pattern)> {
+    let path_buf = path_pattern.parse::<PathBuf>()?;
+
+    Ok(if path_buf.is_absolute() {
         // If the pattern is an absolute path, split it into the longest base and a pattern.
         let mut base = PathBuf::new();
         let mut pattern = PathBuf::new();
         let mut globbing = false;
 
         // All `to_str().unwrap()` calls should be valid since the input is a string.
-        for c in path_pattern.components() {
+        for c in path_buf.components() {
             let os = c.as_os_str().to_str().unwrap();
+
             for c in &["*", "{", "}"][..] {
                 if os.contains(c) {
                     globbing = true;
@@ -63,14 +90,9 @@ pub fn glob_builder_base<PAT: AsRef<str>>(pattern: PAT) -> GlobWalkerBuilder {
             }
         }
 
-        let pat = pattern.to_str().unwrap();
-        if cfg!(windows) {
-            GlobWalkerBuilder::new(base.to_str().unwrap(), pat.replace("\\", "/"))
-        } else {
-            GlobWalkerBuilder::new(base.to_str().unwrap(), pat)
-        }
+        (base, pattern)
     } else {
         // If the pattern is relative, start searching from the current directory.
-        GlobWalkerBuilder::new(".", pattern)
-    }
+        (".".parse().unwrap(), path_buf)
+    })
 }
