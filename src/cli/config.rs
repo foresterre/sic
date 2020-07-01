@@ -72,7 +72,7 @@ impl InputOutputMode {
     }
 
     fn create_glob_walker<PAT: AsRef<str>>(pattern: PAT) -> anyhow::Result<GlobWalker> {
-        glob_builder_base(pattern)
+        glob_builder_base(pattern.as_ref(), &[])?
             .follow_links(true)
             .file_type(FileType::FILE)
             .build()
