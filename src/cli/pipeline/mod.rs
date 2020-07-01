@@ -1,6 +1,11 @@
 use std::fs::File;
 use std::io::{self, Read, Write};
 
+use crate::cli::config::{Config, InputOutputMode, InputOutputModeType, PathVariant};
+use crate::cli::license::LicenseTexts;
+use crate::cli::license::PrintTextFor;
+use crate::cli::pipeline::fallback::{guess_output_by_identifier, guess_output_by_path};
+use crate::combinators::FallbackIf;
 use anyhow::{anyhow, bail, Context};
 use sic_core::image;
 use sic_image_engine::engine::ImageEngine;
@@ -8,13 +13,7 @@ use sic_io::conversion::AutomaticColorTypeAdjustment;
 use sic_io::format::{
     DetermineEncodingFormat, EncodingFormatByExtension, EncodingFormatByIdentifier, JPEGQuality,
 };
-use sic_io::load;
-use sic_io::save;
-
-use crate::cli::config::{Config, InputOutputMode, InputOutputModeType, PathVariant};
-use crate::cli::license::LicenseTexts;
-use crate::cli::license::PrintTextFor;
-use crate::cli::pipeline::fallback::{guess_output_by_identifier, guess_output_by_path};
+use sic_io::{load, save};
 
 pub mod fallback;
 
@@ -189,27 +188,4 @@ pub fn run_display_licenses(config: &Config, texts: &LicenseTexts) -> anyhow::Re
         .show_license_text_of
         .ok_or_else(|| anyhow!("Unable to determine which license texts should be displayed."))
         .and_then(|license_text| license_text.print(texts))
-}
-
-trait FallbackIf<T, E> {
-    fn fallback_if<P, F, V>(self, predicate: P, f: F, alternative: V) -> Result<T, E>
-    where
-        P: Into<bool>,
-        F: FnOnce(V) -> Result<T, E>;
-}
-
-impl<T, E> FallbackIf<T, E> for Result<T, E> {
-    /// Fallback to an alternative when a result produces an error and the predicate evaluates to true,
-    /// otherwise keep the current result
-    fn fallback_if<P, F, V>(self, predicate: P, f: F, alternative: V) -> Result<T, E>
-    where
-        P: Into<bool>,
-        F: FnOnce(V) -> Result<T, E>,
-    {
-        if self.is_err() && predicate.into() {
-            f(alternative)
-        } else {
-            self
-        }
-    }
 }

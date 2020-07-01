@@ -114,6 +114,15 @@ pub struct DetermineEncodingFormat {
     pub jpeg_quality: Option<JPEGQuality>,
 }
 
+impl Default for DetermineEncodingFormat {
+    fn default() -> Self {
+        Self {
+            pnm_sample_encoding: Some(image::pnm::SampleEncoding::Binary),
+            jpeg_quality: Some(Default::default()),
+        }
+    }
+}
+
 impl EncodingFormatPNMSampleEncoding for DetermineEncodingFormat {
     fn pnm_encoding_type(&self) -> Result<image::pnm::SampleEncoding, SicIoError> {
         self.pnm_sample_encoding

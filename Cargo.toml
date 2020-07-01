@@ -36,6 +36,7 @@ sic_parser = { version = "0.12.0", path = "components/sic_parser"}
 
 anyhow = "1.0.31"
 atty = "0.2.14"
+boolean = "0.3.0"
 clap = "2.32.0"
 inflate = "0.4.5"
 globwalk = "0.8.0"
