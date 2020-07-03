@@ -396,7 +396,11 @@ mod tests {
             true,
             false,
         })]
-        fn p(paths_in: &[&str], paths_expected: &[&str], fallback_on_imagecrate: bool) {
+        fn are_unsupported_paths_getting_filtered(
+            paths_in: &[&str],
+            paths_expected: &[&str],
+            fallback_on_imagecrate: bool,
+        ) {
             fn to_path_bufs<'s>(paths: impl IntoIterator<Item = &'s &'s str>) -> Vec<PathBuf> {
                 paths
                     .into_iter()
