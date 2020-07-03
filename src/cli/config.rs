@@ -1,11 +1,11 @@
 use crate::cli::app::arg_names::{
-    ARG_GLOB_SKIP_UNSUPPORTED_EXTENSIONS, ARG_IMAGE_CRATE_FALLBACK, ARG_INPUT, ARG_MODE, ARG_OUTPUT,
+    ARG_GLOB_NO_SKIP_UNSUPPORTED_EXTENSIONS, ARG_IMAGE_CRATE_FALLBACK, ARG_INPUT, ARG_MODE,
+    ARG_OUTPUT,
 };
 use crate::cli::common_dir::CommonDir;
 use crate::cli::glob_base_dir::glob_builder_base;
 use anyhow::{bail, Context};
-use boolean::Boolean;
-use clap::{value_t, ArgMatches};
+use clap::ArgMatches;
 use globwalk::{FileType, GlobWalker};
 use sic_image_engine::engine::Instr;
 use sic_io::load::FrameIndex;
@@ -57,7 +57,7 @@ impl InputOutputMode {
             (Some("glob"), Some(inputs), Some(output)) => InputOutputMode::Batch {
                 inputs: {
                     let inputs = Self::create_glob_walker(inputs)?;
-                    let paths = Self::lookup_paths(inputs, value_t!(matches.value_of(ARG_GLOB_SKIP_UNSUPPORTED_EXTENSIONS), Boolean)?, matches.is_present(ARG_IMAGE_CRATE_FALLBACK))?;
+                    let paths = Self::lookup_paths(inputs, !matches.is_present(ARG_GLOB_NO_SKIP_UNSUPPORTED_EXTENSIONS), matches.is_present(ARG_IMAGE_CRATE_FALLBACK))?;
 
                     CommonDir::try_new(paths)?
                 },
@@ -81,8 +81,8 @@ impl InputOutputMode {
 
     fn lookup_paths(
         inputs: impl Iterator<Item = Result<globwalk::DirEntry, globwalk::WalkError>>,
-        filter_unsupported: Boolean,
-        imagecrate_fallback_enabled: bool,
+        filter_unsupported: bool,
+        image_crate_fallback_enabled: bool,
     ) -> anyhow::Result<Vec<PathBuf>> {
         let paths: Vec<PathBuf> = inputs
             .map(|entry| {
@@ -97,8 +97,8 @@ impl InputOutputMode {
             })
             .collect::<anyhow::Result<Vec<PathBuf>>>()?;
 
-        Ok(if filter_unsupported.is_true() {
-            filter_unsupported_paths(paths, imagecrate_fallback_enabled)
+        Ok(if filter_unsupported {
+            filter_unsupported_paths(paths, image_crate_fallback_enabled)
         } else {
             paths
         })

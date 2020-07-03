@@ -34,7 +34,7 @@ define_arg_consts!(arg_names, {
     ARG_MODE,
 
     // config for glob/batch mode
-    ARG_GLOB_SKIP_UNSUPPORTED_EXTENSIONS,
+    ARG_GLOB_NO_SKIP_UNSUPPORTED_EXTENSIONS,
 
     // set specific configurations for decoding
     ARG_SELECT_FRAME,
@@ -138,15 +138,12 @@ pub fn create_app(
         )
 
         // config for glob/batch mode
-        .arg(Arg::with_name(ARG_GLOB_SKIP_UNSUPPORTED_EXTENSIONS)
-            .long("skip-unsupported-extensions")
-            .takes_value(true)
-            .possible_values(&["true", "false"])
-            .case_insensitive(true)
-            .default_value("true")
-            .help("If --mode is 'glob': when set to 'true', files which do not have a known extension will skipped")
+        .arg(Arg::with_name(ARG_GLOB_NO_SKIP_UNSUPPORTED_EXTENSIONS)
+            .long("no-skip-unsupported-extensions")
+            .help("Files which don't have a known extension will not be skipped in glob mode")
+            .long_help("Only has an effect when --mode is 'glob'")
+            .takes_value(false)
         )
-
 
         // config(in):
         .arg(Arg::with_name(ARG_SELECT_FRAME)
