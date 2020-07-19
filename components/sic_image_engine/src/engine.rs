@@ -146,13 +146,11 @@ impl ImageEngine {
                 let coords = inner.coords();
                 let font_options = inner.font_options();
 
-                use rusttype::Font;
-
                 let font_file = std::fs::read(&font_options.font_path)
                     .map_err(SicImageEngineError::FontFileLoadError)?;
 
-                let font =
-                    Font::from_bytes(&font_file).map_err(|_| SicImageEngineError::FontError)?;
+                let font = rusttype::Font::try_from_bytes(&font_file)
+                    .ok_or_else(|| SicImageEngineError::FontError)?;
 
                 *self.image = DynamicImage::ImageRgba8(imageproc::drawing::draw_text(
                     &mut *self.image,
