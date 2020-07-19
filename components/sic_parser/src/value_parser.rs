@@ -338,6 +338,19 @@ mod tests_parse_from_iter {
     use super::*;
     use sic_testing::*;
 
+    macro_rules! assert_iter_impl {
+        ($lhs_iter:expr, $rhs_iter:expr, $f:expr) => {
+            assert!($lhs_iter.into_iter().zip($rhs_iter.into_iter()).all($f));
+        };
+    }
+
+    macro_rules! assert_iter_f32 {
+        ($lhs_iter:expr, $rhs_iter:expr) => {
+            assert_iter_impl!($lhs_iter, $rhs_iter, |(l, r)| (l - r).abs()
+                < std::f32::EPSILON);
+        };
+    }
+
     #[test]
     fn a_f32() {
         let some: f32 = ParseInputsFromIter::parse(&["-1.03"]).unwrap();
@@ -380,10 +393,11 @@ mod tests_parse_from_iter {
                 "1", "2", "3", "4", "5.5", "-6.0", "7", "8", "-9.9999",
             ])
             .unwrap();
-            let expected: [f32; 9] = [
+            const EXPECTED: [f32; 9] = [
                 1f32, 2f32, 3f32, 4f32, 5.5f32, -6.0f32, 7f32, 8f32, -9.9999f32,
             ];
-            assert_eq!(some, expected);
+
+            assert_iter_f32!(&some, &EXPECTED)
         }
 
         #[pm(input = {
