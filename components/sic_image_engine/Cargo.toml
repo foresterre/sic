@@ -15,7 +15,7 @@ strum = "0.18.0"
 strum_macros = "0.18.0"
 thiserror = "1.0.20"
 
-imageproc = { version = "0.20.0", optional = true }
+imageproc = { version = "0.21.0", optional = true }
 rusttype = { version = "0.8.2", optional = true }
 
 [dev-dependencies]
