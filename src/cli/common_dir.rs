@@ -165,4 +165,23 @@ mod test {
         assert_eq!(stem[1], Path::new("b.png"));
         assert_eq!(stem[2], Path::new("c.png"));
     }
+
+    #[test]
+    fn no_path_before_file() {
+        let common = CommonDir::try_new(vec!["a.png", "b.png", "c.png"]).unwrap();
+
+        assert_eq!(common.common_root(), Path::new(""));
+
+        let stem = common.path_branches();
+
+        assert_eq!(stem[0], Path::new("a.png"));
+        assert_eq!(stem[1], Path::new("b.png"));
+        assert_eq!(stem[2], Path::new("c.png"));
+    }
+
+    #[test]
+    fn empty_common_dir() {
+        let common = CommonDir::try_new(Vec::<PathBuf>::new());
+        assert!(common.is_err());
+    }
 }

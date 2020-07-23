@@ -1,6 +1,6 @@
 use crate::cli::app::arg_names::{
-    ARG_GLOB_NO_SKIP_UNSUPPORTED_EXTENSIONS, ARG_IMAGE_CRATE_FALLBACK, ARG_INPUT, ARG_MODE,
-    ARG_OUTPUT,
+    ARG_GLOB_NO_SKIP_UNSUPPORTED_EXTENSIONS, ARG_IMAGE_CRATE_FALLBACK, ARG_INPUT, ARG_INPUT_GLOB,
+    ARG_OUTPUT, ARG_OUTPUT_GLOB,
 };
 use crate::cli::common_dir::CommonDir;
 use crate::cli::glob_base_dir::glob_builder_base;
@@ -39,36 +39,43 @@ pub enum InputOutputMode {
 
 impl InputOutputMode {
     pub fn try_from_matches(matches: &ArgMatches) -> anyhow::Result<Self> {
-        let mode = matches.value_of(ARG_MODE);
-        let input = matches.value_of(ARG_INPUT);
-        let output = matches.value_of(ARG_OUTPUT);
+        let mode = InputOutputModeType::from_arg_matches(matches)?;
 
-        let res = match (mode, input, output) {
-            (Some("simple"), input, output) => InputOutputMode::Single {
-                input: match input {
+        match mode {
+            InputOutputModeType::Simple => Ok(InputOutputMode::Single {
+                input: match matches.value_of(ARG_INPUT) {
                     Some(p) => PathVariant::Path(p.into()),
                     None => PathVariant::StdStream,
                 },
-                output: match output {
+                output: match matches.value_of(ARG_OUTPUT) {
                     Some(p) => PathVariant::Path(p.into()),
                     None => PathVariant::StdStream,
                 },
-            },
-            (Some("glob"), Some(inputs), Some(output)) => InputOutputMode::Batch {
-                inputs: {
-                    let inputs = Self::create_glob_walker(inputs)?;
-                    let paths = Self::lookup_paths(inputs, !matches.is_present(ARG_GLOB_NO_SKIP_UNSUPPORTED_EXTENSIONS), matches.is_present(ARG_IMAGE_CRATE_FALLBACK))?;
+            }),
+            InputOutputModeType::Batch => {
+                let inputs = matches
+                    .value_of(ARG_INPUT_GLOB)
+                    .with_context(|| "Glob mode requires an input pattern")?;
+                let output = matches
+                    .value_of(ARG_OUTPUT_GLOB)
+                    .with_context(|| "Glob mode requires an output folder")?;
 
-                    CommonDir::try_new(paths)?
-                },
-                output_root_folder: {
-                    output.into()
-                },
-            },
-            _ => bail!("unable to set mode: found invalid combination of mode, input arguments, and output argument"),
-        };
+                Ok(InputOutputMode::Batch {
+                    inputs: {
+                        let inputs = Self::create_glob_walker(inputs)?;
 
-        Ok(res)
+                        let paths = Self::lookup_paths(
+                            inputs,
+                            !matches.is_present(ARG_GLOB_NO_SKIP_UNSUPPORTED_EXTENSIONS),
+                            matches.is_present(ARG_IMAGE_CRATE_FALLBACK),
+                        )?;
+
+                        CommonDir::try_new(paths)?
+                    },
+                    output_root_folder: { output.into() },
+                })
+            }
+        }
     }
 
     fn create_glob_walker<PAT: AsRef<str>>(pattern: PAT) -> anyhow::Result<GlobWalker> {
@@ -129,6 +136,23 @@ fn filter_unsupported_paths(paths: Vec<PathBuf>, fallback_enabled: bool) -> Vec<
 pub enum InputOutputModeType {
     Simple,
     Batch,
+}
+
+impl InputOutputModeType {
+    pub fn from_arg_matches(matches: &ArgMatches) -> anyhow::Result<InputOutputModeType> {
+        Ok(
+            match (
+                matches.is_present(ARG_INPUT),
+                matches.is_present(ARG_INPUT_GLOB),
+            ) {
+                (true, false) => InputOutputModeType::Simple,
+                (false, true) => InputOutputModeType::Batch,
+                _ => {
+                    bail!("Unable select input/output mode: mode should either be simple xor glob")
+                }
+            },
+        )
+    }
 }
 
 #[derive(Debug, Clone)]

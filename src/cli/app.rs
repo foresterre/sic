@@ -28,10 +28,9 @@ define_arg_consts!(arg_names, {
 
     // input and output images
     ARG_INPUT,
+    ARG_INPUT_GLOB,
     ARG_OUTPUT,
-
-    // select whether to use the single input, single output mode or glob/batch mode
-    ARG_MODE,
+    ARG_OUTPUT_GLOB,
 
     // config for glob/batch mode
     ARG_GLOB_NO_SKIP_UNSUPPORTED_EXTENSIONS,
@@ -100,12 +99,12 @@ pub fn create_app(
             .long("license")
             .help("Displays the license of this piece of software (`sic`).")
             .takes_value(false)
-            .conflicts_with_all(&[ARG_DEP_LICENSES, ARG_INPUT, ARG_OUTPUT]))
+            .conflicts_with_all(&[ARG_DEP_LICENSES, ARG_INPUT, ARG_OUTPUT, ARG_INPUT_GLOB, ARG_OUTPUT_GLOB]))
         .arg(Arg::with_name(ARG_DEP_LICENSES)
             .long("dep-licenses")
             .help("Displays the licenses of the dependencies on which this software relies.")
             .takes_value(false)
-            .conflicts_with_all(&[ARG_LICENSE, ARG_INPUT, ARG_OUTPUT]))
+            .conflicts_with_all(&[ARG_LICENSE, ARG_INPUT, ARG_OUTPUT, ARG_INPUT_GLOB, ARG_OUTPUT_GLOB]))
 
         // io(input):
         .arg(Arg::with_name(ARG_INPUT)
@@ -114,8 +113,17 @@ pub fn create_app(
             .value_name("INPUT_PATH")
             .takes_value(true)
             .help("Input image path. When using this option, input piped from stdin will be ignored. \
-                      In glob mode, depending on your shell you may need to add explicit quotation marks around the argument")
-            .conflicts_with_all(&[ARG_LICENSE, ARG_DEP_LICENSES]))
+                      If using unexpanded globs as argument, use --glob-input instead.")
+            .conflicts_with_all(&[ARG_LICENSE, ARG_DEP_LICENSES, ARG_INPUT_GLOB, ARG_OUTPUT_GLOB]))
+
+        .arg(Arg::with_name(ARG_INPUT_GLOB)
+            .long("glob-input")
+            .takes_value(true)
+            .value_name("GLOB_INPUT_PATTERN")
+            .help("Input glob path which attempts to match all files matching the given glob pattern. Use with --glob-output. \
+                Depending on your shell you may need to add explicit quotation marks around the argument.")
+            .conflicts_with_all(&[ARG_LICENSE, ARG_DEP_LICENSES, ARG_INPUT, ARG_OUTPUT])
+        )
 
         // io(output):
         .arg(Arg::with_name(ARG_OUTPUT)
@@ -124,24 +132,22 @@ pub fn create_app(
             .value_name("OUTPUT_PATH")
             .takes_value(true)
             .help("Output image path. When using this option, output won't be piped to stdout.")
-            .conflicts_with_all(&[ARG_LICENSE, ARG_DEP_LICENSES]))
+            .conflicts_with_all(&[ARG_LICENSE, ARG_DEP_LICENSES, ARG_INPUT_GLOB, ARG_OUTPUT_GLOB])
+        )
 
-        .arg(Arg::with_name(ARG_MODE)
-            .long("mode")
-            .value_name("MODE")
+        .arg(Arg::with_name(ARG_OUTPUT_GLOB)
+            .long("glob-output")
+            .value_name("GLOB_OUTPUT_ROOT_FOLDER")
             .takes_value(true)
-            .possible_values(&["simple", "glob"])
-            .default_value("simple")
-            .help("Use 'simple' mode when using a single input- and a single output-file; \
-                      Use 'glob' mode when using glob patterns as input, the output path should take \
-                      a root directory where output images will be copied, using a mirrored directory structure")
+            .help("This output should point to a folder in which the greatest root common directory of the glob input will be mirrored")
+            .conflicts_with_all(&[ARG_LICENSE, ARG_DEP_LICENSES, ARG_INPUT, ARG_OUTPUT])
         )
 
         // config for glob/batch mode
         .arg(Arg::with_name(ARG_GLOB_NO_SKIP_UNSUPPORTED_EXTENSIONS)
             .long("no-skip-unsupported-extensions")
             .help("Files which don't have a known extension will not be skipped in glob mode")
-            .long_help("Only has an effect when --mode is 'glob'")
+            .long_help("Only has an effect when combined with --glob-input")
             .takes_value(false)
         )
 
@@ -338,25 +344,27 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> anyhow::Result<Config<'a
         matches.is_present(ARG_DEP_LICENSES),
     );
 
-    match texts_requested {
+    let is_show_license = match texts_requested {
         (true, false) => {
             builder = builder.show_license_text_of(SelectedLicenses::ThisSoftware);
+            Some(())
         }
         (false, true) => {
             builder = builder.show_license_text_of(SelectedLicenses::Dependencies);
+            Some(())
         }
         (true, true) => {
             builder = builder.show_license_text_of(SelectedLicenses::ThisSoftwarePlusDependencies);
+            Some(())
         }
-        (false, false) => (),
+        (false, false) => None,
     };
 
-    let io_mode = match matches.value_of(ARG_MODE) {
-        Some("glob") => InputOutputModeType::Batch,
-        _ => InputOutputModeType::Simple,
-    };
+    if is_show_license.is_some() {
+        return Ok(builder.build());
+    }
 
-    builder = builder.mode(io_mode);
+    builder = builder.mode(InputOutputModeType::from_arg_matches(matches)?);
 
     // config(in)/gif-select-frame:
     if let Some(frame_in) = matches.value_of(ARG_SELECT_FRAME) {

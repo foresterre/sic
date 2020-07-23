@@ -65,7 +65,7 @@ pub fn glob_builder_base<PAT: AsRef<str>>(
 // FIXME: fix relative GlobWalkerBuilder with paths starting with "./" or ".\"
 fn when_starts_with_dot_path(path: &str) -> &str {
     if path.starts_with("./") || path.starts_with(".\\") {
-        path
+        &path[2..]
     } else {
         path
     }
