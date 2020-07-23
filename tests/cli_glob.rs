@@ -28,7 +28,7 @@ fn modify_format() {
     const OUT: &str = "globtest/modified_format_and_ext/";
 
     let mut process = SicTestCommandBuilder::new()
-        .glob_input_from_resources("*.png")
+        .glob_input_from_resources("help-images/diff/*.png")
         .glob_output_in_target(OUT)
         .with_args(&["--output-format", "jpg"])
         .spawn_child();

@@ -93,7 +93,15 @@ impl SicTestCommandBuilder {
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()
-            .expect("Unable to spawn child process for SicCommandBuilder instance")
+            .map_err(|err| {
+                eprintln!(
+                    "spawn child error for SicTestCommandBuilder: {:?}, {:?}",
+                    &self.command,
+                    std::env::current_dir()
+                );
+                err
+            })
+            .expect("Unable to spawn child process for SicTestCommandBuilder instance")
     }
 
     fn with_resources_path(path: &str) -> String {
