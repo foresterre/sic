@@ -49,10 +49,26 @@ pub fn glob_builder_base<PAT: AsRef<str>>(
         .to_str()
         .ok_or_else(|| anyhow!("Glob pattern is not valid"))?;
 
-    let mut filters = filters.iter().map(|f| f.as_ref()).collect::<Vec<_>>();
-    filters.push(pat_str);
+    let mut filters = filters
+        .iter()
+        .map(|f| f.as_ref())
+        .map(when_starts_with_dot_path)
+        .collect::<Vec<_>>();
+    filters.push(when_starts_with_dot_path(pat_str));
 
-    Ok(GlobWalkerBuilder::from_patterns(base_str, &filters))
+    Ok(GlobWalkerBuilder::from_patterns(
+        when_starts_with_dot_path(base_str),
+        &filters,
+    ))
+}
+
+// FIXME: fix relative GlobWalkerBuilder with paths starting with "./" or ".\"
+fn when_starts_with_dot_path(path: &str) -> &str {
+    if path.starts_with("./") || path.starts_with(".\\") {
+        &path[2..]
+    } else {
+        path
+    }
 }
 
 pub type BasePath = PathBuf;
@@ -63,7 +79,7 @@ pub type Pattern = PathBuf;
 /// This function contains a partial copy of the [`globwalker::glob`] function
 ///
 /// [`globwalker::glob`]: https://docs.rs/globwalk/0.8.0/src/globwalk/lib.rs.html#430
-pub fn glob_base_unrooted(path_pattern: &str) -> anyhow::Result<(BasePath, Pattern)> {
+fn glob_base_unrooted(path_pattern: &str) -> anyhow::Result<(BasePath, Pattern)> {
     let path_buf = path_pattern.parse::<PathBuf>()?;
 
     Ok(if path_buf.is_absolute() {
