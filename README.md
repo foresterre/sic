@@ -50,20 +50,19 @@ To use ascii encoding, provide the following flag: `--pnm-encoding-ascii`.
 
 For the use case where you have a directory containing several (hundreds of) images which you like to convert to different
 format, or on which you perhaps want to apply certain image operations, `sic` provides built-in glob pattern matching.
-This mode has to be activated separately using the `--mode glob` option (as opposed to the single input, single output
-`simple` mode). 
+This mode can be used by providing the `--glob-input` and `--glob-output` options instead of `--input` and `--output` respectively.
 
 Examples:
 * To convert a directory of images from PNG to JPG, you can run sic with the following arguments: <br>
-    * `sic --mode glob -i "*.png" -o output_dir --output-format jpg"`
+    * `sic --glob-input "*.png" --glob-output output_dir --output-format jpg"`
 * To convert all images with the `jpg`, `jpeg` and `png` extensions to BMP:
-    * `sic --mode glob -i "*.{jpg, jpeg, png}" -o output_dir --output-format bmp`
+    * `sic --glob-input "*.{jpg, jpeg, png}" --glob-output output_dir --output-format bmp`
 * To emboss all images in a folder (assuming it contains only supported image files and no folders):
-    * `sic --mode glob -i "*" -o embossed_output -f png --filter3x3 -1 -1 0 -1 1 1 0 1 1`
+    * `sic --glob-input "*" --glob-output embossed_output --filter3x3 -1 -1 0 -1 1 1 0 1 1`
 
 A few things worth noticing: 1) We use quotation marks (`"`) around the input argument, so our shell won't expand the
-glob pattern to a list of files. 2) When using glob mode, our output (`-o`) should be a folder instead of a file. 3) We
-need to explicitly state the output format with `--output-format`, since we can't infer it from an output extension. 
+glob pattern to a list of files. 2) When using glob mode, our output (`--glob-output`) should be a folder instead of a file. 3) We
+need to explicitly state the output format with `--output-format`, unless we work with a known extension we want to keep.
 
 Output images are placed in the output folder using the directory structure mirrored from the first common directory of
 all input files. If output directories do not exist, they will be created. 
