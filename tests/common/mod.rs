@@ -1,5 +1,115 @@
+use std::collections::VecDeque;
+use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
-use std::process::{Child, Command};
+use std::process::{Child, Command, Stdio};
+
+pub struct SicTestCommandBuilder {
+    command: Command,
+    features: VecDeque<&'static str>,
+}
+
+impl SicTestCommandBuilder {
+    pub fn new() -> Self {
+        SicTestCommandBuilder {
+            command: Command::new("sic"),
+            features: VecDeque::new(),
+        }
+    }
+
+    pub fn with_feature(mut self, feature: &'static str) -> Self {
+        self.features.push_back(feature);
+        self
+    }
+
+    pub fn finalize_cargo_options(mut self) -> Self {
+        if !self.features.is_empty() {
+            self.features.push_front("--features");
+            self.command.args(&self.features);
+        }
+
+        self.command.arg("--");
+        self
+    }
+
+    pub fn input(mut self, path: &str) -> Self {
+        self.command.args(&["--input", path]);
+        self
+    }
+
+    pub fn input_from_resources(mut self, path: &str) -> Self {
+        let path = &Self::with_resources_path(path);
+
+        self.command.args(&["--input", path]);
+        self
+    }
+
+    pub fn glob_input(mut self, pattern: &str) -> Self {
+        self.command.args(&["--glob-input", pattern]);
+        self
+    }
+
+    pub fn glob_input_from_resources(mut self, path: &str) -> Self {
+        let path = &Self::with_resources_path(path);
+
+        self.command.args(&["--glob-input", path]);
+        self
+    }
+
+    pub fn output(mut self, path: &str) -> Self {
+        self.command.args(&["--output", path]);
+        self
+    }
+
+    pub fn output_in_target(mut self, path: &str) -> Self {
+        let path = &Self::with_target_path(path);
+
+        self.command.args(&["--output", path]);
+        self
+    }
+
+    pub fn glob_output(mut self, path: &str) -> Self {
+        self.command.args(&["--glob-output", path]);
+        self
+    }
+
+    pub fn glob_output_in_target(mut self, path: &str) -> Self {
+        let path = &Self::with_target_path(path);
+
+        self.command.args(&["--glob-output", path]);
+        self
+    }
+
+    pub fn with_args<I, S>(mut self, args: I) -> Self
+    where
+        I: IntoIterator<Item = S>,
+        S: AsRef<OsStr>,
+    {
+        self.command.args(args);
+        self
+    }
+
+    pub fn spawn_child(mut self) -> Child {
+        self.command
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .expect("Unable to spawn child process for SicCommandBuilder instance")
+    }
+
+    fn with_resources_path(path: &str) -> String {
+        setup_input_path(path)
+            .into_os_string()
+            .into_string()
+            .expect("Unable to create test case with resources path")
+    }
+
+    fn with_target_path(path: &str) -> String {
+        setup_output_path(path)
+            .into_os_string()
+            .into_string()
+            .expect("Unable to create test case with target path")
+    }
+}
 
 pub fn setup_input_path(test_image_path: &str) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -11,71 +121,6 @@ pub fn setup_output_path(test_output_path: &str) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("target")
         .join(test_output_path)
-}
-
-pub fn command_unsplit_with_features(
-    input: &str,
-    output: &str,
-    args: &[&str],
-    features: &[&str],
-) -> Child {
-    command_unsplit_impl(input, output, args, features)
-}
-
-pub fn command_unsplit(input: &str, output: &str, args: &[&str]) -> Child {
-    command_unsplit_impl(input, output, args, &[])
-}
-
-fn command_unsplit_impl(input: &str, output: &str, args: &[&str], features: &[&str]) -> Child {
-    let input = setup_input_path(&input);
-    let input = input.to_str().unwrap();
-    let output = setup_output_path(&output);
-    let output = output.to_str().unwrap();
-
-    let mut command = Command::new("cargo");
-    let mut arguments = Vec::with_capacity(128);
-    arguments.push("run");
-
-    if !features.is_empty() {
-        arguments.push("--features");
-
-        for feature in features {
-            arguments.push(feature);
-        }
-    }
-
-    arguments.push("--");
-    arguments.push("-i");
-    arguments.push(input);
-    arguments.push("-o");
-    arguments.push(output);
-    arguments.extend(args);
-    command.args(arguments);
-
-    command.spawn().expect("Couldn't spawn child process.")
-}
-
-/// In and output path prefixes are pre-defined.
-pub fn command(input: &str, output: &str, args: &str) -> Child {
-    let input = setup_input_path(&input);
-    let input = input.to_str().unwrap();
-    let output = setup_output_path(&output);
-    let output = output.to_str().unwrap();
-
-    let mut command = Command::new("cargo");
-    let mut arguments = Vec::with_capacity(128);
-    arguments.push("run");
-
-    arguments.push("--");
-    arguments.push("-i");
-    arguments.push(input);
-    arguments.push("-o");
-    arguments.push(output);
-
-    arguments.extend(args.split_whitespace());
-
-    command.args(arguments);
-    command.spawn().expect("Couldn't spawn child process.")
 }
 
 pub const DEFAULT_IN: &str = "rainbow_8x6.bmp";

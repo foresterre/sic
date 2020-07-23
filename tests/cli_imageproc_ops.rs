@@ -26,13 +26,16 @@ mod tests {
         ]
         .concat();
 
+        let out = format!("{}.png", output_file);
+
         let ops = ops.replace("%font%", font_file);
-        let mut process = command_unsplit_with_features(
-            "unsplash_763569_cropped.jpg",
-            format!("{}.png", output_file).as_str(),
-            &["--apply-operations", &ops],
-            &["imageproc-ops"],
-        );
+        let mut process = SicTestCommandBuilder::new()
+            .input_from_resources("unsplash_763569_cropped.jpg")
+            .output_in_target(&out)
+            .with_args(&["--apply-operations", &ops])
+            .with_feature("imageproc-ops")
+            .spawn_child();
+
         let result = process.wait();
         assert!(result.is_ok());
         assert!(result.unwrap().success());
@@ -69,15 +72,18 @@ mod tests {
 
         let ops = ops.iter().map(|v| v.as_str()).collect::<Vec<_>>();
 
-        let mut process = command_unsplit_with_features(
-            "unsplash_763569_cropped.jpg",
-            format!("{}.png", output_file).as_str(),
-            &ops,
-            &["imageproc-ops"],
-        );
-        let result = process.wait();
-        assert!(result.is_ok());
-        let result = result.unwrap();
+        let out = format!("{}.png", output_file);
+
+        let mut process = SicTestCommandBuilder::new()
+            .input_from_resources("unsplash_763569_cropped.jpg")
+            .output_in_target(&out)
+            .with_args(&ops)
+            .with_feature("imageproc-ops")
+            .spawn_child();
+
+        let result = process.wait().unwrap();
+
+        let _ = out;
 
         if ok {
             assert!(result.success());

@@ -1,8 +1,19 @@
+use std::process::Child;
+
 #[macro_use]
 pub mod common;
 
 // The following integration test modules currently only check whether the processes they start exit
 // successfully.
+
+#[cfg(test)]
+fn command(input: &str, output: &str, args: &str) -> Child {
+    common::SicTestCommandBuilder::new()
+        .input_from_resources(input)
+        .output_in_target(output)
+        .with_args(args.split(" "))
+        .spawn_child()
+}
 
 #[cfg(test)]
 mod blur {
@@ -19,7 +30,12 @@ mod blur {
 
     #[test]
     fn blur_1() {
-        let mut process = command(DEFAULT_IN, "img_op_arg.png", "--blur 1");
+        let mut process = SicTestCommandBuilder::new()
+            .input_from_resources(DEFAULT_IN)
+            .output_in_target("img_op_arg.png")
+            .with_args(&["--blur", "1"])
+            .spawn_child();
+
         let result = process.wait();
         assert!(result.is_ok());
         assert!(result.unwrap().success());
@@ -27,7 +43,12 @@ mod blur {
 
     #[test]
     fn blur_1_dot_1() {
-        let mut process = command(DEFAULT_IN, "img_op_arg.png", "--blur 1.1");
+        let mut process = SicTestCommandBuilder::new()
+            .input_from_resources(DEFAULT_IN)
+            .output_in_target("img_op_arg.png")
+            .with_args(&["--blur", "1.1"])
+            .spawn_child();
+
         let result = process.wait();
         assert!(result.is_ok());
         assert!(result.unwrap().success());
@@ -35,7 +56,12 @@ mod blur {
 
     #[test]
     fn blur_neg_1_dot_1() {
-        let mut process = command(DEFAULT_IN, "img_op_arg.png", "--blur -1.1");
+        let mut process = SicTestCommandBuilder::new()
+            .input_from_resources(DEFAULT_IN)
+            .output_in_target("img_op_arg.png")
+            .with_args(&["--blur", "-1.1"])
+            .spawn_child();
+
         let result = process.wait();
         assert!(result.is_ok());
         assert!(result.unwrap().success());
@@ -44,11 +70,17 @@ mod blur {
 
 #[cfg(test)]
 mod crop {
+    use super::*;
     use crate::common::*;
 
     #[test]
     fn crop_simple() {
-        let mut process = command(DEFAULT_IN, "cio_crop1.png", "--crop 0 0 1 1");
+        let mut process = SicTestCommandBuilder::new()
+            .input_from_resources(DEFAULT_IN)
+            .output_in_target("img_op_arg.png")
+            .with_args(&["--crop", "0", "0", "1", "1"])
+            .spawn_child();
+
         let result = process.wait();
         assert!(result.is_ok());
         assert!(result.unwrap().success());
@@ -141,6 +173,7 @@ mod crop {
 
 #[cfg(test)]
 mod diff {
+    use super::*;
     use crate::common::*;
 
     #[test]
@@ -174,6 +207,7 @@ mod diff {
 
 #[cfg(test)]
 mod filter3x3 {
+    use super::*;
     use crate::common::*;
 
     #[test]
@@ -215,6 +249,7 @@ mod filter3x3 {
 
 #[cfg(test)]
 mod fliph {
+    use super::*;
     use crate::common::*;
 
     #[test]
@@ -228,6 +263,7 @@ mod fliph {
 
 #[cfg(test)]
 mod flipv {
+    use super::*;
     use crate::common::*;
 
     #[test]
@@ -241,6 +277,7 @@ mod flipv {
 
 #[cfg(test)]
 mod grayscale {
+    use super::*;
     use crate::common::*;
 
     #[test]
@@ -254,6 +291,7 @@ mod grayscale {
 
 #[cfg(test)]
 mod hue_rotate {
+    use super::*;
     use crate::common::*;
 
     #[test]
@@ -275,6 +313,7 @@ mod hue_rotate {
 
 #[cfg(test)]
 mod invert {
+    use super::*;
     use crate::common::*;
 
     #[test]
@@ -288,6 +327,7 @@ mod invert {
 
 #[cfg(test)]
 mod resize {
+    use super::*;
     use crate::common::*;
 
     #[test]
@@ -309,6 +349,7 @@ mod resize {
 
 #[cfg(test)]
 mod rotate90 {
+    use super::*;
     use crate::common::*;
 
     #[test]
@@ -322,6 +363,7 @@ mod rotate90 {
 
 #[cfg(test)]
 mod rotate180 {
+    use super::*;
     use crate::common::*;
 
     #[test]
@@ -335,6 +377,7 @@ mod rotate180 {
 
 #[cfg(test)]
 mod rotate270 {
+    use super::*;
     use crate::common::*;
 
     #[test]
@@ -348,6 +391,7 @@ mod rotate270 {
 
 #[cfg(test)]
 mod unsharpen {
+    use super::*;
     use crate::common::*;
 
     #[test]
@@ -369,6 +413,7 @@ mod unsharpen {
 
 #[cfg(test)]
 mod mixed {
+    use super::*;
     use crate::common::*;
 
     #[test]
@@ -392,6 +437,7 @@ mod mixed {
              --rotate270 \
              --unsharpen 1.5 1",
         );
+
         let result = process.wait();
         assert!(result.is_ok());
         assert!(result.unwrap().success());
