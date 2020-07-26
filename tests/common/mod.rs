@@ -1,12 +1,11 @@
-use std::collections::VecDeque;
 use std::ffi::{OsStr, OsString};
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct SicTestCommandBuilder {
     commands: Vec<OsString>,
-    features: VecDeque<&'static str>,
+    features: Vec<&'static str>,
 }
 
 impl SicTestCommandBuilder {
@@ -14,12 +13,12 @@ impl SicTestCommandBuilder {
     pub fn new() -> Self {
         SicTestCommandBuilder {
             commands: Vec::with_capacity(128),
-            features: VecDeque::new(),
+            features: Vec::new(),
         }
     }
 
     pub fn with_feature(mut self, feature: &'static str) -> Self {
-        self.features.push_back(feature);
+        self.features.push(feature);
         self
     }
 
@@ -88,12 +87,12 @@ impl SicTestCommandBuilder {
         self
     }
 
-    pub fn spawn_child(mut self) -> Child {
+    pub fn spawn_child(self) -> Child {
         let mut command = Command::new("cargo");
         command.arg("run");
 
         if !self.features.is_empty() {
-            self.features.push_front("--features");
+            command.arg("--features");
             command.args(&self.features);
         }
 
@@ -106,7 +105,10 @@ impl SicTestCommandBuilder {
             .stderr(Stdio::piped())
             .spawn()
             .map_err(|err| {
-                eprintln!("spawn child error for SicTestCommandBuilder: {:?}", command);
+                eprintln!(
+                    "Spawn child error for SicTestCommandBuilder:\nCommand: {:?}",
+                    command
+                );
                 err
             })
             .expect("Unable to spawn child process for SicTestCommandBuilder instance")
