@@ -1,17 +1,19 @@
 use std::collections::VecDeque;
-use std::ffi::OsStr;
+use std::ffi::{OsStr, OsString};
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 
+#[derive(Debug)]
 pub struct SicTestCommandBuilder {
-    command: Command,
+    commands: Vec<OsString>,
     features: VecDeque<&'static str>,
 }
 
 impl SicTestCommandBuilder {
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         SicTestCommandBuilder {
-            command: Command::new("sic"),
+            commands: Vec::with_capacity(128),
             features: VecDeque::new(),
         }
     }
@@ -21,101 +23,107 @@ impl SicTestCommandBuilder {
         self
     }
 
-    pub fn finalize_cargo_options(mut self) -> Self {
-        if !self.features.is_empty() {
-            self.features.push_front("--features");
-            self.command.args(&self.features);
-        }
-
-        self.command.arg("--");
+    pub fn input<S: Into<OsString>>(mut self, path: S) -> Self {
+        self.commands.push("--input".into());
+        self.commands.push(path.into());
         self
     }
 
-    pub fn input(mut self, path: &str) -> Self {
-        self.command.args(&["--input", path]);
+    pub fn input_from_resources<S: AsRef<OsStr>>(mut self, path: S) -> Self {
+        let path = Self::with_resources_path(path.as_ref());
+
+        self.commands.push("--input".into());
+        self.commands.push(path);
         self
     }
 
-    pub fn input_from_resources(mut self, path: &str) -> Self {
-        let path = &Self::with_resources_path(path);
-
-        self.command.args(&["--input", path]);
+    pub fn glob_input<S: Into<OsString>>(mut self, pattern: S) -> Self {
+        self.commands.push("--glob-input".into());
+        self.commands.push(pattern.into());
         self
     }
 
-    pub fn glob_input(mut self, pattern: &str) -> Self {
-        self.command.args(&["--glob-input", pattern]);
+    pub fn glob_input_from_resources<S: AsRef<OsStr>>(mut self, path: S) -> Self {
+        let path = Self::with_resources_path(path.as_ref());
+
+        self.commands.push("--glob-input".into());
+        self.commands.push(path);
         self
     }
 
-    pub fn glob_input_from_resources(mut self, path: &str) -> Self {
-        let path = &Self::with_resources_path(path);
-
-        self.command.args(&["--glob-input", path]);
+    pub fn output<S: Into<OsString>>(mut self, path: S) -> Self {
+        self.commands.push("--output".into());
+        self.commands.push(path.into());
         self
     }
 
-    pub fn output(mut self, path: &str) -> Self {
-        self.command.args(&["--output", path]);
+    pub fn output_in_target<S: AsRef<OsStr>>(mut self, path: S) -> Self {
+        let path = Self::with_target_path(path.as_ref());
+
+        self.commands.push("--output".into());
+        self.commands.push(path);
         self
     }
 
-    pub fn output_in_target(mut self, path: &str) -> Self {
-        let path = &Self::with_target_path(path);
-
-        self.command.args(&["--output", path]);
+    pub fn glob_output<S: Into<OsString>>(mut self, path: S) -> Self {
+        self.commands.push("--glob-output".into());
+        self.commands.push(path.into());
         self
     }
 
-    pub fn glob_output(mut self, path: &str) -> Self {
-        self.command.args(&["--glob-output", path]);
-        self
-    }
+    pub fn glob_output_in_target<S: AsRef<OsStr>>(mut self, path: S) -> Self {
+        let path = Self::with_target_path(path.as_ref());
 
-    pub fn glob_output_in_target(mut self, path: &str) -> Self {
-        let path = &Self::with_target_path(path);
-
-        self.command.args(&["--glob-output", path]);
+        self.commands.push("--glob-output".into());
+        self.commands.push(path);
         self
     }
 
     pub fn with_args<I, S>(mut self, args: I) -> Self
     where
         I: IntoIterator<Item = S>,
-        S: AsRef<OsStr>,
+        S: Into<OsString>,
     {
-        self.command.args(args);
+        self.commands.extend(args.into_iter().map(|s| s.into()));
         self
     }
 
     pub fn spawn_child(mut self) -> Child {
-        self.command
+        let mut command = Command::new("cargo");
+        command.arg("run");
+
+        if !self.features.is_empty() {
+            self.features.push_front("--features");
+            command.args(&self.features);
+        }
+
+        command.arg("--");
+
+        command.args(self.commands);
+
+        command
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()
             .map_err(|err| {
-                eprintln!(
-                    "spawn child error for SicTestCommandBuilder: {:?}, {:?}",
-                    &self.command,
-                    std::env::current_dir()
-                );
+                eprintln!("spawn child error for SicTestCommandBuilder: {:?}", command);
                 err
             })
             .expect("Unable to spawn child process for SicTestCommandBuilder instance")
     }
 
-    fn with_resources_path(path: &str) -> String {
-        setup_input_path(path)
+    fn with_resources_path(path: &OsStr) -> OsString {
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("resources")
+            .join(path)
             .into_os_string()
-            .into_string()
-            .expect("Unable to create test case with resources path")
     }
 
-    fn with_target_path(path: &str) -> String {
-        setup_output_path(path)
+    fn with_target_path(path: &OsStr) -> OsString {
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("target")
+            .join(path)
             .into_os_string()
-            .into_string()
-            .expect("Unable to create test case with target path")
     }
 }
 
