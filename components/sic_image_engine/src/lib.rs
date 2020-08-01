@@ -24,6 +24,7 @@ pub enum ImgOp {
     GrayScale,
     HueRotate(i32),
     Invert,
+    Overlay(ImageFromPath, (u32, u32)),
     Resize((u32, u32)),
     Rotate90,
     Rotate180,
