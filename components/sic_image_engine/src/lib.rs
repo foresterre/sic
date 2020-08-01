@@ -6,6 +6,7 @@ extern crate strum_macros;
 #[cfg(feature = "imageproc-ops")]
 use crate::wrapper::draw_text_inner::DrawTextInner;
 use crate::wrapper::image_path::ImageFromPath;
+use crate::wrapper::overlay::OverlayInputs;
 
 pub mod engine;
 pub mod errors;
@@ -24,7 +25,7 @@ pub enum ImgOp {
     GrayScale,
     HueRotate(i32),
     Invert,
-    Overlay(ImageFromPath, (u32, u32)),
+    Overlay(OverlayInputs),
     Resize((u32, u32)),
     Rotate90,
     Rotate180,

@@ -9,6 +9,7 @@ use sic_image_engine::engine::{EnvItem, Instr, ItemName};
 use sic_image_engine::wrapper::draw_text_inner::DrawTextInner;
 use sic_image_engine::wrapper::filter_type::FilterTypeWrap;
 use sic_image_engine::wrapper::image_path::ImageFromPath;
+use sic_image_engine::wrapper::overlay::OverlayInputs;
 use sic_image_engine::ImgOp;
 
 // This function parses statements provided as a single 'script' to an image operations program.
@@ -41,6 +42,7 @@ pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Vec<Instr>, SicP
             Rule::grayscale => Ok(Instr::Operation(ImgOp::GrayScale)),
             Rule::huerotate => HueRotate(pair),
             Rule::invert => Ok(Instr::Operation(ImgOp::Invert)),
+            Rule::overlay => parse_overlay(pair),
             Rule::resize => Resize(pair),
             Rule::rotate90 => Ok(Instr::Operation(ImgOp::Rotate90)),
             Rule::rotate180 => Ok(Instr::Operation(ImgOp::Rotate180)),
@@ -138,6 +140,28 @@ fn parse_unset_environment(pair: Pair<'_, Rule>) -> Result<Instr, SicParserError
     };
 
     Ok(Instr::EnvRemove(environment_item))
+}
+
+fn parse_overlay(pair: Pair<'_, Rule>) -> Result<Instr, SicParserError> {
+    let mut pairs = pair.into_inner();
+
+    let image_path = parse_primitive_from_pair!(
+        pairs.next().ok_or_else(|| SicParserError::NoInnerString)?,
+        ImageFromPath
+    )?;
+
+    let x = pairs
+        .next()
+        .ok_or_else(|| SicParserError::ExpectedValue("uint".to_string()))?;
+    let y = pairs
+        .next()
+        .ok_or_else(|| SicParserError::ExpectedValue("uint".to_string()))?;
+
+    let position: (u32, u32) = ParseInputsFromIter::parse(&[x.as_str(), y.as_str()])?;
+
+    Ok(Instr::Operation(ImgOp::Overlay(OverlayInputs::new(
+        image_path, position,
+    ))))
 }
 
 #[cfg(feature = "imageproc-ops")]
@@ -800,6 +824,58 @@ mod tests {
             vec![Instr::Operation(ImgOp::Invert)],
             parse_image_operations(pairs).unwrap()
         );
+    }
+
+    #[cfg(test)]
+    mod overlay_test {
+        use super::*;
+
+        ide!();
+
+        #[parameterized(
+            input = {
+                "overlay \"/my/path/input.jpg\" 0 0;",
+                "overlay \"/my/path/input.jpg\" 10 5;",
+                "overlay \"input.jpg\" 0 0;",
+                "overlay \"C:/Users/Some Name/input.jpg\" 0 0;",
+                "overlay \"C:\\Users\\Some Name\\input.jpg\" 0 0;",
+                "overlay '/my/path/input.jpg' 0 0;",
+                "overlay 'input.jpg' 0 0;",
+                "overlay 'C:/Users/Some Name/input.jpg' 0 0;",
+                "overlay 'C:\\Users\\Some Name\\input.jpg' 0 0;",
+            },
+            expected_ops = {
+                vec![Instr::Operation(ImgOp::Overlay(OverlayInputs::new(ImageFromPath::new("/my/path/input.jpg".into()), (0, 0))))],
+                vec![Instr::Operation(ImgOp::Overlay(OverlayInputs::new(ImageFromPath::new("/my/path/input.jpg".into()), (10, 5))))],
+                vec![Instr::Operation(ImgOp::Overlay(OverlayInputs::new(ImageFromPath::new("input.jpg".into()), (0, 0))))],
+                vec![Instr::Operation(ImgOp::Overlay(OverlayInputs::new(ImageFromPath::new("C:/Users/Some Name/input.jpg".into()), (0, 0))))],
+                vec![Instr::Operation(ImgOp::Overlay(OverlayInputs::new(ImageFromPath::new("C:\\Users\\Some Name\\input.jpg".into()), (0, 0))))],
+                vec![Instr::Operation(ImgOp::Overlay(OverlayInputs::new(ImageFromPath::new("/my/path/input.jpg".into()), (0, 0))))],
+                vec![Instr::Operation(ImgOp::Overlay(OverlayInputs::new(ImageFromPath::new("input.jpg".into()), (0, 0))))],
+                vec![Instr::Operation(ImgOp::Overlay(OverlayInputs::new(ImageFromPath::new("C:/Users/Some Name/input.jpg".into()), (0, 0))))],
+                vec![Instr::Operation(ImgOp::Overlay(OverlayInputs::new(ImageFromPath::new("C:\\Users\\Some Name\\input.jpg".into()), (0, 0))))],
+            }
+        )]
+        fn test_overlay_ok(input: &str, expected_ops: Vec<Instr>) {
+            let pairs = SICParser::parse(Rule::main, input)
+                .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+
+            assert_eq!(parse_image_operations(pairs).unwrap(), expected_ops);
+        }
+
+        #[parameterized(
+            input = {
+                "overlay \"/my/path/input.jpg\"",
+                "overlay '/my/path/input.jpg' (0, 0);",
+                "overlay '/my/path/input.jpg' 0, 0;",
+                "overlay '/my/path/input.jpg' -1 0;",
+                "overlay '/my/path/input.jpg' 0 -1;",
+            }
+        )]
+        fn test_overlay_err(input: &str) {
+            let pairs = SICParser::parse(Rule::main, input);
+            assert!(pairs.is_err());
+        }
     }
 
     #[test]
