@@ -2,7 +2,7 @@ use std::cmp::max;
 use std::collections::HashMap;
 use std::hash::Hash;
 
-use sic_core::image::imageops::FilterType;
+use sic_core::image::imageops::{self, FilterType};
 use sic_core::image::{DynamicImage, GenericImageView, ImageBuffer, Rgba};
 
 use crate::errors::SicImageEngineError;
@@ -189,6 +189,12 @@ impl ImageEngine {
             }
             ImgOp::Invert => {
                 self.image.invert();
+                Ok(())
+            }
+            ImgOp::Overlay(img, pos) => {
+                let overlay_image = img.open_image()?;
+                imageops::overlay(&mut *self.image, &overlay_image, pos.0, pos.1);
+
                 Ok(())
             }
             ImgOp::Resize((new_x, new_y)) => {
@@ -1161,6 +1167,77 @@ mod tests {
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
         output_test_image_for_manual_inspection(&result_img, out_!("test_invert.png"));
+    }
+
+    mod overlay {
+        use super::*;
+
+        #[test]
+        fn overlay_with_self_at_origin() {
+            let img = setup_default_test_image();
+            let overlay = sic_testing::in_!("unsplash_763569_cropped.jpg");
+
+            let mut engine = ImageEngine::new(img.clone());
+            let res = engine.ignite(&[Instr::Operation(ImgOp::Overlay(
+                ImageFromPath::new(overlay.into()),
+                (0, 0),
+            ))]);
+
+            let res_image = res.unwrap();
+            assert_eq!(img.raw_pixels(), res_image.raw_pixels());
+
+            output_test_image_for_manual_inspection(
+                &res_image,
+                out_!("test_overlay_self_origin.png"),
+            );
+        }
+
+        #[test]
+        fn overlay_with_self_outside_bounds() {
+            let img = setup_default_test_image();
+            let bounds = img.dimensions();
+
+            let overlay = sic_testing::in_!("unsplash_763569_cropped.jpg");
+
+            let mut engine = ImageEngine::new(img.clone());
+            let res = engine.ignite(&[Instr::Operation(ImgOp::Overlay(
+                ImageFromPath::new(overlay.into()),
+                (bounds.0, bounds.1),
+            ))]);
+
+            let res_image = res.unwrap();
+            assert_eq!(img.raw_pixels(), res_image.raw_pixels());
+
+            output_test_image_for_manual_inspection(
+                &res_image,
+                out_!("test_overlay_self_bounds.png"),
+            );
+        }
+
+        #[test]
+        fn overlay_with_self_se_quarter() {
+            let img = setup_default_test_image();
+            let bounds = img.dimensions();
+
+            let overlay = sic_testing::in_!("unsplash_763569_cropped.jpg");
+
+            let mut engine = ImageEngine::new(img.clone());
+            let res = engine.ignite(&[
+                Instr::Operation(ImgOp::Invert),
+                Instr::Operation(ImgOp::Overlay(
+                    ImageFromPath::new(overlay.into()),
+                    (bounds.0 / 2, bounds.1 / 2),
+                )),
+            ]);
+
+            let res_image = res.unwrap();
+            assert_ne!(img.raw_pixels(), res_image.raw_pixels());
+
+            output_test_image_for_manual_inspection(
+                &res_image,
+                out_!("test_overlay_self_se_quarter.png"),
+            );
+        }
     }
 
     #[test]
