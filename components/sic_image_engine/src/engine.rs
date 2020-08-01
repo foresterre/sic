@@ -191,8 +191,9 @@ impl ImageEngine {
                 self.image.invert();
                 Ok(())
             }
-            ImgOp::Overlay(img, pos) => {
-                let overlay_image = img.open_image()?;
+            ImgOp::Overlay(overlay) => {
+                let overlay_image = overlay.image_path().open_image()?;
+                let pos = overlay.position();
                 imageops::overlay(&mut *self.image, &overlay_image, pos.0, pos.1);
 
                 Ok(())
@@ -1171,6 +1172,7 @@ mod tests {
 
     mod overlay {
         use super::*;
+        use crate::wrapper::overlay::OverlayInputs;
 
         #[test]
         fn overlay_with_self_at_origin() {
@@ -1178,10 +1180,10 @@ mod tests {
             let overlay = sic_testing::in_!("unsplash_763569_cropped.jpg");
 
             let mut engine = ImageEngine::new(img.clone());
-            let res = engine.ignite(&[Instr::Operation(ImgOp::Overlay(
+            let res = engine.ignite(&[Instr::Operation(ImgOp::Overlay(OverlayInputs::new(
                 ImageFromPath::new(overlay.into()),
                 (0, 0),
-            ))]);
+            )))]);
 
             let res_image = res.unwrap();
             assert_eq!(img.raw_pixels(), res_image.raw_pixels());
@@ -1200,10 +1202,10 @@ mod tests {
             let overlay = sic_testing::in_!("unsplash_763569_cropped.jpg");
 
             let mut engine = ImageEngine::new(img.clone());
-            let res = engine.ignite(&[Instr::Operation(ImgOp::Overlay(
+            let res = engine.ignite(&[Instr::Operation(ImgOp::Overlay(OverlayInputs::new(
                 ImageFromPath::new(overlay.into()),
                 (bounds.0, bounds.1),
-            ))]);
+            )))]);
 
             let res_image = res.unwrap();
             assert_eq!(img.raw_pixels(), res_image.raw_pixels());
@@ -1224,10 +1226,10 @@ mod tests {
             let mut engine = ImageEngine::new(img.clone());
             let res = engine.ignite(&[
                 Instr::Operation(ImgOp::Invert),
-                Instr::Operation(ImgOp::Overlay(
+                Instr::Operation(ImgOp::Overlay(OverlayInputs::new(
                     ImageFromPath::new(overlay.into()),
                     (bounds.0 / 2, bounds.1 / 2),
-                )),
+                ))),
             ]);
 
             let res_image = res.unwrap();

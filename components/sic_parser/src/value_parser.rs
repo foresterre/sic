@@ -6,6 +6,7 @@ use std::path::PathBuf;
 
 #[cfg(feature = "imageproc-ops")]
 use sic_image_engine::wrapper::draw_text_inner::DrawTextInner;
+use sic_image_engine::wrapper::overlay::OverlayInputs;
 
 /// The value parser module has a goal to parse image operation inputs.
 
@@ -65,9 +66,11 @@ macro_rules! parse_next {
 }
 
 macro_rules! return_if_complete {
-    ($iter:expr, $ok_value:expr, $err_msg:expr) => {
+    ($iter:expr, $ok_value:expr) => {
         if $iter.next().is_some() {
-            Err(SicParserError::ValueParsingError($err_msg.to_string()))
+            Err(SicParserError::ValueParsingError(
+                too_many_arguments_err_msg().to_string(),
+            ))
         } else {
             Ok($ok_value)
         }
@@ -88,7 +91,7 @@ macro_rules! define_parse_single_input {
                 let mut iter = iterable.into_iter();
                 let value = parse_next!(iter, $ty, $err_msg);
 
-                return_if_complete!(iter, value, $err_msg)
+                return_if_complete!(iter, value)
             }
         }
     };
@@ -98,6 +101,10 @@ define_parse_single_input!(f32, "Unable to map a value to f32. v2");
 define_parse_single_input!(i32, "Unable to map a value to i32. v2");
 define_parse_single_input!(u32, "Unable to map a value to u32. v2");
 define_parse_single_input!(bool, "Unable to map a value to bool. v2");
+
+const fn too_many_arguments_err_msg() -> &'static str {
+    "Too many arguments found for image operation"
+}
 
 // FIXME(foresterre): define macros for generic tuples and array (i.e. define_parse_multi!((u32, u32));
 //                    we can combine the parse_single_input and parse_multi_input as well.
@@ -122,7 +129,7 @@ impl ParseInputsFromIter for (u32, u32, u32, u32) {
             parse_next!(iter, u32, ERR_MSG),
         );
 
-        return_if_complete!(iter, res, ERR_MSG)
+        return_if_complete!(iter, res)
     }
 }
 
@@ -154,7 +161,7 @@ impl ParseInputsFromIter for [f32; 9] {
             parse_next!(iter, f32, ERR_MSG),
         ];
 
-        return_if_complete!(iter, res, ERR_MSG)
+        return_if_complete!(iter, res)
     }
 }
 
@@ -176,7 +183,7 @@ impl ParseInputsFromIter for (u32, u32) {
             parse_next!(iter, u32, ERR_MSG),
         );
 
-        return_if_complete!(iter, res, ERR_MSG)
+        return_if_complete!(iter, res)
     }
 }
 
@@ -198,7 +205,7 @@ impl ParseInputsFromIter for (f32, i32) {
             parse_next!(iter, i32, ERR_MSG),
         );
 
-        return_if_complete!(iter, res, ERR_MSG)
+        return_if_complete!(iter, res)
     }
 }
 
@@ -219,7 +226,7 @@ impl ParseInputsFromIter for String {
             .ok_or_else(|| SicParserError::ValueParsingError(ERR_MSG.to_string()))?
             .into();
 
-        return_if_complete!(iter, String::from(res.0), ERR_MSG)
+        return_if_complete!(iter, String::from(res.0))
     }
 }
 
@@ -234,23 +241,40 @@ impl ParseInputsFromIter for ImageFromPath {
     {
         let mut iter = iterable.into_iter();
 
-        let err_msg_no_such_element = || "A path was expected but none was found.".to_string();
-        let err_msg_invalid_path =
-            || "Unable to construct a valid path for the current platform.".to_string();
+        let path = parse_to_path_buf(iter.next().map(Into::<Describable>::into))?;
 
-        let path = iter
-            .next()
-            .map(Into::<Describable>::into)
-            .ok_or_else(|| SicParserError::ValueParsingError(err_msg_no_such_element()))
-            .and_then(|v: Describable| {
-                PathBuf::try_from(v.0)
-                    .map_err(|_| SicParserError::ValueParsingError(err_msg_invalid_path()))
-            })?;
+        return_if_complete!(iter, ImageFromPath::new(path))
+    }
+}
 
-        let err_msg_too_many_elements =
-            || "Too many arguments found: a single path was expected".to_string();
+impl ParseInputsFromIter for OverlayInputs {
+    type Error = SicParserError;
 
-        return_if_complete!(iter, ImageFromPath::new(path), err_msg_too_many_elements())
+    fn parse<'a, T>(iterable: T) -> Result<Self, Self::Error>
+    where
+        T: IntoIterator,
+        T::Item: Into<Describable<'a>> + std::fmt::Debug,
+        Self: std::marker::Sized,
+    {
+        let mut iter = iterable.into_iter();
+        let image_path = parse_to_path_buf(iter.next().map(Into::<Describable>::into))?;
+
+        let position: (u32, u32) = (
+            parse_next!(
+                iter,
+                u32,
+                "x-axis position value for overlay should be a natural number"
+            ),
+            parse_next!(
+                iter,
+                u32,
+                "y-axis position value for overlay should be a natural number"
+            ),
+        );
+
+        let overlay_inputs = OverlayInputs::new(ImageFromPath::new(image_path), position);
+
+        return_if_complete!(iter, overlay_inputs)
     }
 }
 
@@ -276,11 +300,21 @@ impl ParseInputsFromIter for FilterTypeWrap {
                 FilterTypeWrap::try_from_str(v.0).map_err(SicParserError::FilterTypeError)
             })?;
 
-        let err_msg_too_many_elements =
-            || "Too many arguments found: a single filter type was expected".to_string();
-
-        return_if_complete!(iter, filter_type, err_msg_too_many_elements())
+        return_if_complete!(iter, filter_type)
     }
+}
+
+fn parse_to_path_buf(value: Option<Describable>) -> Result<PathBuf, SicParserError> {
+    let err_msg_no_such_element = || "A path was expected but none was found.".to_string();
+    let err_msg_invalid_path =
+        || "Unable to construct a valid path for the current platform.".to_string();
+
+    value
+        .ok_or_else(|| SicParserError::ValueParsingError(err_msg_no_such_element()))
+        .and_then(|v: Describable| {
+            PathBuf::try_from(v.0)
+                .map_err(|_| SicParserError::ValueParsingError(err_msg_invalid_path()))
+        })
 }
 
 #[cfg(feature = "imageproc-ops")]
@@ -298,7 +332,6 @@ impl ParseInputsFromIter for DrawTextInner {
         use sic_image_engine::wrapper::font_options::{FontOptions, FontScale};
 
         let mut iter = iterable.into_iter();
-        const ERR_MSG: &str = "Unable to parse draw-text arguments";
 
         let text = iter
             .next()
@@ -329,7 +362,7 @@ impl ParseInputsFromIter for DrawTextInner {
             ),
         );
 
-        return_if_complete!(iter, res, ERR_MSG)
+        return_if_complete!(iter, res)
     }
 }
 

@@ -326,6 +326,30 @@ mod invert {
 }
 
 #[cfg(test)]
+mod overlay {
+    use super::*;
+    use crate::common::*;
+
+    #[test]
+    fn overlay() {
+        let mut process = command(
+            DEFAULT_IN,
+            "cio_overlay.png",
+            &[
+                "--overlay",
+                setup_input_path("3x2_wbaaba.png").to_str().unwrap(),
+                "0",
+                "0",
+            ]
+            .join(" "),
+        );
+        let result = process.wait();
+        assert!(result.is_ok());
+        assert!(result.unwrap().success());
+    }
+}
+
+#[cfg(test)]
 mod resize {
     use super::*;
     use crate::common::*;

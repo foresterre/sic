@@ -44,6 +44,7 @@ flip_vertical = { ^"flip-vertical"  }
 grayscale = { ^"grayscale" }
 huerotate = ${ ^"hue-rotate" ~ WHITESPACE ~ int }
 invert = { ^"invert" }
+overlay = ${ ^"overlay" ~ WHITESPACE ~ string_unicode ~ WHITESPACE ~ uint ~ WHITESPACE ~ uint }
 resize = ${ ^"resize" ~ WHITESPACE ~ uint ~ WHITESPACE ~ uint }
 rotate90 = { ^"rotate90" }
 rotate180 = { ^"rotate180" }
@@ -84,6 +85,7 @@ operation = _{
     | grayscale
     | huerotate
     | invert
+    | overlay
     | resize
     | rotate90
     | rotate180

@@ -3,6 +3,7 @@ use crate::TResult;
 use sic_image_engine::engine::{EnvItem, Instr};
 use sic_image_engine::wrapper::filter_type::FilterTypeWrap;
 use sic_image_engine::wrapper::image_path::ImageFromPath;
+use sic_image_engine::wrapper::overlay::OverlayInputs;
 use sic_image_engine::ImgOp;
 use sic_parser::errors::SicParserError;
 use sic_parser::value_parser::{Describable, ParseInputsFromIter};
@@ -31,6 +32,7 @@ pub enum OperationId {
     Grayscale,
     HueRotate,
     Invert,
+    Overlay,
     Resize,
     Rotate90,
     Rotate180,
@@ -76,6 +78,7 @@ impl OperationId {
             OperationId::Grayscale => 0,
             OperationId::HueRotate => 1,
             OperationId::Invert => 0,
+            OperationId::Overlay => 3,
             OperationId::Resize => 2,
             OperationId::Rotate90 => 0,
             OperationId::Rotate180 => 0,
@@ -140,6 +143,10 @@ impl OperationId {
                 Instr::Operation(ImgOp::HueRotate(parse_inputs_by_type!(inputs, i32)?))
             }
             OperationId::Invert => Instr::Operation(ImgOp::Invert),
+            OperationId::Overlay => Instr::Operation(ImgOp::Overlay(parse_inputs_by_type!(
+                inputs,
+                OverlayInputs
+            )?)),
             OperationId::Resize => {
                 Instr::Operation(ImgOp::Resize(parse_inputs_by_type!(inputs, (u32, u32))?))
             }
