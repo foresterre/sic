@@ -6,7 +6,8 @@ use sic::cli::config::InputOutputMode;
 use sic::cli::license::LicenseTexts;
 use sic::cli::pipeline::{run_display_licenses, run_with_devices};
 
-const LICENSE_SELF: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/LICENSE",));
+const LICENSE_SELF: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/LICENSE-MIT"));
+
 const LICENSE_DEPS: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/compressed_dep_licenses"));
 
 const ABOUT: &str = include_str!("../resources/help-pages/about.txt");

@@ -25,7 +25,7 @@ pub(crate) trait PrintTextFor {
 impl PrintTextFor for SelectedLicenses {
     fn print(&self, texts: &LicenseTexts) -> anyhow::Result<()> {
         let print_for_this_software = || {
-            println!("sic image tools license:\n\n{}\n\n", texts.this_software);
+            println!("sic image tools license:\n\n{}", texts.this_software);
 
             Ok(())
         };
