@@ -39,7 +39,7 @@ atty = "0.2.14"
 clap = "2.32.0"
 inflate = "0.4.5"
 globwalk = "0.8.0"
-strum = "0.18.0"
+strum = "0.19.1"
 
 [dev-dependencies]
 sic_core = { version = "0.12.0", path = "components/sic_core" }
