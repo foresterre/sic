@@ -12,7 +12,7 @@ sic_core = { version = "0.12.0", path = "../sic_core" }
 sic_io = { version = "0.12.0", path = "../sic_io" }
 
 strum = "0.19.1"
-strum_macros = "0.18.0"
+strum_macros = "0.19.1"
 thiserror = "1.0.20"
 
 imageproc = { version = "0.21.0", optional = true }
