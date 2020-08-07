@@ -29,6 +29,7 @@ Supported operations:
 |gray scale         | `grayscale`                       | 0.7.0                  |
 |hue rotate         | `hue-rotate <int>`                | 0.7.0                  |
 |invert             | `invert`                          | 0.7.0                  |
+|overlay            | `overlay <path>   <uint> <uint>`  | 0.14.0 	             |
 |resize             | `resize <uint> <uint>`            | 0.5.0                  |
 |rotate90           | `rotate90`                        | 0.7.0                  |
 |rotate180          | `rotate180`                       | 0.7.0                  |
