@@ -1,3 +1,5 @@
+#![deny(clippy::all)]
+
 use crate::commit::create_git;
 use crate::publish_crate::create_publisher;
 use crate::update_dependents::create_dependent_updater;
@@ -6,7 +8,6 @@ use anyhow::Context;
 use guppy::graph::{DependencyDirection, PackageGraph, PackageLink, PackageMetadata};
 use guppy::MetadataCommand;
 use std::collections::{HashMap, HashSet};
-use std::ffi::OsString;
 use std::fmt::{Debug, Formatter};
 use std::hash::Hash;
 

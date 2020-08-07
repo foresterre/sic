@@ -301,8 +301,6 @@ impl<'a> ConfigBuilder<'a> {
 pub enum SelectedLicenses {
     ThisSoftware,
     Dependencies,
-    // not optimal for combinations, but is that actually necessary?
-    ThisSoftwarePlusDependencies,
 }
 
 #[derive(Debug, Clone)]
