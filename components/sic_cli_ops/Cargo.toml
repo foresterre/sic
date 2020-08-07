@@ -12,7 +12,7 @@ sic_image_engine = { version = "0.14.0", path = "../../components/sic_image_engi
 sic_parser = { version = "0.14.0", path = "../../components/sic_parser" }
 
 clap = "2.33.0"
-strum = "0.19.1"
+strum = "0.19.2"
 strum_macros = "0.19.2"
 thiserror = "1.0.20"
 
