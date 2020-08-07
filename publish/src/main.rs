@@ -23,22 +23,7 @@ struct Args {
     version: String,
 }
 
-// TODO to resolve:
-//  * error: failed to select a version for the requirement `sic_core = "^0.12.0"`
-//   candidate versions found which didn't match: 0.13.0
-//   location searched: \sic\components\sic_core
-//      required by package `sic_cli_ops v0.12.0 (\sic\components\sic_cli_ops)`
-//
-// TODO:
-//  * Copy to test repo so we can actually test against crates.io instead of doing dry-runs
-//
-// TODO:
-//  * resolve build graph for packages in workspace starting with name sic [x]
-//  * run script for each crate in order consisting of:
-//      * increment #version
-//      * commit
-//      * `cargo publish (--dry-run)`
-//      * set requirement of dependent crates to new #version
+// TODO
 //  * run post publish crate
 //      * set all versions to next -pre (e.g. 0.1.0-pre) at once
 //      * commit
@@ -53,7 +38,7 @@ fn main() -> anyhow::Result<()> {
         dry_run: args.contains("--dry-run"),
         manifest: args
             .opt_value_from_str("--manifest")?
-            .unwrap_or("Cargo.toml".into()),
+            .unwrap_or_else(|| "Cargo.toml".into()),
         version: args
             .opt_value_from_str("--new-version")?
             .with_context(|| "--new-version is required")?,
@@ -168,8 +153,12 @@ fn publish_packages<'g>(
         let manifest_updater = create_manifest_updater(dry_run, component);
         manifest_updater.update_dependency_version(new_version)?;
 
+        // FIXME{workaround}: accept any version locally before we update the package
+        let dependents_updater = create_dependent_updater(dry_run, dependents_db);
+        dependents_updater.update_all(component, "*")?;
+
         // publish changes
-        let mut publisher = create_publisher(/*dry_run todo*/ true, component)?;
+        let mut publisher = create_publisher(dry_run, component)?;
         publisher.publish()?;
 
         // update dependents to new version
@@ -177,7 +166,7 @@ fn publish_packages<'g>(
         dependents_updater.update_all(component, new_version)?;
 
         // commit changes
-        let mut command = create_git(/*dry_run todo*/ true, crate_folder);
+        let mut command = create_git(dry_run, crate_folder);
         command.commit_package(component.name(), new_version);
         command.run()?;
     }

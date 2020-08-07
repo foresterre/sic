@@ -32,7 +32,8 @@ impl RegularRunGit {
 impl GitCommit for RegularRunGit {
     fn commit_package(&mut self, pkg_name: &str, version: &str) {
         let message = commit_message(pkg_name, version);
-        self.command.args(&["commit", "-m", &message]);
+        self.command
+            .args(&["commit", "-m", &message, "--only", "--", "Cargo.*"]);
     }
 
     fn run(&mut self) -> anyhow::Result<()> {
@@ -74,11 +75,31 @@ impl GitCommit for DryRunGit {
         );
 
         let message = commit_message(pkg_name, version);
-        self.command.args(&["commit", "--dry-run", "-m", &message]);
+        self.command.args(&[
+            "commit",
+            "--dry-run",
+            "-m",
+            &message,
+            "--only",
+            "--",
+            "Cargo.*",
+        ]);
     }
 
     fn run(&mut self) -> anyhow::Result<()> {
         println!("git commit: executing git command");
+
+        let child_process = self.command.spawn()?;
+        let result = child_process.wait_with_output()?;
+
+        anyhow::ensure!(
+            result.status.success(),
+            format!(
+                "Git command failed with stdout: {} and stderr: {}",
+                String::from_utf8_lossy(&result.stdout),
+                String::from_utf8_lossy(&result.stderr)
+            )
+        );
 
         Ok(())
     }
