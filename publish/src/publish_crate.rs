@@ -61,11 +61,7 @@ struct PublishImpl<'g> {
 impl<'g> PublishImpl<'g> {
     pub(crate) fn try_new(pkg: PackageMetadata<'g>, dry_run: bool) -> anyhow::Result<Self> {
         let mut command = Command::new("cargo");
-        command.args(&[
-            "publish",
-            "--allow-dirty",
-            /* TODO remove */ "--no-verify",
-        ]);
+        command.args(&["publish", "--allow-dirty"]);
 
         if dry_run {
             command.arg("--dry-run");
