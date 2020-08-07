@@ -14,7 +14,7 @@ fn main() {
     let text = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/thanks",
-        "/dependency_licenses.txt"
+        "/licenses.html"
     ));
 
     let mut encoder = DeflateEncoder::new(file, Compression::default());

@@ -35,7 +35,10 @@ impl PrintTextFor for SelectedLicenses {
                 .map_err(|err| anyhow!("Unable to uncompress license text {}", err))?;
             let text = std::str::from_utf8(&inflated).map_err(|err| anyhow!("{}", err))?;
 
-            println!("{}", text);
+            let path = std::env::temp_dir().join("dep-licenses.html");
+            std::fs::write(&path, text)?;
+
+            open::that(&path)?;
 
             Ok(())
         };
@@ -43,9 +46,6 @@ impl PrintTextFor for SelectedLicenses {
         match self {
             SelectedLicenses::ThisSoftware => print_for_this_software(),
             SelectedLicenses::Dependencies => print_for_dependencies(),
-            SelectedLicenses::ThisSoftwarePlusDependencies => {
-                print_for_this_software().and_then(|_| print_for_dependencies())
-            }
         }
     }
 }

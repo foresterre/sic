@@ -348,28 +348,20 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> anyhow::Result<Config<'a
     let mut builder = ConfigBuilder::new();
 
     // organisational/licenses:
-    let texts_requested = (
-        matches.is_present(ARG_LICENSE),
-        matches.is_present(ARG_DEP_LICENSES),
-    );
 
-    let is_show_license = match texts_requested {
-        (true, false) => {
-            builder = builder.show_license_text_of(SelectedLicenses::ThisSoftware);
-            Some(())
-        }
-        (false, true) => {
-            builder = builder.show_license_text_of(SelectedLicenses::Dependencies);
-            Some(())
-        }
-        (true, true) => {
-            builder = builder.show_license_text_of(SelectedLicenses::ThisSoftwarePlusDependencies);
-            Some(())
-        }
-        (false, false) => None,
+    let show_license = if matches.is_present(ARG_LICENSE) {
+        builder = builder.show_license_text_of(SelectedLicenses::ThisSoftware);
+
+        Some(())
+    } else if matches.is_present(ARG_DEP_LICENSES) {
+        builder = builder.show_license_text_of(SelectedLicenses::Dependencies);
+
+        Some(())
+    } else {
+        None
     };
 
-    if is_show_license.is_some() {
+    if show_license.is_some() {
         return Ok(builder.build());
     }
 
