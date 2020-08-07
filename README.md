@@ -111,6 +111,7 @@ If we use the _cli operations_ method the previously shown example becomes: <br>
 |gray scale         | `grayscale`                               | 0.7.0 	  | Transform each pixel to only hold an intensity of light value. Reduces the color space to contain only gray monochromatic values.|
 |hue rotate         | `hue-rotate <int>`                        | 0.7.0 	  | Rotate's the hue, argument is in degrees. Rotates `<int>%360` degrees. |
 |invert             | `invert`                                  | 0.7.0 	  | Invert the colours of an image. |
+|overlay            | `overlay <path> <uint> <uint>`            | 0.14.0 	  | Overlay an image loaded from the provided argument path over the input image (at a certain position). |
 |resize             | `resize <uint> <uint>`                    | 0.5.0 	  | Resize the image to x by y pixels. Can both up- and downscale. Uses a `lanczos3` sampling filter unless overridden. Prior to sic v0.11, the default sampling filter was `gaussian`. |
 | >                 | `set preserve-aspect-ratio <bool>`        | 0.9.0       | Enables preservation of the aspect ratio when resizing. |
 | >                 | `set sampling-filter <value>`             | 0.9.0       | When resizing use the `<value>` sampling filter. Choices are `catmullrom`, `gaussian`,`lanczos3`,`nearest`,`triangle`. |
@@ -215,6 +216,11 @@ or <br>
 `sic -i in.png -o out.png --apply-operations "invert"` <br>
 or <br>
 `sic -i in.png -o out.png --invert`
+
+**overlay** example: <br>
+`sic -i in.png -o out.png --apply-operations "overlay 'image.png' 10 10"` <br>
+or <br>
+`sic -i in.png -o out.png --overlay "image.png" 10 10`
 
 **resize** example: <br>
 `sic -i in.png -o out.png --apply-operations "resize 100 100"` <br>
