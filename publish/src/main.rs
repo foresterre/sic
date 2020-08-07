@@ -19,7 +19,7 @@ pub(crate) mod update_manifest;
 #[derive(Clone, Debug)]
 struct Args {
     dry_run: bool,
-    manifest: OsString,
+    manifest: String,
     version: String,
 }
 
@@ -38,7 +38,7 @@ fn main() -> anyhow::Result<()> {
         dry_run: args.contains("--dry-run"),
         manifest: args
             .opt_value_from_str("--manifest")?
-            .unwrap_or_else(|| "Cargo.toml".into()),
+            .unwrap_or_else(|| "Cargo.toml".to_string()),
         version: args
             .opt_value_from_str("--new-version")?
             .with_context(|| "--new-version is required")?,
