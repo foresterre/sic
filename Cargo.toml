@@ -37,14 +37,14 @@ sic_parser = { version = "0.14.0", path = "components/sic_parser"}
 
 anyhow = "1.0.32"
 atty = "0.2.14"
-clap = "2.32.0"
+clap = "2.33.3"
 inflate = "0.4.5"
 globwalk = "0.8.0"
 open = "1.4.0"
 strum = "0.19.2"
 
 [dev-dependencies]
-clap = "2.33.0" # for examples/gen_completions.rs
+clap = "2.33.3" # for examples/gen_completions.rs
 parameterized = "0.2.0"
 
 [build-dependencies]
