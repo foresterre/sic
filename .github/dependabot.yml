@@ -1,0 +1,14 @@
+version: 2
+updates:
+- package-ecosystem: cargo
+  directory: "/"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+  reviewers:
+  - foresterre
+  labels:
+  - C-dependency-update
+  allow:
+  - dependency-type: direct
+  - dependency-type: indirect
