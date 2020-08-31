@@ -8,4 +8,4 @@ license = "MIT"
 repository = "https://github.com/foresterre/sic"
 
 [dependencies]
-image = "0.23.8"
+image = "0.23.9"
