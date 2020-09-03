@@ -13,3 +13,21 @@ allow = [
     "Unlicense",
     "Zlib",
 ]
+
+[advisories]
+vulnerability = "deny"
+unmaintained = "deny"
+notice = "deny"
+
+ignore = [
+    # imageproc depends on rulinalg 0.4.2 and has a known vulnerability and is not maintained.
+    # We can't replace it ourselves however (patched versions aren't allowed on crates.io without forking, which
+    # would mean we would have to maintain both a rulinalg and imageproc fork). The author of this project doesn't have
+    # the bandwidth to maintain those, but offered to help imageproc where it can. That is for now
+    # unfortunately the most we can do.
+    # Searching the for invocation of the API in imageproc shows that imageproc at least doesn't directly call the vulnerable code.
+    # It may however indirectly be called by some other library or internally by rulinalg (we haven't checked the complete graph
+    # for usages).
+    # For now, we will wait for imageproc (issue: https://github.com/image-rs/imageproc/issues/426)
+    "RUSTSEC-2020-0023",
+]
