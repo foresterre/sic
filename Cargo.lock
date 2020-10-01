@@ -215,7 +215,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "flate2"
-version = "1.0.17"
+version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "cfg-if 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -786,7 +786,7 @@ dependencies = [
  "anyhow 1.0.32 (registry+https://github.com/rust-lang/crates.io-index)",
  "atty 0.2.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.33.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "flate2 1.0.17 (registry+https://github.com/rust-lang/crates.io-index)",
+ "flate2 1.0.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "globwalk 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "inflate 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "open 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1053,7 +1053,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum digest 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)" = "f3d0c8c8752312f9713efd397ff63acb9f85585afbf179282e720e7704954dd5"
 "checksum either 1.6.1 (registry+https://github.com/rust-lang/crates.io-index)" = "e78d4f1cc4ae33bbfc157ed5d5a5ef3bc29227303d595861deb238fcec4e9457"
 "checksum fake-simd 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "e88a8acf291dafb59c2d96e8f59828f3838bb1a70398823ade51a84de6a6deed"
-"checksum flate2 1.0.17 (registry+https://github.com/rust-lang/crates.io-index)" = "766d0e77a2c1502169d4a93ff3b8c15a71fd946cd0126309752104e5f3c46d94"
+"checksum flate2 1.0.18 (registry+https://github.com/rust-lang/crates.io-index)" = "da80be589a72651dcda34d8b35bcdc9b7254ad06325611074d9cc0fbb19f60ee"
 "checksum fnv 1.0.7 (registry+https://github.com/rust-lang/crates.io-index)" = "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1"
 "checksum generic-array 0.12.3 (registry+https://github.com/rust-lang/crates.io-index)" = "c68f0274ae0e023facc3c97b2e00f076be70e254bc851d972503b328db79b2ec"
 "checksum getrandom 0.1.15 (registry+https://github.com/rust-lang/crates.io-index)" = "fc587bc0ec293155d5bfa6b9891ec18a1e330c234f896ea47fbada4cadbe47e6"
