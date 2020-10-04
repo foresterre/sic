@@ -149,7 +149,7 @@ fn create_format_decider(
     io_device: &PathVariant,
     config: &Config,
 ) -> anyhow::Result<image::ImageOutputFormat> {
-    let encoding_format_determiner = DetermineEncodingFormat {
+    let format_resolver = DetermineEncodingFormat {
         pnm_sample_encoding: if config.encoding_settings.pnm_use_ascii_format {
             Some(image::pnm::SampleEncoding::Ascii)
         } else {
@@ -163,15 +163,13 @@ fn create_format_decider(
     };
 
     let format = match &config.forced_output_format {
-        Some(format) => encoding_format_determiner
-            .by_identifier(format)
-            .fallback_if(
-                config.encoding_settings.image_output_format_fallback,
-                guess_output_by_identifier,
-                format,
-            )?,
+        Some(format) => format_resolver.by_identifier(format).fallback_if(
+            config.encoding_settings.image_output_format_fallback,
+            guess_output_by_identifier,
+            format,
+        )?,
         None => match io_device {
-            PathVariant::Path(out) => encoding_format_determiner.by_extension(out).fallback_if(
+            PathVariant::Path(out) => format_resolver.by_extension(out).fallback_if(
                 config.encoding_settings.image_output_format_fallback,
                 guess_output_by_path,
                 out,
