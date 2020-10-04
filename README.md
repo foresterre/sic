@@ -22,12 +22,13 @@ Pre build binary: see [releases](https://github.com/foresterre/sic/releases).
 
 From the source:
 - Setup rust and cargo (for example using [rustup](https://rustup.rs/)) <br> 
-  Current [MSRV](https://github.com/foresterre/cargo-msrv): 1.35 (edition 2018 is required);
-  we aim to always develop against the latest stable release.
 - Clone this repo: `git clone https://github.com/foresterre/sic.git`
 - Switch to this repo: `cd sic`
 - Build a release: `cargo build --release`
 
+**MSRV when building from source:**
+
+Expects development against the latest Rust stable version, but may work on older versions.
 
 ### Usage
 
