@@ -8,11 +8,4 @@ license = "MIT"
 repository = "https://github.com/foresterre/sic"
 
 [dependencies]
-#image = { version = "0.23.10", features = ["avif"] }
-# FIXME / HACK: Our exporter requires ImageOutputFormat to be defined for a serializable format
-#   As of image: 0.23.10 this is not the case, but AVIF support (which is implemented by the image crate)
-#   for sic requires it. We could work around it in our code, but it would require quite a refactor, or
-#   an even dirtier hack than this temporary one. This hack makes it no longer possible for us to publish
-#   to crates.io however. So, next time we prior to making a release, we have to verify whether we do need to work around
-#   this issue or not. PR which would fix it is located at: https://github.com/image-rs/image/pull/1320
-image = { git = "https://github.com/foresterre/image.git", branch = "foresterre/fix/av1-image-output-format", features = ["avif"] }
+image = { version = "0.23.10", features = ["avif"] }
