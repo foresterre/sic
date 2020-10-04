@@ -9,6 +9,7 @@ on:
   push:
     branches:
       - master
+      - main
   schedule:
     - cron: '00 01 * * *'
 jobs:
@@ -121,7 +122,14 @@ jobs:
   cargo_deny:
     name: pipeline_cargo_deny
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        checks:
+          - advisories
+          - bans licenses sources
+
+    continue-on-error: ${{ matrix.checks == 'advisories' }}
     steps:
       - uses: actions/checkout@v2
-      - uses: EmbarkStudios/cargo-deny-action@v0
+      - uses: EmbarkStudios/cargo-deny-action@v1
 
