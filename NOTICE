@@ -1,8 +1,32 @@
-### License
+sic license
+===========
 
-Licensed under the MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+sic is licensed under either of
 
+* Apache License, Version 2.0, (/LICENSE-APACHE or http://www.apache.org/licenses/LICENSE-2.0)
+* MIT license (/LICENSE-MIT or http://opensource.org/licenses/MIT)
 
-#### Contribution
+at your option, unless explicitly stated otherwise, in this file or elsewhere within the project.
 
-Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, shall be licensed as above, without any additional terms or conditions.
+Canonical source code repository: https://github.com/foresterre/sic
+
+Exceptions:
+-----------
+
+Contributions prior to October 4, 2020 are licensed:
+* Dual licensed as above, when contributed by Martijn Gribnau <garm@ilumeo.com>
+* Licensed under the MIT license when contributed by other sic contributors
+
+Other exceptions (these are not part of sic, but noted here for clarity):
+* Some sample images in /resources are licensed under the Unsplash license (https://unsplash.com/license)
+* The Lato-Regular font, found at /resources/font is licensed under the SIL OPEN FONT LICENSE Version 1.1 (http://scripts.sil.org/OFL)
+
+Contribution
+============
+
+Unless you explicitly state otherwise, any contribution intentionally
+submitted for inclusion in the work by you, as defined in the Apache-2.0
+license, shall be dual licensed as above, without any additional terms or
+conditions.
+
+This project will not accept patches unless dual licensed as above.
