@@ -173,7 +173,7 @@ pub fn create_app(
             .long("output-format")
             .value_name("FORMAT")
             .help("Force the output image format to use FORMAT, regardless of the (if any) extension of the given output file path. \
-                      Output formats (FORMAT values) supported: BMP, GIF, ICO, JPEG, PNG, PBM, PGM, PPM and PAM.")
+                      Output formats (FORMAT values) supported: AVIF, BMP, Farbfeld, GIF, ICO, JPEG, PNG, PAM, PBM, PGM, and PPM.")
             .takes_value(true))
 
         .arg(Arg::with_name(ARG_JPEG_ENCODING_QUALITY)
