@@ -110,6 +110,7 @@ impl EncodingFormatByIdentifier for DetermineEncodingFormat {
             "ppm" => Ok(image::ImageOutputFormat::Pnm(
                 image::pnm::PNMSubtype::Pixmap(self.pnm_encoding_type()?),
             )),
+            "tga" => Ok(image::ImageOutputFormat::Tga),
             _ => Err(SicIoError::UnknownImageIdentifier(identifier.to_string())),
         }
     }
@@ -149,7 +150,7 @@ mod tests {
 
     const INPUT_FORMATS: &[&str] = &[
         //"avif",
-        "bmp", "farbfeld", "gif", "ico", "jpg", "jpeg", "png", "pbm", "pgm", "ppm", "pam",
+        "bmp", "farbfeld", "gif", "ico", "jpg", "jpeg", "png", "pbm", "pgm", "ppm", "pam", "tga",
     ];
 
     const EXPECTED_VALUES: &[image::ImageOutputFormat] = &[
@@ -171,6 +172,7 @@ mod tests {
             image::pnm::SampleEncoding::Binary,
         )),
         image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::ArbitraryMap),
+        image::ImageOutputFormat::Tga,
     ];
 
     fn setup_default_format_determiner() -> DetermineEncodingFormat {
