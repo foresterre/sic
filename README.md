@@ -26,6 +26,20 @@ From the source:
 - Switch to this repo: `cd sic`
 - Build a release: `cargo build --release`
 
+🍺 Homebrew on MacOS:
+
+```shell
+brew tap tgotwig/sic
+brew install tgotwig/sic/sic
+```
+
+🍺 Homebrew on Linux:
+
+```shell
+brew tap tgotwig/linux-sic
+brew install tgotwig/linux-sic/sic
+```
+
 **MSRV when building from source:**
 
 Expects development against the latest Rust stable version, but may work on older versions.
