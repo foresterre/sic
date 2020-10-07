@@ -976,7 +976,7 @@ dependencies = [
  "sic_parser 0.14.0",
  "sic_testing 0.14.0",
  "strum 0.19.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "strum_macros 0.19.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "strum_macros 0.19.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "thiserror 1.0.20 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -997,7 +997,7 @@ dependencies = [
  "sic_io 0.14.0",
  "sic_testing 0.14.0",
  "strum 0.19.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "strum_macros 0.19.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "strum_macros 0.19.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "thiserror 1.0.20 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -1052,7 +1052,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "strum_macros"
-version = "0.19.2"
+version = "0.19.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "heck 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1349,7 +1349,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum simd_helpers 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "95890f873bec569a0362c235787f3aca6e1e887302ba4840839bcc6459c42da6"
 "checksum strsim 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)" = "8ea5119cdb4c55b55d432abb513a0429384878c15dde60cc77b1c99de1a95a6a"
 "checksum strum 0.19.2 (registry+https://github.com/rust-lang/crates.io-index)" = "3924a58d165da3b7b2922c667ab0673c7b5fd52b5c19ea3442747bcb3cd15abe"
-"checksum strum_macros 0.19.2 (registry+https://github.com/rust-lang/crates.io-index)" = "2d2ab682ecdcae7f5f45ae85cd7c1e6c8e68ea42c8a612d47fedf831c037146a"
+"checksum strum_macros 0.19.4 (registry+https://github.com/rust-lang/crates.io-index)" = "e61bb0be289045cb80bfce000512e32d09f8337e54c186725da381377ad1f8d5"
 "checksum syn 1.0.42 (registry+https://github.com/rust-lang/crates.io-index)" = "9c51d92969d209b54a98397e1b91c8ae82d8c87a7bb87df0b29aa2ad81454228"
 "checksum textwrap 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)" = "d326610f408c7a4eb6f51c37c330e496b08506c9457c9d34287ecc38809fb060"
 "checksum thiserror 1.0.20 (registry+https://github.com/rust-lang/crates.io-index)" = "7dfdd070ccd8ccb78f4ad66bf1982dc37f620ef696c6b5028fe2ed83dd3d0d08"
