@@ -1,0 +1,10 @@
+// This is the V2 grammar for sic. The original grammar was purpose driven and only parsed the sic script mode inputs.
+// That is, if sic was used with `sic -i .. -o .. --apply-operations "<my operations script>"`. The second way to apply
+// image operations is to use the "cli ops" method, where operations are provided through a cli interface. An example
+// could be `sic -i .. -o .. --blur 0.75 --draw-text "my text" "coord(10, 2)" "rgba(255, 0, 0, 255)" "size(14)" "font('Lato-Regular.ttf')"`.
+//
+// The goal of this grammar is to:
+// * Unify parsing (so parse both cli ops and script with a single parser)
+// * Be generic (i.e. don't include specific operations within the grammar)
+
+module = { "Hello World!" }

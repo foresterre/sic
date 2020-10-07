@@ -19,8 +19,8 @@ categories = ["multimedia::images", "command-line-utilities"]
 
 [workspace]
 members = [
-  "components/sic_cli_ops",
   "components/sic_core",
+  "components/sic_duo",
   "components/sic_image_engine",
   "components/sic_io",
   "components/sic_parser",
@@ -28,8 +28,8 @@ members = [
 ]
 
 [dependencies]
-sic_cli_ops = { version = "0.14.0", path = "components/sic_cli_ops" }
 sic_core = { version = "0.14.0", path = "components/sic_core" }
+sic_duo = { version = "0.0.0", path = "components/sic_duo" }
 sic_io  = { version = "0.14.0", path = "components/sic_io" }
 sic_image_engine = { version = "0.14.0", path = "components/sic_image_engine" }
 sic_parser = { version = "0.14.0", path = "components/sic_parser"}
@@ -41,6 +41,7 @@ inflate = "0.4.5"
 globwalk = "0.8.0"
 open = "1.4.0"
 strum = "0.19.5"
+strum_macros = "0.19.4"
 
 [dev-dependencies]
 clap = "2.33.3" # for examples/gen_completions.rs
@@ -50,7 +51,7 @@ parameterized = "0.2.0"
 flate2 = "1.0.18"
 
 [features]
-imageproc-ops = ["sic_cli_ops/imageproc-ops", "sic_image_engine/imageproc-ops", "sic_parser/imageproc-ops"]
+imageproc-ops = ["sic_image_engine/imageproc-ops", "sic_parser/imageproc-ops"]
 
 output-test-images = []
 

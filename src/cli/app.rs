@@ -1,14 +1,14 @@
+use crate::cli::args::OperationId;
 use crate::cli::config::{
     validate_jpeg_quality, Config, ConfigBuilder, InputOutputModeType, SelectedLicenses,
 };
 use anyhow::{anyhow, bail};
 use arg_names::*;
 use clap::{App, AppSettings, Arg, ArgGroup, ArgMatches};
-use sic_cli_ops::create_image_ops;
-use sic_cli_ops::operations::OperationId;
 use sic_io::load::FrameIndex;
 use std::path::Path;
 use std::str::FromStr;
+use strum::AsStaticRef;
 use strum::VariantNames;
 
 macro_rules! define_arg_consts {
@@ -213,108 +213,108 @@ pub fn create_app(
             .args(&OperationId::VARIANTS)
             .conflicts_with(ARG_APPLY_OPERATIONS)
             .multiple(true))
-        .arg(Arg::with_name(OperationId::Blur.as_str())
+        .arg(Arg::with_name(OperationId::Blur.as_static())
             .help("Operation: perform a gaussian blur on the input image")
-            .long(OperationId::Blur.as_str())
+            .long(OperationId::Blur.as_static())
             .takes_value(true)
             .value_name("fp")
             .number_of_values(1)
             .multiple(true)
             .allow_hyphen_values(true))
-        .arg(Arg::with_name(OperationId::Brighten.as_str())
+        .arg(Arg::with_name(OperationId::Brighten.as_static())
             .help("Operation: increase or decrease the brightness of the input image")
-            .long(OperationId::Brighten.as_str())
+            .long(OperationId::Brighten.as_static())
             .takes_value(true)
             .value_name("int")
             .number_of_values(1)
             .multiple(true)
             .allow_hyphen_values(true))
-        .arg(Arg::with_name(OperationId::Contrast.as_str())
+        .arg(Arg::with_name(OperationId::Contrast.as_static())
             .help("Operation: increase or decrease the contrast of the input image")
-            .long(OperationId::Contrast.as_str())
+            .long(OperationId::Contrast.as_static())
             .takes_value(true)
             .value_name("fp")
             .number_of_values(1)
             .multiple(true)
             .allow_hyphen_values(true))
-        .arg(Arg::with_name(OperationId::Crop.as_str())
+        .arg(Arg::with_name(OperationId::Crop.as_static())
             .help("Operation: crop the input image to a bounding rectangle ranging from top-left (lx, ly) to bottom-right (rx, ry) coordinates")
-            .long(OperationId::Crop.as_str())
+            .long(OperationId::Crop.as_static())
             .takes_value(true)
             .value_names(&["lx", "ly", "rx", "ry"])
             .number_of_values(4)
             .multiple(true))
-        .arg(Arg::with_name(OperationId::Diff.as_str())
+        .arg(Arg::with_name(OperationId::Diff.as_static())
             .help("Operation: show ")
-            .long(OperationId::Diff.as_str())
+            .long(OperationId::Diff.as_static())
             .takes_value(true)
             .value_name("path to image")
             .number_of_values(1)
             .multiple(true))
 
-        .arg(Arg::with_name(OperationId::Filter3x3.as_str())
+        .arg(Arg::with_name(OperationId::Filter3x3.as_static())
             .help("Operation: apply a 3x3 convolution filter to the input image (matrix arguments should be given left-to-right, top-to-bottom)")
-            .long(OperationId::Filter3x3.as_str())
+            .long(OperationId::Filter3x3.as_static())
             .takes_value(true)
             .value_names(&["fp", "fp", "fp", "fp", "fp", "fp", "fp", "fp", "fp"])
             .number_of_values(9)
             .multiple(true)
             .allow_hyphen_values(true))
-        .arg(Arg::with_name(OperationId::FlipHorizontal.as_str())
+        .arg(Arg::with_name(OperationId::FlipHorizontal.as_static())
             .help("Operation: flip the input image horizontally")
-            .long(OperationId::FlipHorizontal.as_str())
+            .long(OperationId::FlipHorizontal.as_static())
             .multiple(true))
-        .arg(Arg::with_name(OperationId::FlipVertical.as_str())
+        .arg(Arg::with_name(OperationId::FlipVertical.as_static())
             .help("Operation: flip the input image vertically")
-            .long(OperationId::FlipVertical.as_str())
+            .long(OperationId::FlipVertical.as_static())
             .multiple(true))
-        .arg(Arg::with_name(OperationId::Grayscale.as_str())
+        .arg(Arg::with_name(OperationId::Grayscale.as_static())
             .help("Operation: discard the chrominance signal from the input image, so it becomes achromatic")
             .long_help("Note that (depending on the provided settings flags), the processed image may still be stored in a format which encodes its chrominance")
-            .long(OperationId::Grayscale.as_str())
+            .long(OperationId::Grayscale.as_static())
             .multiple(true))
-        .arg(Arg::with_name(OperationId::HueRotate.as_str())
+        .arg(Arg::with_name(OperationId::HueRotate.as_static())
             .help("Operation: rotate the hue for each pixel of the input image by a provided degree")
             .long_help("Range is 0-360 degrees, any other value will be mapped to that range by rotation")
-            .long(OperationId::HueRotate.as_str())
+            .long(OperationId::HueRotate.as_static())
             .takes_value(true)
             .value_name("int")
             .number_of_values(1)
             .multiple(true)
             .allow_hyphen_values(true))
-        .arg(Arg::with_name(OperationId::Invert.as_str())
+        .arg(Arg::with_name(OperationId::Invert.as_static())
             .help("Operation: invert the each pixel of the input image ")
-            .long(OperationId::Invert.as_str())
+            .long(OperationId::Invert.as_static())
             .multiple(true))
-        .arg(Arg::with_name(OperationId::Overlay.as_str())
+        .arg(Arg::with_name(OperationId::Overlay.as_static())
             .help("Operation: overlay an image loaded from the provided path argument, over the input image (at a certain position)")
-            .long(OperationId::Overlay.as_str())
+            .long(OperationId::Overlay.as_static())
             .value_names(&["overlay image path", "x", "y"])
             .takes_value(true)
             .number_of_values(3)
             .multiple(true))
-        .arg(Arg::with_name(OperationId::Resize.as_str())
+        .arg(Arg::with_name(OperationId::Resize.as_static())
             .help("Operation: resize the input image to x by y pixels")
-            .long(OperationId::Resize.as_str())
+            .long(OperationId::Resize.as_static())
             .takes_value(true)
             .value_names(&["x", "y"])
             .number_of_values(2)
             .multiple(true))
-        .arg(Arg::with_name(OperationId::Rotate90.as_str())
+        .arg(Arg::with_name(OperationId::Rotate90.as_static())
             .help("Operation: rotate the input image by 90 degrees")
-            .long(OperationId::Rotate90.as_str())
+            .long(OperationId::Rotate90.as_static())
             .multiple(true))
-        .arg(Arg::with_name(OperationId::Rotate180.as_str())
+        .arg(Arg::with_name(OperationId::Rotate180.as_static())
             .help("Operation: rotate the input image by 180 degrees")
-            .long(OperationId::Rotate180.as_str())
+            .long(OperationId::Rotate180.as_static())
             .multiple(true))
-        .arg(Arg::with_name(OperationId::Rotate270.as_str())
+        .arg(Arg::with_name(OperationId::Rotate270.as_static())
             .help("Operation: rotate the input image by 270 degrees")
-            .long(OperationId::Rotate270.as_str())
+            .long(OperationId::Rotate270.as_static())
             .multiple(true))
-        .arg(Arg::with_name(OperationId::Unsharpen.as_str())
+        .arg(Arg::with_name(OperationId::Unsharpen.as_static())
             .help("Operation: sharpen an image by combining an unsharp (blurred) mask of the input image with the (original) input image, sharpening for pixels where the difference is bigger than the provided threshold")
-            .long(OperationId::Unsharpen.as_str())
+            .long(OperationId::Unsharpen.as_static())
             .takes_value(true)
             .value_names(&["blur amount","threshold"])
             .number_of_values(2)
@@ -322,18 +322,18 @@ pub fn create_app(
             .allow_hyphen_values(true))
 
         // image-operations(cli-arguments/modifiers):
-        .arg(Arg::with_name(OperationId::PreserveAspectRatio.as_str())
+        .arg(Arg::with_name(OperationId::PreserveAspectRatio.as_static())
             .help("Operation modifier for 'resize': preserve the aspect ratio of the original input image")
-            .long(OperationId::PreserveAspectRatio.as_str())
+            .long(OperationId::PreserveAspectRatio.as_static())
             .takes_value(true)
             .value_name("bool")
             .number_of_values(1)
             .multiple(true)
             .possible_values(&["true", "false"])
         )
-        .arg(Arg::with_name(OperationId::SamplingFilter.as_str())
+        .arg(Arg::with_name(OperationId::SamplingFilter.as_static())
             .help("Operation modifier for 'resize': resize the image using a specific sampling-filter")
-            .long(OperationId::SamplingFilter.as_str())
+            .long(OperationId::SamplingFilter.as_static())
             .takes_value(true)
             .value_name("sampling filter")
             .number_of_values(1)
@@ -344,7 +344,7 @@ pub fn create_app(
 
 // Here any argument should not panic when invalid.
 // Previously, it was allowed to panic within Config, but this is no longer the case.
-pub fn build_app_config<'a>(matches: &'a ArgMatches) -> anyhow::Result<Config<'a>> {
+pub fn build_app_config<'input>(matches: &'input ArgMatches) -> anyhow::Result<Config<'input>> {
     let mut builder = ConfigBuilder::new();
 
     // organisational/licenses:
@@ -453,7 +453,7 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> anyhow::Result<Config<'a
             .map_err(|err| anyhow::anyhow!("unable to read script file: {}", err))?;
         sic_parser::parse_script(&contents)?
     } else {
-        create_image_ops(std::env::args())?
+        unreachable!();
     };
 
     builder = builder.image_operations_program(program);
