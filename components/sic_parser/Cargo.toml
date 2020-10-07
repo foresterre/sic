@@ -4,7 +4,7 @@ version = "0.14.0"
 authors = ["Martijn Gribnau <garm@ilumeo.com>"]
 description = "Component of the sic cli: parser for the image operation script used by sic."
 edition = "2018"
-license = "MIT"
+license = "MIT OR Apache-2.0"
 repository = "https://github.com/foresterre/sic"
 
 [dependencies]
