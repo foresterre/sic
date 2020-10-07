@@ -13,7 +13,7 @@ sic_parser = { version = "0.14.0", path = "../../components/sic_parser" }
 
 clap = "2.33.3"
 strum = "0.19.2"
-strum_macros = "0.19.2"
+strum_macros = "0.19.4"
 thiserror = "1.0.20"
 
 [dev-dependencies]
