@@ -11,7 +11,7 @@ repository = "https://github.com/foresterre/sic"
 sic_core = { version = "0.14.0", path = "../sic_core" }
 sic_io = { version = "0.14.0", path = "../sic_io" }
 
-strum = "0.19.2"
+strum = "0.19.5"
 strum_macros = "0.19.4"
 thiserror = "1.0.20"
 
