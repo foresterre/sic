@@ -78,7 +78,7 @@ jobs:
         run: sudo apt install alien && wget $NASM_LINUX && sudo alien -i $NASM_RPM
       - name: install_nasm_macos
         if: matrix.build == 'macos'
-        run: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)" && brew install nasm
+        run: ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" < /dev/null 2> /dev/null && brew install nasm
 
       - name: build_workspace_crates
         uses: actions-rs/cargo@v1
