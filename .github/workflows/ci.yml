@@ -17,10 +17,12 @@ env:
   NASM_RPM: 'nasm-2.15.05-0.fc31.x86_64.rpm'
   NASM_MACOS: 'https://www.nasm.us/pub/nasm/releasebuilds/2.15.05/macosx/nasm-2.15.05-macosx.zip'
   NASM_MACLOC: 'nasm-2.15.05'
+  CI: 1
 jobs:
   test:
     name: pipeline_run_tests
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.build == 'macos' }}
     strategy:
       matrix:
         build: [pinned, stable, beta, nightly, macos, win-gnu, win-msvc]
@@ -76,7 +78,7 @@ jobs:
         run: sudo apt install alien && wget $NASM_LINUX && sudo alien -i $NASM_RPM
       - name: install_nasm_macos
         if: matrix.build == 'macos'
-        run: sudo /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)" && brew install nasm
+        run: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)" && brew install nasm
 
       - name: build_workspace_crates
         uses: actions-rs/cargo@v1
