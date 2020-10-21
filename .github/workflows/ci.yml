@@ -16,7 +16,7 @@ env:
   NASM_LINUX: 'https://www.nasm.us/pub/nasm/releasebuilds/2.15.05/linux/nasm-2.15.05-0.fc31.x86_64.rpm'
   NASM_RPM: 'nasm-2.15.05-0.fc31.x86_64.rpm'
   NASM_MACOS: 'https://www.nasm.us/pub/nasm/releasebuilds/2.15.05/macosx/nasm-2.15.05-macosx.zip'
-  NASM_MACLOC: 'nasm-2.15.05'
+  NASM_MAC_PATH: 'nasm-2.15.05'
   CI: 1
 jobs:
   test:
@@ -30,7 +30,7 @@ jobs:
           # pinned rust version :: ubuntu
           - build: pinned
             os: ubuntu-18.04
-            rust: 1.43.0
+            rust: 1.45.0
 
           # latest rust stable :: ubuntu
           - build: stable
@@ -78,7 +78,7 @@ jobs:
         run: sudo apt install alien && wget $NASM_LINUX && sudo alien -i $NASM_RPM
       - name: install_nasm_macos
         if: matrix.build == 'macos'
-        run: ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" < /dev/null 2> /dev/null && brew install nasm
+        run: curl -o nasm.zip $NASM_MACOS && unzip nasm.zip && cd $NASM_MAC_PATH && export PATH=`pwd`:$PATH && echo $PATH && nasm --version
 
       - name: build_workspace_crates
         uses: actions-rs/cargo@v1
