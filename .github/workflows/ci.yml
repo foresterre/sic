@@ -12,6 +12,11 @@ on:
       - main
   schedule:
     - cron: '00 01 * * *'
+env:
+  NASM_LINUX: 'https://www.nasm.us/pub/nasm/releasebuilds/2.15.05/linux/nasm-2.15.05-0.fc31.x86_64.rpm'
+  NASM_RPM: 'nasm-2.15.05-0.fc31.x86_64.rpm'
+  NASM_MACOS: 'https://www.nasm.us/pub/nasm/releasebuilds/2.15.05/macosx/nasm-2.15.05-macosx.zip'
+  NASM_MACLOC: 'nasm-2.15.05'
 jobs:
   test:
     name: pipeline_run_tests
@@ -65,6 +70,14 @@ jobs:
           override: true
           profile: minimal
 
+
+      - name: install_nasm_linux
+        if: matrix.build == 'pinned' || matrix.build == 'stable' || matrix.build == 'beta' || matrix.build == 'nightly'
+        run: sudo apt install alien && wget $NASM_LINUX && sudo alien -i $NASM_RPM
+      - name: install_nasm_macos
+        if: matrix.build == 'macos'
+        run: curl $NASM_MACOS -o nasm.zip && unzip nasm.zip && export PATH=~/$NASM_MACLOC:$PATH
+
       - name: build_workspace_crates
         uses: actions-rs/cargo@v1
         with:
@@ -113,6 +126,8 @@ jobs:
           override: true
           profile: minimal
           components: clippy
+      - name: install_nasm
+        run: sudo apt install alien && wget $NASM_LINUX && sudo alien -i $NASM_RPM
       - name: check_with_clippy
         uses: actions-rs/clippy-check@v1
         with:
