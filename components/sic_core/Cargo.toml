@@ -8,4 +8,4 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/foresterre/sic"
 
 [dependencies]
-image = { version = "0.23.10", features = ["avif"] }
+image = { version = "0.23.11", features = ["avif"] }
