@@ -71,7 +71,7 @@ jobs:
 
       - name: install_nasm_linux
         if: matrix.build == 'pinned' || matrix.build == 'stable' || matrix.build == 'beta' || matrix.build == 'nightly'
-        run: sh tasks/install_nasm_linux.sh
+        run: sh tasks/install_nasm_ubuntu.sh
       - name: install_nasm_macos
         if: matrix.build == 'macos'
         run: sh tasks/install_nasm_macos.sh
@@ -125,7 +125,7 @@ jobs:
           profile: minimal
           components: clippy
       - name: install_nasm
-        run: sudo apt install alien && wget $NASM_LINUX && sudo alien -i $NASM_RPM
+        run: sh tasks/install_nasm_ubuntu.sh
       - name: check_with_clippy
         uses: actions-rs/clippy-check@v1
         with:
