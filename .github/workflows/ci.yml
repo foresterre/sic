@@ -96,7 +96,7 @@ jobs:
 
   rustfmt:
     name: pipeline_rustfmt
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -113,7 +113,7 @@ jobs:
 
   clippy:
     name: pipeline_clippy
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - name: checkout_repo
         uses: actions/checkout@v2
