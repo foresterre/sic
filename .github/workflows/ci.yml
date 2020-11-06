@@ -13,10 +13,6 @@ on:
   schedule:
     - cron: '00 01 * * *'
 env:
-  NASM_LINUX: 'https://www.nasm.us/pub/nasm/releasebuilds/2.15.05/linux/nasm-2.15.05-0.fc31.x86_64.rpm'
-  NASM_RPM: 'nasm-2.15.05-0.fc31.x86_64.rpm'
-  NASM_MACOS: 'https://www.nasm.us/pub/nasm/releasebuilds/2.15.05/macosx/nasm-2.15.05-macosx.zip'
-  NASM_MAC_PATH: 'nasm-2.15.05'
   CI: 1
 jobs:
   test:
@@ -75,10 +71,10 @@ jobs:
 
       - name: install_nasm_linux
         if: matrix.build == 'pinned' || matrix.build == 'stable' || matrix.build == 'beta' || matrix.build == 'nightly'
-        run: sudo apt install alien && wget $NASM_LINUX && sudo alien -i $NASM_RPM
+        run: sh tasks/install_nasm_linux.sh
       - name: install_nasm_macos
         if: matrix.build == 'macos'
-        run: curl -o nasm.zip $NASM_MACOS && unzip nasm.zip && cd $NASM_MAC_PATH && export PATH=`pwd`:$PATH && echo $PATH && nasm --version
+        run: sh tasks/install_nasm_macos.sh
 
       - name: build_workspace_crates
         uses: actions-rs/cargo@v1
