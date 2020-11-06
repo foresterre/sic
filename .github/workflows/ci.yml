@@ -12,10 +12,13 @@ on:
       - main
   schedule:
     - cron: '00 01 * * *'
+env:
+  CI: 1
 jobs:
   test:
     name: pipeline_run_tests
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.build == 'macos' }}
     strategy:
       matrix:
         build: [pinned, stable, beta, nightly, macos, win-gnu, win-msvc]
@@ -23,7 +26,7 @@ jobs:
           # pinned rust version :: ubuntu
           - build: pinned
             os: ubuntu-18.04
-            rust: 1.43.0
+            rust: 1.45.0
 
           # latest rust stable :: ubuntu
           - build: stable
@@ -65,6 +68,14 @@ jobs:
           override: true
           profile: minimal
 
+
+      - name: install_nasm_linux
+        if: matrix.build == 'pinned' || matrix.build == 'stable' || matrix.build == 'beta' || matrix.build == 'nightly'
+        run: sh tasks/install_nasm_ubuntu.sh
+      - name: install_nasm_macos
+        if: matrix.build == 'macos'
+        run: sh tasks/install_nasm_macos.sh
+
       - name: build_workspace_crates
         uses: actions-rs/cargo@v1
         with:
@@ -85,7 +96,7 @@ jobs:
 
   rustfmt:
     name: pipeline_rustfmt
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -102,7 +113,7 @@ jobs:
 
   clippy:
     name: pipeline_clippy
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - name: checkout_repo
         uses: actions/checkout@v2
@@ -113,6 +124,8 @@ jobs:
           override: true
           profile: minimal
           components: clippy
+      - name: install_nasm
+        run: sh tasks/install_nasm_ubuntu.sh
       - name: check_with_clippy
         uses: actions-rs/clippy-check@v1
         with:
