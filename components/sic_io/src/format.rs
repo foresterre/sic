@@ -86,12 +86,7 @@ impl EncodingFormatByIdentifier for DetermineEncodingFormat {
     /// Identifiers are based on common output file extensions.
     fn by_identifier(&self, identifier: &str) -> Result<image::ImageOutputFormat, SicIoError> {
         match identifier.to_ascii_lowercase().as_str() {
-            "avif" => {
-                // FIXME: Dirty hack
-                //  - https://github.com/foresterre/sic/issues/597
-                std::env::set_var("SIC_AVIF_HACK", "1");
-                Ok(image::ImageOutputFormat::Farbfeld)
-            }
+            "avif" => Ok(image::ImageOutputFormat::Avif),
             "bmp" => Ok(image::ImageOutputFormat::Bmp),
             "farbfeld" => Ok(image::ImageOutputFormat::Farbfeld),
             "gif" => Ok(image::ImageOutputFormat::Gif),
@@ -149,12 +144,12 @@ mod tests {
     use super::*;
 
     const INPUT_FORMATS: &[&str] = &[
-        //"avif",
-        "bmp", "farbfeld", "gif", "ico", "jpg", "jpeg", "png", "pbm", "pgm", "ppm", "pam", "tga",
+        "avif", "bmp", "farbfeld", "gif", "ico", "jpg", "jpeg", "png", "pbm", "pgm", "ppm", "pam",
+        "tga",
     ];
 
     const EXPECTED_VALUES: &[image::ImageOutputFormat] = &[
-        // image::ImageOutputFormat::Avif,
+        image::ImageOutputFormat::Avif,
         image::ImageOutputFormat::Bmp,
         image::ImageOutputFormat::Farbfeld,
         image::ImageOutputFormat::Gif,
