@@ -2,7 +2,6 @@ use crate::errors::SicIoError;
 use image::buffer::ConvertBuffer;
 use image::DynamicImage;
 use sic_core::image;
-use sic_core::image::GenericImageView;
 use std::io::Write;
 
 #[derive(Clone, Copy, Debug)]
@@ -45,24 +44,7 @@ impl<'a> ConversionWriter<'a> {
             None => &self.image,
         };
 
-        // FIXME remove: https://github.com/foresterre/sic/issues/597
-        if std::env::var("SIC_AVIF_HACK").is_ok() {
-            let avif_encoder = image::avif::AvifEncoder::new(writer);
-            avif_encoder
-                .write_image(
-                    &export_buffer.to_bytes(),
-                    export_buffer.width(),
-                    export_buffer.height(),
-                    export_buffer.color(),
-                )
-                .map_err(SicIoError::ImageError)?;
-
-            std::env::remove_var("SIC_AVIF_HACK");
-
-            Ok(())
-        } else {
-            ConversionWriter::save_to(writer, &export_buffer, output_format)
-        }
+        ConversionWriter::save_to(writer, &export_buffer, output_format)
     }
 
     /// Some image output format types require color type pre-processing.
