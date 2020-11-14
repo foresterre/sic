@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use std::fs::File;
 use std::io;
 use std::io::{Read, Write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::{Command, ExitStatus, Output};
 use zip::write::FileOptions;
 
@@ -46,7 +46,7 @@ fn cargo_build(toolchain: &str) -> Result<(), Box<dyn std::error::Error>> {
     print_output(exit, out.as_ref(), err.as_ref());
 
     // zip output
-    let exe = &output_dir.join("release").join("sic.exe");
+    let exe = exe_path(&output_dir);
     let version = sic_version(&exe)?;
     let zip = format!(
         "{}-{}.zip",
@@ -60,6 +60,18 @@ fn cargo_build(toolchain: &str) -> Result<(), Box<dyn std::error::Error>> {
     let _ = std::fs::remove_dir_all(&output_dir)?;
 
     Ok(())
+}
+
+fn exe_path(output_dir: &Path) -> PathBuf {
+    output_dir.join("release").join(exe_ext())
+}
+
+const fn exe_ext() -> &'static str {
+    if cfg!(target_family = "windows") {
+        "sic.exe"
+    } else {
+        "sic"
+    }
 }
 
 fn sic_version(exe: &Path) -> Result<String, Box<dyn std::error::Error>> {
@@ -85,7 +97,7 @@ fn write_zip(exe: &Path, destination: &Path) -> Result<(), Box<dyn std::error::E
         .compression_method(zip::CompressionMethod::Deflated)
         .unix_permissions(0o755);
 
-    zip.start_file("sic.exe", options)?;
+    zip.start_file(exe_ext(), options)?;
     zip.write_all(&buffer)?;
 
     zip.finish()?;
