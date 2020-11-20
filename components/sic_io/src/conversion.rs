@@ -67,7 +67,7 @@ impl<'a> ConversionWriter<'a> {
         match color_type_adjustment {
             AutomaticColorTypeAdjustment::Enabled => match output_format {
                 image::ImageOutputFormat::Farbfeld => {
-                    Some(DynamicImage::ImageRgba16(image.to_rgba().convert()))
+                    Some(DynamicImage::ImageRgba16(image.to_rgba8().convert()))
                 }
                 image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Bitmap(_)) => {
                     Some(image.grayscale())
@@ -76,7 +76,7 @@ impl<'a> ConversionWriter<'a> {
                     Some(image.grayscale())
                 }
                 image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Pixmap(_)) => {
-                    Some(image::DynamicImage::ImageRgb8(image.to_rgb()))
+                    Some(image::DynamicImage::ImageRgb8(image.to_rgb8()))
                 }
                 _ => None,
             },

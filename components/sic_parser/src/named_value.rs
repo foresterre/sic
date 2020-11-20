@@ -48,9 +48,7 @@ pub fn parse_named_value(pair: Pair<'_, Rule>) -> NVResult<NamedValue> {
     let mut pairs = pair.into_inner();
 
     // identifier
-    let ident = pairs
-        .next()
-        .ok_or_else(|| NamedValueError::IdentifierNotFound)?;
+    let ident = pairs.next().ok_or(NamedValueError::IdentifierNotFound)?;
 
     let ident = match ident.as_rule() {
         Rule::ident => parse_ident(ident.as_str())?,
@@ -71,16 +69,14 @@ impl FromStr for NamedValue {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut inputs = s.splitn(2, '(');
 
-        let ident = inputs
-            .next()
-            .ok_or_else(|| NamedValueError::IdentifierNotFound)?;
+        let ident = inputs.next().ok_or(NamedValueError::IdentifierNotFound)?;
 
         let ident = parse_ident(ident)?;
 
         let arguments = inputs
             .next()
             .and_then(|right_side| right_side.rsplitn(2, ')').last())
-            .ok_or_else(|| NamedValueError::UnableToCreateNamedValueWithArgs(ident))?;
+            .ok_or(NamedValueError::UnableToCreateNamedValueWithArgs(ident))?;
 
         let arguments = arguments
             .split(',')
