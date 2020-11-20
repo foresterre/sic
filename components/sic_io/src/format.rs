@@ -127,15 +127,16 @@ impl Default for DetermineEncodingFormat {
 
 impl EncodingFormatPNMSampleEncoding for DetermineEncodingFormat {
     fn pnm_encoding_type(&self) -> Result<image::pnm::SampleEncoding, SicIoError> {
-        self.pnm_sample_encoding
-            .ok_or_else(|| SicIoError::FormatError(FormatError::PNMSamplingEncodingNotSet))
+        self.pnm_sample_encoding.ok_or(SicIoError::FormatError(
+            FormatError::PNMSamplingEncodingNotSet,
+        ))
     }
 }
 
 impl EncodingFormatJPEGQuality for DetermineEncodingFormat {
     fn jpeg_quality(&self) -> Result<JPEGQuality, SicIoError> {
         self.jpeg_quality
-            .ok_or_else(|| SicIoError::FormatError(FormatError::JPEGQualityLevelNotSet))
+            .ok_or(SicIoError::FormatError(FormatError::JPEGQualityLevelNotSet))
     }
 }
 

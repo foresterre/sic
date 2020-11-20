@@ -34,7 +34,7 @@ pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Vec<Instr>, SicP
             Rule::diff => Diff(
                 pair.into_inner()
                     .next()
-                    .ok_or_else(|| SicParserError::NoInnerString)?,
+                    .ok_or(SicParserError::NoInnerString)?,
             ),
             Rule::filter3x3 => Filter3x3(pair),
             Rule::flip_horizontal => Ok(Instr::Operation(ImgOp::FlipHorizontal)),
@@ -48,15 +48,15 @@ pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Vec<Instr>, SicP
             Rule::rotate180 => Ok(Instr::Operation(ImgOp::Rotate180)),
             Rule::rotate270 => Ok(Instr::Operation(ImgOp::Rotate270)),
             Rule::unsharpen => Unsharpen(pair),
-            Rule::setopt => parse_set_environment(pair.into_inner().next().ok_or_else(|| {
-                SicParserError::OperationError(OperationParamError::SetEnvironment)
-            })?),
-            // this is called 'del' for users
-            Rule::unsetopt => {
-                parse_unset_environment(pair.into_inner().next().ok_or_else(|| {
-                    SicParserError::OperationError(OperationParamError::UnsetEnvironment)
+            Rule::setopt => {
+                parse_set_environment(pair.into_inner().next().ok_or({
+                    SicParserError::OperationError(OperationParamError::SetEnvironment)
                 })?)
             }
+            // this is called 'del' for users
+            Rule::unsetopt => parse_unset_environment(pair.into_inner().next().ok_or({
+                SicParserError::OperationError(OperationParamError::UnsetEnvironment)
+            })?),
 
             #[cfg(feature = "imageproc-ops")]
             Rule::draw_text => Ok(parse_draw_text(pair)?),
@@ -146,7 +146,7 @@ fn parse_overlay(pair: Pair<'_, Rule>) -> Result<Instr, SicParserError> {
     let mut pairs = pair.into_inner();
 
     let image_path = parse_primitive_from_pair!(
-        pairs.next().ok_or_else(|| SicParserError::NoInnerString)?,
+        pairs.next().ok_or(SicParserError::NoInnerString)?,
         ImageFromPath
     )?;
 

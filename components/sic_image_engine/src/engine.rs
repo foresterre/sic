@@ -150,7 +150,7 @@ impl ImageEngine {
                     .map_err(SicImageEngineError::FontFileLoadError)?;
 
                 let font = rusttype::Font::try_from_bytes(&font_file)
-                    .ok_or_else(|| SicImageEngineError::FontError)?;
+                    .ok_or(SicImageEngineError::FontError)?;
 
                 *self.image = DynamicImage::ImageRgba8(imageproc::drawing::draw_text(
                     &mut *self.image,
