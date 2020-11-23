@@ -40,7 +40,7 @@ clap = "2.33.3"
 inflate = "0.4.5"
 globwalk = "0.8.0"
 open = "1.4.0"
-strum = "0.19.5"
+strum = "0.20.0"
 
 [dev-dependencies]
 clap = "2.33.3" # for examples/gen_completions.rs
