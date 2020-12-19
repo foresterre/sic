@@ -1,0 +1,18 @@
+[package]
+name = "publish"
+version = "0.1.0"
+authors = ["Martijn Gribnau <garm@ilumeo.com>"]
+license = "MIT"
+edition = "2018"
+publish = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.32"
+chrono = "0.4.15"
+guppy = "0.5.0"
+pico-args = "0.3.4"
+toml_edit = "0.2.0"
+
+[workspace]
