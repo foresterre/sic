@@ -2,6 +2,12 @@ use anyhow::Context;
 use chrono::Utc;
 use std::path::{Path, PathBuf};
 
+// FIXME:
+//  Eventually, replace this ad-hoc solution with a record-replay in reverse system,
+//  which can reverse steps on an individual level (until the last already published version?)
+//  i.e., currently previous state is recorded in the form of a backup, but has to be "replayed" manually
+//  by replacing the current version with a backed up version.
+
 pub(crate) fn backup_manifest(manifest: &Path) -> anyhow::Result<()> {
     let folder = manifest
         .parent()

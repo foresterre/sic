@@ -1,29 +1,33 @@
 #![deny(clippy::all)]
 
+use std::collections::{HashMap, HashSet};
+
+use anyhow::{Context, Result};
+use clap::Clap;
+use guppy::graph::{PackageGraph, PackageMetadata};
+use guppy::MetadataCommand;
+
 use crate::arguments::CargoPublishWorkspace;
+use crate::combinators::ConditionallyDo;
+use crate::package::PackageWrapper;
 use crate::pipeline::commit::create_git;
 use crate::pipeline::publish_crate::create_publisher;
 use crate::pipeline::update_dependents::create_dependent_updater;
 use crate::pipeline::update_manifest::create_manifest_updater;
-use anyhow::Context;
-use clap::Clap;
-use guppy::graph::{DependencyDirection, PackageGraph, PackageLink, PackageMetadata};
-use guppy::MetadataCommand;
-use std::collections::{HashMap, HashSet};
-use std::fmt::{Debug, Formatter};
-use std::hash::Hash;
+use crate::topological_workspace::get_topological_workspace;
+use std::path::Path;
 
 pub(crate) mod arguments;
+pub(crate) mod backup;
+pub(crate) mod combinators;
+pub(crate) mod package;
 pub(crate) mod pipeline;
+pub(crate) mod topological_workspace;
 
 // TODO
 //  * run post publish crate
 //      * set all versions to next -pre (e.g. 0.1.0-pre) at once
 //      * commit
-//
-// TODO improvements:
-//  * Instead of using name().starts_with("sic"), we could also use  pkg.in_workspace() and pkg.publish().is_some()
-//    which would make it re-usable for (my) projects outside sic =)
 fn main() -> anyhow::Result<()> {
     let fake_cargo: CargoPublishWorkspace = CargoPublishWorkspace::parse();
     let args = fake_cargo.get_arguments();
@@ -32,97 +36,43 @@ fn main() -> anyhow::Result<()> {
     cmd.manifest_path(&args.manifest);
 
     let graph = PackageGraph::from_command(&mut cmd)?;
-    let topological_workspace = graph.query_workspace();
-    let set = topological_workspace.resolve();
+    let workspace = graph.query_workspace();
+    let set = workspace.resolve();
 
     // topo sorted dependencies
-    let components_to_update = set
-        .packages(DependencyDirection::Reverse)
-        .filter(|pkg| pkg.name().starts_with("sic"));
+    let components = get_topological_workspace(&set);
 
     // this is a collection of dependent packages. After updating the key package, its value members
     // should update the key package version field to the new version of the key package
-    let dependants_db = set
-        .packages(DependencyDirection::Reverse)
-        .filter(|pkg| pkg.name().starts_with("sic"))
-        .fold(empty_map(), |mut map, dep| {
-            dep.direct_links()
-                .filter(|n| n.dep_name().starts_with("sic"))
-                .for_each(|link| {
-                    let set = map.entry(link.resolved_name()).or_default();
-
-                    set.insert(PackageWrapper::new(dep, link));
-                });
-
-            map
-        });
+    let dependants_db = create_dependents_db(&components);
 
     // TODO: create new git branch
 
-    publish_packages(
-        components_to_update,
-        &dependants_db,
-        &args.new_version,
-        args.dry_run,
-    )?;
+    new_publish(&components, &dependants_db, &args.new_version)?;
 
     Ok(())
 }
 
-fn empty_map<'a>() -> HashMap<&'a str, HashSet<PackageWrapper<'a>>> {
-    HashMap::new()
-}
+// A. in topo order do, for each pkg:
 
-// Exists because PackageMetadata doesn't implement Hash
-struct PackageWrapper<'g> {
-    pkg_metadata: PackageMetadata<'g>,
-    link: PackageLink<'g>,
-}
+// 1. (opt) backup manifest
+// 2. set component to new version
+// 3. (opt?) have dependents in workspace rely on any version (*), so cargo can "find a valid version"
+//      Necessary since the new version is not published yet, but since we have local changes, we can't rely on the crates.io version
+//      This would be less of an issue if we developed each crate as a more separate component, and update them often as such; i.e. we wouldn't
+//      depend on the unpublished versions while working towards a next release
+// 4. publish new version
+// 5. do what we would've like to do at 3, set the version of the dependents to the new version of the component (def in 2.)
+// 6. (opt) commit changes
+// 7. (opt) tag changes
 
-impl<'g> Debug for PackageWrapper<'g> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.pkg_metadata.name())
-    }
-}
-
-impl<'g> PackageWrapper<'g> {
-    pub(crate) fn new(package: PackageMetadata<'g>, link: PackageLink<'g>) -> Self {
-        Self {
-            pkg_metadata: package,
-            link,
-        }
-    }
-
-    pub(crate) fn metadata(&self) -> PackageMetadata<'g> {
-        self.pkg_metadata
-    }
-
-    pub(crate) fn link(&self) -> PackageLink<'g> {
-        self.link
-    }
-}
-
-impl<'g> Hash for PackageWrapper<'g> {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.pkg_metadata.name().hash(state);
-    }
-}
-
-impl<'g> PartialEq for PackageWrapper<'g> {
-    fn eq(&self, other: &Self) -> bool {
-        self.pkg_metadata.name().eq(other.pkg_metadata.name())
-    }
-}
-
-impl<'g> Eq for PackageWrapper<'g> {}
-
-fn publish_packages<'g>(
-    components: impl Iterator<Item = PackageMetadata<'g>>,
+// B. (opt) commit changes
+// C. (opt) tag changes
+fn new_publish<'g>(
+    components: &[PackageMetadata<'g>],
     dependents_db: &'g HashMap<&'g str, HashSet<PackageWrapper<'g>>>,
     new_version: &str,
-    dry_run: bool,
-) -> anyhow::Result<()> {
-    // update workspace crates in topological order
+) -> Result<()> {
     for component in components {
         let path = component.manifest_path();
 
@@ -133,27 +83,67 @@ fn publish_packages<'g>(
             )
         })?;
 
-        // update the specific dependency
-        let manifest_updater = create_manifest_updater(dry_run, component);
-        manifest_updater.update_dependency_version(new_version)?;
+        let kickstart = Ok(());
 
-        // FIXME{workaround}: accept any version locally before we update the package
-        let dependents_updater = create_dependent_updater(dry_run, dependents_db);
-        dependents_updater.update_all(component, "*")?;
+        let _ = kickstart
+            .and_then(|_| set_new_version(new_version, *component)) // set_new_version for component to 'version
+            .and_then(|_| set_dependent_version("*", *component, dependents_db)) // set_dependent_version to * locally
+            .do_if(|| true, |_| publish(*component)) // publish for component
+            .and_then(|_| set_dependent_version(new_version, *component, dependents_db)) // set_dependent_version to 'version
+            .do_if(
+                || true,
+                |_| make_commit(new_version, *component, crate_folder),
+            )?; // commit changes
 
-        // publish changes
-        let mut publisher = create_publisher(dry_run, component)?;
-        publisher.publish()?;
-
-        // update dependents to new version
-        let dependents_updater = create_dependent_updater(dry_run, dependents_db);
-        dependents_updater.update_all(component, new_version)?;
-
-        // commit changes
-        let mut command = create_git(dry_run, crate_folder);
-        command.commit_package(component.name(), new_version);
-        command.run()?;
+        // give the index time to update
+        std::thread::sleep(std::time::Duration::from_secs(5));
     }
 
     Ok(())
+}
+
+// packages required to be reverse topo sorted
+fn create_dependents_db<'a>(
+    packages: &'a [PackageMetadata<'a>],
+) -> HashMap<&'a str, HashSet<PackageWrapper<'a>>> {
+    let ws = packages.iter().map(|p| p.name()).collect::<HashSet<_>>();
+
+    packages.iter().fold(HashMap::new(), |mut map, dep| {
+        dep.direct_links()
+            .filter(|n| ws.contains(n.dep_name()))
+            .for_each(|link| {
+                let set = map.entry(link.resolved_name()).or_default();
+
+                set.insert(PackageWrapper::new(*dep, link));
+            });
+
+        map
+    })
+}
+
+const DRY_RUN: bool = false;
+
+fn set_new_version(new_version: &str, component: PackageMetadata) -> Result<()> {
+    let manifest_updater = create_manifest_updater(DRY_RUN, component);
+    manifest_updater.update_dependency_version(new_version)
+}
+
+fn set_dependent_version<'a>(
+    new_version: &str,
+    component: PackageMetadata,
+    dependents_db: &HashMap<&'a str, HashSet<PackageWrapper<'a>>>,
+) -> Result<()> {
+    let dependents_updater = create_dependent_updater(DRY_RUN, dependents_db);
+    dependents_updater.update_all(component, new_version)
+}
+
+fn publish(component: PackageMetadata) -> Result<()> {
+    let mut publisher = create_publisher(DRY_RUN, component)?;
+    publisher.publish()
+}
+
+fn make_commit(new_version: &str, component: PackageMetadata, crate_folder: &Path) -> Result<()> {
+    let mut command = create_git(DRY_RUN, crate_folder);
+    command.commit_package(component.name(), new_version);
+    command.run()
 }

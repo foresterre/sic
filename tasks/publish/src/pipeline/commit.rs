@@ -106,5 +106,5 @@ impl GitCommit for DryRunGit {
 }
 
 fn commit_message(pkg_name: &str, version: &str) -> String {
-    format!("sic publish: {}@{}", pkg_name, version)
+    format!("update {}@{}", pkg_name, version)
 }

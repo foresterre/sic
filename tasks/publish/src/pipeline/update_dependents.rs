@@ -1,4 +1,4 @@
-use crate::pipeline::backup::backup_manifest;
+use crate::backup::backup_manifest;
 use crate::PackageWrapper;
 use guppy::graph::PackageMetadata;
 use std::collections::{HashMap, HashSet};
