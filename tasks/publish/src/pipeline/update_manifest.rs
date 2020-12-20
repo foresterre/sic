@@ -1,4 +1,4 @@
-use crate::backup::backup_manifest;
+use crate::pipeline::backup::backup_manifest;
 use guppy::graph::PackageMetadata;
 use std::path::Path;
 use toml_edit::value;

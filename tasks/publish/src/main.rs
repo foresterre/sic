@@ -1,28 +1,20 @@
 #![deny(clippy::all)]
 
-use crate::commit::create_git;
-use crate::publish_crate::create_publisher;
-use crate::update_dependents::create_dependent_updater;
-use crate::update_manifest::create_manifest_updater;
+use crate::arguments::CargoPublishWorkspace;
+use crate::pipeline::commit::create_git;
+use crate::pipeline::publish_crate::create_publisher;
+use crate::pipeline::update_dependents::create_dependent_updater;
+use crate::pipeline::update_manifest::create_manifest_updater;
 use anyhow::Context;
+use clap::Clap;
 use guppy::graph::{DependencyDirection, PackageGraph, PackageLink, PackageMetadata};
 use guppy::MetadataCommand;
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Debug, Formatter};
 use std::hash::Hash;
 
-pub(crate) mod backup;
-pub(crate) mod commit;
-pub(crate) mod publish_crate;
-pub(crate) mod update_dependents;
-pub(crate) mod update_manifest;
-
-#[derive(Clone, Debug)]
-struct Args {
-    dry_run: bool,
-    manifest: String,
-    version: String,
-}
+pub(crate) mod arguments;
+pub(crate) mod pipeline;
 
 // TODO
 //  * run post publish crate
@@ -33,17 +25,8 @@ struct Args {
 //  * Instead of using name().starts_with("sic"), we could also use  pkg.in_workspace() and pkg.publish().is_some()
 //    which would make it re-usable for (my) projects outside sic =)
 fn main() -> anyhow::Result<()> {
-    let mut args = pico_args::Arguments::from_env();
-
-    let args = Args {
-        dry_run: args.contains("--dry-run"),
-        manifest: args
-            .opt_value_from_str("--manifest")?
-            .unwrap_or_else(|| "Cargo.toml".to_string()),
-        version: args
-            .opt_value_from_str("--new-version")?
-            .with_context(|| "--new-version is required")?,
-    };
+    let fake_cargo: CargoPublishWorkspace = CargoPublishWorkspace::parse();
+    let args = fake_cargo.get_arguments();
 
     let mut cmd = MetadataCommand::new();
     cmd.manifest_path(&args.manifest);
@@ -79,7 +62,7 @@ fn main() -> anyhow::Result<()> {
     publish_packages(
         components_to_update,
         &dependants_db,
-        &args.version,
+        &args.new_version,
         args.dry_run,
     )?;
 
