@@ -1,0 +1,13 @@
+
+**/target/
+**/*.rs.bk
+
+# intellij
+.idea/
+cmake-build-debug/
+*.iws
+.idea_modules/
+*.iml
+
+# vscode
+.vscode/
