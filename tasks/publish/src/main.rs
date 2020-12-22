@@ -47,8 +47,7 @@ fn main() -> anyhow::Result<()> {
     let dependants_db = create_dependents_db(&components);
 
     // TODO: create new git branch
-
-    new_publish(&components, &dependants_db, &args.new_version)?;
+    new_publish(&components, &dependants_db, &args.new_version, args.sleep)?;
 
     Ok(())
 }
@@ -72,6 +71,7 @@ fn new_publish<'g>(
     components: &[PackageMetadata<'g>],
     dependents_db: &'g HashMap<&'g str, HashSet<PackageWrapper<'g>>>,
     new_version: &str,
+    sleep: u64,
 ) -> Result<()> {
     for component in components {
         let path = component.manifest_path();
@@ -96,7 +96,7 @@ fn new_publish<'g>(
             )?; // commit changes
 
         // give the index time to update
-        std::thread::sleep(std::time::Duration::from_secs(5));
+        std::thread::sleep(std::time::Duration::from_secs(sleep));
     }
 
     Ok(())
