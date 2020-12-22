@@ -5,11 +5,12 @@ use std::process::Command;
 pub(crate) fn create_publisher<'g>(
     is_dry_run: bool,
     pkg: PackageMetadata<'g>,
+    no_verify: bool,
 ) -> anyhow::Result<Box<dyn PublishPackage + 'g>> {
     Ok(if is_dry_run {
-        Box::new(PublishDryRun::try_new(pkg)?)
+        Box::new(PublishDryRun::try_new(pkg, no_verify)?)
     } else {
-        Box::new(PublishOnCratesIO::try_new(pkg)?)
+        Box::new(PublishOnCratesIO::try_new(pkg, no_verify)?)
     })
 }
 
@@ -22,9 +23,9 @@ pub(crate) struct PublishOnCratesIO<'g> {
 }
 
 impl<'g> PublishOnCratesIO<'g> {
-    pub(crate) fn try_new(pkg: PackageMetadata<'g>) -> anyhow::Result<Self> {
+    pub(crate) fn try_new(pkg: PackageMetadata<'g>, no_verify: bool) -> anyhow::Result<Self> {
         Ok(Self {
-            publisher: PublishImpl::try_new(pkg, false)?,
+            publisher: PublishImpl::try_new(pkg, false, no_verify)?,
         })
     }
 }
@@ -40,9 +41,9 @@ pub(crate) struct PublishDryRun<'g> {
 }
 
 impl<'g> PublishDryRun<'g> {
-    pub(crate) fn try_new(pkg: PackageMetadata<'g>) -> anyhow::Result<Self> {
+    pub(crate) fn try_new(pkg: PackageMetadata<'g>, no_verify: bool) -> anyhow::Result<Self> {
         Ok(Self {
-            publisher: PublishImpl::try_new(pkg, true)?,
+            publisher: PublishImpl::try_new(pkg, true, no_verify)?,
         })
     }
 }
@@ -59,12 +60,20 @@ struct PublishImpl<'g> {
 }
 
 impl<'g> PublishImpl<'g> {
-    pub(crate) fn try_new(pkg: PackageMetadata<'g>, dry_run: bool) -> anyhow::Result<Self> {
+    pub(crate) fn try_new(
+        pkg: PackageMetadata<'g>,
+        dry_run: bool,
+        no_verify: bool,
+    ) -> anyhow::Result<Self> {
         let mut command = Command::new("cargo");
-        command.args(&["publish", "--allow-dirty", "--no-verify"]);
+        command.args(&["publish", "--allow-dirty"]);
 
         if dry_run {
             command.arg("--dry-run");
+        }
+
+        if no_verify {
+            command.arg("--no-verify");
         }
 
         let from_directory = pkg.manifest_path().parent().with_context(|| {
