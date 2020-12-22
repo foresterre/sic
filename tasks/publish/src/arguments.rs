@@ -34,4 +34,10 @@ pub struct PublishWorkspace {
     /// The version to which all workspace crates will be updated
     #[clap(long)]
     pub(crate) new_version: String,
+
+    /// The amount of seconds to sleep between publishing of workspace packages
+    ///
+    /// Allows the index to update
+    #[clap(long, default_value = "5")]
+    pub(crate) sleep: u64,
 }
