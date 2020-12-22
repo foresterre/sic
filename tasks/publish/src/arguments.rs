@@ -35,6 +35,10 @@ pub struct PublishWorkspace {
     #[clap(long)]
     pub(crate) new_version: String,
 
+    /// Don't build the crate before publishing
+    #[clap(long)]
+    pub(crate) no_verify: bool,
+
     /// The amount of seconds to sleep between publishing of workspace packages
     ///
     /// Allows the index to update
