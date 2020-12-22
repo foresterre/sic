@@ -137,7 +137,7 @@ fn set_dependent_version<'a>(
 }
 
 fn publish(component: PackageMetadata, args: &PublishWorkspace) -> Result<()> {
-    let mut publisher = create_publisher(args.dry_run, component, args.no_verify)?;
+    let mut publisher = create_publisher(component, args)?;
     publisher.publish()
 }
 

@@ -1,57 +1,19 @@
+use crate::arguments::PublishWorkspace;
 use anyhow::Context;
 use guppy::graph::PackageMetadata;
 use std::process::Command;
 
 pub(crate) fn create_publisher<'g>(
-    is_dry_run: bool,
     pkg: PackageMetadata<'g>,
-    no_verify: bool,
+    args: &PublishWorkspace,
 ) -> anyhow::Result<Box<dyn PublishPackage + 'g>> {
-    Ok(if is_dry_run {
-        Box::new(PublishDryRun::try_new(pkg, no_verify)?)
-    } else {
-        Box::new(PublishOnCratesIO::try_new(pkg, no_verify)?)
-    })
+    let publish = PublishImpl::try_new(pkg, args)?;
+
+    Ok(Box::new(publish))
 }
 
 pub(crate) trait PublishPackage {
     fn publish(&mut self) -> anyhow::Result<()>;
-}
-
-pub(crate) struct PublishOnCratesIO<'g> {
-    publisher: PublishImpl<'g>,
-}
-
-impl<'g> PublishOnCratesIO<'g> {
-    pub(crate) fn try_new(pkg: PackageMetadata<'g>, no_verify: bool) -> anyhow::Result<Self> {
-        Ok(Self {
-            publisher: PublishImpl::try_new(pkg, false, no_verify)?,
-        })
-    }
-}
-
-impl PublishPackage for PublishOnCratesIO<'_> {
-    fn publish(&mut self) -> anyhow::Result<()> {
-        self.publisher.publish()
-    }
-}
-
-pub(crate) struct PublishDryRun<'g> {
-    publisher: PublishImpl<'g>,
-}
-
-impl<'g> PublishDryRun<'g> {
-    pub(crate) fn try_new(pkg: PackageMetadata<'g>, no_verify: bool) -> anyhow::Result<Self> {
-        Ok(Self {
-            publisher: PublishImpl::try_new(pkg, true, no_verify)?,
-        })
-    }
-}
-
-impl PublishPackage for PublishDryRun<'_> {
-    fn publish(&mut self) -> anyhow::Result<()> {
-        self.publisher.publish()
-    }
 }
 
 struct PublishImpl<'g> {
@@ -62,18 +24,21 @@ struct PublishImpl<'g> {
 impl<'g> PublishImpl<'g> {
     pub(crate) fn try_new(
         pkg: PackageMetadata<'g>,
-        dry_run: bool,
-        no_verify: bool,
+        args: &PublishWorkspace,
     ) -> anyhow::Result<Self> {
         let mut command = Command::new("cargo");
         command.args(&["publish", "--allow-dirty"]);
 
-        if dry_run {
+        if args.dry_run {
             command.arg("--dry-run");
         }
 
-        if no_verify {
+        if args.no_verify {
             command.arg("--no-verify");
+        }
+
+        if !args.pass_on.is_empty() {
+            command.args(&args.pass_on);
         }
 
         let from_directory = pkg.manifest_path().parent().with_context(|| {
