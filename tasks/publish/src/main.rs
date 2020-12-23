@@ -10,10 +10,11 @@ use guppy::MetadataCommand;
 use crate::arguments::{CargoPublishWorkspace, PublishWorkspace};
 use crate::combinators::ConditionallyDo;
 use crate::package::PackageWrapper;
-use crate::pipeline::commit::create_git;
+use crate::pipeline::commit::Commit;
 use crate::pipeline::publish_crate::create_publisher;
 use crate::pipeline::update_dependents::create_dependent_updater;
 use crate::pipeline::update_manifest::create_manifest_updater;
+use crate::pipeline::Action;
 use crate::topological_workspace::get_topological_workspace;
 use std::path::Path;
 
@@ -89,7 +90,7 @@ fn new_publish<'g>(
             .and_then(|_| set_dependent_version(*component, dependents_db, &args, Some("*"))) // set_dependent_version to * locally
             .do_if(|| true, |_| publish(*component, &args)) // publish for component
             .and_then(|_| set_dependent_version(*component, dependents_db, &args, None)) // set_dependent_version to 'version
-            .do_if(|| true, |_| make_commit(*component, crate_folder, &args))?; // commit changes
+            .do_if(|| true, |_| make_commit(&args, *component, crate_folder))?; // commit changes
 
         // give the index time to update
         std::thread::sleep(std::time::Duration::from_secs(args.sleep));
@@ -119,7 +120,7 @@ fn create_dependents_db<'a>(
 
 fn set_new_version(component: PackageMetadata, args: &PublishWorkspace) -> Result<()> {
     let manifest_updater = create_manifest_updater(args.dry_run, component);
-    manifest_updater.update_dependency_version(&args.new_version)
+    manifest_updater.update_dependency_version(args.version())
 }
 
 fn set_dependent_version<'a>(
@@ -132,7 +133,7 @@ fn set_dependent_version<'a>(
     if let Some(v) = override_new_version {
         dependents_updater.update_all(component, v)
     } else {
-        dependents_updater.update_all(component, &args.new_version)
+        dependents_updater.update_all(component, args.version())
     }
 }
 
@@ -142,11 +143,10 @@ fn publish(component: PackageMetadata, args: &PublishWorkspace) -> Result<()> {
 }
 
 fn make_commit(
+    args: &PublishWorkspace,
     component: PackageMetadata,
     crate_folder: &Path,
-    args: &PublishWorkspace,
 ) -> Result<()> {
-    let mut command = create_git(args.dry_run, crate_folder);
-    command.commit_package(component.name(), &args.new_version);
-    command.run()
+    let mut commit = Commit::from_working_dir(args, component.name(), crate_folder);
+    commit.run()
 }

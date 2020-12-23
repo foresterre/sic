@@ -46,7 +46,7 @@ pub struct PublishWorkspace {
 
     /// The version to which all workspace crates will be updated
     #[clap(long)]
-    pub(crate) new_version: String,
+    new_version: String,
 
     /// Don't build the crate before publishing
     #[clap(long)]
@@ -61,4 +61,10 @@ pub struct PublishWorkspace {
     /// Pass additional arguments to 'cargo publish' directly
     #[clap(hidden = true)]
     pub(crate) pass_on: Vec<String>,
+}
+
+impl PublishWorkspace {
+    pub fn version(&self) -> &str {
+        &self.new_version
+    }
 }

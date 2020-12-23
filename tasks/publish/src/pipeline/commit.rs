@@ -1,41 +1,13 @@
-#![allow(unused)] // TODO!
-
+use crate::arguments::PublishWorkspace;
+use crate::pipeline::Action;
 use std::path::Path;
 use std::process::Command;
 
-pub(crate) fn create_git(is_dry_run: bool, dir: &Path) -> Box<dyn GitCommit> {
-    if is_dry_run {
-        Box::new(DryRunGit::with_working_dir(dir))
-    } else {
-        Box::new(RegularRunGit::from_working_dir(dir))
-    }
-}
-
-pub(crate) trait GitCommit {
-    fn commit_package(&mut self, pkg_name: &str, version: &str);
-    fn run(&mut self) -> anyhow::Result<()>;
-}
-
-pub(crate) struct RegularRunGit {
+pub struct Commit {
     command: Command,
 }
 
-impl RegularRunGit {
-    fn from_working_dir(dir: &Path) -> Self {
-        let mut command = Command::new("git");
-        command.current_dir(dir);
-
-        RegularRunGit { command }
-    }
-}
-
-impl GitCommit for RegularRunGit {
-    fn commit_package(&mut self, pkg_name: &str, version: &str) {
-        let message = commit_message(pkg_name, version);
-        self.command
-            .args(&["commit", "-m", &message, "--only", "--", "Cargo.*"]);
-    }
-
+impl Action for Commit {
     fn run(&mut self) -> anyhow::Result<()> {
         let child_process = self.command.spawn()?;
         let result = child_process.wait_with_output()?;
@@ -43,9 +15,9 @@ impl GitCommit for RegularRunGit {
         anyhow::ensure!(
             result.status.success(),
             format!(
-                "Git command failed with stdout: {} and stderr: {}",
-                String::from_utf8_lossy(&result.stdout),
-                String::from_utf8_lossy(&result.stderr)
+                "Git command failed with:\n\tstdout:\n\t{}\n\tstderr:\t\n{}",
+                String::from_utf8(result.stdout)?,
+                String::from_utf8(result.stderr)?
             )
         );
 
@@ -53,58 +25,30 @@ impl GitCommit for RegularRunGit {
     }
 }
 
-pub(crate) struct DryRunGit {
-    command: Command,
-}
-
-impl DryRunGit {
-    fn with_working_dir(dir: &Path) -> Self {
-        println!("git commit: using working dir: {}", dir.display());
+impl Commit {
+    pub fn from_working_dir(args: &PublishWorkspace, package_name: &str, dir: &Path) -> Self {
         let mut command = Command::new("git");
         command.current_dir(dir);
 
-        Self { command }
-    }
-}
+        Self::create_cmd(&mut command, package_name, &args.version(), args.dry_run);
 
-impl GitCommit for DryRunGit {
-    fn commit_package(&mut self, pkg_name: &str, version: &str) {
-        println!(
-            "git commit: changes will be committed with message '{}'",
-            commit_message(pkg_name, version)
-        );
-
-        let message = commit_message(pkg_name, version);
-        self.command.args(&[
-            "commit",
-            "--dry-run",
-            "-m",
-            &message,
-            "--only",
-            "--",
-            "Cargo.*",
-        ]);
+        Commit { command }
     }
 
-    fn run(&mut self) -> anyhow::Result<()> {
-        println!("git commit: executing git command");
+    fn create_cmd(command: &mut Command, package_name: &str, version: &str, dry_run: bool) {
+        let message = Self::commit_message(package_name, version);
+        let mut arguments = vec!["commit"];
 
-        let child_process = self.command.spawn()?;
-        let result = child_process.wait_with_output()?;
+        if dry_run {
+            arguments.push("--dry-run");
+        }
 
-        anyhow::ensure!(
-            result.status.success(),
-            format!(
-                "Git command failed with stdout: {} and stderr: {}",
-                String::from_utf8_lossy(&result.stdout),
-                String::from_utf8_lossy(&result.stderr)
-            )
-        );
+        arguments.extend(&["-m", &message, "--only", "--", "Cargo.*"]);
 
-        Ok(())
+        command.args(&arguments);
     }
-}
 
-fn commit_message(pkg_name: &str, version: &str) -> String {
-    format!("update {}@{}", pkg_name, version)
+    fn commit_message(pkg_name: &str, version: &str) -> String {
+        format!("update {}@{}", pkg_name, version)
+    }
 }
