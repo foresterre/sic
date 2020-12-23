@@ -11,7 +11,7 @@ use crate::arguments::{CargoPublishWorkspace, PublishWorkspace};
 use crate::combinators::ConditionallyDo;
 use crate::package::PackageWrapper;
 use crate::pipeline::commit::Commit;
-use crate::pipeline::publish_crate::create_publisher;
+use crate::pipeline::publish_crate::PublishCrate;
 use crate::pipeline::update_dependents::UpdateDependents;
 use crate::pipeline::update_manifest::UpdateManifest;
 use crate::pipeline::Action;
@@ -88,7 +88,7 @@ fn new_publish<'g>(
         let _ = kickstart
             .and_then(|_| set_new_version(component, &args)) // set_new_version for component to 'version
             .and_then(|_| set_dependent_version(component, dependents_db, &args, Some("*"))) // set_dependent_version to * locally
-            .do_if(|| true, |_| publish(*component, &args)) // publish for component
+            .do_if(|| true, |_| publish(component, &args)) // publish for component
             .and_then(|_| set_dependent_version(component, dependents_db, &args, None)) // set_dependent_version to 'version
             .do_if(|| true, |_| make_commit(&args, *component, crate_folder))?; // commit changes
 
@@ -133,9 +133,9 @@ fn set_dependent_version<'g>(
     act.run(args)
 }
 
-fn publish(component: PackageMetadata, args: &PublishWorkspace) -> Result<()> {
-    let mut publisher = create_publisher(component, args)?;
-    publisher.publish()
+fn publish(component: &PackageMetadata, args: &PublishWorkspace) -> Result<()> {
+    let mut publisher = PublishCrate::try_new(component, args)?;
+    publisher.run(args)
 }
 
 fn make_commit(
