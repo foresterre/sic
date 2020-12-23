@@ -1,7 +1,7 @@
 use crate::arguments::PublishWorkspace;
 use crate::pipeline::Action;
 use std::path::Path;
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 pub struct Commit {
     command: Command,
@@ -9,17 +9,11 @@ pub struct Commit {
 
 impl Action for Commit {
     fn run(&mut self, _args: &PublishWorkspace) -> anyhow::Result<()> {
-        let child_process = self.command.spawn()?;
-        let result = child_process.wait_with_output()?;
-
-        anyhow::ensure!(
-            result.status.success(),
-            format!(
-                "Git command failed with:\n\tstdout:\n\t{}\n\tstderr:\t\n{}",
-                String::from_utf8(result.stdout)?,
-                String::from_utf8(result.stderr)?
-            )
-        );
+        self.command.stdout(Stdio::inherit());
+        self.command.stderr(Stdio::inherit());
+        let mut child_process = self.command.spawn()?;
+        let result = child_process.wait()?;
+        println!("commit: git dry run exited with {}", result);
 
         Ok(())
     }
