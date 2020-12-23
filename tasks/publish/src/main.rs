@@ -13,7 +13,7 @@ use crate::package::PackageWrapper;
 use crate::pipeline::commit::Commit;
 use crate::pipeline::publish_crate::create_publisher;
 use crate::pipeline::update_dependents::UpdateDependents;
-use crate::pipeline::update_manifest::create_manifest_updater;
+use crate::pipeline::update_manifest::UpdateManifest;
 use crate::pipeline::Action;
 use crate::topological_workspace::get_topological_workspace;
 use std::path::Path;
@@ -86,7 +86,7 @@ fn new_publish<'g>(
         let kickstart = Ok(());
 
         let _ = kickstart
-            .and_then(|_| set_new_version(*component, &args)) // set_new_version for component to 'version
+            .and_then(|_| set_new_version(component, &args)) // set_new_version for component to 'version
             .and_then(|_| set_dependent_version(component, dependents_db, &args, Some("*"))) // set_dependent_version to * locally
             .do_if(|| true, |_| publish(*component, &args)) // publish for component
             .and_then(|_| set_dependent_version(component, dependents_db, &args, None)) // set_dependent_version to 'version
@@ -118,9 +118,9 @@ fn create_dependents_db<'a>(
     })
 }
 
-fn set_new_version(component: PackageMetadata, args: &PublishWorkspace) -> Result<()> {
-    let manifest_updater = create_manifest_updater(args.dry_run, component);
-    manifest_updater.update_dependency_version(args.version())
+fn set_new_version<'g>(component: &'g PackageMetadata<'g>, args: &PublishWorkspace) -> Result<()> {
+    let mut act = UpdateManifest::new(component);
+    act.run(args)
 }
 
 fn set_dependent_version<'g>(
