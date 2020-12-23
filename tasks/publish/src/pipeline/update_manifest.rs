@@ -1,50 +1,45 @@
+use crate::arguments::PublishWorkspace;
 use crate::backup::backup_manifest;
+use crate::pipeline::Action;
 use guppy::graph::PackageMetadata;
 use std::path::Path;
 use toml_edit::value;
 
-pub(crate) fn create_manifest_updater<'g>(
-    is_dry_run: bool,
-    pkg: PackageMetadata<'g>,
-) -> Box<dyn UpdateManifest + 'g> {
-    if is_dry_run {
-        Box::new(DryRunManifestUpdate { pkg })
-    } else {
-        Box::new(RegularManifestUpdate { pkg })
+pub struct UpdateManifest<'g> {
+    package: &'g PackageMetadata<'g>,
+}
+
+impl<'g> UpdateManifest<'g> {
+    pub fn new(package: &'g PackageMetadata<'g>) -> Self {
+        Self { package }
     }
 }
 
-pub(crate) trait UpdateManifest {
-    fn update_dependency_version(&self, new_version: &str) -> anyhow::Result<()>;
-}
-
-pub(crate) struct RegularManifestUpdate<'g> {
-    pkg: PackageMetadata<'g>,
-}
-
-impl UpdateManifest for RegularManifestUpdate<'_> {
-    fn update_dependency_version(&self, new_version: &str) -> anyhow::Result<()> {
-        backup_manifest(self.pkg.manifest_path())?;
-        toml_update(self.pkg.manifest_path(), new_version)?;
-
-        Ok(())
+impl Action for UpdateManifest<'_> {
+    fn run(&mut self, args: &PublishWorkspace) -> anyhow::Result<()> {
+        if args.dry_run {
+            dry_update_dependency_version(self.package, args.version())
+        } else {
+            live_update_dependency_version(self.package, args.version())
+        }
     }
 }
 
-pub(crate) struct DryRunManifestUpdate<'g> {
-    pkg: PackageMetadata<'g>,
+fn live_update_dependency_version(pkg: &PackageMetadata, new_version: &str) -> anyhow::Result<()> {
+    backup_manifest(pkg.manifest_path())?;
+    toml_update(pkg.manifest_path(), new_version)?;
+
+    Ok(())
 }
 
-impl UpdateManifest for DryRunManifestUpdate<'_> {
-    fn update_dependency_version(&self, new_version: &str) -> anyhow::Result<()> {
-        println!(
-            "update-manifest: updating crate '{}' manifest version to '{}'",
-            self.pkg.name(),
-            new_version
-        );
+fn dry_update_dependency_version(pkg: &PackageMetadata, new_version: &str) -> anyhow::Result<()> {
+    println!(
+        "update-manifest: updating crate '{}' manifest version to '{}'",
+        pkg.name(),
+        new_version
+    );
 
-        Ok(())
-    }
+    Ok(())
 }
 
 fn toml_update(manifest: &Path, new_version: &str) -> anyhow::Result<()> {
