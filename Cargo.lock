@@ -152,6 +152,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "08c48aae112d48ed9f069b33538ea9e3e90aa263cfa3d1c24309612b1f7472de"
 
 [[package]]
+name = "cc"
+version = "1.0.66"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4c0496836a84f8d0495758516b8621a622beb77c0fed418570e50764093ced48"
+dependencies = [
+ "jobserver",
+]
+
+[[package]]
 name = "cfg-if"
 version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -313,7 +322,7 @@ dependencies = [
  "cfg-if 1.0.0",
  "crc32fast",
  "libc",
- "miniz_oxide 0.4.1",
+ "miniz_oxide 0.4.3",
 ]
 
 [[package]]
@@ -442,7 +451,7 @@ dependencies = [
  "conv",
  "image",
  "itertools",
- "num 0.3.0",
+ "num 0.3.1",
  "rand",
  "rand_distr",
  "rayon",
@@ -483,6 +492,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "284f18f85651fe11e8a991b2adb42cb078325c996ed026d994719efcfca1d54b"
 dependencies = [
  "either",
+]
+
+[[package]]
+name = "jobserver"
+version = "0.1.21"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5c71313ebb9439f74b00d9d2dcec36440beaf57a6aa0623068441dd7cd81a7f2"
+dependencies = [
+ "libc",
 ]
 
 [[package]]
@@ -572,11 +590,22 @@ dependencies = [
 
 [[package]]
 name = "miniz_oxide"
-version = "0.4.1"
+version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4d7559a8a40d0f97e1edea3220f698f78b1c5ab67532e49f68fde3910323b722"
+checksum = "0f2d26ec3309788e423cfbf68ad1800f061638098d76a83681af979dc4eda19d"
 dependencies = [
  "adler",
+ "autocfg",
+]
+
+[[package]]
+name = "nasm-rs"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a76f43faa0d13f9c89f72e1972446d558f003cfffb80eb16bb444231de1becd1"
+dependencies = [
+ "arrayvec",
+ "rayon",
 ]
 
 [[package]]
@@ -604,9 +633,9 @@ dependencies = [
 
 [[package]]
 name = "num"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab3e176191bc4faad357e3122c4747aa098ac880e88b168f106386128736cf4a"
+checksum = "8b7a8e9be5e039e2ff869df49155f1c06bd01ade2117ec783e56ab0932b67a8f"
 dependencies = [
  "num-bigint",
  "num-complex",
@@ -889,11 +918,13 @@ dependencies = [
  "arg_enum_proc_macro",
  "arrayvec",
  "bitstream-io",
+ "cc",
  "cfg-if 0.1.10",
  "interpolate_name",
  "itertools",
  "libc",
  "log",
+ "nasm-rs",
  "noop_proc_macro 0.3.0",
  "num-derive",
  "num-traits",
@@ -901,6 +932,7 @@ dependencies = [
  "rand",
  "rand_chacha",
  "rayon",
+ "regex",
  "rustc_version",
  "simd_helpers",
  "thiserror",
@@ -910,9 +942,9 @@ dependencies = [
 
 [[package]]
 name = "ravif"
-version = "0.6.2"
+version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "718e4e74121da818c10444947c92c08afc31a292c438137d45f246bc5bedd00c"
+checksum = "87b0afb991d131f3a5c4d96a7eea311cae77ed2f9c9676203f3352b4b2d75977"
 dependencies = [
  "avif-serialize",
  "imgref",
@@ -1234,7 +1266,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9a53f4706d65497df0c4349241deddf35f84cee19c87ed86ea8ca590f4464437"
 dependencies = [
  "jpeg-decoder",
- "miniz_oxide 0.4.1",
+ "miniz_oxide 0.4.3",
  "weezl",
 ]
 
