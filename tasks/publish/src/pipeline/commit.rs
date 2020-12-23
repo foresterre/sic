@@ -8,7 +8,7 @@ pub struct Commit {
 }
 
 impl Action for Commit {
-    fn run(&mut self) -> anyhow::Result<()> {
+    fn run(&mut self, _args: &PublishWorkspace) -> anyhow::Result<()> {
         let child_process = self.command.spawn()?;
         let result = child_process.wait_with_output()?;
 
