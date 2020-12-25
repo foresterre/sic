@@ -29,6 +29,9 @@ impl CargoPublishWorkspace {
 /// passed on by cargo publish-workspace, in which case, if also provided after the two dashes may
 /// be passed on twice. For example, this would be the case if we would run: `cargo publish-workspace
 /// <...options> --no-verify -- --no-verify`.
+///
+/// By default, a tag formatted `v<version>` (e.g. v1.0.3) will be created from the current working
+/// directory.
 #[derive(Clap, Debug)]
 #[clap(
     global_setting(AppSettings::VersionlessSubcommands),
@@ -45,8 +48,16 @@ pub struct PublishWorkspace {
     pub(crate) manifest: String,
 
     /// The version to which all workspace crates will be updated
+    ///
+    /// Version must be semver compatible.
     #[clap(long)]
     new_version: String,
+
+    /// Don't create a tag after publishing
+    ///
+    /// Tags are named after the new (workspace) version and prefixed with 'v'; for example 'v1.2.0'.
+    #[clap(long)]
+    pub(crate) no_git_tag: bool,
 
     /// Don't build the crate before publishing
     #[clap(long)]
@@ -54,7 +65,9 @@ pub struct PublishWorkspace {
 
     /// The amount of seconds to sleep between publishing of workspace packages
     ///
-    /// Allows the index to update
+    /// Allows the crate registry index to update, which may be important since consecutive
+    /// attempts to publish crates may contain the just published crate as dependency, and
+    /// if the registry hasn't processed a crate dependency yet, publishing will fail.   
     #[clap(long, default_value = "5")]
     pub(crate) sleep: u64,
 
