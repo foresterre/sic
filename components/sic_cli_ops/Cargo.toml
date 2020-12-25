@@ -1,6 +1,6 @@
 [package]
 name = "sic_cli_ops"
-version = "0.14.0"
+version = "0.15.0"
 authors = ["Martijn Gribnau <garm@ilumeo.com>"]
 description = "Component of the sic cli: parses images operations invoked from the cli."
 edition = "2018"
@@ -8,8 +8,8 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/foresterre/sic"
 
 [dependencies]
-sic_image_engine = { version = "0.14.0", path = "../../components/sic_image_engine" }
-sic_parser = { version = "0.14.0", path = "../../components/sic_parser" }
+sic_image_engine = { version = "0.15.0", path = "../../components/sic_image_engine" }
+sic_parser = { version = "0.15.0", path = "../../components/sic_parser" }
 
 clap = "2.33.3"
 strum = "0.20.0"
@@ -17,8 +17,8 @@ strum_macros = "0.20.1"
 thiserror = "1.0.22"
 
 [dev-dependencies]
-sic_core = { version = "0.14.0", path = "../../components/sic_core" }
-sic_testing = { version = "0.14.0", path = "../../components/sic_testing" }
+sic_core = { version = "0.15.0", path = "../../components/sic_core" }
+sic_testing = { version = "0.15.0", path = "../../components/sic_testing" }
 parameterized = "0.2.0"
 
 [features]
