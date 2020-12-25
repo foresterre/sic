@@ -13,7 +13,7 @@ impl Action for Commit {
         self.command.stderr(Stdio::inherit());
         let mut child_process = self.command.spawn()?;
         let result = child_process.wait()?;
-        println!("commit: git dry run exited with {}", result);
+        println!("commit: git commit exited with {}", result);
 
         Ok(())
     }

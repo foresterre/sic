@@ -12,6 +12,7 @@ use crate::combinators::ConditionallyDo;
 use crate::package::PackageWrapper;
 use crate::pipeline::commit::Commit;
 use crate::pipeline::publish_crate::PublishCrate;
+use crate::pipeline::tag::Tag;
 use crate::pipeline::update_dependents::UpdateDependents;
 use crate::pipeline::update_manifest::UpdateManifest;
 use crate::pipeline::Action;
@@ -50,6 +51,14 @@ fn main() -> anyhow::Result<()> {
     // TODO: create new git branch
     new_publish(&components, &dependants_db, &args)?;
 
+    // tag published version from current working directory
+    tag_version(
+        &args,
+        &std::env::current_dir().with_context(|| {
+            "Unable to tag: the current working directory could not be determined"
+        })?,
+    )?;
+
     Ok(())
 }
 
@@ -73,7 +82,7 @@ fn new_publish<'g>(
     dependents_db: &'g HashMap<&'g str, HashSet<PackageWrapper<'g>>>,
     args: &PublishWorkspace,
 ) -> Result<()> {
-    for component in components {
+    for (i, component) in components.iter().enumerate() {
         let path = component.manifest_path();
 
         let crate_folder = path.parent().with_context(|| {
@@ -92,8 +101,11 @@ fn new_publish<'g>(
             .and_then(|_| set_dependent_version(component, dependents_db, &args, None)) // set_dependent_version to 'version
             .do_if(|| true, |_| make_commit(&args, *component, crate_folder))?; // commit changes
 
-        // give the index time to update
-        std::thread::sleep(std::time::Duration::from_secs(args.sleep));
+        // give the index time to update, if we still have to publish another crate
+        if i < components.len() {
+            println!("main: sleeping for {} seconds...", args.sleep);
+            std::thread::sleep(std::time::Duration::from_secs(args.sleep));
+        }
     }
 
     Ok(())
@@ -145,4 +157,9 @@ fn make_commit(
 ) -> Result<()> {
     let mut commit = Commit::from_working_dir(args, component.name(), crate_folder);
     commit.run(args)
+}
+
+fn tag_version(args: &PublishWorkspace, cwd: &Path) -> Result<()> {
+    let mut act = Tag::from_working_dir(args, cwd);
+    act.run(args)
 }
