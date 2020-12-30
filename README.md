@@ -2,7 +2,7 @@
 
 [![ci](https://github.com/foresterre/sic/workflows/github_actions_ci/badge.svg)](https://github.com/foresterre/sic/actions?query=workflow%3Agithub_actions_ci)
 [![Crates.io version shield](https://img.shields.io/crates/v/sic.svg)](https://crates.io/crates/sic)
-[![Docs](https://docs.rs/sic/badge.svg)](https://docs.rs/sic)
+[![Docs](https://docs.rs/sic/badge.svg)](https://docs.rs/crate/sic)
 [![Crates.io license shield](https://img.shields.io/crates/l/sic.svg)](https://crates.io/crates/sic)
 
 _Convert images and perform image operations from the command-line._
