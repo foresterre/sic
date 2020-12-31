@@ -44,7 +44,7 @@ strum = "0.20.0"
 
 [dev-dependencies]
 clap = "2.33.3" # for examples/gen_completions.rs
-parameterized = "0.2.0"
+parameterized = "0.3.0"
 
 [build-dependencies]
 flate2 = "1.0.19"
