@@ -725,9 +725,9 @@ dependencies = [
 
 [[package]]
 name = "parameterized"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e738660be92f50e75b9e0089785bb7fd7c2a4aa4d421c02083cca6e42601f2f6"
+checksum = "a016989fe7bd507280a4242bf87aa9edbc87d68469fd6daaaf4c4765bf9e99a5"
 dependencies = [
  "parameterized-macro",
 ]
