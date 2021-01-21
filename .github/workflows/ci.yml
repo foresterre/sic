@@ -61,20 +61,16 @@ jobs:
     steps:
       - name: checkout_repo
         uses: actions/checkout@v2
+
+      - name: install_nasm
+        uses: ilammy/setup-nasm@v1
+
       - name: install_rust
         uses: actions-rs/toolchain@v1
         with:
           toolchain: ${{ matrix.rust }}
           override: true
           profile: minimal
-
-
-      - name: install_nasm_linux
-        if: matrix.build == 'pinned' || matrix.build == 'stable' || matrix.build == 'beta' || matrix.build == 'nightly'
-        run: sh tasks/install_nasm_ubuntu.sh
-      - name: install_nasm_macos
-        if: matrix.build == 'macos'
-        run: sh tasks/install_nasm_macos.sh
 
       - name: build_workspace_crates
         uses: actions-rs/cargo@v1
