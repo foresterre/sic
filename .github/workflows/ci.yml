@@ -134,6 +134,8 @@ jobs:
     steps:
       - name: checkout_repo
         uses: actions/checkout@v2
+      - name: install_nasm
+        uses: ilammy/setup-nasm@v1
       - name: install_rust
         uses: actions-rs/toolchain@v1
         with:
@@ -141,8 +143,6 @@ jobs:
           override: true
           profile: minimal
           components: clippy
-      - name: install_nasm
-        run: sh tasks/install_nasm_ubuntu.sh
       - name: check_with_clippy
         uses: actions-rs/clippy-check@v1
         with:
