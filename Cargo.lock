@@ -156,6 +156,9 @@ name = "cc"
 version = "1.0.66"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4c0496836a84f8d0495758516b8621a622beb77c0fed418570e50764093ced48"
+dependencies = [
+ "jobserver",
+]
 
 [[package]]
 name = "cfg-if"
@@ -512,6 +515,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "jobserver"
+version = "0.1.21"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5c71313ebb9439f74b00d9d2dcec36440beaf57a6aa0623068441dd7cd81a7f2"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "jpeg-decoder"
 version = "0.1.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -613,6 +625,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4d7559a8a40d0f97e1edea3220f698f78b1c5ab67532e49f68fde3910323b722"
 dependencies = [
  "adler",
+]
+
+[[package]]
+name = "nasm-rs"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a76f43faa0d13f9c89f72e1972446d558f003cfffb80eb16bb444231de1becd1"
+dependencies = [
+ "arrayvec",
+ "rayon",
 ]
 
 [[package]]
@@ -959,12 +981,14 @@ dependencies = [
  "arg_enum_proc_macro",
  "arrayvec",
  "bitstream-io",
+ "cc",
  "cfg-if 1.0.0",
  "interpolate_name",
  "itertools 0.10.0",
  "libc",
  "libfuzzer-sys",
  "log",
+ "nasm-rs",
  "noop_proc_macro",
  "num-derive",
  "num-traits",
@@ -972,6 +996,7 @@ dependencies = [
  "rand 0.8.2",
  "rand_chacha 0.3.0",
  "rayon",
+ "regex",
  "rust_hawktracer",
  "rustc_version",
  "simd_helpers",
@@ -982,9 +1007,9 @@ dependencies = [
 
 [[package]]
 name = "ravif"
-version = "0.6.2"
+version = "0.6.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "718e4e74121da818c10444947c92c08afc31a292c438137d45f246bc5bedd00c"
+checksum = "3da7cf5c318575c593a93d89715d9f9a9ada0a0a72dec64a9a0d8fef023fccbf"
 dependencies = [
  "avif-serialize",
  "imgref",
