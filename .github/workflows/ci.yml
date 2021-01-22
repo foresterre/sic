@@ -1,7 +1,8 @@
 # GitHub Actions workflow: CI for sic
-#
-# originally based on: https://github.com/BurntSushi/bstr/blob/master/.github/workflows/ci.yml
-# which is licensed under Apache License, Version 2.0 or MIT license
+
+# Originally based on `bstr` crate ci, which can be found at:
+# https://github.com/BurntSushi/bstr/blob/master/.github/workflows/ci.yml
+# `bstr` is licensed under Apache License, Version 2.0 or MIT license
 
 name: "github_actions_ci"
 on:
@@ -18,7 +19,7 @@ jobs:
   test:
     name: pipeline_run_tests
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.build == 'macos' }}
+    continue-on-error: ${{ matrix.build == 'macos' || matrix.build == 'win-msvc' }}
     strategy:
       matrix:
         build: [pinned, stable, beta, nightly, macos, win-gnu, win-msvc]
