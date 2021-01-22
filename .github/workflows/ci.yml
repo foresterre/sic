@@ -4,6 +4,37 @@
 # https://github.com/BurntSushi/bstr/blob/master/.github/workflows/ci.yml
 # `bstr` is licensed under Apache License, Version 2.0 or MIT license
 
+# Installation of NASM with msvc toolchain has been copied from `rav1e`, used under the BSD 2-Clause license,
+# reproduced below. The original source can be found at:
+# https://github.com/xiph/rav1e/blob/eab1cd61c1c6a7d65d49726df62a99bd0a97b8fd/.github/workflows/rav1e.yml
+#
+#
+# BSD 2-Clause License
+#
+# Copyright (c) 2017-2020, the rav1e contributors
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice, this
+#   list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 name: "github_actions_ci"
 on:
   pull_request:
@@ -64,10 +95,28 @@ jobs:
         uses: actions/checkout@v2
 
       - name: install_nasm
+        if:  matrix.build != 'win-msvc'
         uses: ilammy/setup-nasm@v1
       
-      - name: locate_nasm
-        run: nasm --version
+      # from rav1e
+      - name: install_nasm_msvc
+        if: matrix.build == 'win-msvc'
+        run: |
+          $NASM_VERSION="2.15.05"
+          $LINK = "https://www.nasm.us/pub/nasm/releasebuilds/$NASM_VERSION/win64"
+          $NASM_FILE = "nasm-$NASM_VERSION-win64"
+          curl --ssl-no-revoke -LO "$LINK/$NASM_FILE.zip"
+          7z e -y "$NASM_FILE.zip" -o"C:\nasm"
+          echo "C:\nasm"  | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          
+      # from rav1e
+      - name: set_msvc_linker_path
+        if: matrix.build == 'win-msvc'
+        run: |
+          $LinkGlob = "VC\Tools\MSVC\*\bin\Hostx64\x64"
+          $env:PATH = "$env:PATH;${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer"
+          $LinkPath = vswhere -latest -products * -find "$LinkGlob" | Select-Object -Last 1
+          echo "$LinkPath" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: install_rust
         uses: actions-rs/toolchain@v1
