@@ -64,6 +64,9 @@ jobs:
 
       - name: install_nasm
         uses: ilammy/setup-nasm@v1
+      
+      - name: locate_nasm
+        run: nasm --version
 
       - name: install_rust
         uses: actions-rs/toolchain@v1
