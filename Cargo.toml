@@ -47,7 +47,7 @@ clap = "2.33.3" # for examples/gen_completions.rs
 parameterized = "0.3.1"
 
 [build-dependencies]
-flate2 = "1.0.19"
+flate2 = "1.0.20"
 
 [features]
 imageproc-ops = ["sic_cli_ops/imageproc-ops", "sic_image_engine/imageproc-ops", "sic_parser/imageproc-ops"]
