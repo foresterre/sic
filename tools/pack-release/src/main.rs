@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
-use std::process::{Command, ExitStatus, Output};
+use std::process::{Command, ExitStatus, Output, Stdio};
 use zip::write::FileOptions;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -12,20 +12,28 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     print_output(exit, out.as_ref(), err.as_ref());
 
     for toolchain in get_toolchains(out.as_ref()) {
-        //
+        update_dep_licenses(&toolchain)?;
         cargo_build(&toolchain)?;
     }
 
     Ok(())
 }
 
+fn update_dep_licenses(toolchain: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let _ = std::process::Command::new("cargo")
+        .arg(format!("+{}", toolchain))
+        .arg("run")
+        .arg("--example")
+        .arg("update_dep_licenses")
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .output()?;
+
+    Ok(())
+}
+
 fn cargo_build(toolchain: &str) -> Result<(), Box<dyn std::error::Error>> {
     let path = std::env::current_dir()?;
-    let path = path
-        .parent()
-        .and_then(Path::parent)
-        .ok_or_else(|| std::io::Error::new(io::ErrorKind::NotFound, "sic directory not found"))?;
-
     println!("cwd: {}", &path.display());
 
     // create output directory
@@ -40,6 +48,8 @@ fn cargo_build(toolchain: &str) -> Result<(), Box<dyn std::error::Error>> {
         .arg("--target-dir")
         .arg(&output_dir)
         .arg("--release")
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
         .output()?;
 
     let (exit, out, err) = output_to_string(&build_output);
@@ -57,7 +67,9 @@ fn cargo_build(toolchain: &str) -> Result<(), Box<dyn std::error::Error>> {
     write_zip(&exe, Path::new(&zip))?;
 
     // remove output directory
-    let _ = std::fs::remove_dir_all(&output_dir)?;
+    if option_env!("PACK_RELEASE_KEEP_OUTPUT").is_none() {
+        let _ = std::fs::remove_dir_all(&output_dir)?;
+    }
 
     Ok(())
 }
@@ -126,7 +138,13 @@ fn get_toolchains(toolchain_info: &str) -> Vec<String> {
 }
 
 fn print_output(exit_code: ExitStatus, stdout: &str, stderr: &str) {
-    println!("status: {}", exit_code);
-    println!("stdout: {}", stdout);
-    eprintln!("stderr: {}", stderr);
+    println!("status:\n{}", exit_code);
+
+    if !stdout.is_empty() {
+        println!("stdout:\n{}", stdout);
+    }
+
+    if !stderr.is_empty() {
+        eprintln!("stderr:\n{}", stderr);
+    }
 }
