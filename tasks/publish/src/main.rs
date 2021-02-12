@@ -1,4 +1,5 @@
 #![deny(clippy::all)]
+#![allow(clippy::unnecessary_wraps)]
 
 use std::collections::{HashMap, HashSet};
 

@@ -200,7 +200,7 @@ jobs:
         uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features --workspace
+          args: --all-features --all-targets --workspace
       - name: check_with_clippy_task_pack_release
         uses: actions-rs/clippy-check@v1
         with:
