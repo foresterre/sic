@@ -141,7 +141,7 @@ impl<'a> Value<'a> {
             (Rule::fp, Ident::Rgba) => Ok(Value::parse_byte(pair.as_str())?),
             (Rule::fp, Ident::Size) => Ok(Value::parse_float(pair.as_str())?),
             (Rule::fp, Ident::Coord) => Ok(Value::parse_nat_num(pair.as_str())?),
-            (Rule::string_unicode, _) => Ok(Value::parse_string(pair.into_inner().as_str())?),
+            (Rule::string_unicode, _) => Ok(Value::parse_string(pair.into_inner().as_str())),
             _ => Err(NamedValueError::InvalidArgumentType),
         }
     }
@@ -151,7 +151,7 @@ impl<'a> Value<'a> {
             Ident::Rgba => Ok(Value::parse_byte(s)?),
             Ident::Size => Ok(Value::parse_float(s)?),
             Ident::Coord => Ok(Value::parse_nat_num(s)?),
-            Ident::Font => Ok(Value::parse_string(slice_str_tokens(s)?)?),
+            Ident::Font => Ok(Value::parse_string(slice_str_tokens(s)?)),
         }
     }
 
@@ -230,8 +230,8 @@ impl<'a> Value<'a> {
         })
     }
 
-    fn parse_string(value: &'a str) -> NVResult<Self> {
-        Ok(Value::String(value))
+    fn parse_string(value: &'a str) -> Self {
+        Value::String(value)
     }
 
     fn error_type(&self) -> String {

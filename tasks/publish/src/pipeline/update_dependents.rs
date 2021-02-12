@@ -37,10 +37,12 @@ impl Action for UpdateDependents<'_, '_> {
 
         // if we perform a dry run, we should not actually update the manifests
         if args.dry_run {
-            dry_update_all(self.dependents_db, self.updated_pkg, version)
+            dry_update_all(self.dependents_db, self.updated_pkg, version);
         } else {
-            live_update_all(self.dependents_db, self.updated_pkg, version)
+            live_update_all(self.dependents_db, self.updated_pkg, version)?;
         }
+
+        Ok(())
     }
 }
 
@@ -89,7 +91,7 @@ fn dry_update_all<'g>(
     dependents_db: &'g DependentsDB<'g>,
     updated_pkg: &'g PackageMetadata<'g>,
     new_version: &str,
-) -> anyhow::Result<()> {
+) {
     if let Some(dependents) = dependents_db.get(updated_pkg.name()) {
         println!("update-dependents: updating dependency '{}' to '{}' for packages in workspace which depend on it {:?}", updated_pkg.name(), new_version, dependents);
 
@@ -102,6 +104,4 @@ fn dry_update_all<'g>(
             )
         }
     }
-
-    Ok(())
 }

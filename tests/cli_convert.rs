@@ -323,7 +323,6 @@ fn convert_jpeg_quality_different() {
     let contents1 = read_file_to_bytes(path_buf_str(&out1));
     let contents2 = read_file_to_bytes(path_buf_str(&out2));
 
-    assert_eq!(contents1, contents1);
     assert_ne!(contents1, contents2);
 
     clean_up_output_path(path_buf_str(&out1));

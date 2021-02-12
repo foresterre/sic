@@ -102,8 +102,14 @@ impl ImageEngine {
     fn process_instruction(&mut self, instruction: &Instr) -> Result<(), SicImageEngineError> {
         match instruction {
             Instr::Operation(op) => self.process_operation(op),
-            Instr::EnvAdd(item) => self.insert_env(*item),
-            Instr::EnvRemove(key) => self.remove_env(*key),
+            Instr::EnvAdd(item) => {
+                self.insert_env(*item);
+                Ok(())
+            }
+            Instr::EnvRemove(key) => {
+                self.remove_env(*key);
+                Ok(())
+            }
         }
     }
 
@@ -135,7 +141,7 @@ impl ImageEngine {
             }
             ImgOp::Diff(img) => {
                 let other = img.open_image()?;
-                *self.image = produce_image_diff(&self.image, &other)?;
+                *self.image = produce_image_diff(&self.image, &other);
 
                 Ok(())
             }
@@ -235,13 +241,11 @@ impl ImageEngine {
         }
     }
 
-    fn insert_env(&mut self, item: EnvItem) -> Result<(), SicImageEngineError> {
+    fn insert_env(&mut self, item: EnvItem) {
         self.environment.insert_or_update(item);
-
-        Ok(())
     }
 
-    fn remove_env(&mut self, key: ItemName) -> Result<(), SicImageEngineError> {
+    fn remove_env(&mut self, key: ItemName) {
         let success = self.environment.remove(key);
 
         if success.is_none() {
@@ -250,8 +254,6 @@ impl ImageEngine {
                 key
             );
         }
-
-        Ok(())
     }
 }
 
@@ -277,10 +279,7 @@ const DIFF_PX_NO_OVERLAP: Rgba<u8> = Rgba([0, 0, 0, 0]);
 /// That is, the part of output image which isn't part of either of the two original input images.
 /// These pixels will be 'coloured' black but with an alpha value of 0, so they will be transparent
 /// as to show they were not part of the input images.
-fn produce_image_diff(
-    this: &DynamicImage,
-    other: &DynamicImage,
-) -> Result<DynamicImage, SicImageEngineError> {
+fn produce_image_diff(this: &DynamicImage, other: &DynamicImage) -> DynamicImage {
     let (lw, lh) = this.dimensions();
     let (rw, rh) = other.dimensions();
 
@@ -303,7 +302,7 @@ fn produce_image_diff(
         }
     }
 
-    Ok(DynamicImage::ImageRgba8(buffer))
+    DynamicImage::ImageRgba8(buffer)
 }
 
 struct CropSelection {
