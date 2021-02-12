@@ -19,12 +19,14 @@ categories = ["multimedia::images", "command-line-utilities"]
 
 [workspace]
 members = [
-  "components/sic_cli_ops",
-  "components/sic_core",
-  "components/sic_image_engine",
-  "components/sic_io",
-  "components/sic_parser",
-  "components/sic_testing",
+    "components/sic_cli_ops",
+    "components/sic_core",
+    "components/sic_image_engine",
+    "components/sic_io",
+    "components/sic_parser",
+    "components/sic_testing",
+    "tools/pack-release",
+    "tools/publish",
 ]
 
 [dependencies]

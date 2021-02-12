@@ -143,21 +143,6 @@ jobs:
           command: test
           args: --verbose --all --all-features
 
-      - name: build_and_test_task_pack_release
-        if: matrix.build == 'stable' || matrix.build == 'win-msvc'
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --verbose --all --manifest-path tools/pack-release/Cargo.toml
-
-      - name: build_and_test_task_publish
-        if: matrix.build == 'stable' || matrix.build == 'win-msvc'
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --verbose --all --manifest-path tools/publish/Cargo.toml
-
-
   rustfmt:
     name: pipeline_rustfmt
     runs-on: ubuntu-latest
@@ -174,12 +159,6 @@ jobs:
       - name: check_formatting
         run: |
           cargo fmt --all -- --check
-      - name: check_formatting_task_pack_release
-        run: |
-          cargo fmt --all --manifest-path tools/pack-release/Cargo.toml -- --check
-      - name: check_formatting_task_publish
-        run: |
-          cargo fmt --all --manifest-path tools/publish/Cargo.toml -- --check
 
   clippy:
     name: pipeline_clippy
@@ -201,16 +180,6 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --all-features --all-targets --workspace
-      - name: check_with_clippy_task_pack_release
-        uses: actions-rs/clippy-check@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features --workspace --manifest-path tools/pack-release/Cargo.toml
-      - name: check_with_clippy_task_publish_release
-        uses: actions-rs/clippy-check@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features --workspace --manifest-path tools/publish/Cargo.toml
 
   cargo_deny:
     name: pipeline_cargo_deny
