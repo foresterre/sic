@@ -1,4 +1,5 @@
 #![deny(clippy::all)]
+#![allow(clippy::unnecessary_wraps)]
 
 #[macro_use]
 extern crate strum_macros;

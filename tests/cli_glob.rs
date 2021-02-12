@@ -1,4 +1,3 @@
-#[allow(unused)]
 #[macro_use]
 pub mod common;
 

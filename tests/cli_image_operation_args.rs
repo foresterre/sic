@@ -11,7 +11,7 @@ fn command(input: &str, output: &str, args: &str) -> Child {
     common::SicTestCommandBuilder::new()
         .input_from_resources(input)
         .output_in_target(output)
-        .with_args(args.split(" "))
+        .with_args(args.split(' '))
         .spawn_child()
 }
 
