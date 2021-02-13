@@ -1,6 +1,6 @@
 [package]
 name = "sic_testing"
-version = "0.15.0"
+version = "0.16.0"
 authors = ["Martijn Gribnau <garm@ilumeo.com>"]
 description = "Component of the sic cli: provides commonly used testing operations for sic crates."
 edition = "2018"
@@ -8,5 +8,5 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/foresterre/sic"
 
 [dependencies]
-sic_core = { version = "0.15.0", path = "../sic_core" }
+sic_core = { version = "0.16.0", path = "../sic_core" }
 parameterized  = "0.3.1"
