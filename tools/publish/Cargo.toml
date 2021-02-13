@@ -2,7 +2,7 @@
 name = "cargo-publish-workspace"
 description = "Topologically publish a complete workspace with a single command"
 authors = ["Martijn Gribnau <garm@ilumeo.com>"]
-version = "0.1.0"
+version = "0.16.0"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/foresterre/sic/tree/main/tools/publish"
 edition = "2018"
