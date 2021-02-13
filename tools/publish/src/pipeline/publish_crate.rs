@@ -2,7 +2,7 @@ use crate::arguments::PublishWorkspace;
 use crate::pipeline::Action;
 use anyhow::Context;
 use guppy::graph::PackageMetadata;
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 pub struct PublishCrate<'g> {
     command: Command,
@@ -41,18 +41,22 @@ impl<'g> PublishCrate<'g> {
 
 impl Action for PublishCrate<'_> {
     fn run(&mut self, _args: &PublishWorkspace) -> anyhow::Result<()> {
-        let child_process = self.command.spawn()?;
+        let child_process = self.command.stderr(Stdio::piped()).spawn()?;
         let result = child_process.wait_with_output()?;
 
-        anyhow::ensure!(
-            result.status.success(),
-            format!(
-                "Cargo publish command failed for '{}' with:\n\tstdout:\n\t{}\n\tstderr:\n\t{}",
-                self.pkg.manifest_path().display(),
-                String::from_utf8(result.stdout)?,
-                String::from_utf8(result.stderr)?,
-            )
-        );
+        if !result.status.success() {
+            println!("encountered publish error for {}", self.pkg.name());
+            if String::from_utf8_lossy(&result.stderr).contains("already uploaded") {
+                println!("skipping {}: already published", self.pkg.name());
+                return Ok(());
+            } else {
+                anyhow::bail!(
+                    "publish {} failed in {}",
+                    self.pkg.name(),
+                    self.pkg.manifest_path().display()
+                );
+            }
+        };
 
         Ok(())
     }
