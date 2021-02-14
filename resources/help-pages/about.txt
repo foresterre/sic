@@ -1,29 +1,24 @@
-sic is an image crate[1], CLI front-end. It allows you to perform image operations on images and to convert images to different formats from the CLI.
+sic is an image crate[1], CLI front-end. It allows you to manipulate images using image operations and convert images between various formats.
 
 Formats
 -------
 
-Currently, the following input (decoding) formats are supported:
-* BMP, GIF, DDS, Farbfeld, ICO, JPEG, PNG, PBM, PGM, PPM, PAM, TGA, TIFF and WebP
+sic can decode the following image formats:
+* AVIF, BMP, GIF, DDS, Farbfeld, ICO, JPEG, PNG, PAM, PBM, PGM, PPM, TGA, TIFF and WebP
 
-The following output (encoding) formats are supported:
-* BMP, GIF, Farbfeld, ICO, JPEG, PNG, PBM, PGM, PPM, PAM, TIFF
+sic can encode images into the following formats:
+* AVIF, BMP, GIF, Farbfeld, ICO, JPEG, PNG, PAM, PBM, PGM, PPM
 
-For both encoding and decoding, some formats are partly supported (i.e. limitation may apply).
-Animated images are currently not supported, however a specific image frame may be selected if the image is a GIF.
-Other limitations can be found at:
-* https://github.com/image-rs/image/tree/v0.23.4#21-supported-image-formats
+Animated images are currently not supported, however a specific image frame may be selected if the image is a GIF or APNG.
 
-Glob patterns
--------------
+Batch processing
+----------------
 
-By default, sic's --input and --output arguments expect a single input image and output image respectively.
-When using glob mode by setting --mode to 'glob', the --input argument expects to receive a single glob pattern instead.
-You may need to provide quotation marks around the pattern, so your shell will not superfluously expand the pattern.
-The --output argument should be given an output folder instead of a file path.
-
-Output image files will mirror the path (from the first common directory) from their respective input image paths in the output folder.
-If output folders do not exist, sic will attempt to create them for you.
+By default, sic's input and output arguments expect a single input and output image.
+You may however replace --input and --output by respectively --glob-input and --glob-output to batch process images matching the glob pattern given to --glob-input.
+You may need to provide quotation marks around the pattern, so your shell will not superfluously expand it.
+The --glob-output argument expects an output folder instead of a file path, and the file structure from the first common folder of
+the matching input image paths will be mirrored to the output directory.
 
 A thank you and request
 -----------------------
@@ -31,7 +26,8 @@ A thank you and request
 We would like to explicitly state that the sic authors are not affiliated with the image crate authors.
 We do like to thank them for creating and maintaining an amazing set of libraries however!
 
-If you, a user of sic, run into an issue caused by the sic program, please report them to us by creating an issue here:
+If you run into an issue caused by the sic program, please report them to us by creating an issue here:
+
 * https://github.com/foresterre/sic/issues
 
 Thank you in advance!

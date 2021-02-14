@@ -9,22 +9,33 @@ _Convert images and perform image operations from the command-line._
 
 `sic` (sic image cli) is a front-end for the [image crate](https://github.com/image-rs/image).
 Aside from image operations supplied by the image crate, a few additional helpful operations such
-as diff, are included. Operations provided by the [imageproc](https://github.com/image-rs/imageproc)
+as diff, are included. Operations provided by the [imageproc]🎻(https://github.com/image-rs/imageproc)
 crate can be enabled by compiling with the `imageproc-ops` feature.  We intend to provide more extensive support for imageproc
 operations in a future release.
 
 ### Installation
 
-Install with [cargo](https://crates.io/crates/sic): `cargo install sic`<br>
-Update with [cargo](https://crates.io/crates/sic): `cargo install --force sic`
+#### Install with cargo:
 
-Pre build binary: see [releases](https://github.com/foresterre/sic/releases).
+* run `cargo install sic`
 
-From the source:
-- Setup rust and cargo (for example using [rustup](https://rustup.rs/)) <br> 
-- Clone this repo: `git clone https://github.com/foresterre/sic.git`
-- Switch to this repo: `cd sic`
+#### Pre build binaries
+
+* download from [releases](https://github.com/foresterre/sic/releases).
+
+
+#### Build from source
+
+- Setup rust and cargo (for example using [rustup](https://rustup.rs/))
+- Clone this repo: `git clone https://github.com/foresterre/sic.git && cd sic`
 - Build a release: `cargo build --release`
+
+`sic` is usually build against the latest stable Rust version, but may also work with older versions.
+
+#### Using a package manager
+
+<details><summary>Homebrew</summary>
+<p>
 
 🍺 Homebrew on MacOS:
 
@@ -40,9 +51,10 @@ brew tap tgotwig/linux-sic
 brew install tgotwig/linux-sic/sic
 ```
 
-**MSRV when building from source:**
+</p>
+</details>
 
-Expects development against the latest Rust stable version, but may work on older versions.
+
 
 ### Usage
 
@@ -57,10 +69,14 @@ Convert an image from one format to another, for example from PNG to JPG.
 If you want to explicitly set the image output format, you may do so by providing the `--output-format <format>` argument.
 Otherwise, sic will attempt to infer the format from the output file extension.
 
-`--help` can be used to view a complete list of supported image output formats. Included are: `bmp`, `farbfeld`, `gif`, `ico`, `jpg` (`jpeg`), `png`, `pam`, `pbm`, `pgm` and `ppm`.
+`--help` can be used to view a complete list of supported image output formats. Included are:
+* `AVIF`, `BMP`, `Farbfeld`, `GIF`, `ICO`, `JPEG`, `PNG`, `PNM` (`PAM`, `PBM`, `PGM` and `PPM`) and `TGA`.
+
+
+
 The JPEG quality can optionally be set with `--jpeg-encoding-quality <value>`. The value should be in the range 1-100 (with default 80).
-The PNM format (specifically PBM, PGM and PPM) use binary encoding (PNM P4, P5 and P6 respectively) by default.
-To use ascii encoding, provide the following flag: `--pnm-encoding-ascii`.
+Files which are formatted with a PNM format (with one subtype of PBM, PGM and PPM) use binary encoding (PNM P4, P5 and P6 respectively) by default.
+To use ascii encoding, you can provide the following flag: `--pnm-encoding-ascii`.
 
 ##### Convert or apply operations on a set of images
 
@@ -86,82 +102,83 @@ all input files. If output directories do not exist, they will be created.
 
 <br>
 
-##### Apply image operations
+##### Image operations
 
-There are two methods to apply image operations. You can only use one at a time.
+In `sic`, you can manipulate images using image operations. Image operations can be used directly from the CLI, or through
+sic's _image script_. 
 
-The first method is called the _script operations method_ (or: _script_), and the second method is
-called the _cli operations method_ (or _cli ops_). <br><br>
+NB: Operations are applied in a left-to-right order and are generally not commutative. This may be especially surprising when
+applying image operation via CLI options and flags.
 
-The operations are applied in the same order as they are provided (left-to-right) and are generally not commutative.
-
-
-###### 📜 script operations method
+###### 📜 image script
 
 Use this method by using the `--apply-operations "<operations>"` (shorthand: `-x`) cli argument and providing
 statements which tell `sic` what operations should be applied on the image, for example: <br>
 `sic -i input.jpg -o output.jpg --apply-operations "flip-horizontal; blur 10; resize 250 250"` <br>
 When more than one image operation is provided, the separator `;` should be used to separate each operation statement. <br><br>
 
-###### ✏️ cli operations method
+###### ✏️ CLI ops
 
 Use this method by providing cli image operation arguments, such as `--blur` and `--crop`, directly.  
 If we use the _cli operations_ method the previously shown example becomes: <br>
 `sic -i input.png -o output.jpg --flip-horizontal --blur 10 --resize 250 250` <br>
 <br><br>
 
-##### Supported operations
+##### Available image operations
 
-|operations|syntax*|available from version|description|
-|---|---|---|---|
-|blur               | `blur <fp>`                               | 0.5.0       | Performs a Gaussian blur on the image ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.blur.html)). An argument below `0.0`, will use `1.0` instead. |
-|brighten           | `brighten <int>`                          | 0.7.0       | Create a brightened version of the image. |
-|contrast           | `contrast <fp>`                           | 0.7.0 	  | Adjust the contrast of the image. |
-|crop               | `crop <uint> <uint> <uint> <uint>`        | 0.9.0       | Syntax: `crop <lx> <ly> <rx> <ry>`, where `lx` is top left corner x pixel coordinate starting at 0, `ly` is the top left corner y pixel coordinate starting at 0, `rx` is the  bottom right corner x pixel coordinate and `ry` is the bottom right corner y pixel coordinate. `rx` and `ry` should be larger than `lx` and `ly` respectively. |
-|diff               | `diff <path>`                             | 0.11.0      | Diff the input image against the argument image to show which pixels are the same (white), different (red) or not part of either image (transparent). |
-|draw-text          | `draw-text <string> <nv:coord> <nv:rgba> <nv:size> <nv:font>` | 0.12.0 + feature: `imageproc-ops` | Draw text on top of an image (note: alpha-blending is not yet supported).  |
-|filter3x3          | `filter3x3 <fp9x> `                       | 0.7.0       | Apply a 3 by 3 convolution filter. |
-|flip horizontal    | `flip-horizontal`                         | 0.5.0 	  | Flips the image on the horizontal axis. |
-|flip vertical      | `flip-vertical`                           | 0.5.0 	  | Flips the image on the vertical axis. |
-|gray scale         | `grayscale`                               | 0.7.0 	  | Transform each pixel to only hold an intensity of light value. Reduces the color space to contain only gray monochromatic values.|
-|hue rotate         | `hue-rotate <int>`                        | 0.7.0 	  | Rotate's the hue, argument is in degrees. Rotates `<int>%360` degrees. |
-|invert             | `invert`                                  | 0.7.0 	  | Invert the colours of an image. |
-|overlay            | `overlay <path> <uint> <uint>`            | 0.14.0 	  | Overlay an image loaded from the provided argument path over the input image (at a certain position). |
-|resize             | `resize <uint> <uint>`                    | 0.5.0 	  | Resize the image to x by y pixels. Can both up- and downscale. Uses a `lanczos3` sampling filter unless overridden. Prior to sic v0.11, the default sampling filter was `gaussian`. |
-| >                 | `set preserve-aspect-ratio <bool>`        | 0.9.0       | Enables preservation of the aspect ratio when resizing. |
-| >                 | `set sampling-filter <value>`             | 0.9.0       | When resizing use the `<value>` sampling filter. Choices are `catmullrom`, `gaussian`,`lanczos3`,`nearest`,`triangle`. |
-|rotate90           | `rotate90`                                | 0.7.0 	  | Rotate an image 90 degrees. |
-|rotate180          | `rotate180`                               | 0.7.0 	  | Rotate an image 180 degrees. |
-|rotate270          | `rotate270`                               | 0.7.0 	  | Rotate an image 270 degrees. |
-|unsharpen          | `unsharpen <fp> <int>`                    | 0.7.0 	  | Applies an unsharpen mask to the image. The first parameter defines how much the image should be blurred and the second parameter defines a threshold. If the difference between the original and blurred image is at least the threshold, they will be subtracted from each other. Can be used to sharpen an image. |
+|operations|syntax^1|description|
+|---|---|---|
+|blur               | `blur <fp>`                               | Performs a Gaussian blur on the image ([more info](https://docs.rs/image/0.19.0/image/imageops/fn.blur.html)). An argument below `0.0`, will use `1.0` instead. |
+|brighten           | `brighten <int>`                          | Create a brightened version of the image. |
+|contrast           | `contrast <fp>`                           | Adjust the contrast of the image. |
+|crop               | `crop <uint> <uint> <uint> <uint>`        | Syntax: `crop <lx> <ly> <rx> <ry>`, where `lx` is top left corner x pixel coordinate starting at 0, `ly` is the top left corner y pixel coordinate starting at 0, `rx` is the  bottom right corner x pixel coordinate and `ry` is the bottom right corner y pixel coordinate. `rx` and `ry` should be larger than `lx` and `ly` respectively. |
+|diff               | `diff <path>`                             | Diff the input image against the argument image to show which pixels are the same (white), different (red) or not part of either image (transparent). |
+|draw-text ^2         | `draw-text <string> <nv:coord> <nv:rgba> <nv:size> <nv:font>` | Draw text on top of an image (note: alpha-blending is not yet supported).  |
+|filter3x3          | `filter3x3 <fp9x> `                       | Apply a 3 by 3 convolution filter. |
+|flip horizontal    | `flip-horizontal`                         | Flips the image on the horizontal axis. |
+|flip vertical      | `flip-vertical`                           | Flips the image on the vertical axis. |
+|gray scale         | `grayscale`                               | Transform each pixel to only hold an intensity of light value. Reduces the color space to contain only gray monochromatic values.|
+|hue rotate         | `hue-rotate <int>`                        | Rotate's the hue, argument is in degrees. Rotates `<int>%360` degrees. |
+|invert             | `invert`                                  | Invert the colours of an image. |
+|overlay            | `overlay <path> <uint> <uint>`            | Overlay an image loaded from the provided argument path over the input image (at a certain position). |
+|resize             | `resize <uint> <uint>`                    | Resize the image to x by y pixels. Can both up- and downscale. Uses a `lanczos3` sampling filter unless overridden. Prior to sic v0.11, the default sampling filter was `gaussian`. |
+| >                 | `set preserve-aspect-ratio <bool>`        | Enables preservation of the aspect ratio when resizing. |
+| >                 | `set sampling-filter <value>`             | When resizing use the `<value>` sampling filter. Choices are `catmullrom`, `gaussian`,`lanczos3`,`nearest`,`triangle`. |
+|rotate90           | `rotate90`                                | Rotate an image 90 degrees. |
+|rotate180          | `rotate180`                               | Rotate an image 180 degrees. |
+|rotate270          | `rotate270`                               | Rotate an image 270 degrees. |
+|unsharpen          | `unsharpen <fp> <int>`                    | Applies an unsharpen mask to the image. The first parameter defines how much the image should be blurred and the second parameter defines a threshold. If the difference between the original and blurred image is at least the threshold, they will be subtracted from each other. Can be used to sharpen an image. |
 
-`* The exact syntax applies to the --apply-operations method, but can also be used as a reference for the image operations as cli arguments method.`
+^1 _The syntax in the table applies to image script, but can also be used as a reference when using image operations via CLI arguments_<br>
+^2 _draw-text is only available when compiled with `imageproc-ops` feature_
 
+
+##### Image operation modifiers
 
 For some operations, their behaviour can be adapted by setting an operation modifier. These modifiers can be overwritten and they can also be reset (to their default behaviour).
 
-|environment operation|syntax|available (from version)|description|
-|---|---|---|---|
-|set environment option   | `set <option> [<args 0..n>]` | 0.9.0 | Enables the use of a modifier for an operation. Any operation which uses the value of the modifier will use the set modifier value instead of the default value. Can be overwritten by calling `set` again for the same operation and modifier specifier. |
-|unset environment option | `del <option>`               | 0.9.0 | Resets the modifier value. Any operation which looks at the value of this modifier will use the default value instead.|
+|environment operation|syntax|description|
+|---|---|---|
+|set environment option   | `set <option> [<args 0..n>]` | Enables the use of a modifier for an operation. Any operation which uses the value of the modifier will use the set modifier value instead of the default value. Can be overwritten by calling `set` again for the same operation and modifier specifier. |
+|unset environment option | `del <option>`               | Resets the modifier value. Any operation which looks at the value of this modifier will use the default value instead.|
 
 _legend_:
 
-`<byte>`: an 8 bit unsigned integer (positive number in range 0-255
-`<uint>`: a 32 bit unsigned integer (positive number)
-`<int>`: a 32 bit signed integer (positive or negative number)
-`<fp>`: a 32 bit floating-point number (real number)
-`<fp9x>`: 9 succeeding 32 bit floating-point numbers
-`<path>`: a qualified path to an image reachable from your current platform (the path should be surrounded by quotation marks, i.e. " or ')
-`<string>`: a valid unicode string
+`<byte>`: an 8 bit unsigned integer (positive number in range 0-255<br>
+`<uint>`: a 32 bit unsigned integer (positive number)<br>
+`<int>`: a 32 bit signed integer (positive or negative number)<br>
+`<fp>`: a 32 bit floating-point number (real number)<br>
+`<fp9x>`: 9 succeeding 32 bit floating-point numbers<br>
+`<path>`: a qualified path to an image reachable from your current platform (the path should be surrounded by quotation marks, i.e. " or ')<br>
+`<string>`: a valid unicode string<br>
 
-`<nv:coord>`: a named value representing a coordinate (top left is (0, 0)), with syntax `coord(<uint>, <uint>)`
-`<nv:rgba>`: a named value representing an RGBA color, with syntax: `rgba(<byte>, <byte>, <byte>, <byte>)`
-`<nv:size>`: a named value representing a font size, with syntax: `size(<fp>)`
-`<nv:font>`: a named value representing a (TrueType) font file location, with syntax: `font(<path>)`
+`<nv:coord>`: a named value representing a coordinate (top left is (0, 0)), with syntax `coord(<uint>, <uint>)`<br>
+`<nv:rgba>`: a named value representing an RGBA color, with syntax: `rgba(<byte>, <byte>, <byte>, <byte>)`<br>
+`<nv:size>`: a named value representing a font size, with syntax: `size(<fp>)`<br>
+`<nv:font>`: a named value representing a (TrueType) font file location, with syntax: `font(<path>)`<br>
 
 
-_Image operation example usage:_
+##### Examples
 
 **blur** example: <br>
 `sic -i in.png -o out.png --apply-operations "blur 1.3;"` <br>
@@ -304,4 +321,4 @@ conditions.
 
 Feel free to open an issue :mailbox_with_mail: if you have a suggestion, a question or found a bug =).
 
-:guitar: :trumpet: :violin: :saxophone:
+🎸 🎺 🎻 🎷
