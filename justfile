@@ -13,13 +13,17 @@ lint:
 
 # run tests in workspace
 test:
-    cargo test --all
+    cargo test --all-features --all
+
+deny:
+	cargo deny --all-features check
 
 # general check to run prior to committing source code
 pre-commit:
     just fmt
     just lint
     just test
+    just deny
 
 # package a release for the current platform
 pack-release:
