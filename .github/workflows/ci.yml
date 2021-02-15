@@ -50,7 +50,7 @@ jobs:
   test:
     name: pipeline_run_tests
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.build == 'macos' || matrix.build == 'win-msvc' }}
+    continue-on-error: ${{ matrix.build == 'pinned' || matrix.build == 'macos' || matrix.build == 'win-msvc' }}
     strategy:
       matrix:
         build: [pinned, stable, beta, nightly, macos, win-gnu, win-msvc]
