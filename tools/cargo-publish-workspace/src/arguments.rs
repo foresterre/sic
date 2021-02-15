@@ -68,7 +68,7 @@ pub struct PublishWorkspace {
     /// Allows the crate registry index to update, which may be important since consecutive
     /// attempts to publish crates may contain the just published crate as dependency, and
     /// if the registry hasn't processed a crate dependency yet, publishing will fail.   
-    #[clap(long, default_value = "5")]
+    #[clap(long, default_value = "15")]
     pub(crate) sleep: u64,
 
     /// Pass additional arguments to 'cargo publish' directly
