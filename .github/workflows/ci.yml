@@ -58,7 +58,7 @@ jobs:
           # pinned rust version :: ubuntu
           - build: pinned
             os: ubuntu-18.04
-            rust: 1.46.0
+            rust: 1.49.0
 
           # latest rust stable :: ubuntu
           - build: stable
