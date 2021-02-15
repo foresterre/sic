@@ -1616,9 +1616,9 @@ dependencies = [
 
 [[package]]
 name = "target-spec"
-version = "0.6.0"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "956c2aeccd9cc67a543e04559d46aedc8aa9cda15e5884bcfabb8217fd130e2a"
+checksum = "39920b3286e8e9585b3ba77becb3e682888f63b2be5326cd16264d8ad292d78e"
 dependencies = [
  "cfg-expr",
 ]
