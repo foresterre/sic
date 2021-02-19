@@ -14,7 +14,7 @@ sic_parser = { version = "0.16.0", path = "../../components/sic_parser" }
 clap = "2.33.3"
 strum = "0.20.0"
 strum_macros = "0.20.1"
-thiserror = "1.0.23"
+thiserror = "1.0.24"
 
 [dev-dependencies]
 sic_core = { version = "0.16.0", path = "../../components/sic_core" }
