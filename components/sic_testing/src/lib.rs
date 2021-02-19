@@ -5,6 +5,8 @@ use std::path::{Path, PathBuf};
 // re-export parameterized macro's
 pub use parameterized::ide;
 pub use parameterized::parameterized as pm;
+use sic_core::image::GenericImageView;
+use sic_core::SicImage;
 
 // just enough, absolute tolerance, floating point comparison.
 #[macro_export]
@@ -42,13 +44,11 @@ pub fn clean_up_output_path(test_output_path: &str) {
         .expect("Unable to remove file after test.");
 }
 
-pub fn open_test_image<P: AsRef<Path>>(path: P) -> sic_core::image::DynamicImage {
-    sic_core::image::open(path.as_ref()).unwrap()
+pub fn open_test_image<P: AsRef<Path>>(path: P) -> sic_core::SicImage {
+    sic_core::image::open(path.as_ref()).unwrap().into()
 }
 
-pub fn image_eq<T: Into<sic_core::image::DynamicImage>>(left: T, right: T) -> bool {
-    use sic_core::image::GenericImageView;
-
+pub fn image_eq<T: Into<sic_core::SicImage>>(left: T, right: T) -> bool {
     let left = left.into();
     let right = right.into();
 
@@ -58,3 +58,43 @@ pub fn image_eq<T: Into<sic_core::image::DynamicImage>>(left: T, right: T) -> bo
             .zip(right.pixels())
             .all(|(l, r)| l.0 == r.0 && l.1 == r.1 && l.2 == r.2)
 }
+
+// Adds direct access for static images.
+pub trait SicImageDirectAccess {
+    fn get_pixel<I: GenericImageView>(&self, x: u32, y: u32) -> I::Pixel
+    where
+        Self: AsRef<I>,
+    {
+        self.as_ref().get_pixel(x, y)
+    }
+
+    fn width<I: GenericImageView>(&self) -> u32
+    where
+        Self: AsRef<I>,
+    {
+        self.as_ref().width()
+    }
+
+    fn height<I: GenericImageView>(&self) -> u32
+    where
+        Self: AsRef<I>,
+    {
+        self.as_ref().height()
+    }
+
+    fn dimensions<I: GenericImageView>(&self) -> (u32, u32)
+    where
+        Self: AsRef<I>,
+    {
+        self.as_ref().dimensions()
+    }
+
+    fn pixels<I: GenericImageView>(&self) -> sic_core::image::Pixels<I>
+    where
+        Self: AsRef<I>,
+    {
+        self.as_ref().pixels()
+    }
+}
+
+impl SicImageDirectAccess for SicImage {}

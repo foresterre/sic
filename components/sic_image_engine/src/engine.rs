@@ -8,6 +8,8 @@ use sic_core::image::{DynamicImage, GenericImageView, ImageBuffer, Rgba};
 use crate::errors::SicImageEngineError;
 use crate::wrapper::filter_type::FilterTypeWrap;
 use crate::ImgOp;
+use sic_core::SicImage;
+use std::convert::TryFrom;
 
 trait EnvironmentKey {
     fn key(&self) -> ItemName;
@@ -77,18 +79,18 @@ pub enum Instr {
 #[derive(Clone)]
 pub struct ImageEngine {
     environment: Box<Env>,
-    image: Box<DynamicImage>,
+    image: Box<SicImage>,
 }
 
 impl ImageEngine {
-    pub fn new(image: DynamicImage) -> Self {
+    pub fn new(image: SicImage) -> Self {
         Self {
             environment: Box::from(Env::default()),
             image: Box::from(image),
         }
     }
 
-    pub fn ignite(&mut self, instructions: &[Instr]) -> Result<&DynamicImage, SicImageEngineError> {
+    pub fn ignite(&mut self, instructions: &[Instr]) -> Result<&SicImage, SicImageEngineError> {
         for instruction in instructions {
             match self.process_instruction(instruction) {
                 Ok(_) => continue,
@@ -110,15 +112,15 @@ impl ImageEngine {
     fn process_operation(&mut self, operation: &ImgOp) -> Result<(), SicImageEngineError> {
         match operation {
             ImgOp::Blur(sigma) => {
-                *self.image = self.image.blur(*sigma);
+                *self.image = self.image.inner_mut().blur(*sigma).into();
                 Ok(())
             }
             ImgOp::Brighten(amount) => {
-                *self.image = self.image.brighten(*amount);
+                *self.image = self.image.inner_mut().brighten(*amount).into();
                 Ok(())
             }
             ImgOp::Contrast(c) => {
-                *self.image = self.image.adjust_contrast(*c);
+                *self.image = self.image.inner_mut().adjust_contrast(*c).into();
                 Ok(())
             }
             ImgOp::Crop((lx, ly, rx, ry)) => {
@@ -128,14 +130,20 @@ impl ImageEngine {
                 // 2. verify that the selection is within the bounds of the image
                 selection
                     .dimensions_are_ok()
-                    .and_then(|selection| selection.fits_within(&self.image))
+                    .and_then(|selection| selection.fits_within(&self.image.inner()))
                     .map(|_| {
-                        *self.image = self.image.crop(*lx, *ly, rx - lx, ry - ly);
+                        *self.image = self
+                            .image
+                            .inner_mut()
+                            .crop(*lx, *ly, rx - lx, ry - ly)
+                            .into()
                     })
             }
             ImgOp::Diff(img) => {
                 let other = img.open_image()?;
-                *self.image = produce_image_diff(&self.image, &other)?;
+                let other = DynamicImage::try_from(other)?;
+
+                *self.image = produce_image_diff(&self.image.inner_mut(), &other)?.into();
 
                 Ok(())
             }
@@ -153,14 +161,15 @@ impl ImageEngine {
                     .ok_or(SicImageEngineError::FontError)?;
 
                 *self.image = DynamicImage::ImageRgba8(imageproc::drawing::draw_text(
-                    &mut *self.image,
+                    self.image.inner_mut(),
                     font_options.color,
                     coords.0,
                     coords.1,
                     font_options.scale,
                     &font,
                     text,
-                ));
+                ))
+                .into();
 
                 Ok(())
             }
@@ -168,33 +177,35 @@ impl ImageEngine {
             // Otherwise it will panic, see: https://docs.rs/image/0.19.0/src/image/dynimage.rs.html#349
             // This check already happens within the `parse` module.
             ImgOp::Filter3x3(ref it) => {
-                *self.image = self.image.filter3x3(it);
+                *self.image = self.image.inner_mut().filter3x3(it).into();
                 Ok(())
             }
             ImgOp::FlipHorizontal => {
-                *self.image = self.image.fliph();
+                *self.image = self.image.inner_mut().fliph().into();
                 Ok(())
             }
             ImgOp::FlipVertical => {
-                *self.image = self.image.flipv();
+                *self.image = self.image.inner_mut().flipv().into();
                 Ok(())
             }
             ImgOp::GrayScale => {
-                *self.image = self.image.grayscale();
+                *self.image = self.image.inner_mut().grayscale().into();
                 Ok(())
             }
             ImgOp::HueRotate(degree) => {
-                *self.image = self.image.huerotate(*degree);
+                *self.image = self.image.inner_mut().huerotate(*degree).into();
                 Ok(())
             }
             ImgOp::Invert => {
-                self.image.invert();
+                self.image.inner_mut().invert();
                 Ok(())
             }
             ImgOp::Overlay(overlay) => {
                 let overlay_image = overlay.image_path().open_image()?;
+                let overlay_image = DynamicImage::try_from(overlay_image)?;
+
                 let pos = overlay.position();
-                imageops::overlay(&mut *self.image, &overlay_image, pos.0, pos.1);
+                imageops::overlay(&mut *self.image.inner_mut(), &overlay_image, pos.0, pos.1);
 
                 Ok(())
             }
@@ -204,32 +215,41 @@ impl ImageEngine {
                 if let Some(reg) = self.environment.get(ItemName::PreserveAspectRatio) {
                     if let EnvItem::PreserveAspectRatio(preserve) = reg {
                         if *preserve {
-                            *self.image = self.image.resize(*new_x, *new_y, filter);
+                            *self.image =
+                                self.image.inner_mut().resize(*new_x, *new_y, filter).into();
                         } else {
-                            *self.image = self.image.resize_exact(*new_x, *new_y, filter);
+                            *self.image = self
+                                .image
+                                .inner_mut()
+                                .resize_exact(*new_x, *new_y, filter)
+                                .into();
                         }
                     }
                 } else {
                     // default if preserve-aspect-ratio option has not been set
-                    *self.image = self.image.resize_exact(*new_x, *new_y, filter);
+                    *self.image = self
+                        .image
+                        .inner_mut()
+                        .resize_exact(*new_x, *new_y, filter)
+                        .into();
                 }
 
                 Ok(())
             }
             ImgOp::Rotate90 => {
-                *self.image = self.image.rotate90();
+                *self.image = self.image.inner_mut().rotate90().into();
                 Ok(())
             }
             ImgOp::Rotate180 => {
-                *self.image = self.image.rotate180();
+                *self.image = self.image.inner_mut().rotate180().into();
                 Ok(())
             }
             ImgOp::Rotate270 => {
-                *self.image = self.image.rotate270();
+                *self.image = self.image.inner_mut().rotate270().into();
                 Ok(())
             }
             ImgOp::Unsharpen((sigma, threshold)) => {
-                *self.image = self.image.unsharpen(*sigma, *threshold);
+                *self.image = self.image.inner_mut().unsharpen(*sigma, *threshold).into();
                 Ok(())
             }
         }
@@ -358,6 +378,7 @@ fn resize_filter_or_default(env: &mut Env) -> FilterType {
 
 #[cfg(test)]
 mod compatibility {
+    use sic_core::SicImage;
 
     // The raw_pixels() method was removed from the image crate in version 0.23
     // We replace it for our test cases with this straightforward trait, and trait impl for
@@ -366,9 +387,9 @@ mod compatibility {
         fn raw_pixels(&self) -> Vec<u8>;
     }
 
-    impl RawPixels for sic_core::image::DynamicImage {
+    impl RawPixels for SicImage {
         fn raw_pixels(&self) -> Vec<u8> {
-            match self {
+            match self.inner() {
                 sic_core::image::DynamicImage::ImageLuma8(buffer) => buffer.to_vec(),
                 sic_core::image::DynamicImage::ImageLumaA8(buffer) => buffer.to_vec(),
                 sic_core::image::DynamicImage::ImageRgb8(buffer) => buffer.to_vec(),
@@ -461,19 +482,18 @@ mod tests {
     use crate::engine::compatibility::*;
     use crate::wrapper::image_path::ImageFromPath;
     use sic_core::image::imageops::FilterType;
-    use sic_core::image::GenericImageView;
     use sic_core::image::Rgba;
     use sic_testing::*;
     use std::path::PathBuf;
 
     // output images during tests to verify the results visually
-    fn output_test_image_for_manual_inspection(img: &DynamicImage, path: &str) {
+    fn output_test_image_for_manual_inspection(img: &SicImage, path: &str) {
         if cfg!(feature = "output-test-images") {
-            let _ = img.save(path);
+            let _ = img.inner().save(path);
         }
     }
 
-    fn setup_default_test_image() -> DynamicImage {
+    fn setup_default_test_image() -> SicImage {
         const DEFAULT_TEST_IMAGE_PATH: &str = "unsplash_763569_cropped.jpg";
         sic_testing::open_test_image(sic_testing::in_!(DEFAULT_TEST_IMAGE_PATH))
     }
@@ -564,7 +584,7 @@ mod tests {
     #[test]
     fn resize_with_preserve_aspect_ratio() {
         // W 217 H 447
-        let img: DynamicImage = setup_default_test_image();
+        let img = setup_default_test_image();
 
         let mut engine = ImageEngine::new(img);
         let mut engine2 = engine.clone();
@@ -601,7 +621,7 @@ mod tests {
     #[test]
     fn resize_with_preserve_aspect_ratio_set_to_false() {
         // W 217 H 447
-        let img: DynamicImage = setup_default_test_image();
+        let img = setup_default_test_image();
 
         let mut engine = ImageEngine::new(img);
         let mut engine2 = engine.clone();
@@ -636,7 +656,7 @@ mod tests {
 
     #[test]
     fn resize_with_sampling_filter_nearest() {
-        let img: DynamicImage = setup_default_test_image();
+        let img = setup_default_test_image();
 
         let mut engine = ImageEngine::new(img);
         let mut engine2 = engine.clone();
@@ -671,7 +691,7 @@ mod tests {
 
     #[test]
     fn register_unregister_sampling_filter() {
-        let img: DynamicImage = setup_default_test_image();
+        let img = setup_default_test_image();
 
         let mut engine = ImageEngine::new(img);
         let mut engine2 = engine.clone();
@@ -708,7 +728,7 @@ mod tests {
 
     #[test]
     fn test_blur() {
-        let img: DynamicImage = setup_default_test_image();
+        let img = setup_default_test_image();
         let operation = ImgOp::Blur(10.0);
 
         let mut operator = ImageEngine::new(img);
@@ -721,8 +741,8 @@ mod tests {
 
     #[test]
     fn test_brighten_pos() {
-        let img: DynamicImage = setup_default_test_image();
-        let cmp: DynamicImage = setup_default_test_image();
+        let img = setup_default_test_image();
+        let cmp = setup_default_test_image();
 
         let operation = ImgOp::Brighten(25);
 
@@ -740,8 +760,8 @@ mod tests {
 
     #[test]
     fn test_brighten_zero() {
-        let img: DynamicImage = setup_default_test_image();
-        let cmp: DynamicImage = setup_default_test_image();
+        let img = setup_default_test_image();
+        let cmp = setup_default_test_image();
         let operation = ImgOp::Brighten(0);
 
         let mut operator = ImageEngine::new(img);
@@ -758,8 +778,8 @@ mod tests {
 
     #[test]
     fn test_brighten_neg() {
-        let img: DynamicImage = setup_default_test_image();
-        let cmp: DynamicImage = setup_default_test_image();
+        let img = setup_default_test_image();
+        let cmp = setup_default_test_image();
 
         let operation = ImgOp::Brighten(-25);
 
@@ -777,8 +797,8 @@ mod tests {
 
     #[test]
     fn test_contrast_pos() {
-        let img: DynamicImage = setup_default_test_image();
-        let cmp: DynamicImage = setup_default_test_image();
+        let img = setup_default_test_image();
+        let cmp = setup_default_test_image();
 
         let operation = ImgOp::Contrast(150.9);
 
@@ -796,8 +816,8 @@ mod tests {
 
     #[test]
     fn test_contrast_neg() {
-        let img: DynamicImage = setup_default_test_image();
-        let cmp: DynamicImage = setup_default_test_image();
+        let img = setup_default_test_image();
+        let cmp = setup_default_test_image();
 
         let operation = ImgOp::Contrast(-150.9);
 
@@ -815,8 +835,8 @@ mod tests {
 
     #[test]
     fn test_crop_ok_no_change() {
-        let img: DynamicImage = sic_testing::open_test_image(in_!("blackwhite_2x2.bmp"));
-        let cmp: DynamicImage = sic_testing::open_test_image(in_!("blackwhite_2x2.bmp"));
+        let img = open_test_image(in_!("blackwhite_2x2.bmp"));
+        let cmp = open_test_image(in_!("blackwhite_2x2.bmp"));
 
         let operation = ImgOp::Crop((0, 0, 2, 2));
 
@@ -834,8 +854,8 @@ mod tests {
 
     #[test]
     fn test_crop_ok_to_one_pixel() {
-        let img: DynamicImage = sic_testing::open_test_image(in_!("blackwhite_2x2.bmp"));
-        let cmp: DynamicImage = sic_testing::open_test_image(in_!("blackwhite_2x2.bmp"));
+        let img = open_test_image(in_!("blackwhite_2x2.bmp"));
+        let cmp = open_test_image(in_!("blackwhite_2x2.bmp"));
 
         let operation = ImgOp::Crop((0, 0, 1, 1));
 
@@ -862,8 +882,8 @@ mod tests {
 
     #[test]
     fn test_crop_ok_to_half_horizontal() {
-        let img: DynamicImage = sic_testing::open_test_image(in_!("blackwhite_2x2.bmp"));
-        let cmp: DynamicImage = sic_testing::open_test_image(in_!("blackwhite_2x2.bmp"));
+        let img = open_test_image(in_!("blackwhite_2x2.bmp"));
+        let cmp = open_test_image(in_!("blackwhite_2x2.bmp"));
 
         let operation = ImgOp::Crop((0, 0, 2, 1));
 
@@ -891,7 +911,7 @@ mod tests {
 
     #[test]
     fn test_crop_err_lx_larger_than_rx() {
-        let img: DynamicImage = sic_testing::open_test_image(in_!("blackwhite_2x2.bmp"));
+        let img = open_test_image(in_!("blackwhite_2x2.bmp"));
 
         // not rx >= lx
         let operation = ImgOp::Crop((1, 0, 0, 0));
@@ -904,7 +924,7 @@ mod tests {
 
     #[test]
     fn test_crop_err_ly_larger_than_ry() {
-        let img: DynamicImage = sic_testing::open_test_image(in_!("blackwhite_2x2.bmp"));
+        let img = open_test_image(in_!("blackwhite_2x2.bmp"));
 
         // not rx >= lx
         let operation = ImgOp::Crop((0, 1, 0, 0));
@@ -917,7 +937,7 @@ mod tests {
 
     #[test]
     fn test_crop_err_out_of_image_bounds_top_lx() {
-        let img: DynamicImage = sic_testing::open_test_image(in_!("blackwhite_2x2.bmp"));
+        let img = open_test_image(in_!("blackwhite_2x2.bmp"));
 
         let operation = ImgOp::Crop((3, 0, 1, 1));
 
@@ -929,7 +949,7 @@ mod tests {
 
     #[test]
     fn test_crop_err_out_of_image_bounds_top_ly() {
-        let img: DynamicImage = sic_testing::open_test_image(in_!("blackwhite_2x2.bmp"));
+        let img = open_test_image(in_!("blackwhite_2x2.bmp"));
 
         let operation = ImgOp::Crop((0, 3, 1, 1));
 
@@ -941,7 +961,7 @@ mod tests {
 
     #[test]
     fn test_crop_err_out_of_image_bounds_top_rx() {
-        let img: DynamicImage = sic_testing::open_test_image(in_!("blackwhite_2x2.bmp"));
+        let img = open_test_image(in_!("blackwhite_2x2.bmp"));
 
         let operation = ImgOp::Crop((0, 0, 3, 1));
 
@@ -953,7 +973,7 @@ mod tests {
 
     #[test]
     fn test_crop_err_out_of_image_bounds_top_ry() {
-        let img: DynamicImage = sic_testing::open_test_image(in_!("blackwhite_2x2.bmp"));
+        let img = open_test_image(in_!("blackwhite_2x2.bmp"));
 
         let operation = ImgOp::Crop((0, 0, 1, 3));
 
@@ -965,8 +985,8 @@ mod tests {
 
     #[test]
     fn test_filter3x3() {
-        let img: DynamicImage = setup_default_test_image();
-        let cmp: DynamicImage = setup_default_test_image();
+        let img = setup_default_test_image();
+        let cmp = setup_default_test_image();
 
         let operation = ImgOp::Filter3x3([1.0, 0.5, 0.0, 1.0, 0.5, 0.0, 1.0, 0.5, 0.0]);
 
@@ -984,7 +1004,7 @@ mod tests {
 
     #[test]
     fn test_flip_h() {
-        let img: DynamicImage = setup_default_test_image();
+        let img = setup_default_test_image();
         let operation = ImgOp::FlipHorizontal;
 
         let (xa, ya) = img.dimensions();
@@ -1004,7 +1024,7 @@ mod tests {
 
     #[test]
     fn test_flip_v() {
-        let img: DynamicImage = setup_default_test_image();
+        let img = setup_default_test_image();
         let operation = ImgOp::FlipVertical;
 
         let (xa, ya) = img.dimensions();
@@ -1026,7 +1046,7 @@ mod tests {
     fn test_gray_scale() {
         use sic_core::image::Pixel;
 
-        let img: DynamicImage = sic_testing::open_test_image(in_!("rainbow_8x6.bmp"));
+        let img = open_test_image(in_!("rainbow_8x6.bmp"));
         let operation = ImgOp::GrayScale;
 
         let mut operator = ImageEngine::new(img);
@@ -1056,8 +1076,8 @@ mod tests {
 
     #[test]
     fn test_hue_rotate_neg() {
-        let img: DynamicImage = setup_default_test_image();
-        let cmp: DynamicImage = setup_default_test_image();
+        let img = setup_default_test_image();
+        let cmp = setup_default_test_image();
 
         let operation = ImgOp::HueRotate(-100);
 
@@ -1075,8 +1095,8 @@ mod tests {
 
     #[test]
     fn test_hue_rotate_pos() {
-        let img: DynamicImage = setup_default_test_image();
-        let cmp: DynamicImage = setup_default_test_image();
+        let img = setup_default_test_image();
+        let cmp = setup_default_test_image();
 
         let operation = ImgOp::HueRotate(100);
 
@@ -1094,8 +1114,8 @@ mod tests {
 
     #[test]
     fn test_hue_rotate_zero() {
-        let img: DynamicImage = setup_default_test_image();
-        let cmp: DynamicImage = setup_default_test_image();
+        let img = setup_default_test_image();
+        let cmp = setup_default_test_image();
 
         let operation = ImgOp::HueRotate(0);
 
@@ -1113,8 +1133,8 @@ mod tests {
 
     #[test]
     fn test_hue_rotate_360() {
-        let img: DynamicImage = setup_default_test_image();
-        let cmp: DynamicImage = setup_default_test_image();
+        let img = setup_default_test_image();
+        let cmp = setup_default_test_image();
 
         let operation = ImgOp::HueRotate(360);
 
@@ -1127,15 +1147,16 @@ mod tests {
 
         // https://docs.rs/image/0.19.0/image/enum.DynamicImage.html#method.huerotate
         // huerotate(0) should be huerotate(360), but this doesn't seem the case
-        assert_eq!(cmp.huerotate(360).raw_pixels(), result_img.raw_pixels());
+        let expected = SicImage::from(cmp.as_ref().huerotate(360));
+        assert_eq!(expected.raw_pixels(), result_img.raw_pixels());
 
         output_test_image_for_manual_inspection(&result_img, out_!("test_hue_rot_pos_360.png"));
     }
 
     #[test]
     fn test_hue_rotate_over_rotate_pos() {
-        let img: DynamicImage = setup_default_test_image();
-        let cmp: DynamicImage = setup_default_test_image();
+        let img = setup_default_test_image();
+        let cmp = setup_default_test_image();
 
         let operation = ImgOp::HueRotate(460);
 
@@ -1146,15 +1167,16 @@ mod tests {
 
         let result_img = done.unwrap();
 
-        assert_ne!(cmp.huerotate(100).raw_pixels(), result_img.raw_pixels());
+        let expected = SicImage::from(cmp.as_ref().huerotate(100));
+        assert_ne!(expected.raw_pixels(), result_img.raw_pixels());
 
         output_test_image_for_manual_inspection(&result_img, out_!("test_hue_rot_pos_460.png"));
     }
 
     #[test]
     fn test_invert() {
-        let img: DynamicImage = setup_default_test_image();
-        let cmp: DynamicImage = setup_default_test_image();
+        let img = setup_default_test_image();
+        let cmp = setup_default_test_image();
 
         let operation = ImgOp::Invert;
 
@@ -1245,7 +1267,7 @@ mod tests {
     #[test]
     fn test_resize_down_gaussian() {
         // 217x447px => 100x200
-        let img: DynamicImage = setup_default_test_image();
+        let img = setup_default_test_image();
         let operation = ImgOp::Resize((100, 200));
 
         let (xa, ya) = img.dimensions();
@@ -1270,7 +1292,7 @@ mod tests {
     #[test]
     fn test_resize_up_gaussian() {
         // 217x447px => 300x500
-        let img: DynamicImage = setup_default_test_image();
+        let img = setup_default_test_image();
         let operation = ImgOp::Resize((250, 500));
 
         let (xa, ya) = img.dimensions();
@@ -1294,7 +1316,7 @@ mod tests {
 
     #[test]
     fn test_rotate90() {
-        let img: DynamicImage = setup_default_test_image();
+        let img = setup_default_test_image();
         let operation = ImgOp::Rotate90;
 
         let (xa, ya) = img.dimensions();
@@ -1314,7 +1336,7 @@ mod tests {
 
     #[test]
     fn test_rotate180() {
-        let img: DynamicImage = setup_default_test_image();
+        let img = setup_default_test_image();
         let operation = ImgOp::Rotate180;
 
         let (xa, ya) = img.dimensions();
@@ -1334,7 +1356,7 @@ mod tests {
 
     #[test]
     fn test_rotate270() {
-        let img: DynamicImage = setup_default_test_image();
+        let img = setup_default_test_image();
         let operation = ImgOp::Rotate270;
 
         let (xa, ya) = img.dimensions();
@@ -1354,8 +1376,8 @@ mod tests {
 
     #[test]
     fn test_unsharpen_pos() {
-        let img: DynamicImage = setup_default_test_image();
-        let cmp: DynamicImage = setup_default_test_image();
+        let img = setup_default_test_image();
+        let cmp = setup_default_test_image();
 
         let operation = ImgOp::Unsharpen((20.1, 20));
 
@@ -1372,8 +1394,8 @@ mod tests {
 
     #[test]
     fn test_unsharpen_neg() {
-        let img: DynamicImage = setup_default_test_image();
-        let cmp: DynamicImage = setup_default_test_image();
+        let img = setup_default_test_image();
+        let cmp = setup_default_test_image();
 
         let operation = ImgOp::Unsharpen((-20.1, -20));
 
@@ -1394,7 +1416,7 @@ mod tests {
     #[test]
     fn test_multi() {
         // 217x447px original
-        let img: DynamicImage = setup_default_test_image();
+        let img = setup_default_test_image();
         let operations = vec![
             Instr::Operation(ImgOp::Resize((80, 100))),
             Instr::Operation(ImgOp::Blur(5.0)),
@@ -1430,8 +1452,7 @@ mod tests {
 
         #[test]
         fn draw_text() {
-            let img: DynamicImage =
-                DynamicImage::ImageRgb8(sic_core::image::RgbImage::new(200, 200));
+            let img = DynamicImage::ImageRgb8(sic_core::image::RgbImage::new(200, 200)).into();
 
             let font_file = Into::<PathBuf>::into(env!("CARGO_MANIFEST_DIR"))
                 .join("../../resources/font/Lato-Regular.ttf");

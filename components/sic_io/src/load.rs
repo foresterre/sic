@@ -3,15 +3,12 @@ use std::io::{BufReader, Cursor, Read};
 use std::path::Path;
 
 use crate::errors::SicIoError;
-use sic_core::image;
 use sic_core::image::{AnimationDecoder, ImageFormat};
+use sic_core::{image, SicImage};
 
 /// Load an image using a reader.
 /// All images are currently loaded from memory.
-pub fn load_image<R: Read>(
-    reader: &mut R,
-    config: &ImportConfig,
-) -> ImportResult<image::DynamicImage> {
+pub fn load_image<R: Read>(reader: &mut R, config: &ImportConfig) -> ImportResult<SicImage> {
     let reader = image::io::Reader::new(Cursor::new(load(reader)?))
         .with_guessed_format()
         .map_err(SicIoError::Io)?;
@@ -19,7 +16,10 @@ pub fn load_image<R: Read>(
     match reader.format() {
         Some(ImageFormat::Png) => decode_png(reader, config.selected_frame),
         Some(ImageFormat::Gif) => decode_gif(reader, config.selected_frame),
-        Some(_) => reader.decode().map_err(SicIoError::ImageError),
+        Some(_) => reader
+            .decode()
+            .map_err(SicIoError::ImageError)
+            .map(SicImage::from),
         None => Err(SicIoError::ImageError(image::error::ImageError::Decoding(
             image::error::DecodingError::from_format_hint(image::error::ImageFormatHint::Unknown),
         ))),
@@ -63,7 +63,7 @@ fn frames<'decoder, D: AnimationDecoder<'decoder>>(decoder: D) -> ImportResult<V
 }
 
 /// Select an image frame from a slice of frames and a frame index
-fn select_frame(frames: &[image::Frame], index: FrameIndex) -> ImportResult<image::DynamicImage> {
+fn select_frame(frames: &[image::Frame], index: FrameIndex) -> ImportResult<SicImage> {
     let frame_index = match index {
         FrameIndex::First => 0,
         FrameIndex::Last => frames.len() - 1,
@@ -74,6 +74,7 @@ fn select_frame(frames: &[image::Frame], index: FrameIndex) -> ImportResult<imag
         .get(frame_index)
         .ok_or_else(|| SicIoError::NoSuchFrame(frame_index, frames.len() - 1))
         .map(|f| image::DynamicImage::ImageRgba8(f.clone().into_buffer()))
+        .map(SicImage::from)
 }
 
 /// Zero-indexed frame index.
@@ -90,34 +91,31 @@ impl Default for FrameIndex {
     }
 }
 
-fn decode_gif<R: Read>(
-    reader: image::io::Reader<R>,
-    frame: FrameIndex,
-) -> ImportResult<image::DynamicImage> {
+fn decode_gif<R: Read>(reader: image::io::Reader<R>, frame: FrameIndex) -> ImportResult<SicImage> {
     let decoder =
         image::gif::GifDecoder::new(reader.into_inner()).map_err(SicIoError::ImageError)?;
 
-    frames(decoder).and_then(|f| select_frame(&f, frame))
+    frames(decoder)
+        .and_then(|f| select_frame(&f, frame))
+        .map(SicImage::from)
 }
 
-fn decode_png<R: Read>(
-    reader: image::io::Reader<R>,
-    frame: FrameIndex,
-) -> ImportResult<image::DynamicImage> {
+fn decode_png<R: Read>(reader: image::io::Reader<R>, frame: FrameIndex) -> ImportResult<SicImage> {
     let decoder =
         image::png::PngDecoder::new(reader.into_inner()).map_err(SicIoError::ImageError)?;
 
     if decoder.is_apng() {
         frames(decoder.apng()).and_then(|f| select_frame(&f, frame))
     } else {
-        image::DynamicImage::from_decoder(decoder).map_err(SicIoError::ImageError)
+        image::DynamicImage::from_decoder(decoder)
+            .map_err(SicIoError::ImageError)
+            .map(SicImage::from)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use image::GenericImageView;
     use parameterized::parameterized;
     use sic_testing::*;
 

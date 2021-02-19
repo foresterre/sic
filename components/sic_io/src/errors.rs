@@ -1,13 +1,17 @@
+use sic_core::errors::SicCoreError;
 use sic_core::image::ImageError;
 use std::path::PathBuf;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum SicIoError {
-    #[error("sic io error > {0}")]
-    ImageError(ImageError),
+    #[error("{0}")]
+    SicCoreError(#[from] SicCoreError),
 
-    #[error("sic io error > {0}")]
+    #[error("{0}")]
+    ImageError(#[from] ImageError),
+
+    #[error("{0}")]
     Io(std::io::Error),
 
     #[error("{0}")]
@@ -21,6 +25,9 @@ pub enum SicIoError {
 
     #[error("Unable to extract frame {0} from the (animated) image; please use a frame index between 0 and {1}.")]
     NoSuchFrame(usize, usize),
+
+    #[error("An animated image was expected, but a static image was given")]
+    NotAnAnimatedImage,
 
     #[error(
         "No supported image output format was found. The following identifier was provided: {0}."
