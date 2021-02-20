@@ -1,8 +1,9 @@
 use crate::errors::SicImageEngineError;
 use crate::operations::ImageOperation;
 use crate::wrapper::image_path::ImageFromPath;
-use sic_core::image::{DynamicImage, GenericImageView, ImageBuffer, Rgba};
-use sic_core::SicImage;
+use rayon::iter::{IndexedParallelIterator, IntoParallelRefMutIterator, ParallelIterator};
+use sic_core::image::{DynamicImage, GenericImageView, ImageBuffer, Rgba, RgbaImage};
+use sic_core::{image, SicImage};
 use std::cmp;
 use std::convert::TryFrom;
 
@@ -20,16 +21,52 @@ impl<'image> ImageOperation for Diff<'image> {
     fn apply_operation(&self, image: &mut SicImage) -> Result<(), SicImageEngineError> {
         match image {
             SicImage::Static(image) => diff_impl(image, self.path),
-            SicImage::Animated(_) => unimplemented!(),
+            SicImage::Animated(image) => diff_animated_image(image.frames_mut(), self.path),
         }
     }
 }
 
+fn diff_animated_image(
+    frames: &mut [image::Frame],
+    path: &ImageFromPath,
+) -> Result<(), SicImageEngineError> {
+    // Open matching image
+    let other = path.open_image()?;
+
+    match other {
+        SicImage::Static(image) => diff_animated_with_static(frames, &image),
+        SicImage::Animated(other) => diff_animated_with_animated(frames, other.frames()),
+    }
+
+    Ok(())
+}
+
+//
+fn diff_animated_with_animated(frames: &mut [image::Frame], other: &[image::Frame]) {
+    frames.par_iter_mut().zip(other).for_each(|(lhs, rhs)| {
+        *lhs.buffer_mut() = produce_image_diff(
+            &DynamicImage::ImageRgba8(lhs.buffer().clone()),
+            &DynamicImage::ImageRgba8(rhs.buffer().clone()),
+        );
+    });
+}
+
+fn diff_animated_with_static(frames: &mut [image::Frame], other: &DynamicImage) {
+    dbg!("chrispls");
+    frames.par_iter_mut().for_each(|frame| {
+        *frame.buffer_mut() =
+            produce_image_diff(&DynamicImage::ImageRgba8(frame.buffer().clone()), other);
+    });
+}
+
 fn diff_impl(image: &mut DynamicImage, path: &ImageFromPath) -> Result<(), SicImageEngineError> {
     let cmp = path.open_image()?;
+    // NB: Diffing a static image currently requires the right hand side image to be a static image
+    //      We could do the same as we do on loading an image: simply pick the first frame
+    //      Right now we error instead.
     let cmp = DynamicImage::try_from(cmp)?;
 
-    *image = produce_image_diff(&image, &cmp)?;
+    *image = DynamicImage::ImageRgba8(produce_image_diff(&image, &cmp));
 
     Ok(())
 }
@@ -56,10 +93,7 @@ pub(crate) const DIFF_PX_NO_OVERLAP: Rgba<u8> = Rgba([0, 0, 0, 0]);
 /// That is, the part of output image which isn't part of either of the two original input images.
 /// These pixels will be 'coloured' black but with an alpha value of 0, so they will be transparent
 /// as to show they were not part of the input images.
-fn produce_image_diff(
-    this: &DynamicImage,
-    other: &DynamicImage,
-) -> Result<DynamicImage, SicImageEngineError> {
+fn produce_image_diff(this: &DynamicImage, other: &DynamicImage) -> RgbaImage {
     let (lw, lh) = this.dimensions();
     let (rw, rh) = other.dimensions();
 
@@ -82,5 +116,5 @@ fn produce_image_diff(
         }
     }
 
-    Ok(DynamicImage::ImageRgba8(buffer))
+    buffer
 }
