@@ -11,6 +11,7 @@ use crate::wrapper::overlay::OverlayInputs;
 
 pub mod engine;
 pub mod errors;
+pub(crate) mod helper;
 pub mod operations;
 pub mod wrapper;
 
