@@ -152,7 +152,7 @@ mod tests {
                 op![ImgOp::Filter3x3([1.0, 1.0, 1.0, -1.0, -1.0, -1.0, 0.0, 0.0, 0.0])],
                 op![ImgOp::FlipHorizontal],
                 op![ImgOp::FlipVertical],
-                op![ImgOp::GrayScale],
+                op![ImgOp::Grayscale],
                 op![ImgOp::HueRotate(-1)],
                 op![ImgOp::Invert],
                 op![ImgOp::Resize((1, 1))],

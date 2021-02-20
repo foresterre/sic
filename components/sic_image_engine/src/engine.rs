@@ -1,15 +1,13 @@
-use std::cmp::max;
 use std::collections::HashMap;
 use std::hash::Hash;
 
-use sic_core::image::imageops::{self, FilterType};
-use sic_core::image::{DynamicImage, GenericImageView, ImageBuffer, Rgba};
+use sic_core::image::imageops::FilterType;
 
 use crate::errors::SicImageEngineError;
+use crate::operations::ImageOperation;
 use crate::wrapper::filter_type::FilterTypeWrap;
-use crate::ImgOp;
+use crate::{operations, ImgOp};
 use sic_core::SicImage;
-use std::convert::TryFrom;
 
 trait EnvironmentKey {
     fn key(&self) -> ItemName;
@@ -26,6 +24,13 @@ impl EnvItem {
     pub fn resize_sampling_filter(self) -> Option<FilterTypeWrap> {
         match self {
             EnvItem::CustomSamplingFilter(k) => Some(k),
+            _ => None,
+        }
+    }
+
+    pub fn preserve_aspect_ratio(self) -> Option<bool> {
+        match self {
+            EnvItem::PreserveAspectRatio(k) => Some(k),
             _ => None,
         }
     }
@@ -64,7 +69,7 @@ impl Env {
         self.store.remove(&key).map(|_| ())
     }
 
-    pub fn get(&mut self, key: ItemName) -> Option<&EnvItem> {
+    pub fn get(&self, key: ItemName) -> Option<&EnvItem> {
         self.store.get(&key)
     }
 }
@@ -112,145 +117,59 @@ impl ImageEngine {
     fn process_operation(&mut self, operation: &ImgOp) -> Result<(), SicImageEngineError> {
         match operation {
             ImgOp::Blur(sigma) => {
-                *self.image = self.image.inner_mut().blur(*sigma).into();
-                Ok(())
+                operations::blur::Blur::new(*sigma).apply_operation(&mut self.image)
             }
             ImgOp::Brighten(amount) => {
-                *self.image = self.image.inner_mut().brighten(*amount).into();
-                Ok(())
+                operations::brighten::Brighten::new(*amount).apply_operation(&mut self.image)
             }
-            ImgOp::Contrast(c) => {
-                *self.image = self.image.inner_mut().adjust_contrast(*c).into();
-                Ok(())
+            ImgOp::Contrast(f) => {
+                operations::contrast::Contrast::new(*f).apply_operation(&mut self.image)
             }
             ImgOp::Crop((lx, ly, rx, ry)) => {
-                let selection = CropSelection::new(*lx, *ly, *rx, *ry);
-
-                // 1. verify that the top left anchor is smaller than the bottom right anchor
-                // 2. verify that the selection is within the bounds of the image
-                selection
-                    .dimensions_are_ok()
-                    .and_then(|selection| selection.fits_within(&self.image.inner()))
-                    .map(|_| {
-                        *self.image = self
-                            .image
-                            .inner_mut()
-                            .crop(*lx, *ly, rx - lx, ry - ly)
-                            .into()
-                    })
+                operations::crop::Crop::new((*lx, *ly), (*rx, *ry)).apply_operation(&mut self.image)
             }
-            ImgOp::Diff(img) => {
-                let other = img.open_image()?;
-                let other = DynamicImage::try_from(other)?;
-
-                *self.image = produce_image_diff(&self.image.inner_mut(), &other)?.into();
-
-                Ok(())
-            }
-
+            ImgOp::Diff(path) => operations::diff::Diff::new(path).apply_operation(&mut self.image),
             #[cfg(feature = "imageproc-ops")]
             ImgOp::DrawText(inner) => {
-                let text = inner.text();
-                let coords = inner.coords();
-                let font_options = inner.font_options();
-
-                let font_file = std::fs::read(&font_options.font_path)
-                    .map_err(SicImageEngineError::FontFileLoadError)?;
-
-                let font = rusttype::Font::try_from_bytes(&font_file)
-                    .ok_or(SicImageEngineError::FontError)?;
-
-                *self.image = DynamicImage::ImageRgba8(imageproc::drawing::draw_text(
-                    self.image.inner_mut(),
-                    font_options.color,
-                    coords.0,
-                    coords.1,
-                    font_options.scale,
-                    &font,
-                    text,
-                ))
-                .into();
-
-                Ok(())
+                operations::draw_text::DrawText::new(inner).apply_operation(&mut self.image)
             }
-            // We need to ensure here that Filter3x3's `it` (&[f32]) has length 9.
-            // Otherwise it will panic, see: https://docs.rs/image/0.19.0/src/image/dynimage.rs.html#349
-            // This check already happens within the `parse` module.
-            ImgOp::Filter3x3(ref it) => {
-                *self.image = self.image.inner_mut().filter3x3(it).into();
-                Ok(())
+            ImgOp::Filter3x3(ref kernel) => {
+                operations::filter3x3::Filter3x3::new(kernel).apply_operation(&mut self.image)
             }
             ImgOp::FlipHorizontal => {
-                *self.image = self.image.inner_mut().fliph().into();
-                Ok(())
+                operations::flip_horizontal::FlipHorizontal::new().apply_operation(&mut self.image)
             }
             ImgOp::FlipVertical => {
-                *self.image = self.image.inner_mut().flipv().into();
-                Ok(())
+                operations::flip_vertical::FlipVertical::new().apply_operation(&mut self.image)
             }
-            ImgOp::GrayScale => {
-                *self.image = self.image.inner_mut().grayscale().into();
-                Ok(())
+            ImgOp::Grayscale => {
+                operations::grayscale::Grayscale::new().apply_operation(&mut self.image)
             }
             ImgOp::HueRotate(degree) => {
-                *self.image = self.image.inner_mut().huerotate(*degree).into();
-                Ok(())
+                operations::hue_rotate::HueRotate::new(*degree).apply_operation(&mut self.image)
             }
-            ImgOp::Invert => {
-                self.image.inner_mut().invert();
-                Ok(())
+            ImgOp::Invert => operations::invert::Invert::new().apply_operation(&mut self.image),
+            ImgOp::Overlay(inputs) => {
+                operations::overlay::Overlay::new(inputs).apply_operation(&mut self.image)
             }
-            ImgOp::Overlay(overlay) => {
-                let overlay_image = overlay.image_path().open_image()?;
-                let overlay_image = DynamicImage::try_from(overlay_image)?;
-
-                let pos = overlay.position();
-                imageops::overlay(&mut *self.image.inner_mut(), &overlay_image, pos.0, pos.1);
-
-                Ok(())
-            }
-            ImgOp::Resize((new_x, new_y)) => {
-                let filter = resize_filter_or_default(&mut self.environment);
-
-                if let Some(reg) = self.environment.get(ItemName::PreserveAspectRatio) {
-                    if let EnvItem::PreserveAspectRatio(preserve) = reg {
-                        if *preserve {
-                            *self.image =
-                                self.image.inner_mut().resize(*new_x, *new_y, filter).into();
-                        } else {
-                            *self.image = self
-                                .image
-                                .inner_mut()
-                                .resize_exact(*new_x, *new_y, filter)
-                                .into();
-                        }
-                    }
-                } else {
-                    // default if preserve-aspect-ratio option has not been set
-                    *self.image = self
-                        .image
-                        .inner_mut()
-                        .resize_exact(*new_x, *new_y, filter)
-                        .into();
-                }
-
-                Ok(())
+            ImgOp::Resize((x, y)) => {
+                let aspect_ratio = should_preserve_aspect_ratio(&self.environment);
+                let sampling_filter = resize_filter_or_default(&self.environment);
+                let op = operations::resize::Resize::new(*x, *y, aspect_ratio, sampling_filter);
+                op.apply_operation(&mut self.image)
             }
             ImgOp::Rotate90 => {
-                *self.image = self.image.inner_mut().rotate90().into();
-                Ok(())
+                operations::rotate90::Rotate90::new().apply_operation(&mut self.image)
             }
             ImgOp::Rotate180 => {
-                *self.image = self.image.inner_mut().rotate180().into();
-                Ok(())
+                operations::rotate180::Rotate180::new().apply_operation(&mut self.image)
             }
             ImgOp::Rotate270 => {
-                *self.image = self.image.inner_mut().rotate270().into();
-                Ok(())
+                operations::rotate270::Rotate270::new().apply_operation(&mut self.image)
             }
             ImgOp::Unsharpen((sigma, threshold)) => {
-                *self.image = self.image.inner_mut().unsharpen(*sigma, *threshold).into();
-                Ok(())
+                operations::unsharpen::Unsharpen::new(*sigma, *threshold)
+                    .apply_operation(&mut self.image)
             }
         }
     }
@@ -275,105 +194,17 @@ impl ImageEngine {
     }
 }
 
-// same -> white pixel
-const DIFF_PX_SAME: Rgba<u8> = Rgba([255, 255, 255, 255]);
-// different -> coloured pixel
-const DIFF_PX_DIFF: Rgba<u8> = Rgba([255, 0, 0, 255]);
-// non overlapping -> transparent pixel
-const DIFF_PX_NO_OVERLAP: Rgba<u8> = Rgba([0, 0, 0, 0]);
-
-/// Takes the diff of two images.
-///
-/// If a pixel at `(x, y)` in the image `this` (`P`) compared to the pixel at `(x, y)` in the image `that` (`Q`):
-/// * is the same: the output image will colour that pixel white.
-/// * differs: the output image will colour that pixel red.
-///
-/// The output image (`R`) will have width `w=max(width(this), width(that))` and height
-/// `h=max(height(this), height(that))`.
-///
-/// In case that two images when overlapped differ inversely in both width and height, so
-/// `(P_width > Q_width ∧ P_height < Q_height) ⊕ (P_width < Q_width ∧ P_height > Q_height)` then
-/// there will be pixels in `R`, for which for some pixels `p_{i, j} ∈ R | p_{i, j} ∉ P ∨ p_{i, j} ∉ Q`.
-/// That is, the part of output image which isn't part of either of the two original input images.
-/// These pixels will be 'coloured' black but with an alpha value of 0, so they will be transparent
-/// as to show they were not part of the input images.
-fn produce_image_diff(
-    this: &DynamicImage,
-    other: &DynamicImage,
-) -> Result<DynamicImage, SicImageEngineError> {
-    let (lw, lh) = this.dimensions();
-    let (rw, rh) = other.dimensions();
-
-    let w = max(lw, rw);
-    let h = max(lh, rh);
-
-    let mut buffer = ImageBuffer::new(w, h);
-
-    for (x, y, pixel) in buffer.enumerate_pixels_mut() {
-        if this.in_bounds(x, y) && other.in_bounds(x, y) {
-            if this.get_pixel(x, y) == other.get_pixel(x, y) {
-                *pixel = DIFF_PX_SAME;
-            } else {
-                *pixel = DIFF_PX_DIFF;
-            }
-        } else if this.in_bounds(x, y) || other.in_bounds(x, y) {
-            *pixel = DIFF_PX_DIFF;
-        } else {
-            *pixel = DIFF_PX_NO_OVERLAP;
-        }
-    }
-
-    Ok(DynamicImage::ImageRgba8(buffer))
-}
-
-struct CropSelection {
-    lx: u32,
-    ly: u32,
-    rx: u32,
-    ry: u32,
-}
-
-impl CropSelection {
-    pub(crate) fn new(lx: u32, ly: u32, rx: u32, ry: u32) -> Self {
-        Self { lx, ly, rx, ry }
-    }
-
-    pub(crate) fn dimensions_are_ok(&self) -> Result<&Self, SicImageEngineError> {
-        if self.are_dimensions_incorrect() {
-            Err(SicImageEngineError::CropInvalidSelection(
-                self.lx, self.ly, self.rx, self.ry,
-            ))
-        } else {
-            Ok(self)
-        }
-    }
-
-    pub(crate) fn fits_within(&self, outer: &DynamicImage) -> Result<&Self, SicImageEngineError> {
-        let (dim_x, dim_y) = outer.dimensions();
-
-        match (
-            self.lx <= dim_x,
-            self.ly <= dim_y,
-            self.rx <= dim_x,
-            self.ry <= dim_y,
-        ) {
-            (true, true, true, true) => Ok(self),
-            _ => Err(SicImageEngineError::CropCoordinateOutOfBounds(
-                dim_x, dim_y, self.lx, self.ly, self.rx, self.ry,
-            )),
-        }
-    }
-
-    fn are_dimensions_incorrect(&self) -> bool {
-        (self.rx <= self.lx) || (self.ry <= self.ly)
-    }
-}
-
-fn resize_filter_or_default(env: &mut Env) -> FilterType {
+fn resize_filter_or_default(env: &Env) -> FilterType {
     env.get(ItemName::CustomSamplingFilter)
         .and_then(|item| item.resize_sampling_filter())
         .map(FilterType::from)
         .unwrap_or_else(|| FilterTypeWrap::default().into())
+}
+
+fn should_preserve_aspect_ratio(env: &Env) -> bool {
+    env.get(ItemName::PreserveAspectRatio)
+        .and_then(|item| item.preserve_aspect_ratio())
+        .unwrap_or_default()
 }
 
 #[cfg(test)]
@@ -480,6 +311,7 @@ mod environment_tests {
 mod tests {
     use super::*;
     use crate::engine::compatibility::*;
+    use crate::operations::diff::{DIFF_PX_DIFF, DIFF_PX_NO_OVERLAP, DIFF_PX_SAME};
     use crate::wrapper::image_path::ImageFromPath;
     use sic_core::image::imageops::FilterType;
     use sic_core::image::Rgba;
@@ -1047,7 +879,7 @@ mod tests {
         use sic_core::image::Pixel;
 
         let img = open_test_image(in_!("rainbow_8x6.bmp"));
-        let operation = ImgOp::GrayScale;
+        let operation = ImgOp::Grayscale;
 
         let mut operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
@@ -1452,7 +1284,9 @@ mod tests {
 
         #[test]
         fn draw_text() {
-            let img = DynamicImage::ImageRgb8(sic_core::image::RgbImage::new(200, 200)).into();
+            let img =
+                sic_core::image::DynamicImage::ImageRgb8(sic_core::image::RgbImage::new(200, 200))
+                    .into();
 
             let font_file = Into::<PathBuf>::into(env!("CARGO_MANIFEST_DIR"))
                 .join("../../resources/font/Lato-Regular.ttf");

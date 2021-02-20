@@ -39,7 +39,7 @@ pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Vec<Instr>, SicP
             Rule::filter3x3 => Filter3x3(pair),
             Rule::flip_horizontal => Ok(Instr::Operation(ImgOp::FlipHorizontal)),
             Rule::flip_vertical => Ok(Instr::Operation(ImgOp::FlipVertical)),
-            Rule::grayscale => Ok(Instr::Operation(ImgOp::GrayScale)),
+            Rule::grayscale => Ok(Instr::Operation(ImgOp::Grayscale)),
             Rule::huerotate => HueRotate(pair),
             Rule::invert => Ok(Instr::Operation(ImgOp::Invert)),
             Rule::overlay => parse_overlay(pair),
