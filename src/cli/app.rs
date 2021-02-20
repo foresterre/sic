@@ -1,7 +1,7 @@
 use crate::cli::config::{
     validate_jpeg_quality, Config, ConfigBuilder, InputOutputModeType, SelectedLicenses,
 };
-use anyhow::{anyhow, bail};
+use anyhow::anyhow;
 use arg_names::*;
 use clap::{App, AppSettings, Arg, ArgGroup, ArgMatches};
 use sic_cli_ops::create_image_ops;
@@ -157,8 +157,8 @@ pub fn create_app(
             .value_name("#FRAME")
             .help("Frame to be loaded as still image if the input image is an animated image.\
                       To pick the first and last frame respectively, you can provide 'first' and 'last' as arguments. \
-                      Otherwise provide a single one-indexed positive number which corresponds with the frame index. \
-                      For example, to select the first frame, the argument would be '1', for the second '2', etc.")
+                      Otherwise provide a single zero-indexed positive number which corresponds with the frame index. \
+                      For example, to select the first frame, the argument would be '0', for the second '1', etc.")
             .takes_value(true))
 
         // config(out):
@@ -367,32 +367,10 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> anyhow::Result<Config<'a
 
     builder = builder.mode(InputOutputModeType::from_arg_matches(matches)?);
 
-    // config(in)/gif-select-frame:
-    if let Some(frame_in) = matches.value_of(ARG_SELECT_FRAME) {
-        let frame_out = match frame_in {
-            "first" => FrameIndex::First,
-            "last" => FrameIndex::Last,
-            n => {
-                let pick = n.parse::<usize>().map_err(|_| {
-                    anyhow!(
-                        "Provided argument for --select-frame is not a valid option. \
-                         Valid options are 'first', 'last' or a (one-indexed) positive number."
-                    )
-                })?;
-
-                if pick == 0 {
-                    bail!(
-                        "Provided argument for --select-frame is not a valid option. \
-                         If a number is provided, the number should be positive and larger than 0. \
-                         To select the first frame, provide the argument '1'."
-                    );
-                }
-
-                FrameIndex::Nth(pick - 1)
-            }
-        };
-
-        builder = builder.select_frame(frame_out);
+    // config(in)/select-frame:
+    if let Some(value) = matches.value_of(ARG_SELECT_FRAME) {
+        let index = parse_frame_index(value)?;
+        builder = builder.select_frame(Some(index));
     }
 
     // config(out)/disable-automatic-color-type-adjustment:
@@ -459,4 +437,21 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> anyhow::Result<Config<'a
     builder = builder.image_operations_program(program);
 
     Ok(builder.build())
+}
+
+fn parse_frame_index(input: &str) -> anyhow::Result<FrameIndex> {
+    match input {
+        "first" => Ok(FrameIndex::First),
+        "last" => Ok(FrameIndex::Last),
+        n => {
+            let pick = n.parse::<usize>().map_err(|_| {
+                anyhow!(
+                    "Provided argument for --select-frame is not a valid option. \
+                         Valid options are 'first', 'last' or a (one-indexed) positive number."
+                )
+            })?;
+
+            Ok(FrameIndex::Nth(pick))
+        }
+    }
 }

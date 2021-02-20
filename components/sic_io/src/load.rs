@@ -3,8 +3,8 @@ use std::io::{BufReader, Cursor, Read};
 use std::path::Path;
 
 use crate::errors::SicIoError;
-use sic_core::image::{AnimationDecoder, ImageFormat};
-use sic_core::{image, SicImage};
+use sic_core::image::{AnimationDecoder, DynamicImage, ImageFormat};
+use sic_core::{image, AnimatedImage, SicImage};
 
 /// Load an image using a reader.
 /// All images are currently loaded from memory.
@@ -51,30 +51,35 @@ fn load<R: Read>(reader: &mut R) -> ImportResult<Vec<u8>> {
 #[derive(Debug, Default)]
 pub struct ImportConfig {
     /// For animated images; decides which frame will be used as static image.
-    pub selected_frame: FrameIndex,
+    pub selected_frame: Option<FrameIndex>,
 }
 
 /// Decode an image into frames
-fn frames<'decoder, D: AnimationDecoder<'decoder>>(decoder: D) -> ImportResult<Vec<image::Frame>> {
-    decoder
+fn frames<'decoder, D: AnimationDecoder<'decoder>>(decoder: D) -> ImportResult<SicImage> {
+    let mut frames = decoder
         .into_frames()
         .collect_frames()
-        .map_err(SicIoError::ImageError)
+        .map_err(SicIoError::ImageError)?;
+
+    if frames.len() == 1 {
+        let buffer = frames.pop().unwrap();
+        let buffer = buffer.into_buffer();
+        Ok(SicImage::Static(DynamicImage::ImageRgba8(buffer)))
+    } else {
+        Ok(SicImage::Animated(AnimatedImage::from_frames(frames)))
+    }
 }
 
-/// Select an image frame from a slice of frames and a frame index
-fn select_frame(frames: &[image::Frame], index: FrameIndex) -> ImportResult<SicImage> {
-    let frame_index = match index {
-        FrameIndex::First => 0,
-        FrameIndex::Last => frames.len() - 1,
-        FrameIndex::Nth(n) => n,
-    };
-
-    frames
-        .get(frame_index)
-        .ok_or_else(|| SicIoError::NoSuchFrame(frame_index, frames.len() - 1))
-        .map(|f| image::DynamicImage::ImageRgba8(f.clone().into_buffer()))
-        .map(SicImage::from)
+fn select_frame(image: SicImage, frame_index: Option<FrameIndex>) -> ImportResult<SicImage> {
+    match (image, frame_index) {
+        (SicImage::Animated(animated), Some(index)) => {
+            let max_frames = animated.frames().len();
+            Ok(SicImage::Static(
+                animated.try_into_static_image(index.as_number(max_frames))?,
+            ))
+        }
+        (img, _) => Ok(img),
+    }
 }
 
 /// Zero-indexed frame index.
@@ -85,27 +90,35 @@ pub enum FrameIndex {
     Nth(usize),
 }
 
-impl Default for FrameIndex {
-    fn default() -> Self {
-        FrameIndex::First
+impl FrameIndex {
+    pub fn as_number(&self, frame_count: usize) -> usize {
+        match self {
+            Self::First => 0,
+            Self::Last => frame_count - 1,
+            Self::Nth(n) => *n,
+        }
     }
 }
 
-fn decode_gif<R: Read>(reader: image::io::Reader<R>, frame: FrameIndex) -> ImportResult<SicImage> {
+fn decode_gif<R: Read>(
+    reader: image::io::Reader<R>,
+    frame_index: Option<FrameIndex>,
+) -> ImportResult<SicImage> {
     let decoder =
-        image::gif::GifDecoder::new(reader.into_inner()).map_err(SicIoError::ImageError)?;
+        image::codecs::gif::GifDecoder::new(reader.into_inner()).map_err(SicIoError::ImageError)?;
 
-    frames(decoder)
-        .and_then(|f| select_frame(&f, frame))
-        .map(SicImage::from)
+    frames(decoder).and_then(|image| select_frame(image, frame_index))
 }
 
-fn decode_png<R: Read>(reader: image::io::Reader<R>, frame: FrameIndex) -> ImportResult<SicImage> {
+fn decode_png<R: Read>(
+    reader: image::io::Reader<R>,
+    frame: Option<FrameIndex>,
+) -> ImportResult<SicImage> {
     let decoder =
         image::png::PngDecoder::new(reader.into_inner()).map_err(SicIoError::ImageError)?;
 
     if decoder.is_apng() {
-        frames(decoder.apng()).and_then(|f| select_frame(&f, frame))
+        frames(decoder.apng()).and_then(|f| select_frame(f, frame))
     } else {
         image::DynamicImage::from_decoder(decoder)
             .map_err(SicIoError::ImageError)
@@ -128,7 +141,7 @@ mod tests {
         let load_path = setup_test_image(GIF_NO_LOOP);
 
         let config = ImportConfig {
-            selected_frame: FrameIndex::First,
+            selected_frame: Some(FrameIndex::First),
         };
 
         let image = load_image(&mut file_reader(load_path).unwrap(), &config).unwrap();
@@ -143,11 +156,11 @@ mod tests {
         let load_path = setup_test_image(GIF_NO_LOOP);
 
         let first = ImportConfig {
-            selected_frame: FrameIndex::First,
+            selected_frame: Some(FrameIndex::First),
         };
 
         let zero = ImportConfig {
-            selected_frame: FrameIndex::Nth(0),
+            selected_frame: Some(FrameIndex::Nth(0)),
         };
 
         let first = load_image(&mut file_reader(&load_path).unwrap(), &first).unwrap();
@@ -161,11 +174,11 @@ mod tests {
         let load_path = setup_test_image(GIF_LOOP);
 
         let first = ImportConfig {
-            selected_frame: FrameIndex::First,
+            selected_frame: Some(FrameIndex::First),
         };
 
         let zero = ImportConfig {
-            selected_frame: FrameIndex::Nth(0),
+            selected_frame: Some(FrameIndex::Nth(0)),
         };
 
         let first = load_image(&mut file_reader(&load_path).unwrap(), &first).unwrap();
@@ -193,7 +206,7 @@ mod tests {
             let load_path = setup_test_image(GIF_NO_LOOP);
 
             let config = ImportConfig {
-                selected_frame: FrameIndex::Nth(i),
+                selected_frame: Some(FrameIndex::Nth(i)),
             };
 
             let image = load_image(&mut file_reader(load_path).unwrap(), &config).unwrap();
@@ -208,7 +221,7 @@ mod tests {
             let load_path = setup_test_image(GIF_LOOP);
 
             let config = ImportConfig {
-                selected_frame: FrameIndex::Nth(i),
+                selected_frame: Some(FrameIndex::Nth(i)),
             };
 
             let image = load_image(&mut file_reader(load_path).unwrap(), &config).unwrap();
@@ -222,7 +235,7 @@ mod tests {
         let load_path = setup_test_image(GIF_NO_LOOP);
 
         let config = ImportConfig {
-            selected_frame: FrameIndex::Nth(8),
+            selected_frame: Some(FrameIndex::Nth(8)),
         };
 
         let result = load_image(&mut file_reader(load_path).unwrap(), &config);
@@ -235,7 +248,7 @@ mod tests {
         let load_path = setup_test_image(GIF_LOOP);
 
         let config = ImportConfig {
-            selected_frame: FrameIndex::Nth(8),
+            selected_frame: Some(FrameIndex::Nth(8)),
         };
 
         let result = load_image(&mut file_reader(load_path).unwrap(), &config);
@@ -247,11 +260,11 @@ mod tests {
         let load_path = setup_test_image(GIF_NO_LOOP);
 
         let last = ImportConfig {
-            selected_frame: FrameIndex::Last,
+            selected_frame: Some(FrameIndex::Last),
         };
 
         let seven = ImportConfig {
-            selected_frame: FrameIndex::Nth(7),
+            selected_frame: Some(FrameIndex::Nth(7)),
         };
 
         let last = load_image(&mut file_reader(&load_path).unwrap(), &last).unwrap();
@@ -265,11 +278,11 @@ mod tests {
         let load_path = setup_test_image(GIF_LOOP);
 
         let last = ImportConfig {
-            selected_frame: FrameIndex::Last,
+            selected_frame: Some(FrameIndex::Last),
         };
 
         let seven = ImportConfig {
-            selected_frame: FrameIndex::Nth(7),
+            selected_frame: Some(FrameIndex::Nth(7)),
         };
 
         let last = load_image(&mut file_reader(&load_path).unwrap(), &last).unwrap();
@@ -301,12 +314,12 @@ mod tests {
 
         #[parameterized(
             frame = {
-                FrameIndex::First,
-                FrameIndex::Nth(0),
-                FrameIndex::Nth(1),
-                FrameIndex::Nth(2),
-                FrameIndex::Last,
-                FrameIndex::Nth(3),
+                Some(FrameIndex::First),
+                Some(FrameIndex::Nth(0)),
+                Some(FrameIndex::Nth(1)),
+                Some(FrameIndex::Nth(2)),
+                Some(FrameIndex::Last),
+                Some(FrameIndex::Nth(3)),
             },
             expected_color = {
                 Some([255, 255, 255, 255]),
@@ -317,7 +330,7 @@ mod tests {
                 None,
             }
         )]
-        fn apng(frame: FrameIndex, expected_color: Option<[u8; 4]>) {
+        fn apng(frame: Option<FrameIndex>, expected_color: Option<[u8; 4]>) {
             let load_path = setup_test_image(APNG_SAMPLE);
 
             let config = ImportConfig {

@@ -1,7 +1,7 @@
 use crate::errors::SicIoError;
 use image::buffer::ConvertBuffer;
 use image::DynamicImage;
-use sic_core::{image, SicImage};
+use sic_core::{image, AnimatedImage, SicImage};
 use std::io::Write;
 
 #[derive(Clone, Copy, Debug)]
@@ -79,9 +79,7 @@ impl<'a> ConversionWriter<'a> {
             SicImage::Animated(image) => {
                 encode_animated_image(writer, image.collect_frames(), format)
             }
-            SicImage::Static(image) => image
-                .write_to(writer, format)
-                .map_err(SicIoError::ImageError),
+            SicImage::Static(image) => encode_static_image(writer, image, format),
         }
     }
 }
@@ -113,6 +111,16 @@ fn adjust_dynamic_image(
     }
 }
 
+fn encode_static_image<W: Write>(
+    writer: &mut W,
+    image: &image::DynamicImage,
+    format: image::ImageOutputFormat,
+) -> Result<(), SicIoError> {
+    image
+        .write_to(writer, format)
+        .map_err(SicIoError::ImageError)
+}
+
 fn encode_animated_image<W: Write>(
     writer: &mut W,
     frames: Vec<image::Frame>, // note: should be owned for the encoder, so can't be a slice
@@ -120,7 +128,11 @@ fn encode_animated_image<W: Write>(
 ) -> Result<(), SicIoError> {
     match format {
         image::ImageOutputFormat::Gif => encode_animated_gif(writer, frames),
-        _ => Err(SicIoError::NotAnAnimatedImage),
+        _ => {
+            eprintln!("WARN: The animated image buffer could not be encoded to the {:?} format; encoding only the first frame", format);
+            let image = AnimatedImage::from_frames(frames).try_into_static_image(0)?;
+            encode_static_image(writer, &image, format)
+        }
     }
 }
 

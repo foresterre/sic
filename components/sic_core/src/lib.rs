@@ -77,6 +77,24 @@ pub struct AnimatedImage {
 }
 
 impl AnimatedImage {
+    pub fn from_frames(frames: Vec<image::Frame>) -> Self {
+        Self { frames }
+    }
+
+    pub fn try_into_static_image(
+        mut self,
+        index: usize,
+    ) -> Result<image::DynamicImage, SicCoreError> {
+        let len = self.frames.len();
+        if index < len {
+            Ok(image::DynamicImage::ImageRgba8(
+                self.frames.remove(index).into_buffer(),
+            ))
+        } else {
+            Err(SicCoreError::InvalidFrameIndex { index, len })
+        }
+    }
+
     pub fn frames(&self) -> &[image::Frame] {
         &self.frames
     }
