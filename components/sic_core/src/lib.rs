@@ -81,6 +81,10 @@ impl AnimatedImage {
         &self.frames
     }
 
+    pub fn frames_mut(&mut self) -> &mut [image::Frame] {
+        &mut self.frames
+    }
+
     pub fn collect_frames(&self) -> Vec<image::Frame> {
         self.frames.clone()
     }
