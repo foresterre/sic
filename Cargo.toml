@@ -52,6 +52,7 @@ parameterized = "0.3.1"
 flate2 = "1.0.20"
 
 [features]
+default = ["imageproc-ops"]
 imageproc-ops = ["sic_cli_ops/imageproc-ops", "sic_image_engine/imageproc-ops", "sic_parser/imageproc-ops"]
 
 output-test-images = []
