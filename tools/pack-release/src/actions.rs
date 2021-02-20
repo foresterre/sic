@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::{Read, Write};
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use zip::write::FileOptions;
 
@@ -33,7 +33,7 @@ pub fn cargo_build(toolchain: &str) {
         toolchain.trim().replace("stable-", "")
     );
 
-    write_zip(&exe, Path::new(&zip));
+    zip_executable(&exe, Path::new(&zip));
 
     // remove output directory
     if option_env!("PACK_RELEASE_KEEP_OUTPUT").is_none() {
@@ -60,7 +60,7 @@ pub fn sic_version(exe: &Path) -> String {
         .replace(' ', "-")
 }
 
-pub fn write_zip(exe: &Path, destination: &Path) {
+pub fn zip_executable(exe: &Path, destination: &Path) {
     println!(
         "executable: {}\ndestination: {}",
         exe.display(),
@@ -68,23 +68,20 @@ pub fn write_zip(exe: &Path, destination: &Path) {
     );
 
     let zip_file = File::create(&destination).expect("Unable to create zip");
-    let mut zip = zip::ZipWriter::new(zip_file);
-    let mut buffer = Vec::<u8>::with_capacity(10 * 1000 * 1000);
-    let mut exe_file = File::open(exe).expect("Unable to read executable for zipping");
-    let size = exe_file
-        .read_to_end(&mut buffer)
-        .expect("Unable to read executable to memory");
-    println!("executable size: {}", size);
+    let mut writer = zip::ZipWriter::new(zip_file);
+
+    let buffer = std::fs::read(exe).expect("Unable to read executable");
 
     let options = FileOptions::default()
         .compression_method(zip::CompressionMethod::Deflated)
         .unix_permissions(0o755);
 
-    zip.start_file(executable_file(), options)
+    writer
+        .start_file(executable_file(), options)
         .expect("Unable to start zip file");
-    zip.write_all(&buffer).expect("Unable to zip release");
+    writer.write_all(&buffer).expect("Unable to zip release");
 
-    zip.finish().expect("Unable to finish zipping release");
+    writer.finish().expect("Unable to finish zipping release");
 }
 
 pub fn rustup_toolchains() -> String {
@@ -99,4 +96,42 @@ pub fn get_stable_toolchains(toolchain_info: &str) -> Vec<String> {
         .map(|line| line.split_ascii_whitespace().take(1).collect::<String>())
         .filter(|s| s.starts_with("stable"))
         .collect::<Vec<String>>()
+}
+
+pub fn generate_shell_completions(folder: &str, zip_path: &str) {
+    xshell::mkdir_p(folder).expect("Unable to create shell_completions folder");
+    xshell::cmd!("cargo run --example gen_completions {folder}")
+        .run()
+        .expect("Unable to generate completions");
+
+    zip_folder(folder, zip_path);
+
+    if option_env!("PACK_RELEASE_KEEP_OUTPUT").is_none() {
+        let _ = std::fs::remove_dir_all(folder);
+    }
+}
+
+fn zip_folder<P: AsRef<Path>>(path: P, destination: P) {
+    let path = path.as_ref();
+    let zip_file = File::create(&destination).expect("Unable to create zip");
+    let mut writer = zip::ZipWriter::new(zip_file);
+
+    let file_options = FileOptions::default()
+        .compression_method(zip::CompressionMethod::Deflated)
+        .unix_permissions(0o755);
+
+    for entry in std::fs::read_dir(path).expect("Unable to read directory") {
+        let entry = entry.expect("Unable to access directory entry");
+        let buffer = std::fs::read(&entry.path()).expect("Unable to read directory entry");
+
+        writer
+            .start_file(
+                &entry.file_name().to_string_lossy().to_string(),
+                file_options,
+            )
+            .expect("Unable to start file");
+        writer.write_all(&buffer).expect("Unable to zip file");
+    }
+
+    writer.finish().expect("Unable to finish zipping release");
 }

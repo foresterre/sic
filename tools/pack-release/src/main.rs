@@ -1,6 +1,9 @@
 #![allow(clippy::unnecessary_wraps)]
 
-use crate::actions::{cargo_build, get_stable_toolchains, rustup_toolchains, update_dep_licenses};
+use crate::actions::{
+    cargo_build, generate_shell_completions, get_stable_toolchains, rustup_toolchains,
+    update_dep_licenses,
+};
 
 pub mod actions;
 
@@ -15,6 +18,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for toolchain in get_stable_toolchains(&toolchain_list) {
         cargo_build(&toolchain);
     }
+
+    generate_shell_completions("shell_completions", "shell_completions.zip");
 
     Ok(())
 }
