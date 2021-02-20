@@ -168,7 +168,7 @@ dependencies = [
 
 [[package]]
 name = "cargo-publish-workspace"
-version = "0.16.1"
+version = "0.17.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -971,7 +971,7 @@ dependencies = [
 
 [[package]]
 name = "pack-release"
-version = "0.16.0"
+version = "0.17.0"
 dependencies = [
  "xshell",
  "zip",
@@ -1468,7 +1468,7 @@ dependencies = [
 
 [[package]]
 name = "sic"
-version = "0.16.1"
+version = "0.17.0"
 dependencies = [
  "anyhow",
  "atty",
@@ -1488,7 +1488,7 @@ dependencies = [
 
 [[package]]
 name = "sic_cli_ops"
-version = "0.16.0"
+version = "0.17.0"
 dependencies = [
  "clap 2.33.3",
  "parameterized",
@@ -1503,7 +1503,7 @@ dependencies = [
 
 [[package]]
 name = "sic_core"
-version = "0.16.0"
+version = "0.17.0"
 dependencies = [
  "image",
  "thiserror",
@@ -1511,7 +1511,7 @@ dependencies = [
 
 [[package]]
 name = "sic_image_engine"
-version = "0.16.0"
+version = "0.17.0"
 dependencies = [
  "imageproc",
  "rayon",
@@ -1526,7 +1526,7 @@ dependencies = [
 
 [[package]]
 name = "sic_io"
-version = "0.16.0"
+version = "0.17.0"
 dependencies = [
  "parameterized",
  "sic_core",
@@ -1536,7 +1536,7 @@ dependencies = [
 
 [[package]]
 name = "sic_parser"
-version = "0.16.0"
+version = "0.17.0"
 dependencies = [
  "parameterized",
  "pest",
@@ -1549,7 +1549,7 @@ dependencies = [
 
 [[package]]
 name = "sic_testing"
-version = "0.16.0"
+version = "0.17.0"
 dependencies = [
  "parameterized",
  "sic_core",
