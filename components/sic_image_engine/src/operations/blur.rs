@@ -1,6 +1,6 @@
 use crate::errors::SicImageEngineError;
 use crate::operations::ImageOperation;
-use rayon::prelude::*;
+use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
 use sic_core::{image, SicImage};
 
 pub struct Blur {
@@ -26,6 +26,6 @@ impl ImageOperation for Blur {
 
 fn blur_animated_image(frames: &mut [image::Frame], sigma: f32) {
     frames.par_iter_mut().for_each(|frame| {
-        image::imageops::blur(frame.buffer_mut(), sigma);
+        *frame.buffer_mut() = image::imageops::blur(frame.buffer_mut(), sigma);
     });
 }
