@@ -11,6 +11,8 @@ use crate::wrapper::overlay::OverlayInputs;
 
 pub mod engine;
 pub mod errors;
+pub(crate) mod helper;
+pub mod operations;
 pub mod wrapper;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -23,7 +25,7 @@ pub enum ImgOp {
     Filter3x3([f32; 9]),
     FlipHorizontal,
     FlipVertical,
-    GrayScale,
+    Grayscale,
     HueRotate(i32),
     Invert,
     Overlay(OverlayInputs),

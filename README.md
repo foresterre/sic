@@ -10,8 +10,8 @@ _Convert images and perform image operations from the command-line._
 `sic` (sic image cli) is a front-end for the [image crate](https://github.com/image-rs/image).
 Aside from image operations supplied by the image crate, a few additional helpful operations such
 as diff, are included. Operations provided by the [imageproc]🎻(https://github.com/image-rs/imageproc)
-crate can be enabled by compiling with the `imageproc-ops` feature.  We intend to provide more extensive support for imageproc
-operations in a future release.
+crate can be enabled by compiling with the `imageproc-ops` feature. We intend to provide more extensive support for imageproc
+operations in a future release. `sic` supports operations on both static and animated images.
 
 ### Installation
 
@@ -133,7 +133,7 @@ If we use the _cli operations_ method the previously shown example becomes: <br>
 |contrast           | `contrast <fp>`                           | Adjust the contrast of the image. |
 |crop               | `crop <uint> <uint> <uint> <uint>`        | Syntax: `crop <lx> <ly> <rx> <ry>`, where `lx` is top left corner x pixel coordinate starting at 0, `ly` is the top left corner y pixel coordinate starting at 0, `rx` is the  bottom right corner x pixel coordinate and `ry` is the bottom right corner y pixel coordinate. `rx` and `ry` should be larger than `lx` and `ly` respectively. |
 |diff               | `diff <path>`                             | Diff the input image against the argument image to show which pixels are the same (white), different (red) or not part of either image (transparent). |
-|draw-text ^2         | `draw-text <string> <nv:coord> <nv:rgba> <nv:size> <nv:font>` | Draw text on top of an image (note: alpha-blending is not yet supported).  |
+|draw-text ^2       | `draw-text <string> <nv:coord> <nv:rgba> <nv:size> <nv:font>` | Draw text on top of an image (note: alpha-blending is not yet supported).  |
 |filter3x3          | `filter3x3 <fp9x> `                       | Apply a 3 by 3 convolution filter. |
 |flip horizontal    | `flip-horizontal`                         | Flips the image on the horizontal axis. |
 |flip vertical      | `flip-vertical`                           | Flips the image on the vertical axis. |
@@ -208,6 +208,12 @@ or <br>
 | a                                      | b                                      | output                                                         |
 | -------------------------------------- |--------------------------------------- | -------------------------------------------------------------- |
 | ![a](resources/help-images/diff/a.png) | ![b](resources/help-images/diff/b.png) | ![output](resources/help-images/diff/diff_between_a_and_b.png) |
+
+With an animated image:
+
+| a                                      | b                                      | output                                                         |
+| -------------------------------------- |--------------------------------------- | -------------------------------------------------------------- |
+| ![a](resources/loop.gif) | ![b](resources/loop-diff.gif) | ![output](resources/help-images/diff/loop-diffed.gif) |
 
 **draw-text** example (requires build feature `imageproc-ops`): <br>
 `sic -i in.png -o out.png --apply-operations "draw-text '<3' coord(10, 2) rgba(255, 0, 0, 255) size(14) font('./Lato-Regular.ttf')"` <br>

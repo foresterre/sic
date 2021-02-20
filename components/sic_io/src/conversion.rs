@@ -1,7 +1,7 @@
 use crate::errors::SicIoError;
 use image::buffer::ConvertBuffer;
 use image::DynamicImage;
-use sic_core::image;
+use sic_core::{image, AnimatedImage, SicImage};
 use std::io::Write;
 
 #[derive(Clone, Copy, Debug)]
@@ -19,11 +19,11 @@ impl Default for AutomaticColorTypeAdjustment {
 
 /// Use the ConversionWriter to convert and write image buffers to an output.
 pub struct ConversionWriter<'a> {
-    image: &'a image::DynamicImage,
+    image: &'a SicImage,
 }
 
 impl<'a> ConversionWriter<'a> {
-    pub fn new(image: &image::DynamicImage) -> ConversionWriter {
+    pub fn new(image: &SicImage) -> ConversionWriter {
         ConversionWriter { image }
     }
 
@@ -44,7 +44,7 @@ impl<'a> ConversionWriter<'a> {
             None => &self.image,
         };
 
-        ConversionWriter::save_to(writer, &export_buffer, output_format)
+        ConversionWriter::save_to(writer, export_buffer, output_format)
     }
 
     /// Some image output format types require color type pre-processing.
@@ -52,47 +52,99 @@ impl<'a> ConversionWriter<'a> {
     ///
     /// If pre-processing of the color type took place, Some(<new image>) will be returned.
     /// If no pre-processing of the color type is required will return None.
+    /// Frames of animated images are not adjusted.
     fn pre_process_color_type(
-        image: &image::DynamicImage,
+        image: &SicImage,
         output_format: &image::ImageOutputFormat,
         color_type_adjustment: AutomaticColorTypeAdjustment,
-    ) -> Option<image::DynamicImage> {
-        // A remaining open question: does a user expect for an image to be able to convert to a format even if the color type is not supported?
-        // And even if the user does, should we?
-        // I suspect that users expect that color type conversions should happen automatically.
-        //
-        // Testing also showed that even bmp with full black full white pixels do not convert correctly as of now. Why exactly is unclear;
-        // Perhaps the color type of the bmp formatted test image?
+    ) -> Option<SicImage> {
+        if let AutomaticColorTypeAdjustment::Disabled = color_type_adjustment {
+            return None;
+        }
 
-        match color_type_adjustment {
-            AutomaticColorTypeAdjustment::Enabled => match output_format {
-                image::ImageOutputFormat::Farbfeld => {
-                    Some(DynamicImage::ImageRgba16(image.to_rgba8().convert()))
-                }
-                image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Bitmap(_)) => {
-                    Some(image.grayscale())
-                }
-                image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Graymap(_)) => {
-                    Some(image.grayscale())
-                }
-                image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Pixmap(_)) => {
-                    Some(image::DynamicImage::ImageRgb8(image.to_rgb8()))
-                }
-                _ => None,
-            },
-            AutomaticColorTypeAdjustment::Disabled => None,
+        match image {
+            SicImage::Animated(_) => None,
+            SicImage::Static(image) => {
+                adjust_dynamic_image(image, output_format).map(SicImage::from)
+            }
         }
     }
 
     fn save_to<W: Write>(
         writer: &mut W,
-        buffer: &image::DynamicImage,
+        image: &SicImage,
         format: image::ImageOutputFormat,
     ) -> Result<(), SicIoError> {
-        buffer
-            .write_to(writer, format)
-            .map_err(SicIoError::ImageError)
+        match image {
+            SicImage::Animated(image) => {
+                encode_animated_image(writer, image.collect_frames(), format)
+            }
+            SicImage::Static(image) => encode_static_image(writer, image, format),
+        }
     }
+}
+
+/// Adjusts the type of image buffer, unless it's determined to be unnecessary
+fn adjust_dynamic_image(
+    image: &image::DynamicImage,
+    output_format: &image::ImageOutputFormat,
+) -> Option<DynamicImage> {
+    // A remaining open question: does a user expect for an image to be able to convert to a format even if the color type is not supported?
+    // And even if the user does, should we?
+    // I suspect that users expect that color type conversions should happen automatically.
+    //
+    // Testing also showed that even bmp with full black full white pixels do not convert correctly as of now. Why exactly is unclear;
+    // Perhaps the color type of the bmp formatted test image?
+
+    match output_format {
+        image::ImageOutputFormat::Farbfeld => {
+            Some(DynamicImage::ImageRgba16(image.to_rgba8().convert()))
+        }
+        image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Bitmap(_)) => Some(image.grayscale()),
+        image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Graymap(_)) => {
+            Some(image.grayscale())
+        }
+        image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Pixmap(_)) => {
+            Some(image::DynamicImage::ImageRgb8(image.to_rgb8()))
+        }
+        _ => None,
+    }
+}
+
+fn encode_static_image<W: Write>(
+    writer: &mut W,
+    image: &image::DynamicImage,
+    format: image::ImageOutputFormat,
+) -> Result<(), SicIoError> {
+    image
+        .write_to(writer, format)
+        .map_err(SicIoError::ImageError)
+}
+
+fn encode_animated_image<W: Write>(
+    writer: &mut W,
+    frames: Vec<image::Frame>, // note: should be owned for the encoder, so can't be a slice
+    format: image::ImageOutputFormat,
+) -> Result<(), SicIoError> {
+    match format {
+        image::ImageOutputFormat::Gif => encode_animated_gif(writer, frames),
+        _ => {
+            eprintln!("WARN: The animated image buffer could not be encoded to the {:?} format; encoding only the first frame", format);
+            let image = AnimatedImage::from_frames(frames).try_into_static_image(0)?;
+            encode_static_image(writer, &image, format)
+        }
+    }
+}
+
+// FIXME: add looping support
+fn encode_animated_gif<W: Write>(
+    writer: &mut W,
+    frames: Vec<image::Frame>,
+) -> Result<(), SicIoError> {
+    let mut encoder = image::codecs::gif::GifEncoder::new(writer);
+    let _ = encoder.encode_frames(frames)?;
+
+    Ok(())
 }
 
 #[cfg(test)]
@@ -114,7 +166,9 @@ mod tests {
         let our_output = &format!("will_output_file_be_created{}", OUTPUT); // this is required because tests are run in parallel, and the creation, or deletion can collide.
         let output_path = setup_output_path(our_output);
 
-        let buffer = image::open(setup_test_image(INPUT)).expect("Can't open test file.");
+        let buffer = image::open(setup_test_image(INPUT))
+            .expect("Can't open test file.")
+            .into();
         let example_output_format = image::ImageOutputFormat::Png;
         let conversion_processor = ConversionWriter::new(&buffer);
         conversion_processor
@@ -136,7 +190,9 @@ mod tests {
         let our_output = &format!("has_png_extension{}", OUTPUT); // this is required because tests are run in parallel, and the creation, or deletion can collide.
         let output_path = setup_output_path(our_output);
 
-        let buffer = image::open(setup_test_image(INPUT)).expect("Can't open test file.");
+        let buffer = image::open(setup_test_image(INPUT))
+            .expect("Can't open test file.")
+            .into();
         let example_output_format = image::ImageOutputFormat::Png;
         let conversion_processor = ConversionWriter::new(&buffer);
         conversion_processor
@@ -161,7 +217,9 @@ mod tests {
         let our_output = &format!("is_png_file{}", OUTPUT); // this is required because tests are run in parallel, and the creation, or deletion can collide.
         let output_path = setup_output_path(our_output);
 
-        let buffer = image::open(setup_test_image(INPUT)).expect("Can't open test file.");
+        let buffer = image::open(setup_test_image(INPUT))
+            .expect("Can't open test file.")
+            .into();
         let example_output_format = image::ImageOutputFormat::Png;
         let conversion_processor = ConversionWriter::new(&buffer);
         conversion_processor
@@ -237,7 +295,9 @@ mod tests {
         let our_output = &format!("header_match_conversion.{}", enc_format); // this is required because tests are run in parallel, and the creation, or deletion can collide.
         let output_path = setup_output_path(our_output);
 
-        let buffer = image::open(setup_test_image(input)).expect("Can't open test file.");
+        let buffer = image::open(setup_test_image(input))
+            .expect("Can't open test file.")
+            .into();
         let conversion_processor = ConversionWriter::new(&buffer);
         let mut writer = File::create(&output_path)?;
 

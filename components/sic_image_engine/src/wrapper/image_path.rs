@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use sic_io::load::{file_reader, load_image, ImportConfig};
 
 use crate::errors::SicImageEngineError;
+use sic_core::SicImage;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ImageFromPath {
@@ -14,7 +15,7 @@ impl ImageFromPath {
         Self { path }
     }
 
-    pub fn open_image(&self) -> Result<sic_core::image::DynamicImage, SicImageEngineError> {
+    pub fn open_image(&self) -> Result<SicImage, SicImageEngineError> {
         file_reader(self.path.as_path())
             .and_then(|mut file| load_image(&mut file, &ImportConfig::default()))
             .map_err(|_err| SicImageEngineError::LoadImageFromPath)

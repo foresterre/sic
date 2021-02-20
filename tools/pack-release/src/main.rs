@@ -1,3 +1,5 @@
+#![allow(clippy::unnecessary_wraps)]
+
 use crate::actions::{cargo_build, get_stable_toolchains, rustup_toolchains, update_dep_licenses};
 
 pub mod actions;

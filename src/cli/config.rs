@@ -165,7 +165,7 @@ pub struct Config<'a> {
     /// Display license of this software or its dependencies.
     pub show_license_text_of: Option<SelectedLicenses>,
 
-    pub selected_frame: FrameIndex,
+    pub selected_frame: Option<FrameIndex>,
 
     /// Disable color type adjustments on save.
     pub disable_automatic_color_type_adjustment: bool,
@@ -194,8 +194,8 @@ impl Default for Config<'_> {
             /// Defaults to no displayed license text.
             show_license_text_of: None,
 
-            /// By default the first frame of a gif is used.
-            selected_frame: FrameIndex::First,
+            /// By default no frame is selected
+            selected_frame: None,
 
             /// Defaults to using automatic color type adjustment where appropriate.
             disable_automatic_color_type_adjustment: false,
@@ -249,7 +249,7 @@ impl<'a> ConfigBuilder<'a> {
     }
 
     // config(in)
-    pub fn select_frame(mut self, frame: FrameIndex) -> ConfigBuilder<'a> {
+    pub fn select_frame(mut self, frame: Option<FrameIndex>) -> ConfigBuilder<'a> {
         self.settings.selected_frame = frame;
         self
     }

@@ -138,7 +138,7 @@ impl OperationId {
             }
             OperationId::FlipHorizontal => Instr::Operation(ImgOp::FlipHorizontal),
             OperationId::FlipVertical => Instr::Operation(ImgOp::FlipVertical),
-            OperationId::Grayscale => Instr::Operation(ImgOp::GrayScale),
+            OperationId::Grayscale => Instr::Operation(ImgOp::Grayscale),
             OperationId::HueRotate => {
                 Instr::Operation(ImgOp::HueRotate(parse_inputs_by_type!(inputs, i32)?))
             }

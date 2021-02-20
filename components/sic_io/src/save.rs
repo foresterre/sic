@@ -1,13 +1,13 @@
 use std::io::Write;
 use std::path::Path;
 
-use sic_core::image;
+use sic_core::{image, SicImage};
 
 use crate::conversion::{AutomaticColorTypeAdjustment, ConversionWriter};
 use crate::errors::SicIoError;
 
 pub fn export<W: Write>(
-    image: &image::DynamicImage,
+    image: &SicImage,
     writer: &mut W,
     format: image::ImageOutputFormat,
     export_settings: ExportSettings,

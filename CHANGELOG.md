@@ -9,7 +9,15 @@ The changelog below lists notable changes for [sic](https://github.com/foresterr
 
 ## [Unreleased]
 
-<!-- -->
+### Added
+
+- Added support for loading and saving all frames of animated images
+- Added support for image operations on animated images
+
+### Changed
+
+- Animated images no longer load the first frame as static image (by default)
+- Frame index selection is now zero-indexed instead of one-indexed
 
 ## [0.16.1] - 2021-02-13
 

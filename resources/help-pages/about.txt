@@ -1,4 +1,4 @@
-sic is an image crate[1], CLI front-end. It allows you to manipulate images using image operations and convert images between various formats.
+sic is an image crate[1], CLI front-end. It allows you to manipulate images using image operations and convert images between various formats. Both static and animated images are supported.
 
 Formats
 -------
