@@ -1,8 +1,9 @@
 use crate::errors::SicImageEngineError;
 use crate::operations::ImageOperation;
 use crate::wrapper::draw_text_inner::DrawTextInner;
+use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
 use sic_core::image::DynamicImage;
-use sic_core::SicImage;
+use sic_core::{image, SicImage};
 
 pub struct DrawText<'dt> {
     text: &'dt DrawTextInner,
@@ -17,20 +18,47 @@ impl<'dt> DrawText<'dt> {
 impl ImageOperation for DrawText<'_> {
     fn apply_operation(&self, image: &mut SicImage) -> Result<(), SicImageEngineError> {
         match image {
-            SicImage::Static(image) => draw_impl(image, self.text),
-            SicImage::Animated(_) => unimplemented!(),
+            SicImage::Static(image) => draw_text_static_image(image, self.text),
+            SicImage::Animated(image) => draw_text_animated_image(image.frames_mut(), self.text),
         }
     }
 }
 
-fn draw_impl(image: &mut DynamicImage, inner: &DrawTextInner) -> Result<(), SicImageEngineError> {
+fn draw_text_animated_image(
+    frames: &mut [image::Frame],
+    inner: &DrawTextInner,
+) -> Result<(), SicImageEngineError> {
     let text = inner.text();
     let coords = inner.coords();
     let font_options = inner.font_options();
-
     let font_file =
         std::fs::read(&font_options.font_path).map_err(SicImageEngineError::FontFileLoadError)?;
+    let font = rusttype::Font::try_from_bytes(&font_file).ok_or(SicImageEngineError::FontError)?;
 
+    frames.par_iter_mut().for_each(|frame| {
+        *frame.buffer_mut() = imageproc::drawing::draw_text(
+            frame.buffer_mut(),
+            font_options.color,
+            coords.0,
+            coords.1,
+            font_options.scale,
+            &font,
+            text,
+        );
+    });
+
+    Ok(())
+}
+
+fn draw_text_static_image(
+    image: &mut DynamicImage,
+    inner: &DrawTextInner,
+) -> Result<(), SicImageEngineError> {
+    let text = inner.text();
+    let coords = inner.coords();
+    let font_options = inner.font_options();
+    let font_file =
+        std::fs::read(&font_options.font_path).map_err(SicImageEngineError::FontFileLoadError)?;
     let font = rusttype::Font::try_from_bytes(&font_file).ok_or(SicImageEngineError::FontError)?;
 
     *image = DynamicImage::ImageRgba8(imageproc::drawing::draw_text(
