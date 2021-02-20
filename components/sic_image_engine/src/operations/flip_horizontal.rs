@@ -1,6 +1,7 @@
 use crate::errors::SicImageEngineError;
 use crate::operations::ImageOperation;
-use sic_core::SicImage;
+use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
+use sic_core::{image, SicImage};
 
 pub struct FlipHorizontal;
 
@@ -14,9 +15,15 @@ impl ImageOperation for FlipHorizontal {
     fn apply_operation(&self, image: &mut SicImage) -> Result<(), SicImageEngineError> {
         match image {
             SicImage::Static(image) => *image = image.fliph(),
-            SicImage::Animated(_) => unimplemented!(),
+            SicImage::Animated(image) => flip_horizontal_animated_image(image.frames_mut()),
         }
 
         Ok(())
     }
+}
+
+fn flip_horizontal_animated_image(frames: &mut [image::Frame]) {
+    frames.par_iter_mut().for_each(|frame| {
+        image::imageops::flip_horizontal_in_place(frame.buffer_mut());
+    });
 }
