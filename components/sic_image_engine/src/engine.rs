@@ -220,7 +220,7 @@ mod compatibility {
 
     impl RawPixels for SicImage {
         fn raw_pixels(&self) -> Vec<u8> {
-            match self.inner() {
+            match self.as_ref() {
                 sic_core::image::DynamicImage::ImageLuma8(buffer) => buffer.to_vec(),
                 sic_core::image::DynamicImage::ImageLumaA8(buffer) => buffer.to_vec(),
                 sic_core::image::DynamicImage::ImageRgb8(buffer) => buffer.to_vec(),
@@ -321,7 +321,7 @@ mod tests {
     // output images during tests to verify the results visually
     fn output_test_image_for_manual_inspection(img: &SicImage, path: &str) {
         if cfg!(feature = "output-test-images") {
-            let _ = img.inner().save(path);
+            let _ = img.as_ref().save(path);
         }
     }
 

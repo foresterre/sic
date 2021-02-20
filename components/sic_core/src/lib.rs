@@ -16,41 +16,23 @@ use std::fmt::{Debug, Formatter};
 
 pub mod errors;
 
+/// The fundamental image data structure in `sic`.
+/// An image can either be animated, in which case it consists of a collection of `image::Frame` frames,
+/// or static, in which case it's represented as an `image::DynamicImage`.
 #[derive(Clone, Debug)]
 pub enum SicImage {
     Animated(AnimatedImage),
     Static(image::DynamicImage),
 }
 
-impl SicImage {
-    // TODO: remove porting function
-    pub fn collect_static_image(&self) -> image::DynamicImage {
-        match self {
-            Self::Animated(_) => unimplemented!(),
-            Self::Static(image) => image.clone(),
-        }
-    }
-
-    // TODO: remove porting function
-    pub fn inner(&self) -> &image::DynamicImage {
-        match self {
-            Self::Animated(_) => unimplemented!(),
-            Self::Static(image) => image,
-        }
-    }
-    // TODO: remove porting function
-    pub fn inner_mut(&mut self) -> &mut image::DynamicImage {
-        match self {
-            Self::Animated(_) => unimplemented!(),
-            Self::Static(image) => image,
-        }
-    }
-}
-
-// TODO: remove porting function
+// Should not be used outside of tests, as it doesn't support animated images
+#[doc(hidden)]
 impl AsRef<image::DynamicImage> for SicImage {
     fn as_ref(&self) -> &DynamicImage {
-        self.inner()
+        match self {
+            Self::Animated(_) => unimplemented!(),
+            Self::Static(image) => image,
+        }
     }
 }
 
@@ -77,10 +59,12 @@ pub struct AnimatedImage {
 }
 
 impl AnimatedImage {
+    /// Consume a collection of frames to produce an `AnimatedImage`
     pub fn from_frames(frames: Vec<image::Frame>) -> Self {
         Self { frames }
     }
 
+    /// Returns the selected frame from the animated image as static image
     pub fn try_into_static_image(
         mut self,
         index: usize,
@@ -95,14 +79,17 @@ impl AnimatedImage {
         }
     }
 
+    /// Returns a slice of image Frames
     pub fn frames(&self) -> &[image::Frame] {
         &self.frames
     }
 
+    /// Returns a mutable slice of image frames
     pub fn frames_mut(&mut self) -> &mut [image::Frame] {
         &mut self.frames
     }
 
+    /// Collects and returns an owned collection of image frames
     pub fn collect_frames(&self) -> Vec<image::Frame> {
         self.frames.clone()
     }
