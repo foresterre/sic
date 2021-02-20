@@ -1,7 +1,8 @@
 use crate::errors::SicImageEngineError;
 use crate::operations::ImageOperation;
+use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
 use sic_core::image::{DynamicImage, GenericImageView};
-use sic_core::SicImage;
+use sic_core::{image, SicImage};
 
 pub struct Crop {
     // top left anchor
@@ -23,9 +24,38 @@ impl ImageOperation for Crop {
     fn apply_operation(&self, image: &mut SicImage) -> Result<(), SicImageEngineError> {
         match image {
             SicImage::Static(image) => crop_impl(image, self),
-            SicImage::Animated(_) => unimplemented!(),
+            SicImage::Animated(image) => crop_animated_image(image.frames_mut(), self),
         }
     }
+}
+
+fn crop_animated_image(frames: &mut [image::Frame], cfg: &Crop) -> Result<(), SicImageEngineError> {
+    // Do the in-bounds check on the first frame only: setup
+    let index = 0;
+    let frame = frames
+        .get(index)
+        .ok_or(SicImageEngineError::AnimatedFrameUnobtainable(index))?;
+
+    let selection = CropSelection::new(
+        cfg.anchor_left.0,
+        cfg.anchor_left.1,
+        cfg.anchor_right.0,
+        cfg.anchor_right.1,
+    );
+    let (x, y, width, height) = selection.box_dimensions();
+
+    // The in-bounds check
+    let _ = selection
+        .dimensions_are_ok()
+        .and_then(|selection| selection.fits_within(frame.buffer()))?;
+
+    // Crop the frames
+    frames.par_iter_mut().for_each(|frame| {
+        *frame.buffer_mut() =
+            image::imageops::crop(frame.buffer_mut(), x, y, width, height).to_image();
+    });
+
+    Ok(())
 }
 
 fn crop_impl(image: &mut DynamicImage, cfg: &Crop) -> Result<(), SicImageEngineError> {
@@ -39,7 +69,7 @@ fn crop_impl(image: &mut DynamicImage, cfg: &Crop) -> Result<(), SicImageEngineE
     // 2. verify that the selection is within the bounds of the image
     selection
         .dimensions_are_ok()
-        .and_then(|selection| selection.fits_within(&image))
+        .and_then(|selection| selection.fits_within(image))
         .map(|_| *image = image.crop(lx, ly, rx - lx, ry - ly))
 }
 
@@ -65,8 +95,16 @@ impl CropSelection {
         }
     }
 
-    fn fits_within(&self, bounds: &DynamicImage) -> Result<&Self, SicImageEngineError> {
-        let (dim_x, dim_y) = bounds.dimensions();
+    // returns a tuple containing the x, y, width and height
+    fn box_dimensions(&self) -> (u32, u32, u32, u32) {
+        (self.lx, self.ly, self.rx - self.lx, self.ry - self.ly)
+    }
+
+    fn fits_within<I: GenericImageView>(
+        &self,
+        bounded_image: &I,
+    ) -> Result<&Self, SicImageEngineError> {
+        let (dim_x, dim_y) = bounded_image.dimensions();
 
         match (
             self.lx <= dim_x,
