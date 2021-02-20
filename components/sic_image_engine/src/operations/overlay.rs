@@ -1,8 +1,9 @@
 use crate::errors::SicImageEngineError;
 use crate::operations::ImageOperation;
 use crate::wrapper::overlay::OverlayInputs;
+use rayon::iter::{IndexedParallelIterator, IntoParallelRefMutIterator, ParallelIterator};
 use sic_core::image::{imageops, DynamicImage};
-use sic_core::SicImage;
+use sic_core::{image, SicImage};
 use std::convert::TryFrom;
 
 pub struct Overlay<'overlay> {
@@ -18,13 +19,46 @@ impl<'overlay> Overlay<'overlay> {
 impl<'overlay> ImageOperation for Overlay<'overlay> {
     fn apply_operation(&self, image: &mut SicImage) -> Result<(), SicImageEngineError> {
         match image {
-            SicImage::Static(image) => overlay_impl(image, self.inputs),
-            SicImage::Animated(_) => unimplemented!(),
+            SicImage::Static(image) => overlay_static(image, self.inputs),
+            SicImage::Animated(image) => overlay_animated_image(image.frames_mut(), self.inputs),
         }
     }
 }
 
-fn overlay_impl(
+fn overlay_animated_image(
+    frames: &mut [image::Frame],
+    inputs: &OverlayInputs,
+) -> Result<(), SicImageEngineError> {
+    // Open matching image
+    let overlay_image = inputs.image_path().open_image()?;
+    let (x, y) = inputs.position();
+
+    match overlay_image {
+        SicImage::Static(image) => overlay_animated_with_static(frames, &image, x, y),
+        SicImage::Animated(other) => overlay_animated_with_animated(frames, other.frames(), x, y),
+    }
+
+    Ok(())
+}
+
+fn overlay_animated_with_animated(
+    frames: &mut [image::Frame],
+    other: &[image::Frame],
+    x: u32,
+    y: u32,
+) {
+    frames.par_iter_mut().zip(other).for_each(|(lhs, rhs)| {
+        imageops::overlay(lhs.buffer_mut(), rhs.buffer(), x, y);
+    });
+}
+
+fn overlay_animated_with_static(frames: &mut [image::Frame], other: &DynamicImage, x: u32, y: u32) {
+    frames.par_iter_mut().for_each(|frame| {
+        imageops::overlay(frame.buffer_mut(), other, x, y);
+    });
+}
+
+fn overlay_static(
     image: &mut DynamicImage,
     overlay: &OverlayInputs,
 ) -> Result<(), SicImageEngineError> {
