@@ -9,7 +9,7 @@ _Convert images and perform image operations from the command-line._
 
 `sic` (sic image cli) is a front-end for the [image crate](https://github.com/image-rs/image).
 Aside from image operations supplied by the image crate, a few additional helpful operations such
-as diff, are included. Operations provided by the [imageproc]🎻(https://github.com/image-rs/imageproc)
+as diff, are included. Operations provided by the [imageproc](https://github.com/image-rs/imageproc)
 crate can be enabled by compiling with the `imageproc-ops` feature. We intend to provide more extensive support for imageproc
 operations in a future release. `sic` supports operations on both static and animated images.
 
