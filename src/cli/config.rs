@@ -8,6 +8,7 @@ use anyhow::{bail, Context};
 use clap::ArgMatches;
 use globwalk::{FileType, GlobWalker};
 use sic_image_engine::engine::Instr;
+use sic_io::conversion::RepeatAnimation;
 use sic_io::load::FrameIndex;
 use std::path::PathBuf;
 
@@ -211,6 +212,9 @@ impl Default for Config<'_> {
                 /// Default encoding type of PNM files (excluding PAM) is set to binary.
                 pnm_use_ascii_format: false,
 
+                /// Defaults to infinite repeat
+                gif_repeat: RepeatAnimation::default(),
+
                 /// Do not fallback to image crate output recognition by default
                 image_output_format_fallback: false,
             },
@@ -278,6 +282,12 @@ impl<'a> ConfigBuilder<'a> {
         self
     }
 
+    // config(out)
+    pub fn gif_repeat(mut self, repeat: RepeatAnimation) -> ConfigBuilder<'a> {
+        self.settings.encoding_settings.gif_repeat = repeat;
+        self
+    }
+
     pub fn image_output_format_decider_fallback(
         mut self,
         enable_fallback: bool,
@@ -307,6 +317,7 @@ pub enum SelectedLicenses {
 pub struct FormatEncodingSettings {
     pub jpeg_quality: u8,
     pub pnm_use_ascii_format: bool,
+    pub gif_repeat: RepeatAnimation,
 
     // Whether to fallback on the image crate to determine the output format if sic doesn't support it yet
     pub image_output_format_fallback: bool,

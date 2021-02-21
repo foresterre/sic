@@ -9,6 +9,9 @@ The changelog below lists notable changes for [sic](https://github.com/foresterr
 
 ## [Unreleased]
 
+### Added
+
+- Option to set repeat value for animated GIF encoded images
 
 ## [0.17.0] - 2021-02-20
 
