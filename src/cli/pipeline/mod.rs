@@ -104,6 +104,7 @@ where
         encoding_format,
         save::ExportSettings {
             adjust_color_type: AutomaticColorTypeAdjustment::default(),
+            gif_repeat: config.encoding_settings.gif_repeat,
         },
     )
     .with_context(|| "Unable to save image.")

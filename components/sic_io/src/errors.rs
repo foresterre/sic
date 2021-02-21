@@ -48,6 +48,11 @@ pub enum FormatError {
     #[error("JPEG Quality should range between 1 and 100 (inclusive).")]
     JPEGQualityLevelNotInRange,
 
+    #[error(
+        "The GIF repeat value has to be either a positive integer < 65536, 'infinite' or 'never'"
+    )]
+    GIFRepeatInvalidValue,
+
     #[error("Using PNM requires the sample encoding to be set.")]
     PNMSamplingEncodingNotSet,
 }

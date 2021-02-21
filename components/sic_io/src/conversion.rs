@@ -1,6 +1,8 @@
-use crate::errors::SicIoError;
+use crate::errors::{FormatError, SicIoError};
+use crate::save::ExportSettings;
 use image::buffer::ConvertBuffer;
 use image::DynamicImage;
+use sic_core::image::codecs::gif::Repeat;
 use sic_core::{image, AnimatedImage, SicImage};
 use std::io::Write;
 
@@ -14,6 +16,32 @@ pub enum AutomaticColorTypeAdjustment {
 impl Default for AutomaticColorTypeAdjustment {
     fn default() -> Self {
         AutomaticColorTypeAdjustment::Enabled
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum RepeatAnimation {
+    Finite(u16),
+    Infinite,
+    Never,
+}
+
+impl RepeatAnimation {
+    pub fn try_from_str(input: &str) -> Result<Self, SicIoError> {
+        match input {
+            "infinite" => Ok(Self::Infinite),
+            "never" => Ok(Self::Never),
+            elsy => elsy
+                .parse::<u16>()
+                .map(Self::Finite)
+                .map_err(|_| SicIoError::FormatError(FormatError::GIFRepeatInvalidValue)),
+        }
+    }
+}
+
+impl Default for RepeatAnimation {
+    fn default() -> Self {
+        Self::Infinite
     }
 }
 
@@ -31,12 +59,12 @@ impl<'a> ConversionWriter<'a> {
         &self,
         writer: &mut W,
         output_format: image::ImageOutputFormat,
-        color_type_adjustment: AutomaticColorTypeAdjustment,
+        export_settings: &ExportSettings,
     ) -> Result<(), SicIoError> {
         let color_processing = &ConversionWriter::pre_process_color_type(
             &self.image,
             &output_format,
-            color_type_adjustment,
+            export_settings.adjust_color_type,
         );
 
         let export_buffer = match color_processing {
@@ -44,7 +72,7 @@ impl<'a> ConversionWriter<'a> {
             None => &self.image,
         };
 
-        ConversionWriter::save_to(writer, export_buffer, output_format)
+        ConversionWriter::save_to(writer, export_buffer, output_format, export_settings)
     }
 
     /// Some image output format types require color type pre-processing.
@@ -74,10 +102,11 @@ impl<'a> ConversionWriter<'a> {
         writer: &mut W,
         image: &SicImage,
         format: image::ImageOutputFormat,
+        export_settings: &ExportSettings,
     ) -> Result<(), SicIoError> {
         match image {
             SicImage::Animated(image) => {
-                encode_animated_image(writer, image.collect_frames(), format)
+                encode_animated_image(writer, image.collect_frames(), format, export_settings)
             }
             SicImage::Static(image) => encode_static_image(writer, image, format),
         }
@@ -125,9 +154,12 @@ fn encode_animated_image<W: Write>(
     writer: &mut W,
     frames: Vec<image::Frame>, // note: should be owned for the encoder, so can't be a slice
     format: image::ImageOutputFormat,
+    export_settings: &ExportSettings,
 ) -> Result<(), SicIoError> {
     match format {
-        image::ImageOutputFormat::Gif => encode_animated_gif(writer, frames),
+        image::ImageOutputFormat::Gif => {
+            encode_animated_gif(writer, frames, export_settings.gif_repeat)
+        }
         _ => {
             eprintln!("WARN: The animated image buffer could not be encoded to the {:?} format; encoding only the first frame", format);
             let image = AnimatedImage::from_frames(frames).try_into_static_image(0)?;
@@ -136,13 +168,19 @@ fn encode_animated_image<W: Write>(
     }
 }
 
-// FIXME: add looping support
 fn encode_animated_gif<W: Write>(
     writer: &mut W,
     frames: Vec<image::Frame>,
+    repeat: RepeatAnimation,
 ) -> Result<(), SicIoError> {
     let mut encoder = image::codecs::gif::GifEncoder::new(writer);
     let _ = encoder.encode_frames(frames)?;
+
+    match repeat {
+        RepeatAnimation::Finite(amount) => encoder.set_repeat(Repeat::Finite(amount))?,
+        RepeatAnimation::Infinite => encoder.set_repeat(Repeat::Infinite)?,
+        _ => {}
+    }
 
     Ok(())
 }
@@ -175,7 +213,10 @@ mod tests {
             .write(
                 &mut File::create(&output_path)?,
                 example_output_format,
-                AutomaticColorTypeAdjustment::Enabled,
+                &ExportSettings {
+                    adjust_color_type: AutomaticColorTypeAdjustment::Enabled,
+                    ..Default::default()
+                },
             )
             .expect("Unable to save file to the test computer.");
 
@@ -199,7 +240,10 @@ mod tests {
             .write(
                 &mut File::create(&output_path)?,
                 example_output_format,
-                AutomaticColorTypeAdjustment::Enabled,
+                &ExportSettings {
+                    adjust_color_type: AutomaticColorTypeAdjustment::Enabled,
+                    ..Default::default()
+                },
             )
             .expect("Unable to save file to the test computer.");
 
@@ -226,7 +270,10 @@ mod tests {
             .write(
                 &mut File::create(&output_path)?,
                 example_output_format,
-                AutomaticColorTypeAdjustment::Enabled,
+                &ExportSettings {
+                    adjust_color_type: AutomaticColorTypeAdjustment::Enabled,
+                    ..Default::default()
+                },
             )
             .expect("Unable to save file to the test computer.");
 
@@ -302,7 +349,14 @@ mod tests {
         let mut writer = File::create(&output_path)?;
 
         conversion_processor
-            .write(&mut writer, format, AutomaticColorTypeAdjustment::Enabled)
+            .write(
+                &mut writer,
+                format,
+                &ExportSettings {
+                    adjust_color_type: AutomaticColorTypeAdjustment::Enabled,
+                    ..Default::default()
+                },
+            )
             .expect("Unable to save file to the test computer.");
 
         let mut file = std::fs::File::open(setup_output_path(our_output))

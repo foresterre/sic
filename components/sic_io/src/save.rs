@@ -3,7 +3,7 @@ use std::path::Path;
 
 use sic_core::{image, SicImage};
 
-use crate::conversion::{AutomaticColorTypeAdjustment, ConversionWriter};
+use crate::conversion::{AutomaticColorTypeAdjustment, ConversionWriter, RepeatAnimation};
 use crate::errors::SicIoError;
 
 pub fn export<W: Write>(
@@ -13,12 +13,13 @@ pub fn export<W: Write>(
     export_settings: ExportSettings,
 ) -> Result<(), SicIoError> {
     let conv = ConversionWriter::new(image);
-    conv.write(writer, format, export_settings.adjust_color_type)
+    conv.write(writer, format, &export_settings)
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct ExportSettings {
     pub adjust_color_type: AutomaticColorTypeAdjustment,
+    pub gif_repeat: RepeatAnimation,
 }
 
 pub struct EmptyPath;
