@@ -103,7 +103,11 @@ where
         &mut export_writer,
         encoding_format,
         save::ExportSettings {
-            adjust_color_type: AutomaticColorTypeAdjustment::default(),
+            adjust_color_type: if config.disable_automatic_color_type_adjustment {
+                AutomaticColorTypeAdjustment::Disabled
+            } else {
+                AutomaticColorTypeAdjustment::Enabled
+            },
             gif_repeat: config.encoding_settings.gif_repeat,
         },
     )
