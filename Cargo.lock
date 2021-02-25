@@ -158,6 +158,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ae44d1a3d5a19df61dd0c8beb138458ac2a53a7ac09eba97d55592540004306b"
 
 [[package]]
+name = "camino"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "176c40258709f5883ce0f352f30b2065c64112843b33e3e318e1c1cc22960979"
+
+[[package]]
 name = "cargo-platform"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -521,10 +527,11 @@ dependencies = [
 
 [[package]]
 name = "guppy"
-version = "0.7.2"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bf1c6ce38a18b386305494e4b38a137b2c1a48f368cce1e65e8efbf4dbeeb6f8"
+checksum = "ec4cbddce827d660864974dc3dc62a1c810e813d17e518cc5830716b977cd110"
 dependencies = [
+ "camino",
  "cargo_metadata",
  "fixedbitset",
  "indexmap",
@@ -1650,9 +1657,9 @@ dependencies = [
 
 [[package]]
 name = "target-spec"
-version = "0.6.1"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "39920b3286e8e9585b3ba77becb3e682888f63b2be5326cd16264d8ad292d78e"
+checksum = "ac395241acf0f3d224dd2b07b334994adf6f37c904d1826867332ab8c6ddedbf"
 dependencies = [
  "cfg-expr",
 ]
