@@ -30,7 +30,8 @@ pack-release:
     cargo run -p pack-release
 
 publish-workspace new_version:
-    cargo run -p cargo-publish-workspace -- publish-workspace --new-version {{new_version}} --sleep 10
+    cargo install cargo-publish-workspace
+    cargo publish-workspace --new-version {{new_version}}
 
 # publish the workspace with a new workspace version, and package the result for the current platform
 publish new_version:
