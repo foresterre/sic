@@ -29,7 +29,7 @@ impl<'g> PublishCrate<'g> {
         let from_directory = pkg.manifest_path().parent().with_context(|| {
             format!(
                 "Expected parent folder for Cargo manifest at {}",
-                pkg.manifest_path().display()
+                pkg.manifest_path()
             )
         })?;
 
@@ -53,7 +53,7 @@ impl Action for PublishCrate<'_> {
                 anyhow::bail!(
                     "publish {} failed in {}",
                     self.pkg.name(),
-                    self.pkg.manifest_path().display()
+                    self.pkg.manifest_path()
                 );
             }
         };

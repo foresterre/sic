@@ -64,7 +64,7 @@ fn update_dependent_manifest(dependent: &PackageWrapper<'_>, version: &str) -> a
     let cargo_file = std::fs::read_to_string(manifest)?;
     let mut document = cargo_file.parse::<Document>()?;
 
-    backup_manifest(manifest)?;
+    backup_manifest(manifest.as_ref())?;
 
     let dependency = dependent.link().resolved_name();
 

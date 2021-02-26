@@ -26,8 +26,8 @@ impl Action for UpdateManifest<'_> {
 }
 
 fn live_update_dependency_version(pkg: &PackageMetadata, new_version: &str) -> anyhow::Result<()> {
-    backup_manifest(pkg.manifest_path())?;
-    toml_update(pkg.manifest_path(), new_version)?;
+    backup_manifest(pkg.manifest_path().as_ref())?;
+    toml_update(pkg.manifest_path().as_ref(), new_version)?;
 
     Ok(())
 }
