@@ -86,12 +86,9 @@ fn new_publish<'g>(
     for (i, component) in components.iter().enumerate() {
         let path = component.manifest_path();
 
-        let crate_folder = path.parent().with_context(|| {
-            format!(
-                "Expected parent folder for Cargo manifest at {}",
-                path.display()
-            )
-        })?;
+        let crate_folder = path
+            .parent()
+            .with_context(|| format!("Expected parent folder for Cargo manifest at {}", path))?;
 
         let kickstart = Ok(());
 
@@ -100,7 +97,10 @@ fn new_publish<'g>(
             .and_then(|_| set_dependent_version(component, dependents_db, &args, Some("*"))) // set_dependent_version to * locally
             .do_if(|| true, |_| publish(component, &args)) // publish for component
             .and_then(|_| set_dependent_version(component, dependents_db, &args, None)) // set_dependent_version to 'version
-            .do_if(|| true, |_| make_commit(&args, *component, crate_folder))?; // commit changes
+            .do_if(
+                || true,
+                |_| make_commit(&args, *component, crate_folder.as_ref()),
+            )?; // commit changes
 
         // give the index time to update, if we still have to publish another crate
         if i < components.len() {
