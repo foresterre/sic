@@ -25,7 +25,6 @@ members = [
     "components/sic_io",
     "components/sic_parser",
     "components/sic_testing",
-    "tools/cargo-publish-workspace",
     "tools/pack-release",
 ]
 
