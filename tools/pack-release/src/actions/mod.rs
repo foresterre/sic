@@ -1,15 +1,11 @@
+pub mod update_dep_licenses;
+
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use zip::write::FileOptions;
 
-pub fn update_dep_licenses() {
-    xshell::cmd!("cargo run --example update_dep_licenses")
-        .run()
-        .expect("Unable to update dep licenses")
-}
-
-pub fn cargo_build(toolchain: &str) {
+pub fn cargo_build(toolchain: &str, dep_licenses: impl AsRef<Path>) {
     // get current directory, on top of which we'll create an output directory
     let path = std::env::current_dir().expect("Unable to get current directory");
     println!("cwd: {}", &path.display());
@@ -33,7 +29,7 @@ pub fn cargo_build(toolchain: &str) {
         toolchain.trim().replace("stable-", "")
     );
 
-    zip_executable(&exe, Path::new(&zip));
+    zip_files(&[exe.as_path(), dep_licenses.as_ref()], Path::new(&zip));
 
     // remove output directory
     if option_env!("PACK_RELEASE_KEEP_OUTPUT").is_none() {
@@ -60,26 +56,30 @@ pub fn sic_version(exe: &Path) -> String {
         .replace(' ', "-")
 }
 
-pub fn zip_executable(exe: &Path, destination: &Path) {
-    println!(
-        "executable: {}\ndestination: {}",
-        exe.display(),
-        destination.display()
-    );
-
+pub fn zip_files<P: AsRef<Path>, I: IntoIterator<Item = P>>(files: I, destination: &Path) {
     let zip_file = File::create(&destination).expect("Unable to create zip");
     let mut writer = zip::ZipWriter::new(zip_file);
-
-    let buffer = std::fs::read(exe).expect("Unable to read executable");
 
     let options = FileOptions::default()
         .compression_method(zip::CompressionMethod::Deflated)
         .unix_permissions(0o755);
 
-    writer
-        .start_file(executable_file(), options)
-        .expect("Unable to start zip file");
-    writer.write_all(&buffer).expect("Unable to zip release");
+    for file in files {
+        let path = file.as_ref();
+        println!(
+            "zipping: '{}' to '{}'",
+            path.display(),
+            destination.display()
+        );
+
+        let buffer = std::fs::read(path).expect("Unable to read executable");
+
+        writer
+            .start_file(path.force_to_string(), options)
+            .expect("Unable to start zip file");
+
+        writer.write_all(&buffer).expect("Unable to zip file");
+    }
 
     writer.finish().expect("Unable to finish zipping release");
 }
@@ -125,13 +125,24 @@ fn zip_folder<P: AsRef<Path>>(path: P, destination: P) {
         let buffer = std::fs::read(&entry.path()).expect("Unable to read directory entry");
 
         writer
-            .start_file(
-                &entry.file_name().to_string_lossy().to_string(),
-                file_options,
-            )
+            .start_file(&entry.file_name().force_to_string(), file_options)
             .expect("Unable to start file");
         writer.write_all(&buffer).expect("Unable to zip file");
     }
 
     writer.finish().expect("Unable to finish zipping release");
+}
+
+trait ForceToString {
+    fn force_to_string(&self) -> String;
+}
+
+impl<P: AsRef<Path>> ForceToString for P {
+    fn force_to_string(&self) -> String {
+        self.as_ref()
+            .file_name()
+            .unwrap()
+            .to_string_lossy()
+            .to_string()
+    }
 }
