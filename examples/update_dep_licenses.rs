@@ -2,6 +2,8 @@ use std::path::Path;
 use std::process::Command;
 use std::str;
 
+const DEP_LICENSES_DIR: &str = "thanks";
+const DEP_LICENSES_IGNORE: &str = "thanks/.gitignore";
 const DEP_LICENSES_PATH: &str = "thanks/licenses.html";
 const PROGRAM: &str = "cargo-about";
 
@@ -52,10 +54,12 @@ fn main() {
         println!("license listing tool path found at: {:?}", path);
     }
 
+    std::fs::create_dir_all(DEP_LICENSES_DIR).expect("Unable to create 'thanks' directory");
+    std::fs::write(DEP_LICENSES_IGNORE, "*").expect("Unable to write ignore file");
+
     // Now cargo-about should be installed and in our PATH.
     // Next, we will use it to generate the licenses from our dependencies.
     // These will be saved under <crate>/target/DEP_LICENSES.
-
     let output = Command::new("cargo")
         .args(&["about", "generate", "about.hbs"])
         .output().expect(
