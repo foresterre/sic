@@ -1,20 +1,12 @@
-use inflate::inflate_bytes;
-
-use anyhow::anyhow;
-
 use crate::cli::config::SelectedLicenses;
 
 pub struct LicenseTexts<'a> {
     pub(crate) this_software: &'a str,
-    pub(crate) dependencies: &'a [u8],
 }
 
 impl<'a> LicenseTexts<'a> {
-    pub fn new(this_software: &'a str, dependencies: &'a [u8]) -> Self {
-        Self {
-            this_software,
-            dependencies,
-        }
+    pub fn new(this_software: &'a str) -> Self {
+        Self { this_software }
     }
 }
 
@@ -31,14 +23,18 @@ impl PrintTextFor for SelectedLicenses {
         };
 
         let print_for_dependencies = || {
-            let inflated = inflate_bytes(texts.dependencies)
-                .map_err(|err| anyhow!("Unable to uncompress license text {}", err))?;
-            let text = std::str::from_utf8(&inflated).map_err(|err| anyhow!("{}", err))?;
+            use std::io::Write;
+            println!("You should have received a licenses.html file with the distribution, but you can download another copy here.");
+            print!("Open new copy [yes / no (default)]: ");
+            std::io::stdout().flush()?;
 
-            let path = std::env::temp_dir().join("dep-licenses.html");
-            std::fs::write(&path, text)?;
-
-            open::that(&path)?;
+            if let Ok(true) = request_another_copy() {
+                open::that(concat!(
+                    "https://github.com/foresterre/sic/releases/download/v",
+                    clap::crate_version!(),
+                    "/licenses.html"
+                ))?;
+            }
 
             Ok(())
         };
@@ -47,5 +43,17 @@ impl PrintTextFor for SelectedLicenses {
             SelectedLicenses::ThisSoftware => print_for_this_software(),
             SelectedLicenses::Dependencies => print_for_dependencies(),
         }
+    }
+}
+
+fn request_another_copy() -> anyhow::Result<bool> {
+    let mut buffer = String::new();
+    std::io::stdin().read_line(&mut buffer)?;
+
+    let input = buffer.to_ascii_lowercase();
+
+    match input.trim() {
+        "yes" | "y" => Ok(true),
+        _ => Ok(false),
     }
 }

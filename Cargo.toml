@@ -38,7 +38,6 @@ sic_parser = { version = "0.17.0", path = "components/sic_parser"}
 anyhow = "1.0.38"
 atty = "0.2.14"
 clap = "2.33.3"
-inflate = "0.4.5"
 globwalk = "0.8.1"
 open = "1.4.0"
 strum = "0.20.0"
@@ -48,7 +47,6 @@ clap = "2.33.3" # for examples/gen_completions.rs
 parameterized = "0.3.1"
 
 [build-dependencies]
-flate2 = "1.0.20"
 
 [features]
 default = ["imageproc-ops"]
