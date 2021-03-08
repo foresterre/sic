@@ -28,4 +28,6 @@ ignore = [
     # for usages).
     # For now, we will wait for imageproc (issue: https://github.com/image-rs/imageproc/issues/426)
     "RUSTSEC-2020-0023",
+    # rulinalg crate is no longer maintained
+    "RUSTSEC-2020-0147",
 ]
