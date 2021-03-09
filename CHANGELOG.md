@@ -9,9 +9,16 @@ The changelog below lists notable changes for [sic](https://github.com/foresterr
 
 ## [Unreleased]
 
+
+## [0.18.0]
+
 ### Added
 
 - Option to set repeat value for animated GIF encoded images
+
+### Fixed
+
+- Automatic color type adjustment setting was ignored
 
 ## [0.17.0] - 2021-02-20
 
@@ -220,7 +227,8 @@ _yanked: `--version` not updated_
 - Decoding support for PNG, JPEG, GIF, BMP, ICO, TIFF and WebP (not all formats are completely supported)
 - Encoding support for JPEG, PNG, GIF, ICO, PPM
 
-[unreleased]: https://github.com/foresterre/sic/compare/v0.17.0...HEAD
+[unreleased]: https://github.com/foresterre/sic/compare/v0.18.0...HEAD
+[0.18.0]: https://github.com/foresterre/sic/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/foresterre/sic/compare/v0.16.1...v0.17.0
 [0.16.1]: https://github.com/foresterre/sic/compare/v0.16.0...v0.16.1
 [0.16.0]: https://github.com/foresterre/sic/compare/v0.15.0...v0.16.0
