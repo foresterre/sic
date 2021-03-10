@@ -6,6 +6,7 @@ extern crate strum_macros;
 
 #[cfg(feature = "imageproc-ops")]
 use crate::wrapper::draw_text_inner::DrawTextInner;
+use crate::wrapper::gradient_input::GradientInput;
 use crate::wrapper::image_path::ImageFromPath;
 use crate::wrapper::overlay::OverlayInputs;
 
@@ -27,6 +28,7 @@ pub enum ImgOp {
     FlipVertical,
     Grayscale,
     HueRotate(i32),
+    HorizontalGradient(GradientInput),
     Invert,
     Overlay(OverlayInputs),
     Resize((u32, u32)),
