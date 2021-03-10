@@ -290,7 +290,18 @@ pub fn create_app(
             .value_name("int")
             .number_of_values(1)
             .multiple(true)
-            .allow_hyphen_values(true))
+             .allow_hyphen_values(true))
+        .arg(
+            Arg::with_name(OperationId::HorizontalGradient.as_str())
+            .help("Operation: fill the image with horizontal gradient from color1 to color2.")
+            .long(OperationId::HorizontalGradient.as_str())
+            .takes_value(true)
+            .value_name(
+                "<rgba(r,g,b,a)> <rgba(r,g,b,a)>",
+            )
+            .number_of_values(2)
+            .multiple(true),
+    )
         .arg(Arg::with_name(OperationId::Invert.as_str())
             .help("Operation: invert the each pixel of the input image ")
             .long(OperationId::Invert.as_str())

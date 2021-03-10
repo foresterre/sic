@@ -41,6 +41,7 @@ pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Vec<Instr>, SicP
             Rule::flip_vertical => Ok(Instr::Operation(ImgOp::FlipVertical)),
             Rule::grayscale => Ok(Instr::Operation(ImgOp::Grayscale)),
             Rule::huerotate => HueRotate(pair),
+            Rule::horizontal_gradient => Ok(parse_horizontal_gradient(pair)?),
             Rule::invert => Ok(Instr::Operation(ImgOp::Invert)),
             Rule::overlay => parse_overlay(pair),
             Rule::resize => Resize(pair),
@@ -228,6 +229,37 @@ fn parse_draw_text(pair: Pair<'_, Rule>) -> Result<Instr, SicParserError> {
             ),
         ),
     ))))
+}
+fn parse_horizontal_gradient(pair: Pair<'_, Rule>) -> Result<Instr, SicParserError> {
+    use crate::named_value::parse_named_value;
+    use sic_core::image::Rgba;
+    use sic_image_engine::wrapper::gradient_input::GradientInput;
+
+    let mut pairs = pair.into_inner();
+
+    let color = pairs.next().ok_or_else(|| {
+        SicParserError::ExpectedNamedValue(String::from("rgba(r: Byte, g: Byte, b: Byte, a: Byte)"))
+    })?;
+    let color = parse_named_value(color).map_err(SicParserError::NamedValueParsingError)?;
+
+    let color2 = pairs.next().ok_or_else(|| {
+        SicParserError::ExpectedNamedValue(String::from("rgba(r: Byte, g: Byte, b: Byte, a: Byte)"))
+    })?;
+    let color2 = parse_named_value(color2).map_err(SicParserError::NamedValueParsingError)?;
+    Ok(Instr::Operation(ImgOp::HorizontalGradient(
+        GradientInput::new((
+            Rgba(
+                color
+                    .extract_rgba()
+                    .map_err(SicParserError::NamedValueParsingError)?,
+            ),
+            Rgba(
+                color2
+                    .extract_rgba()
+                    .map_err(SicParserError::NamedValueParsingError)?,
+            ),
+        )),
+    )))
 }
 
 #[cfg(test)]
@@ -814,6 +846,34 @@ mod tests {
             vec![Instr::Operation(ImgOp::HueRotate(-3579))],
             parse_image_operations(pairs).unwrap()
         );
+    }
+
+    mod gradient_tests {
+        use super::*;
+        use sic_core::image::Rgba;
+        use sic_image_engine::wrapper::gradient_input::GradientInput;
+
+        #[test]
+        fn horizontal_gradient_valid_args() {
+            let pairs = SICParser::parse(
+                Rule::main,
+                "horizontal-gradient rgba(10, 10, 255, 255) rgba(255, 255, 255, 255)",
+            )
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+
+            let expected = vec![Instr::Operation(ImgOp::HorizontalGradient(
+                GradientInput::new((Rgba([10, 10, 255, 255]), Rgba([255, 255, 255, 255]))),
+            ))];
+            let actual = parse_image_operations(pairs).unwrap();
+
+            assert_eq!(actual, expected);
+        }
+        #[test]
+        #[should_panic]
+        fn horizontal_gradient_invalid_args() {
+            SICParser::parse(Rule::main, "horizontal-gradient rgba(10, 10, 255, 255)")
+                .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        }
     }
 
     #[test]
