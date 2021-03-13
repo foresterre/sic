@@ -148,6 +148,10 @@ impl ImageEngine {
             ImgOp::HueRotate(degree) => {
                 operations::hue_rotate::HueRotate::new(*degree).apply_operation(&mut self.image)
             }
+            ImgOp::HorizontalGradient(colors) => {
+                operations::horizontal_gradient::HorizontalGradient::new(*colors)
+                    .apply_operation(&mut self.image)
+            }
             ImgOp::Invert => operations::invert::Invert::new().apply_operation(&mut self.image),
             ImgOp::Overlay(inputs) => {
                 operations::overlay::Overlay::new(inputs).apply_operation(&mut self.image)
@@ -556,6 +560,32 @@ mod tests {
             &right,
             out_!("test_register_unregister_sampling_filter_right.png"),
         );
+    }
+    mod imageproc_gradient_tests {
+        use super::*;
+        use crate::wrapper::gradient_input::GradientInput;
+        #[test]
+        fn horizontal_gradient_test() {
+            let img =
+                sic_core::image::DynamicImage::ImageRgb8(sic_core::image::RgbImage::new(200, 200))
+                    .into();
+
+            let operation = ImgOp::HorizontalGradient(GradientInput::new((
+                Rgba([255, 150, 150, 255]),
+                Rgba([255, 50, 50, 50]),
+            )));
+
+            let mut operator = ImageEngine::new(img);
+            let done = operator.ignite(&[Instr::Operation(operation)]);
+            assert!(done.is_ok());
+
+            let result_img = done.unwrap();
+
+            output_test_image_for_manual_inspection(
+                &result_img,
+                out_!("horizontal-gradient-test.png"),
+            );
+        }
     }
 
     #[test]

@@ -13,6 +13,7 @@ pub mod filter3x3;
 pub mod flip_horizontal;
 pub mod flip_vertical;
 pub mod grayscale;
+pub mod horizontal_gradient;
 pub mod hue_rotate;
 pub mod invert;
 pub mod overlay;

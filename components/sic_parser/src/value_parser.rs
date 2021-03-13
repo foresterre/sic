@@ -1,6 +1,6 @@
 use crate::errors::SicParserError;
-use sic_image_engine::wrapper::filter_type::FilterTypeWrap;
 use sic_image_engine::wrapper::image_path::ImageFromPath;
+use sic_image_engine::wrapper::{filter_type::FilterTypeWrap, gradient_input::GradientInput};
 use std::convert::TryFrom;
 use std::path::PathBuf;
 
@@ -361,6 +361,40 @@ impl ParseInputsFromIter for DrawTextInner {
                 ),
             ),
         );
+
+        return_if_complete!(iter, res)
+    }
+}
+
+// Horizontal gradient
+impl ParseInputsFromIter for GradientInput {
+    type Error = SicParserError;
+
+    fn parse<'a, T>(iterable: T) -> Result<Self, Self::Error>
+    where
+        T: IntoIterator,
+        T::Item: Into<Describable<'a>> + std::fmt::Debug,
+        Self: std::marker::Sized,
+    {
+        use crate::named_value::NamedValue;
+        use sic_core::image::Rgba;
+
+        let mut iter = iterable.into_iter();
+        let color1 = parse_next!(iter, NamedValue, "Rgba");
+        let color2 = parse_next!(iter, NamedValue, "Rgba");
+
+        let res = GradientInput::new((
+            Rgba(
+                color1
+                    .extract_rgba()
+                    .map_err(SicParserError::NamedValueParsingError)?,
+            ),
+            Rgba(
+                color2
+                    .extract_rgba()
+                    .map_err(SicParserError::NamedValueParsingError)?,
+            ),
+        ));
 
         return_if_complete!(iter, res)
     }

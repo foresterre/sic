@@ -31,6 +31,7 @@ pub enum OperationId {
     FlipVertical,
     Grayscale,
     HueRotate,
+    HorizontalGradient,
     Invert,
     Overlay,
     Resize,
@@ -77,6 +78,7 @@ impl OperationId {
             OperationId::FlipVertical => 0,
             OperationId::Grayscale => 0,
             OperationId::HueRotate => 1,
+            OperationId::HorizontalGradient => 2,
             OperationId::Invert => 0,
             OperationId::Overlay => 3,
             OperationId::Resize => 2,
@@ -141,6 +143,13 @@ impl OperationId {
             OperationId::Grayscale => Instr::Operation(ImgOp::Grayscale),
             OperationId::HueRotate => {
                 Instr::Operation(ImgOp::HueRotate(parse_inputs_by_type!(inputs, i32)?))
+            }
+            OperationId::HorizontalGradient => {
+                use sic_image_engine::wrapper::gradient_input::GradientInput;
+                Instr::Operation(ImgOp::HorizontalGradient(parse_inputs_by_type!(
+                    inputs,
+                    GradientInput
+                )?))
             }
             OperationId::Invert => Instr::Operation(ImgOp::Invert),
             OperationId::Overlay => Instr::Operation(ImgOp::Overlay(parse_inputs_by_type!(
