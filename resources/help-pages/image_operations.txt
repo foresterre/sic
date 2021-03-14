@@ -23,6 +23,8 @@ Image script commands:
 |flip horizontal    | `flip-horizontal`                 |
 |flip vertical      | `flip-vertical`                   |
 |gray scale         | `grayscale`                       |
+|horizontal gradient| `horizontal-gradient <nv:rgba>    |
+|                   |    <nv:rgba>`                     |
 |hue rotate         | `hue-rotate <int>`                |
 |invert             | `invert`                          |
 |overlay            | `overlay <path> <uint> <uint>`    |
