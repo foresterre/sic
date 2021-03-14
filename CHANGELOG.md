@@ -9,6 +9,9 @@ The changelog below lists notable changes for [sic](https://github.com/foresterr
 
 ## [Unreleased]
 
+### Added
+
+- Added horizontal gradient image operation
 
 ## [0.18.0] - 2021-03-09
 
