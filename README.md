@@ -138,7 +138,8 @@ If we use the _cli operations_ method the previously shown example becomes: <br>
 |flip horizontal    | `flip-horizontal`                         | Flips the image on the horizontal axis. |
 |flip vertical      | `flip-vertical`                           | Flips the image on the vertical axis. |
 |gray scale         | `grayscale`                               | Transform each pixel to only hold an intensity of light value. Reduces the color space to contain only gray monochromatic values.|
-|hue rotate         | `hue-rotate <int>`                        | Rotate's the hue, argument is in degrees. Rotates `<int>%360` degrees. |
+|horizontal gradient| `horizontal-gradient <nv:rgba> <nv:rgba>` | Fill and blend the image with a horizontal gradient from left to right.  |
+|hue rotate         | `hue-rotate <int>`                        | Rotates the hue, argument is in degrees. Rotates `<int>%360` degrees. |
 |invert             | `invert`                                  | Invert the colours of an image. |
 |overlay            | `overlay <path> <uint> <uint>`            | Overlay an image loaded from the provided argument path over the input image (at a certain position). |
 |resize             | `resize <uint> <uint>`                    | Resize the image to x by y pixels. Can both up- and downscale. Uses a `lanczos3` sampling filter unless overridden. Prior to sic v0.11, the default sampling filter was `gaussian`. |
@@ -244,6 +245,11 @@ or <br>
 `sic -i in.png -o out.png --apply-operations "grayscale"` <br>
 or <br>
 `sic -i in.png -o out.png --grayscale`
+
+**horizontal gradient** example: <br>
+`sic -i in.png -o out.png --apply-operations "horizontal-gradient rgba(255, 0, 0, 255) rgba(0, 0, 255, 255)"` <br>
+or <br>
+`sic -i in.png -o out.png --horizontal-gradient "rgba(255, 0, 0, 255)" "rgba(0, 0, 255, 255)"`
 
 **hue rotate** example: <br>
 `sic -i in.png -o out.png --apply-operations "hue-rotate -90"` <br>
