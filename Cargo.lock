@@ -972,9 +972,9 @@ dependencies = [
 
 [[package]]
 name = "rav1e"
-version = "0.4.0"
+version = "0.5.0-alpha"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "78dde87c10d9381dc0966419fbdb734b1da5955466328db6a5ce3ec7fc7f9709"
+checksum = "2724c40f479675781df5a884a8c54c11e83b20ebb5e2fcf5502aeff5101063e0"
 dependencies = [
  "arbitrary",
  "arg_enum_proc_macro",
@@ -1006,9 +1006,9 @@ dependencies = [
 
 [[package]]
 name = "ravif"
-version = "0.6.4"
+version = "0.6.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3da7cf5c318575c593a93d89715d9f9a9ada0a0a72dec64a9a0d8fef023fccbf"
+checksum = "81b353ed245c892f57c8ed40aab234ce75a42a2793febaa3975960b0d730d565"
 dependencies = [
  "avif-serialize",
  "imgref",
