@@ -129,8 +129,8 @@ impl ImageEngine {
                 operations::crop::Crop::new((*lx, *ly), (*rx, *ry)).apply_operation(&mut self.image)
             }
             ImgOp::Diff(path) => operations::diff::Diff::new(path).apply_operation(&mut self.image),
-            ImgOp::DrawGrid(line_count) => {
-                operations::draw_grid::DrawGrid::new(*line_count).apply_operation(&mut self.image)
+            ImgOp::DrawGrid(gap) => {
+                operations::draw_grid::DrawGrid::new(*gap).apply_operation(&mut self.image)
             }
             #[cfg(feature = "imageproc-ops")]
             ImgOp::DrawText(inner) => {
@@ -855,7 +855,7 @@ mod tests {
 
         #[test]
         fn test_draw_grid() {
-            let operation = ImgOp::DrawGrid((50, 100));
+            let operation = ImgOp::DrawGrid(4);
 
             let img = open_test_image(in_!("unsplash_763569_cropped.jpg"));
             let mut operator = ImageEngine::new(img);
