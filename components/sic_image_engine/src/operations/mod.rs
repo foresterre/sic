@@ -7,6 +7,7 @@ pub mod brighten;
 pub mod contrast;
 pub mod crop;
 pub mod diff;
+pub mod draw_grid;
 #[cfg(feature = "imageproc-ops")]
 pub mod draw_text;
 pub mod filter3x3;

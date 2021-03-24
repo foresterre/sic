@@ -129,6 +129,9 @@ impl ImageEngine {
                 operations::crop::Crop::new((*lx, *ly), (*rx, *ry)).apply_operation(&mut self.image)
             }
             ImgOp::Diff(path) => operations::diff::Diff::new(path).apply_operation(&mut self.image),
+            ImgOp::DrawGrid(gap) => {
+                operations::draw_grid::DrawGrid::new(*gap).apply_operation(&mut self.image)
+            }
             #[cfg(feature = "imageproc-ops")]
             ImgOp::DrawText(inner) => {
                 operations::draw_text::DrawText::new(inner).apply_operation(&mut self.image)
@@ -561,9 +564,11 @@ mod tests {
             out_!("test_register_unregister_sampling_filter_right.png"),
         );
     }
+
     mod imageproc_gradient_tests {
         use super::*;
         use crate::wrapper::gradient_input::GradientInput;
+
         #[test]
         fn horizontal_gradient_test() {
             let img =
@@ -843,6 +848,23 @@ mod tests {
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_err());
+    }
+
+    mod draw_grid {
+        use super::*;
+
+        #[test]
+        fn test_draw_grid() {
+            let operation = ImgOp::DrawGrid(4);
+
+            let img = open_test_image(in_!("unsplash_763569_cropped.jpg"));
+            let mut operator = ImageEngine::new(img);
+            let done = operator.ignite(&[Instr::Operation(operation)]);
+            assert!(done.is_ok());
+
+            let result_img = done.unwrap();
+            output_test_image_for_manual_inspection(&result_img, out_!("test_draw_grid.png"));
+        }
     }
 
     #[test]
