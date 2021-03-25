@@ -23,7 +23,7 @@ pub enum ImgOp {
     Contrast(f32),
     Crop((u32, u32, u32, u32)),
     Diff(ImageFromPath),
-    DrawGrid(u32),
+    DrawGrid((u32, u32)),
     Filter3x3([f32; 9]),
     FlipHorizontal,
     FlipVertical,

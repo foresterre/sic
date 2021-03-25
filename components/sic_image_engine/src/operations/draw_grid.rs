@@ -4,27 +4,25 @@ use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
 use sic_core::image::{DynamicImage, GenericImageView, RgbaImage};
 use sic_core::{image, SicImage};
 
-type GapT = u32;
-
 /// In it's current form, the operation draws a white grid with a certain gap, starting from the top
 /// left of the image.
 ///
 /// TODO: enhance with drawing options
 pub struct DrawGrid {
-    gap: GapT,
+    lines: (u32, u32),
 }
 
 impl DrawGrid {
-    pub fn new(gap: GapT) -> Self {
-        Self { gap }
+    pub fn new(lines: (u32, u32)) -> Self {
+        Self { lines }
     }
 }
 
 impl ImageOperation for DrawGrid {
     fn apply_operation(&self, image: &mut SicImage) -> Result<(), SicImageEngineError> {
         match image {
-            SicImage::Static(image) => image.draw_grid(self.gap),
-            SicImage::Animated(image) => draw_grid_animated_image(image.frames_mut(), self.gap),
+            SicImage::Static(image) => image.draw_grid(self.lines),
+            SicImage::Animated(image) => draw_grid_animated_image(image.frames_mut(), self.lines),
         }
 
         Ok(())
@@ -32,12 +30,17 @@ impl ImageOperation for DrawGrid {
 }
 
 macro_rules! draw_grid {
-    ($image:expr, $f:expr, $gap:expr) => {{
+    ($image:expr, $f:expr, $lines:expr) => {{
         let (width, height) = $image.dimensions();
+
+        let gap_x = (width as f32 / $lines.0 as f32).round() as u32;
+        let gap_y = (height as f32 / $lines.1 as f32).round() as u32;
 
         for x in 0..width {
             for y in 0..height {
-                if x % $gap == 0 || y % $gap == 0 {
+                if (x != 0 && x != width - 1 && x % gap_x == 0)
+                    || (y != 0 && y != height - 1 && y % gap_y == 0)
+                {
                     $f($image, x, y);
                 }
             }
@@ -46,12 +49,12 @@ macro_rules! draw_grid {
 }
 
 trait DrawGridExt {
-    fn draw_grid(&mut self, gap: GapT);
+    fn draw_grid(&mut self, lines: (u32, u32));
 }
 
 impl DrawGridExt for DynamicImage {
-    fn draw_grid(&mut self, gap: GapT) {
-        draw_grid!(self, put_white_pixel, gap);
+    fn draw_grid(&mut self, lines: (u32, u32)) {
+        draw_grid!(self, put_white_pixel, lines);
     }
 }
 
@@ -84,9 +87,9 @@ fn put_white_pixel(image: &mut DynamicImage, x: u32, y: u32) {
     }
 }
 
-fn draw_grid_animated_image(frames: &mut [image::Frame], gap: GapT) {
+fn draw_grid_animated_image(frames: &mut [image::Frame], lines: (u32, u32)) {
     frames.par_iter_mut().for_each(|frame| {
-        draw_grid!(frame.buffer_mut(), put_white_pixel_rgba, gap);
+        draw_grid!(frame.buffer_mut(), put_white_pixel_rgba, lines);
     });
 }
 
