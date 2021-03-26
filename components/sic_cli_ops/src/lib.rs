@@ -73,6 +73,7 @@ fn take_n<I: Iterator<Item = String>>(
 mod tests {
     use super::*;
 
+    #[allow(clippy::vec_init_then_push)]
     mod individual_args {
         use super::*;
         use sic_image_engine::engine::EnvItem;
