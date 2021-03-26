@@ -1,5 +1,5 @@
 #![deny(clippy::all)]
-#![allow(clippy::unnecessary_wraps)]
+#![allow(clippy::unnecessary_wraps, clippy::upper_case_acronyms)]
 
 #[macro_use]
 extern crate pest_derive;
