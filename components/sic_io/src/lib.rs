@@ -1,4 +1,5 @@
 #![deny(clippy::all)]
+#![allow(clippy::upper_case_acronyms)]
 
 // importing
 pub mod load;
