@@ -972,9 +972,9 @@ dependencies = [
 
 [[package]]
 name = "rav1e"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "78dde87c10d9381dc0966419fbdb734b1da5955466328db6a5ce3ec7fc7f9709"
+checksum = "0938e7e19a9e1624e7fec541ee57c3e93e507b8bdb274c21ec8ee7850d8d3203"
 dependencies = [
  "arbitrary",
  "arg_enum_proc_macro",
@@ -1406,9 +1406,9 @@ checksum = "f7fe0bb3479651439c9112f72b6c505038574c9fbb575ed1bf3b797fa39dd564"
 
 [[package]]
 name = "v_frame"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c3e54478b48d863cc6680de8cc8f0c90112b22b7138e2f49aace306d7d3b0e77"
+checksum = "17f6ba3e9a4e7a93a4b706b0ebfae867a46dfbb2abc690ee4af7971d24904145"
 dependencies = [
  "cfg-if 1.0.0",
  "noop_proc_macro",
