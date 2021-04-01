@@ -972,9 +972,9 @@ dependencies = [
 
 [[package]]
 name = "rav1e"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "78dde87c10d9381dc0966419fbdb734b1da5955466328db6a5ce3ec7fc7f9709"
+checksum = "0938e7e19a9e1624e7fec541ee57c3e93e507b8bdb274c21ec8ee7850d8d3203"
 dependencies = [
  "arbitrary",
  "arg_enum_proc_macro",
