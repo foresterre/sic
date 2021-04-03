@@ -54,7 +54,13 @@ brew install tgotwig/linux-sic/sic
 </p>
 </details>
 
+<details><summary>emerge</summary>
+**gentoo** linux via GURU overlay:
 
+```sh
+emerge -av media-gfx/sic
+```
+</details>
 
 ### Usage
 
