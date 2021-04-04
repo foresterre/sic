@@ -55,6 +55,7 @@ brew install tgotwig/linux-sic/sic
 </details>
 
 <details><summary>emerge</summary>
+
 **gentoo** linux via GURU overlay:
 
 ```sh
