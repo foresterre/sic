@@ -29,7 +29,7 @@ fn threshold_image(img: &mut DynamicImage) -> DynamicImage {
     let gray_image = img.to_luma8();
     let best_threshold = imageproc::contrast::otsu_level(&gray_image);
     let out = imageproc::contrast::threshold(&gray_image, best_threshold);
-    DynamicImage::ImageRgba8(DynamicImage::ImageLuma8(out).into_rgba8())
+    DynamicImage::ImageLuma8(out)
 }
 
 fn threshold_frame(img: &RgbaImage) -> RgbaImage {

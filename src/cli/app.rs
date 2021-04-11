@@ -75,7 +75,7 @@ fn wrap_with(app: App<'static, 'static>) -> App<'static, 'static> {
     )
     .arg(
         Arg::with_name(OperationId::Threshold.as_str())
-            .help("Operation: convert the image into only black and white")
+            .help("Operation: Threshold the input image using Otsu's method")
             .long(OperationId::Threshold.as_str())
             .multiple(true),
     )
