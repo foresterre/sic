@@ -73,6 +73,12 @@ fn wrap_with(app: App<'static, 'static>) -> App<'static, 'static> {
             .number_of_values(5)
             .multiple(true),
     )
+    .arg(
+        Arg::with_name(OperationId::Threshold.as_str())
+            .help("Operation: convert the image into only black and white")
+            .long(OperationId::Threshold.as_str())
+            .multiple(true),
+    )
 }
 
 pub fn create_app(
@@ -351,11 +357,7 @@ pub fn create_app(
             .multiple(true)
             .possible_values(&["true", "false"])
         )
-         .arg(Arg::with_name(OperationId::Threshold.as_str())
-            .help("Operation: convert the image into only black and white")
-            .long(OperationId::Threshold.as_str())
-            .multiple(true)
-        )
+
         .arg(Arg::with_name(OperationId::SamplingFilter.as_str())
             .help("Operation modifier for 'resize': resize the image using a specific sampling-filter")
             .long(OperationId::SamplingFilter.as_str())
