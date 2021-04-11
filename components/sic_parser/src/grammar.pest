@@ -50,6 +50,7 @@ resize = ${ ^"resize" ~ WHITESPACE ~ uint ~ WHITESPACE ~ uint }
 rotate90 = { ^"rotate90" }
 rotate180 = { ^"rotate180" }
 rotate270 = { ^"rotate270" }
+threshold = { ^"threshold" }
 unsharpen = ${ ^"unsharpen" ~ WHITESPACE ~ fp ~ WHITESPACE ~ int }
 
 // example usage: draw-text "my text" rgba(10, 10, 255, 255) size(16)
@@ -92,6 +93,7 @@ operation = _{
     | rotate90
     | rotate180
     | rotate270
+    | threshold
     | unsharpen
     | draw_text
 }

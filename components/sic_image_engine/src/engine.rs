@@ -171,6 +171,10 @@ impl ImageEngine {
             ImgOp::Rotate270 => {
                 operations::rotate270::Rotate270::new().apply_operation(&mut self.image)
             }
+            #[cfg(feature = "imageproc-ops")]
+            ImgOp::Threshold => {
+                operations::threshold::Threshold::new().apply_operation(&mut self.image)
+            }
             ImgOp::Unsharpen((sigma, threshold)) => {
                 operations::unsharpen::Unsharpen::new(*sigma, *threshold)
                     .apply_operation(&mut self.image)
@@ -1273,6 +1277,24 @@ mod tests {
             &result_img,
             out_!("test_unsharpen_neg20_1_neg20.png"),
         );
+    }
+    #[cfg(feature = "imageproc-ops")]
+    #[test]
+    fn test_threshold() {
+        let img = setup_default_test_image();
+        let cmp = setup_default_test_image();
+
+        let operation = ImgOp::Threshold;
+
+        let mut operator = ImageEngine::new(img);
+        let done = operator.ignite(&[Instr::Operation(operation)]);
+        assert!(done.is_ok());
+
+        let result_img = done.unwrap();
+
+        assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
+
+        output_test_image_for_manual_inspection(&result_img, out_!("test_threshold.png"));
     }
 
     #[test]

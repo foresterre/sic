@@ -54,6 +54,8 @@ pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Vec<Instr>, SicP
                     SicParserError::OperationError(OperationParamError::SetEnvironment)
                 })?)
             }
+            #[cfg(feature = "imageproc-ops")]
+            Rule::threshold => Ok(Instr::Operation(ImgOp::Threshold)),
             // this is called 'del' for users
             Rule::unsetopt => parse_unset_environment(pair.into_inner().next().ok_or({
                 SicParserError::OperationError(OperationParamError::UnsetEnvironment)
@@ -280,6 +282,31 @@ mod tests {
             vec![
                 Instr::Operation(ImgOp::Blur(1.0)),
                 Instr::Operation(ImgOp::Brighten(2))
+            ],
+            parse_image_operations(pairs).unwrap()
+        );
+    }
+    #[test]
+    #[cfg(feature = "imageproc-ops")]
+    fn test_parse_threshold_only() {
+        let pairs =
+            SICParser::parse(Rule::main, "threshold").unwrap_or_else(|e| panic!("error: {:?}", e));
+
+        assert_eq!(
+            vec![Instr::Operation(ImgOp::Threshold)],
+            parse_image_operations(pairs).unwrap()
+        );
+    }
+    #[test]
+    #[cfg(feature = "imageproc-ops")]
+    fn test_parse_threshold_with_flip() {
+        let pairs = SICParser::parse(Rule::main, "threshold;flip-horizontal")
+            .unwrap_or_else(|e| panic!("error: {:?}", e));
+
+        assert_eq!(
+            vec![
+                Instr::Operation(ImgOp::Threshold),
+                Instr::Operation(ImgOp::FlipHorizontal)
             ],
             parse_image_operations(pairs).unwrap()
         );

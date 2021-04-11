@@ -35,6 +35,8 @@ pub enum ImgOp {
     Rotate90,
     Rotate180,
     Rotate270,
+    #[cfg(feature = "imageproc-ops")]
+    Threshold,
     Unsharpen((f32, i32)),
 
     #[cfg(feature = "imageproc-ops")]
