@@ -12,6 +12,7 @@ The changelog below lists notable changes for [sic](https://github.com/foresterr
 ### Added
 
 - Added horizontal gradient image operation
+- Added automatic thresholding using the Otsu method 
 
 ## [0.18.0] - 2021-03-09
 
