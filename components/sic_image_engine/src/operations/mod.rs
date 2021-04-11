@@ -21,6 +21,8 @@ pub mod resize;
 pub mod rotate180;
 pub mod rotate270;
 pub mod rotate90;
+#[cfg(feature = "imageproc-ops")]
+pub mod threshold;
 pub mod unsharpen;
 
 pub trait ImageOperation {

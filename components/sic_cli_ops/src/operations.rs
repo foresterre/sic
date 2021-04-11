@@ -38,6 +38,8 @@ pub enum OperationId {
     Rotate90,
     Rotate180,
     Rotate270,
+    #[cfg(feature = "imageproc-ops")]
+    Threshold,
     Unsharpen,
 
     // modifiers
@@ -88,6 +90,8 @@ impl OperationId {
             OperationId::Unsharpen => 2,
             OperationId::PreserveAspectRatio => 1,
             OperationId::SamplingFilter => 1,
+            #[cfg(feature = "imageproc-ops")]
+            OperationId::Threshold => 0,
         }
     }
 }
@@ -175,6 +179,8 @@ impl OperationId {
                     .map_err(SicParserError::FilterTypeError)?;
                 Instr::EnvAdd(EnvItem::CustomSamplingFilter(filter))
             }
+            #[cfg(feature = "imageproc-ops")]
+            OperationId::Threshold => Instr::Operation(ImgOp::Threshold),
         };
 
         Ok(stmt)

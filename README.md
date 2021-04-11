@@ -155,6 +155,7 @@ If we use the _cli operations_ method the previously shown example becomes: <br>
 |rotate90           | `rotate90`                                | Rotate an image 90 degrees. |
 |rotate180          | `rotate180`                               | Rotate an image 180 degrees. |
 |rotate270          | `rotate270`                               | Rotate an image 270 degrees. |
+|threshold          | `threshold`                               | Apply automatic thresholding on the image. |
 |unsharpen          | `unsharpen <fp> <int>`                    | Applies an unsharpen mask to the image. The first parameter defines how much the image should be blurred and the second parameter defines a threshold. If the difference between the original and blurred image is at least the threshold, they will be subtracted from each other. Can be used to sharpen an image. |
 
 ^1 _The syntax in the table applies to image script, but can also be used as a reference when using image operations via CLI arguments_<br>
@@ -302,6 +303,11 @@ or <br>
 `sic -i in.png -o out.png --apply-operations "rotate270"` <br>
 or <br>
 `sic -i in.png -o out.png --rotate270`
+
+**threshold** example: <br>
+`sic -i in.png -o out.png --apply-operations "threshold"` <br>
+or <br>
+`sic -i in.png -o out.png --threshold`
 
 **unsharpen** example: <br>
 `sic -i in.png -o out.png --apply-operations "unsharpen -0.7 1"` <br>
