@@ -27,7 +27,7 @@ fn setup_output_path(test_output_path: &str) -> PathBuf {
         .join(test_output_path)
 }
 
-fn path_buf_str(pb: &PathBuf) -> &str {
+fn path_buf_str(pb: &Path) -> &str {
     pb.to_str().unwrap()
 }
 
@@ -118,7 +118,7 @@ mod convert_to_x_by_ff {
 
     ide!();
 
-    fn args<'a>(which: &'a str, input: &'a PathBuf, output: &'a PathBuf) -> Vec<&'a str> {
+    fn args<'a>(which: &'a str, input: &'a Path, output: &'a Path) -> Vec<&'a str> {
         vec![
             "sic",
             "--output-format",
