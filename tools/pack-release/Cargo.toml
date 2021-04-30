@@ -11,4 +11,4 @@ repository = "https://github.com/foresterre/sic"
 
 [dependencies]
 zip = { version = "0.5", default-features = false, features = ["deflate"] }
-xshell = "0.1.8"
+xshell = "0.1.10"
