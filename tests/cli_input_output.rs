@@ -1,3 +1,5 @@
+#![allow(clippy::upper_case_acronyms)]
+
 use std::process::{Child, Command};
 
 #[macro_use]
