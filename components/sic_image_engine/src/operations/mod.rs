@@ -24,6 +24,7 @@ pub mod rotate90;
 #[cfg(feature = "imageproc-ops")]
 pub mod threshold;
 pub mod unsharpen;
+pub mod vertical_gradient;
 
 pub trait ImageOperation {
     fn apply_operation(&self, image: &mut SicImage) -> Result<(), SicImageEngineError>;

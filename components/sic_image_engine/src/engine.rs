@@ -179,6 +179,10 @@ impl ImageEngine {
                 operations::unsharpen::Unsharpen::new(*sigma, *threshold)
                     .apply_operation(&mut self.image)
             }
+            ImgOp::VerticalGradient(colors) => {
+                operations::vertical_gradient::VerticalGradient::new(*colors)
+                    .apply_operation(&mut self.image)
+            }
         }
     }
 
@@ -320,6 +324,7 @@ mod tests {
     use super::*;
     use crate::engine::compatibility::*;
     use crate::operations::diff::{DIFF_PX_DIFF, DIFF_PX_NO_OVERLAP, DIFF_PX_SAME};
+    use crate::wrapper::gradient_input::GradientInput;
     use crate::wrapper::image_path::ImageFromPath;
     use sic_core::image::imageops::FilterType;
     use sic_core::image::Rgba;
@@ -565,31 +570,47 @@ mod tests {
             out_!("test_register_unregister_sampling_filter_right.png"),
         );
     }
-    mod imageproc_gradient_tests {
-        use super::*;
-        use crate::wrapper::gradient_input::GradientInput;
-        #[test]
-        fn horizontal_gradient_test() {
-            let img =
-                sic_core::image::DynamicImage::ImageRgb8(sic_core::image::RgbImage::new(200, 200))
-                    .into();
 
-            let operation = ImgOp::HorizontalGradient(GradientInput::new((
-                Rgba([255, 150, 150, 255]),
-                Rgba([255, 50, 50, 50]),
-            )));
+    #[test]
+    fn horizontal_gradient_test() {
+        let img =
+            sic_core::image::DynamicImage::ImageRgb8(sic_core::image::RgbImage::new(200, 200))
+                .into();
 
-            let mut operator = ImageEngine::new(img);
-            let done = operator.ignite(&[Instr::Operation(operation)]);
-            assert!(done.is_ok());
+        let operation = ImgOp::HorizontalGradient(GradientInput::new((
+            Rgba([255, 150, 150, 255]),
+            Rgba([255, 50, 50, 50]),
+        )));
 
-            let result_img = done.unwrap();
+        let mut operator = ImageEngine::new(img);
+        let done = operator.ignite(&[Instr::Operation(operation)]);
+        assert!(done.is_ok());
 
-            output_test_image_for_manual_inspection(
-                &result_img,
-                out_!("horizontal-gradient-test.png"),
-            );
-        }
+        output_test_image_for_manual_inspection(
+            &done.unwrap(),
+            out_!("horizontal-gradient-test.png"),
+        );
+    }
+
+    #[test]
+    fn vertical_gradient_test() {
+        let img =
+            sic_core::image::DynamicImage::ImageRgb8(sic_core::image::RgbImage::new(200, 200))
+                .into();
+
+        let operation = ImgOp::VerticalGradient(GradientInput::new((
+            Rgba([255, 150, 150, 255]),
+            Rgba([255, 50, 50, 50]),
+        )));
+
+        let mut operator = ImageEngine::new(img);
+        let done = operator.ignite(&[Instr::Operation(operation)]);
+        assert!(done.is_ok());
+
+        output_test_image_for_manual_inspection(
+            &done.unwrap(),
+            out_!("vertical-gradient-test.png"),
+        );
     }
 
     #[test]
@@ -1361,7 +1382,7 @@ mod tests {
 
             output_test_image_for_manual_inspection(
                 &result_img,
-                out_!("test_imageproc_ops_draw__text.png"),
+                out_!("test_imageproc_ops_draw_text.png"),
             );
         }
     }
