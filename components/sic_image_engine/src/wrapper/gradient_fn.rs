@@ -4,22 +4,22 @@ use sic_core::image::{self, imageops, DynamicImage, GenericImageView, Pixel, Rgb
 
 #[inline]
 pub(crate) fn apply_vertical_gradient_on_static(img: &mut DynamicImage, input: GradientInput) {
-    gradient_static_image(img, input, sic_core::image::imageops::horizontal_gradient)
+    gradient_static_image(img, input, sic_core::image::imageops::vertical_gradient)
 }
 
 #[inline]
 pub(crate) fn apply_vertical_gradient_on_frames(img: &mut [image::Frame], input: GradientInput) {
-    gradient_animated_image(img, input, sic_core::image::imageops::horizontal_gradient)
+    gradient_animated_image(img, input, sic_core::image::imageops::vertical_gradient)
 }
 
 #[inline]
 pub(crate) fn apply_horizontal_gradient_on_static(img: &mut DynamicImage, input: GradientInput) {
-    gradient_static_image(img, input, imageops::vertical_gradient)
+    gradient_static_image(img, input, imageops::horizontal_gradient)
 }
 
 #[inline]
 pub(crate) fn apply_horizontal_gradient_on_frames(img: &mut [image::Frame], input: GradientInput) {
-    gradient_animated_image(img, input, imageops::vertical_gradient)
+    gradient_animated_image(img, input, imageops::horizontal_gradient)
 }
 
 /// Applies a 2 input gradient over a static image
