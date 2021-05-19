@@ -36,6 +36,8 @@ pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Vec<Instr>, SicP
                     .next()
                     .ok_or(SicParserError::NoInnerString)?,
             ),
+            #[cfg(feature = "imageproc-ops")]
+            Rule::draw_text => Ok(parse_draw_text(pair)?),
             Rule::filter3x3 => Filter3x3(pair),
             Rule::flip_horizontal => Ok(Instr::Operation(ImgOp::FlipHorizontal)),
             Rule::flip_vertical => Ok(Instr::Operation(ImgOp::FlipVertical)),
@@ -56,14 +58,11 @@ pub fn parse_image_operations(pairs: Pairs<'_, Rule>) -> Result<Vec<Instr>, SicP
             }
             #[cfg(feature = "imageproc-ops")]
             Rule::threshold => Ok(Instr::Operation(ImgOp::Threshold)),
+            Rule::vertical_gradient => Ok(parse_vertical_gradient(pair)?),
             // this is called 'del' for users
             Rule::unsetopt => parse_unset_environment(pair.into_inner().next().ok_or({
                 SicParserError::OperationError(OperationParamError::UnsetEnvironment)
             })?),
-
-            #[cfg(feature = "imageproc-ops")]
-            Rule::draw_text => Ok(parse_draw_text(pair)?),
-
             _ => Err(SicParserError::UnknownOperationError),
         })
         .collect::<Result<Vec<_>, SicParserError>>()
@@ -232,37 +231,48 @@ fn parse_draw_text(pair: Pair<'_, Rule>) -> Result<Instr, SicParserError> {
         ),
     ))))
 }
-fn parse_horizontal_gradient(pair: Pair<'_, Rule>) -> Result<Instr, SicParserError> {
-    use crate::named_value::parse_named_value;
-    use sic_core::image::Rgba;
-    use sic_image_engine::wrapper::gradient_input::GradientInput;
 
-    let mut pairs = pair.into_inner();
+macro_rules! def_parse_gradient {
+    ($variant_name:ident, $variant_op:ident) => {
+        fn $variant_name(pair: Pair<'_, Rule>) -> Result<Instr, SicParserError> {
+            use crate::named_value::parse_named_value;
+            use sic_core::image::Rgba;
+            use sic_image_engine::wrapper::gradient_input::GradientInput;
 
-    let color = pairs.next().ok_or_else(|| {
-        SicParserError::ExpectedNamedValue(String::from("rgba(r: Byte, g: Byte, b: Byte, a: Byte)"))
-    })?;
-    let color = parse_named_value(color).map_err(SicParserError::NamedValueParsingError)?;
+            let mut pairs = pair.into_inner();
 
-    let color2 = pairs.next().ok_or_else(|| {
-        SicParserError::ExpectedNamedValue(String::from("rgba(r: Byte, g: Byte, b: Byte, a: Byte)"))
-    })?;
-    let color2 = parse_named_value(color2).map_err(SicParserError::NamedValueParsingError)?;
-    Ok(Instr::Operation(ImgOp::HorizontalGradient(
-        GradientInput::new((
-            Rgba(
-                color
-                    .extract_rgba()
-                    .map_err(SicParserError::NamedValueParsingError)?,
-            ),
-            Rgba(
-                color2
-                    .extract_rgba()
-                    .map_err(SicParserError::NamedValueParsingError)?,
-            ),
-        )),
-    )))
+            let color = pairs.next().ok_or_else(|| {
+                SicParserError::ExpectedNamedValue(String::from(
+                    "rgba(r: Byte, g: Byte, b: Byte, a: Byte)",
+                ))
+            })?;
+            let color = parse_named_value(color).map_err(SicParserError::NamedValueParsingError)?;
+
+            let color2 = pairs.next().ok_or_else(|| {
+                SicParserError::ExpectedNamedValue(String::from(
+                    "rgba(r: Byte, g: Byte, b: Byte, a: Byte)",
+                ))
+            })?;
+            let color2 =
+                parse_named_value(color2).map_err(SicParserError::NamedValueParsingError)?;
+            Ok(Instr::Operation(ImgOp::$variant_op(GradientInput::new((
+                Rgba(
+                    color
+                        .extract_rgba()
+                        .map_err(SicParserError::NamedValueParsingError)?,
+                ),
+                Rgba(
+                    color2
+                        .extract_rgba()
+                        .map_err(SicParserError::NamedValueParsingError)?,
+                ),
+            )))))
+        }
+    };
 }
+
+def_parse_gradient!(parse_horizontal_gradient, HorizontalGradient);
+def_parse_gradient!(parse_vertical_gradient, VerticalGradient);
 
 #[cfg(test)]
 mod tests {
@@ -875,7 +885,7 @@ mod tests {
         );
     }
 
-    mod gradient_tests {
+    mod horizontal_gradient_tests {
         use super::*;
         use sic_core::image::Rgba;
         use sic_image_engine::wrapper::gradient_input::GradientInput;
@@ -895,10 +905,40 @@ mod tests {
 
             assert_eq!(actual, expected);
         }
+
         #[test]
         #[should_panic]
         fn horizontal_gradient_invalid_args() {
             SICParser::parse(Rule::main, "horizontal-gradient rgba(10, 10, 255, 255)")
+                .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+        }
+    }
+
+    mod vertical_gradient_tests {
+        use super::*;
+        use sic_core::image::Rgba;
+        use sic_image_engine::wrapper::gradient_input::GradientInput;
+
+        #[test]
+        fn vertical_gradient_valid_args() {
+            let pairs = SICParser::parse(
+                Rule::main,
+                "vertical-gradient rgba(10, 10, 255, 255) rgba(255, 255, 255, 255)",
+            )
+            .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
+
+            let expected = vec![Instr::Operation(ImgOp::VerticalGradient(
+                GradientInput::new((Rgba([10, 10, 255, 255]), Rgba([255, 255, 255, 255]))),
+            ))];
+            let actual = parse_image_operations(pairs).unwrap();
+
+            assert_eq!(actual, expected);
+        }
+
+        #[test]
+        #[should_panic]
+        fn vertical_gradient_invalid_args() {
+            SICParser::parse(Rule::main, "vertical-gradient rgba(10, 10, 255, 255)")
                 .unwrap_or_else(|e| panic!("Unable to parse sic image operations script: {:?}", e));
         }
     }

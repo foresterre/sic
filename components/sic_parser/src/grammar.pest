@@ -52,6 +52,7 @@ rotate180 = { ^"rotate180" }
 rotate270 = { ^"rotate270" }
 threshold = { ^"threshold" }
 unsharpen = ${ ^"unsharpen" ~ WHITESPACE ~ fp ~ WHITESPACE ~ int }
+vertical_gradient = ${ ^"vertical-gradient" ~ WHITESPACE ~ named_value ~ WHITESPACE ~ named_value }
 
 // example usage: draw-text "my text" rgba(10, 10, 255, 255) size(16)
 draw_text = ${^"draw-text" ~ WHITESPACE ~ string_unicode ~ (WHITESPACE ~ named_value)*}
@@ -81,6 +82,7 @@ operation = _{
     | contrast
     | crop
     | diff
+    | draw_text
     | filter3x3
     | flip_horizontal
     | flip_vertical
@@ -95,7 +97,7 @@ operation = _{
     | rotate270
     | threshold
     | unsharpen
-    | draw_text
+    | vertical_gradient
 }
 
 sequence = _{
