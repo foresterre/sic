@@ -1,29 +1,9 @@
 use crate::wrapper::gradient_input::GradientInput;
 use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
-use sic_core::image::{self, imageops, DynamicImage, GenericImageView, Pixel, Rgba, RgbaImage};
-
-#[inline]
-pub(crate) fn apply_vertical_gradient_on_static(img: &mut DynamicImage, input: GradientInput) {
-    gradient_static_image(img, input, sic_core::image::imageops::vertical_gradient)
-}
-
-#[inline]
-pub(crate) fn apply_vertical_gradient_on_frames(img: &mut [image::Frame], input: GradientInput) {
-    gradient_animated_image(img, input, sic_core::image::imageops::vertical_gradient)
-}
-
-#[inline]
-pub(crate) fn apply_horizontal_gradient_on_static(img: &mut DynamicImage, input: GradientInput) {
-    gradient_static_image(img, input, imageops::horizontal_gradient)
-}
-
-#[inline]
-pub(crate) fn apply_horizontal_gradient_on_frames(img: &mut [image::Frame], input: GradientInput) {
-    gradient_animated_image(img, input, imageops::horizontal_gradient)
-}
+use sic_core::image::{self, DynamicImage, GenericImageView, Pixel, Rgba, RgbaImage};
 
 /// Applies a 2 input gradient over a static image
-fn gradient_static_image<F>(img: &mut DynamicImage, input: GradientInput, f_gradient: F)
+pub(crate) fn gradient_static_image<F>(img: &mut DynamicImage, input: GradientInput, f_gradient: F)
 where
     F: Fn(&mut RgbaImage, &Rgba<u8>, &Rgba<u8>),
 {
@@ -43,9 +23,12 @@ fn blend_static_image(img: &mut DynamicImage, layer: &RgbaImage) {
     *img = DynamicImage::ImageRgba8(blended_buffer);
 }
 
-/// Applies a 2 input gradient over a static image frame
-fn gradient_animated_image<F>(frames: &mut [image::Frame], input: GradientInput, f_gradient: F)
-where
+/// Applies a 2 input gradient over a static image frames
+pub(crate) fn gradient_animated_image<F>(
+    frames: &mut [image::Frame],
+    input: GradientInput,
+    f_gradient: F,
+) where
     F: Fn(&mut RgbaImage, &Rgba<u8>, &Rgba<u8>),
 {
     let (left_color, right_color) = input.colors();

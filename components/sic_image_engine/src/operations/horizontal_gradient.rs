@@ -2,6 +2,7 @@ use crate::errors::SicImageEngineError;
 use crate::operations::ImageOperation;
 use crate::wrapper::gradient_fn;
 use crate::wrapper::gradient_input::GradientInput;
+use sic_core::image::imageops;
 use sic_core::SicImage;
 
 #[derive(Clone, Debug, Copy, PartialEq)]
@@ -18,12 +19,16 @@ impl HorizontalGradient {
 impl ImageOperation for HorizontalGradient {
     fn apply_operation(&self, image: &mut SicImage) -> Result<(), SicImageEngineError> {
         match image {
-            SicImage::Static(image) => {
-                gradient_fn::apply_horizontal_gradient_on_static(image, self.colors)
-            }
-            SicImage::Animated(image) => {
-                gradient_fn::apply_horizontal_gradient_on_frames(image.frames_mut(), self.colors)
-            }
+            SicImage::Static(image) => gradient_fn::gradient_static_image(
+                image,
+                self.colors,
+                imageops::horizontal_gradient,
+            ),
+            SicImage::Animated(image) => gradient_fn::gradient_animated_image(
+                image.frames_mut(),
+                self.colors,
+                imageops::horizontal_gradient,
+            ),
         }
 
         Ok(())
