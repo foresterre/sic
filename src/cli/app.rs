@@ -299,15 +299,14 @@ pub fn create_app(
              .allow_hyphen_values(true))
         .arg(
             Arg::with_name(OperationId::HorizontalGradient.as_str())
-            .help("Operation: fill the image with horizontal gradient from color1 to color2.")
+            .help("Operation: blend the image with a horizontal gradient from color1 to color2.")
             .long(OperationId::HorizontalGradient.as_str())
             .takes_value(true)
             .value_name(
                 "<rgba(r,g,b,a)> <rgba(r,g,b,a)>",
             )
             .number_of_values(2)
-            .multiple(true),
-    )
+            .multiple(true))
         .arg(Arg::with_name(OperationId::Invert.as_str())
             .help("Operation: invert the each pixel of the input image ")
             .long(OperationId::Invert.as_str())
@@ -346,6 +345,15 @@ pub fn create_app(
             .number_of_values(2)
             .multiple(true)
             .allow_hyphen_values(true))
+        .arg(Arg::with_name(OperationId::VerticalGradient.as_str())
+            .help("Operation: blend the image with a vertical gradient from color1 to color2.")
+            .long(OperationId::VerticalGradient.as_str())
+            .takes_value(true)
+            .value_name(
+                "<rgba(r,g,b,a)> <rgba(r,g,b,a)>",
+            )
+            .number_of_values(2)
+            .multiple(true))
 
         // image-operations(cli-arguments/modifiers):
         .arg(Arg::with_name(OperationId::PreserveAspectRatio.as_str())
