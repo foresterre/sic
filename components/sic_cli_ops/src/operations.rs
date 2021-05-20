@@ -83,11 +83,11 @@ impl OperationId {
             OperationId::HorizontalGradient => 2,
             OperationId::Invert => 0,
             OperationId::Overlay => 3,
-            #[cfg(feature = "imageproc-ops")]
             OperationId::Resize => 2,
             OperationId::Rotate90 => 0,
             OperationId::Rotate180 => 0,
             OperationId::Rotate270 => 0,
+            #[cfg(feature = "imageproc-ops")]
             OperationId::Threshold => 0,
             OperationId::Unsharpen => 2,
             OperationId::VerticalGradient => 2,
