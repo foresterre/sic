@@ -9,4 +9,4 @@ repository = "https://github.com/foresterre/sic"
 
 [dependencies]
 image = { version = "0.23.14", features = ["avif"] }
-thiserror = "1.0.24"
+thiserror = "1.0.25"
