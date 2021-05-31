@@ -157,6 +157,8 @@ If we use the _cli operations_ method the previously shown example becomes: <br>
 |rotate270          | `rotate270`                               | Rotate an image 270 degrees. |
 |threshold          | `threshold`                               | Apply automatic thresholding on the image. |
 |unsharpen          | `unsharpen <fp> <int>`                    | Applies an unsharpen mask to the image. The first parameter defines how much the image should be blurred and the second parameter defines a threshold. If the difference between the original and blurred image is at least the threshold, they will be subtracted from each other. Can be used to sharpen an image. |
+|vertical gradient  | `vertical-gradient <nv:rgba> <nv:rgba>`   | Fill and blend the image with a vertical gradient from top to bottom.  |
+
 
 ^1 _The syntax in the table applies to image script, but can also be used as a reference when using image operations via CLI arguments_<br>
 ^2 _draw-text is only available when compiled with `imageproc-ops` feature_
@@ -313,6 +315,12 @@ or <br>
 `sic -i in.png -o out.png --apply-operations "unsharpen -0.7 1"` <br>
 or <br>
 `sic -i in.png -o out.png --unsharpen -0.7 1`
+
+**vertical gradient** example: <br>
+`sic -i in.png -o out.png --apply-operations "vertical-gradient rgba(255, 0, 0, 255) rgba(0, 0, 255, 255)"` <br>
+or <br>
+`sic -i in.png -o out.png --vertical-gradient "rgba(255, 0, 0, 255)" "rgba(0, 0, 255, 255)"`
+
 
 example with *multiple* image operations which are applied from left-to-right: <br>
 `sic -i in.png -o out.png --apply-operations "rotate180; flip-horizontal; set sampling-filter nearest; resize 75 80; hue-rotate 75"` <br>

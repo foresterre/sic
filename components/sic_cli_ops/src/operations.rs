@@ -22,10 +22,8 @@ pub enum OperationId {
     Contrast,
     Crop,
     Diff,
-
     #[cfg(feature = "imageproc-ops")]
     DrawText,
-
     Filter3x3,
     FlipHorizontal,
     FlipVertical,
@@ -41,6 +39,7 @@ pub enum OperationId {
     #[cfg(feature = "imageproc-ops")]
     Threshold,
     Unsharpen,
+    VerticalGradient,
 
     // modifiers
     PreserveAspectRatio,
@@ -68,6 +67,7 @@ impl OperationId {
     ///     conditions into account, but they are not relevant for this particular method =).
     pub fn takes_number_of_arguments(self) -> usize {
         match self {
+            // image operations
             OperationId::Blur => 1,
             OperationId::Brighten => 1,
             OperationId::Contrast => 1,
@@ -87,11 +87,14 @@ impl OperationId {
             OperationId::Rotate90 => 0,
             OperationId::Rotate180 => 0,
             OperationId::Rotate270 => 0,
-            OperationId::Unsharpen => 2,
-            OperationId::PreserveAspectRatio => 1,
-            OperationId::SamplingFilter => 1,
             #[cfg(feature = "imageproc-ops")]
             OperationId::Threshold => 0,
+            OperationId::Unsharpen => 2,
+            OperationId::VerticalGradient => 2,
+
+            // image operation modifiers
+            OperationId::PreserveAspectRatio => 1,
+            OperationId::SamplingFilter => 1,
         }
     }
 }
@@ -117,6 +120,7 @@ impl OperationId {
         T::Item: Into<Describable<'a>> + std::fmt::Debug,
     {
         let stmt = match self {
+            // image operations
             OperationId::Blur => Instr::Operation(ImgOp::Blur(parse_inputs_by_type!(inputs, f32)?)),
             OperationId::Brighten => {
                 Instr::Operation(ImgOp::Brighten(parse_inputs_by_type!(inputs, i32)?))
@@ -166,10 +170,19 @@ impl OperationId {
             OperationId::Rotate90 => Instr::Operation(ImgOp::Rotate90),
             OperationId::Rotate180 => Instr::Operation(ImgOp::Rotate180),
             OperationId::Rotate270 => Instr::Operation(ImgOp::Rotate270),
+            #[cfg(feature = "imageproc-ops")]
+            OperationId::Threshold => Instr::Operation(ImgOp::Threshold),
             OperationId::Unsharpen => {
                 Instr::Operation(ImgOp::Unsharpen(parse_inputs_by_type!(inputs, (f32, i32))?))
             }
-
+            OperationId::VerticalGradient => {
+                use sic_image_engine::wrapper::gradient_input::GradientInput;
+                Instr::Operation(ImgOp::VerticalGradient(parse_inputs_by_type!(
+                    inputs,
+                    GradientInput
+                )?))
+            }
+            // image operation modifiers
             OperationId::PreserveAspectRatio => Instr::EnvAdd(EnvItem::PreserveAspectRatio(
                 parse_inputs_by_type!(inputs, bool)?,
             )),
@@ -179,8 +192,6 @@ impl OperationId {
                     .map_err(SicParserError::FilterTypeError)?;
                 Instr::EnvAdd(EnvItem::CustomSamplingFilter(filter))
             }
-            #[cfg(feature = "imageproc-ops")]
-            OperationId::Threshold => Instr::Operation(ImgOp::Threshold),
         };
 
         Ok(stmt)

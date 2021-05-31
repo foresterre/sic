@@ -23,6 +23,8 @@ pub enum ImgOp {
     Contrast(f32),
     Crop((u32, u32, u32, u32)),
     Diff(ImageFromPath),
+    #[cfg(feature = "imageproc-ops")]
+    DrawText(DrawTextInner),
     Filter3x3([f32; 9]),
     FlipHorizontal,
     FlipVertical,
@@ -38,7 +40,5 @@ pub enum ImgOp {
     #[cfg(feature = "imageproc-ops")]
     Threshold,
     Unsharpen((f32, i32)),
-
-    #[cfg(feature = "imageproc-ops")]
-    DrawText(DrawTextInner),
+    VerticalGradient(GradientInput),
 }

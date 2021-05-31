@@ -33,6 +33,8 @@ Image script commands:
 |rotate180          | `rotate180`                       |
 |rotate270          | `rotate270`                       |
 |unsharpen          | `unsharpen <fp> <int>`            |
+|vertical gradient  | `vertical-gradient <nv:rgba>      |
+|                   |    <nv:rgba>`                     |
 |-------------------|-----------------------------------|
 
 Legend:
