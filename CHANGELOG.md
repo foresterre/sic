@@ -9,11 +9,13 @@ The changelog below lists notable changes for [sic](https://github.com/foresterr
 
 ## [Unreleased]
 
+## [0.19.0] - 2021-06-05
+
 ### Added
 
 - Added horizontal gradient image operation
 - Added vertical gradient image operation
-- Added automatic thresholding using the Otsu method 
+- Added Otsu thresholding image operation 
 
 ## [0.18.0] - 2021-03-09
 
@@ -232,7 +234,8 @@ _yanked: `--version` not updated_
 - Decoding support for PNG, JPEG, GIF, BMP, ICO, TIFF and WebP (not all formats are completely supported)
 - Encoding support for JPEG, PNG, GIF, ICO, PPM
 
-[unreleased]: https://github.com/foresterre/sic/compare/v0.18.0...HEAD
+[unreleased]: https://github.com/foresterre/sic/compare/v0.19.0...HEAD
+[0.19.0]: https://github.com/foresterre/sic/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/foresterre/sic/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/foresterre/sic/compare/v0.16.1...v0.17.0
 [0.16.1]: https://github.com/foresterre/sic/compare/v0.16.0...v0.16.1
