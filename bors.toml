@@ -1,0 +1,17 @@
+status = [
+	"pipeline_run_tests (pinned)",
+	"pipeline_run_tests (stable)",
+	"pipeline_run_tests (beta)",
+	"pipeline_run_tests (nightly)",
+	"pipeline_run_tests (macos)",
+	"pipeline_run_tests (win-gnu)",
+	"pipeline_run_tests (win-msvc)",
+	"pipeline_rustfmt", 
+	"pipeline_clippy", 
+	"pipeline_cargo_deny (advisories)",
+	"pipeline_cargo_deny (bans licenses sources)"
+]
+
+[committer]
+name = "Martijn"
+email = "garm@ilumeo.com"
