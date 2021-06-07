@@ -1,0 +1,5 @@
+status = ["pipeline_run_tests", "pipeline_rustfmt", "pipeline_clippy", "pipeline_cargo_deny"]
+
+[committer]
+name = "Martijn"
+email = "garm@ilumeo.com"

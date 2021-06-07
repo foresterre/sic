@@ -42,6 +42,8 @@ on:
     branches:
       - master
       - main
+      - staging # for Bors
+      - trying # for Bors
   schedule:
     - cron: '00 04,14 * * *'
 env:
