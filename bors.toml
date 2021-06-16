@@ -1,13 +1,14 @@
 status = [
-	"pipeline_run_tests (pinned)",
-	"pipeline_run_tests (stable)",
-	"pipeline_run_tests (beta)",
-	"pipeline_run_tests (nightly)",
-	"pipeline_run_tests (macos)",
-	"pipeline_run_tests (win-gnu)",
-	"pipeline_run_tests (win-msvc)",
-	"pipeline_rustfmt", 
-	"pipeline_clippy", 
-	"pipeline_cargo_deny (advisories)",
-	"pipeline_cargo_deny (bans licenses sources)"
+	"test (msrv)",
+	"test (stable)",
+	"test (beta)",
+	"test (nightly)",
+	"test (macos)",
+	"test (win-gnu)",
+	"test (win-msvc)",
+	"rustfmt",
+	"clippy",
+	"cargo_deny (advisories)",
+	"cargo_deny (bans licenses sources)",
+	"msrv"
 ]

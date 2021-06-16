@@ -35,7 +35,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-name: "github_actions_ci"
+name: "sic_ci"
 on:
   pull_request:
   push:
@@ -45,20 +45,20 @@ on:
       - staging # for Bors
       - trying # for Bors
   schedule:
-    - cron: '00 04,14 * * *'
+    - cron: '00 04 * * *'
 env:
   CI: 1
 jobs:
   test:
-    name: pipeline_run_tests
+    name: test
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     strategy:
       matrix:
-        build: [pinned, stable, beta, nightly, macos, win-gnu, win-msvc]
+        build: [msrv, stable, beta, nightly, macos, win-gnu, win-msvc]
         include:
           # pinned rust version :: ubuntu
-          - build: pinned
+          - build: msrv
             os: ubuntu-18.04
             rust: 1.49.0
 
@@ -152,7 +152,7 @@ jobs:
           args: --verbose --all --all-features
 
   rustfmt:
-    name: pipeline_rustfmt
+    name: rustfmt
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
@@ -170,7 +170,7 @@ jobs:
           cargo fmt --all -- --check
 
   clippy:
-    name: pipeline_clippy
+    name: clippy
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
@@ -192,7 +192,7 @@ jobs:
           args: --all-features --all-targets --workspace
 
   cargo_deny:
-    name: pipeline_cargo_deny
+    name: cargo_deny
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -206,7 +206,7 @@ jobs:
       - uses: EmbarkStudios/cargo-deny-action@v1
 
   msrv:
-    name: pipeline_msrv
+    name: msrv
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
@@ -223,6 +223,6 @@ jobs:
       - name: install_cargo_msrv
         run: cargo install cargo-msrv
       - name: version_of_cargo_msrv
-        run: cargo msrv --version # as of writing: 0.6.0
+        run: cargo msrv --version # as of writing: 0.7.0 (required for --verify)
       - name: run_cargo_msrv
-        run: cargo msrv --bisect --ignore-lockfile --output-format json --minimum 1.31.0
+        run: cargo msrv --verify --ignore-lockfile --output-format json
