@@ -17,6 +17,9 @@ exclude = [
 keywords = ["image", "converter", "cli", "front-end", "image-cli"]
 categories = ["multimedia::images", "command-line-utilities"]
 
+[package.metadata]
+msrv = "1.49.0"
+
 [workspace]
 members = [
     "components/sic_cli_ops",
