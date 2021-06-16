@@ -11,7 +11,3 @@ status = [
 	"pipeline_cargo_deny (advisories)",
 	"pipeline_cargo_deny (bans licenses sources)"
 ]
-
-[committer]
-name = "Martijn"
-email = "garm@ilumeo.com"
