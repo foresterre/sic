@@ -66,7 +66,7 @@ fn diff_impl(image: &mut DynamicImage, path: &ImageFromPath) -> Result<(), SicIm
     //      Right now we error instead.
     let cmp = DynamicImage::try_from(cmp)?;
 
-    *image = DynamicImage::ImageRgba8(produce_image_diff(&image, &cmp));
+    *image = DynamicImage::ImageRgba8(produce_image_diff(image, &cmp));
 
     Ok(())
 }

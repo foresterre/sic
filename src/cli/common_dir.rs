@@ -72,7 +72,7 @@ fn naive_find_common_dir<P: AsRef<Path>, I: IntoIterator<Item = P> + Clone>(
         if set_of_paths.iter().all(|path| path.starts_with(&ancestor)) {
             let vec: Vec<(PathBuf, PathBuf)> = set_of_paths
                 .iter()
-                .map(|path| (path.to_path_buf(), unroot(&ancestor, path)))
+                .map(|path| (path.to_path_buf(), unroot(ancestor, path)))
                 .collect();
 
             return Ok(CommonDir(ancestor.to_path_buf(), vec));

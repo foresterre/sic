@@ -62,14 +62,14 @@ impl<'a> ConversionWriter<'a> {
         export_settings: &ExportSettings,
     ) -> Result<(), SicIoError> {
         let color_processing = &ConversionWriter::pre_process_color_type(
-            &self.image,
+            self.image,
             &output_format,
             export_settings.adjust_color_type,
         );
 
         let export_buffer = match color_processing {
             Some(replacement) => replacement,
-            None => &self.image,
+            None => self.image,
         };
 
         ConversionWriter::save_to(writer, export_buffer, output_format, export_settings)

@@ -369,7 +369,7 @@ mod tests {
         assert_eq!(out.get_pixel(1, 2), DIFF_PX_DIFF);
         assert_eq!(out.get_pixel(2, 2), DIFF_PX_NO_OVERLAP);
 
-        output_test_image_for_manual_inspection(&out, out_!("test_diff_3x3.png"));
+        output_test_image_for_manual_inspection(out, out_!("test_diff_3x3.png"));
     }
 
     mod sizes {
@@ -422,7 +422,7 @@ mod tests {
             assert_eq!(out.height(), expected_height);
 
             let name = format!("test_diff_{},{}.png", left, right);
-            output_test_image_for_manual_inspection(&out, out_!(&name));
+            output_test_image_for_manual_inspection(out, out_!(&name));
         }
     }
 
@@ -453,12 +453,12 @@ mod tests {
         assert_eq!((48, 100), left.dimensions());
 
         output_test_image_for_manual_inspection(
-            &left,
+            left,
             out_!("test_resize_preserve_aspect_ratio_left_preserve.png"),
         );
 
         output_test_image_for_manual_inspection(
-            &right,
+            right,
             out_!("test_resize_preserve_aspect_ratio_right_default.png"),
         );
     }
@@ -489,12 +489,12 @@ mod tests {
         assert_eq!((100, 100), left.dimensions());
 
         output_test_image_for_manual_inspection(
-            &left,
+            left,
             out_!("test_resize_preserve_aspect_ratio_left_preserve_f.png"),
         );
 
         output_test_image_for_manual_inspection(
-            &right,
+            right,
             out_!("test_resize_preserve_aspect_ratio_right_default_f.png"),
         );
     }
@@ -524,12 +524,12 @@ mod tests {
         assert_ne!(left.raw_pixels(), right.raw_pixels());
 
         output_test_image_for_manual_inspection(
-            &left,
+            left,
             out_!("test_resize_sampling_filter_left_nearest.png"),
         );
 
         output_test_image_for_manual_inspection(
-            &right,
+            right,
             out_!("test_resize_sampling_filter_right_default_gaussian.png"),
         );
     }
@@ -561,12 +561,12 @@ mod tests {
         assert_eq!(left.raw_pixels(), right.raw_pixels());
 
         output_test_image_for_manual_inspection(
-            &left,
+            left,
             out_!("test_register_unregister_sampling_filter_left.png"),
         );
 
         output_test_image_for_manual_inspection(
-            &right,
+            right,
             out_!("test_register_unregister_sampling_filter_right.png"),
         );
     }
@@ -587,7 +587,7 @@ mod tests {
         assert!(done.is_ok());
 
         output_test_image_for_manual_inspection(
-            &done.unwrap(),
+            done.unwrap(),
             out_!("horizontal-gradient-test.png"),
         );
     }
@@ -607,10 +607,7 @@ mod tests {
         let done = operator.ignite(&[Instr::Operation(operation)]);
         assert!(done.is_ok());
 
-        output_test_image_for_manual_inspection(
-            &done.unwrap(),
-            out_!("vertical-gradient-test.png"),
-        );
+        output_test_image_for_manual_inspection(done.unwrap(), out_!("vertical-gradient-test.png"));
     }
 
     #[test]
@@ -623,7 +620,7 @@ mod tests {
 
         assert!(done.is_ok());
 
-        output_test_image_for_manual_inspection(&done.unwrap(), out_!("test_blur.png"));
+        output_test_image_for_manual_inspection(done.unwrap(), out_!("test_blur.png"));
     }
 
     #[test]
@@ -642,7 +639,7 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(&result_img, out_!("test_brighten_pos_25.png"));
+        output_test_image_for_manual_inspection(result_img, out_!("test_brighten_pos_25.png"));
     }
 
     #[test]
@@ -660,7 +657,7 @@ mod tests {
 
         assert_eq!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(&result_img, out_!("test_brighten_zero.png"));
+        output_test_image_for_manual_inspection(result_img, out_!("test_brighten_zero.png"));
     }
 
     #[test]
@@ -679,7 +676,7 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(&result_img, out_!("test_brighten_neg_25.png"));
+        output_test_image_for_manual_inspection(result_img, out_!("test_brighten_neg_25.png"));
     }
 
     #[test]
@@ -698,7 +695,7 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(&result_img, out_!("test_contrast_pos_15_9.png"));
+        output_test_image_for_manual_inspection(result_img, out_!("test_contrast_pos_15_9.png"));
     }
 
     #[test]
@@ -717,7 +714,7 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(&result_img, out_!("test_contrast_pos_15_9.png"));
+        output_test_image_for_manual_inspection(result_img, out_!("test_contrast_pos_15_9.png"));
     }
 
     #[test]
@@ -736,7 +733,7 @@ mod tests {
 
         assert_eq!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(&result_img, out_!("test_crop_no_change.bmp"));
+        output_test_image_for_manual_inspection(result_img, out_!("test_crop_no_change.bmp"));
     }
 
     #[test]
@@ -761,10 +758,7 @@ mod tests {
 
         assert_eq!(Rgba([0, 0, 0, 255]), result_img.get_pixel(0, 0));
 
-        output_test_image_for_manual_inspection(
-            &result_img,
-            out_!("test_crop_ok_to_one_pixel.bmp"),
-        );
+        output_test_image_for_manual_inspection(result_img, out_!("test_crop_ok_to_one_pixel.bmp"));
     }
 
     #[test]
@@ -791,7 +785,7 @@ mod tests {
         assert_eq!(Rgba([255, 255, 255, 255]), result_img.get_pixel(1, 0));
 
         output_test_image_for_manual_inspection(
-            &result_img,
+            result_img,
             out_!("test_crop_ok_to_half_horizontal.bmp"),
         );
     }
@@ -886,7 +880,7 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(&result_img, out_!("test_filter3x3.png"))
+        output_test_image_for_manual_inspection(result_img, out_!("test_filter3x3.png"))
     }
 
     #[test]
@@ -906,7 +900,7 @@ mod tests {
         assert_eq!(xa, xb);
         assert_eq!(ya, yb);
 
-        output_test_image_for_manual_inspection(&img_result, out_!("test_fliph.png"));
+        output_test_image_for_manual_inspection(img_result, out_!("test_fliph.png"));
     }
 
     #[test]
@@ -926,7 +920,7 @@ mod tests {
         assert_eq!(xa, xb);
         assert_eq!(ya, yb);
 
-        output_test_image_for_manual_inspection(&img_result, out_!("test_flipv.png"));
+        output_test_image_for_manual_inspection(img_result, out_!("test_flipv.png"));
     }
 
     #[test]
@@ -958,7 +952,7 @@ mod tests {
             }
         }
 
-        output_test_image_for_manual_inspection(&img_result, out_!("test_gray_scale.png"));
+        output_test_image_for_manual_inspection(img_result, out_!("test_gray_scale.png"));
     }
 
     #[test]
@@ -977,7 +971,7 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(&result_img, out_!("test_hue_rot_neg_100.png"));
+        output_test_image_for_manual_inspection(result_img, out_!("test_hue_rot_neg_100.png"));
     }
 
     #[test]
@@ -996,7 +990,7 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(&result_img, out_!("test_hue_rot_pos_100.png"));
+        output_test_image_for_manual_inspection(result_img, out_!("test_hue_rot_pos_100.png"));
     }
 
     #[test]
@@ -1015,7 +1009,7 @@ mod tests {
 
         assert_eq!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(&result_img, out_!("test_hue_rot_0.png"));
+        output_test_image_for_manual_inspection(result_img, out_!("test_hue_rot_0.png"));
     }
 
     #[test]
@@ -1037,7 +1031,7 @@ mod tests {
         let expected = SicImage::from(cmp.as_ref().huerotate(360));
         assert_eq!(expected.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(&result_img, out_!("test_hue_rot_pos_360.png"));
+        output_test_image_for_manual_inspection(result_img, out_!("test_hue_rot_pos_360.png"));
     }
 
     #[test]
@@ -1057,7 +1051,7 @@ mod tests {
         let expected = SicImage::from(cmp.as_ref().huerotate(100));
         assert_ne!(expected.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(&result_img, out_!("test_hue_rot_pos_460.png"));
+        output_test_image_for_manual_inspection(result_img, out_!("test_hue_rot_pos_460.png"));
     }
 
     #[test]
@@ -1076,7 +1070,7 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(&result_img, out_!("test_invert.png"));
+        output_test_image_for_manual_inspection(result_img, out_!("test_invert.png"));
     }
 
     mod overlay {
@@ -1098,7 +1092,7 @@ mod tests {
             assert_eq!(img.raw_pixels(), res_image.raw_pixels());
 
             output_test_image_for_manual_inspection(
-                &res_image,
+                res_image,
                 out_!("test_overlay_self_origin.png"),
             );
         }
@@ -1120,7 +1114,7 @@ mod tests {
             assert_eq!(img.raw_pixels(), res_image.raw_pixels());
 
             output_test_image_for_manual_inspection(
-                &res_image,
+                res_image,
                 out_!("test_overlay_self_bounds.png"),
             );
         }
@@ -1145,7 +1139,7 @@ mod tests {
             assert_ne!(img.raw_pixels(), res_image.raw_pixels());
 
             output_test_image_for_manual_inspection(
-                &res_image,
+                res_image,
                 out_!("test_overlay_self_se_quarter.png"),
             );
         }
@@ -1173,7 +1167,7 @@ mod tests {
         assert_eq!(xb, 100);
         assert_eq!(yb, 200);
 
-        output_test_image_for_manual_inspection(&img_result, out_!("test_scale_100x200.png"));
+        output_test_image_for_manual_inspection(img_result, out_!("test_scale_100x200.png"));
     }
 
     #[test]
@@ -1198,7 +1192,7 @@ mod tests {
         assert_eq!(xb, 250);
         assert_eq!(yb, 500);
 
-        output_test_image_for_manual_inspection(&img_result, out_!("test_scale_250x500.png"));
+        output_test_image_for_manual_inspection(img_result, out_!("test_scale_250x500.png"));
     }
 
     #[test]
@@ -1218,7 +1212,7 @@ mod tests {
         assert_eq!(xa, yb);
         assert_eq!(xb, ya);
 
-        output_test_image_for_manual_inspection(&img_result, out_!("test_rotate90.png"));
+        output_test_image_for_manual_inspection(img_result, out_!("test_rotate90.png"));
     }
 
     #[test]
@@ -1238,7 +1232,7 @@ mod tests {
         assert_eq!(xa, xb);
         assert_eq!(ya, yb);
 
-        output_test_image_for_manual_inspection(&img_result, out_!("test_rotate180.png"));
+        output_test_image_for_manual_inspection(img_result, out_!("test_rotate180.png"));
     }
 
     #[test]
@@ -1258,7 +1252,7 @@ mod tests {
         assert_eq!(xa, yb);
         assert_eq!(xb, ya);
 
-        output_test_image_for_manual_inspection(&img_result, out_!("test_rotate270.png"));
+        output_test_image_for_manual_inspection(img_result, out_!("test_rotate270.png"));
     }
 
     #[test]
@@ -1276,7 +1270,7 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(&result_img, out_!("test_unsharpen_20_1_20.png"));
+        output_test_image_for_manual_inspection(result_img, out_!("test_unsharpen_20_1_20.png"));
     }
 
     #[test]
@@ -1295,7 +1289,7 @@ mod tests {
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
         output_test_image_for_manual_inspection(
-            &result_img,
+            result_img,
             out_!("test_unsharpen_neg20_1_neg20.png"),
         );
     }
@@ -1315,7 +1309,7 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(&result_img, out_!("test_threshold.png"));
+        output_test_image_for_manual_inspection(result_img, out_!("test_threshold.png"));
     }
 
     #[test]
@@ -1346,7 +1340,7 @@ mod tests {
         assert_eq!(xb, 100);
         assert_eq!(yb, 80);
 
-        output_test_image_for_manual_inspection(&done_image, out_!("test_multi.png"));
+        output_test_image_for_manual_inspection(done_image, out_!("test_multi.png"));
     }
 
     #[cfg(feature = "imageproc-ops")]
@@ -1381,7 +1375,7 @@ mod tests {
             let result_img = done.unwrap();
 
             output_test_image_for_manual_inspection(
-                &result_img,
+                result_img,
                 out_!("test_imageproc_ops_draw_text.png"),
             );
         }

@@ -225,7 +225,7 @@ pub fn create_app(
 
         // image-operations(cli-arguments):
         .group(ArgGroup::with_name(GROUP_IMAGE_OPERATIONS)
-            .args(&OperationId::VARIANTS)
+            .args(OperationId::VARIANTS)
             .conflicts_with(ARG_APPLY_OPERATIONS)
             .multiple(true))
         .arg(Arg::with_name(OperationId::Blur.as_str())
