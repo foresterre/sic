@@ -45,9 +45,9 @@ pub fn run_with_devices<'c>(
                 let output = &PathVariant::Path(output);
 
                 run(
-                    || create_reader(&input),
-                    |ext: Option<&str>| create_writer(&output, ext),
-                    || create_format_decider(&output, config),
+                    || create_reader(input),
+                    |ext: Option<&str>| create_writer(output, ext),
+                    || create_format_decider(output, config),
                     config,
                 )?
             }

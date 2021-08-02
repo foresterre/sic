@@ -124,9 +124,9 @@ mod convert_to_x_by_ff {
             "--output-format",
             which,
             "--input",
-            path_buf_str(&input),
+            path_buf_str(input),
             "--output",
-            path_buf_str(&output),
+            path_buf_str(output),
         ]
     }
 
