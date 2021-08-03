@@ -606,11 +606,10 @@ dependencies = [
 
 [[package]]
 name = "nasm-rs"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a76f43faa0d13f9c89f72e1972446d558f003cfffb80eb16bb444231de1becd1"
+checksum = "9dbff86bd2ee8cb407e8608e2c3504412a967c06286ef7e5cf7c1b9db756f0a9"
 dependencies = [
- "arrayvec",
  "rayon",
 ]
 
