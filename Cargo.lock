@@ -1404,14 +1404,16 @@ checksum = "8ccb82d61f80a663efe1f787a51b16b5a51e3314d6ac365b08639f52387b33f3"
 
 [[package]]
 name = "v_frame"
-version = "0.2.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "17f6ba3e9a4e7a93a4b706b0ebfae867a46dfbb2abc690ee4af7971d24904145"
+checksum = "80b4c7125fe75942c6bca0fe93cd5a6018778791297cfb21283be47f1d52185b"
 dependencies = [
  "cfg-if",
  "noop_proc_macro",
  "num-derive",
  "num-traits",
+ "rayon",
+ "rust_hawktracer",
 ]
 
 [[package]]
