@@ -38,7 +38,7 @@ sic_io  = { version = "0.19.0", path = "components/sic_io" }
 sic_image_engine = { version = "0.19.0", path = "components/sic_image_engine" }
 sic_parser = { version = "0.19.0", path = "components/sic_parser"}
 
-anyhow = "1.0.43"
+anyhow = "1.0.44"
 atty = "0.2.14"
 clap = "2.33.3"
 globwalk = "0.8.1"
