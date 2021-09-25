@@ -1404,9 +1404,9 @@ checksum = "8ccb82d61f80a663efe1f787a51b16b5a51e3314d6ac365b08639f52387b33f3"
 
 [[package]]
 name = "v_frame"
-version = "0.2.2"
+version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "80b4c7125fe75942c6bca0fe93cd5a6018778791297cfb21283be47f1d52185b"
+checksum = "594718cad812ffd9e3784bdf272a233805b4b7a8d560b9ec30b1ae71d60eb23a"
 dependencies = [
  "cfg-if",
  "noop_proc_macro",
