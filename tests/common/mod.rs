@@ -101,8 +101,8 @@ impl SicTestCommandBuilder {
         command.args(self.commands);
 
         command
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
             .spawn()
             .map_err(|err| {
                 eprintln!(
