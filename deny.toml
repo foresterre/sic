@@ -30,4 +30,11 @@ ignore = [
     "RUSTSEC-2020-0023",
     # rulinalg crate is no longer maintained
     "RUSTSEC-2020-0147",
+
+    # Potential segfault in the time crate
+    # NB: has been fixed in time >=0.2.23, however waiting on chrono crate to update
+    # chrono PR: https://github.com/chronotope/chrono/pull/578
+    "RUSTSEC-2020-0071",
+    # Potential segfault in localtime_r invocations, see 2020-0071
+    "RUSTSEC-2020-0159",
 ]
