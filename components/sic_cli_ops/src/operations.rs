@@ -12,7 +12,7 @@ use std::str::FromStr;
 
 /// The enumeration of all supported operations.
 #[derive(
-    Debug, Copy, Clone, Hash, Eq, PartialEq, AsStaticStr, EnumIter, EnumString, EnumVariantNames,
+    Debug, Copy, Clone, Hash, Eq, PartialEq, IntoStaticStr, EnumIter, EnumString, EnumVariantNames,
 )]
 #[strum(serialize_all = "kebab_case")]
 pub enum OperationId {
@@ -49,8 +49,7 @@ pub enum OperationId {
 impl OperationId {
     /// A string representation for each operation.
     pub fn as_str(self) -> &'static str {
-        use strum::AsStaticRef;
-        self.as_static()
+        self.into()
     }
 
     pub fn try_from_name(input: &str) -> TResult<Self> {

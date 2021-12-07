@@ -61,7 +61,7 @@ macro_rules! parse_next {
                         Box::new(err),
                     )
                 })
-            })?;
+            })?
     };
 }
 
