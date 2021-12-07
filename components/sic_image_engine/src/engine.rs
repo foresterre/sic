@@ -45,17 +45,9 @@ impl EnvironmentKey for EnvItem {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Env {
     store: HashMap<ItemName, EnvItem>,
-}
-
-impl Default for Env {
-    fn default() -> Self {
-        Self {
-            store: HashMap::new(),
-        }
-    }
 }
 
 impl Env {
