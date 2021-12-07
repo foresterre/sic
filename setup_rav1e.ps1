@@ -1,5 +1,6 @@
-# Installation of NASM with msvc toolchain has been copied from `rav1e`, used under the BSD 2-Clause license,
-# reproduced below. The original source can be found at:
+# Script for 'setting up MSVC for linking with NASM', has been copied from `rav1e`. 
+# Script was used and modified under the BSD 2-Clause license reproduced below. 
+# The original source can be found at:
 # https://github.com/xiph/rav1e/blob/eab1cd61c1c6a7d65d49726df62a99bd0a97b8fd/.github/workflows/rav1e.yml
 #
 #
@@ -30,7 +31,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 $LinkGlob = "VC\Tools\MSVC\*\bin\Hostx64\x64"
-
 $env:PATH = "$env:PATH;${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer"
 $LinkPath = vswhere -latest -products * -find "$LinkGlob" | Select-Object -Last 1
 $env:PATH = "$env:PATH;$LinkPath"
