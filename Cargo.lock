@@ -606,9 +606,9 @@ dependencies = [
 
 [[package]]
 name = "nasm-rs"
-version = "0.2.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9dbff86bd2ee8cb407e8608e2c3504412a967c06286ef7e5cf7c1b9db756f0a9"
+checksum = "a06380d23b58dcdaf892fa36c3950cad3110e7d76851275d5f85c22eb9cdd614"
 dependencies = [
  "rayon",
 ]
