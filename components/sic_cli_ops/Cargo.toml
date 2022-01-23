@@ -11,7 +11,7 @@ repository = "https://github.com/foresterre/sic"
 sic_image_engine = { version = "0.19.0", path = "../../components/sic_image_engine" }
 sic_parser = { version = "0.19.0", path = "../../components/sic_parser" }
 
-clap = "2.34.0"
+clap = "3.0.10"
 strum = "0.23.0"
 strum_macros = "0.23.1"
 thiserror = "1.0.30"
