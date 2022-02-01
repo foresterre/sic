@@ -407,14 +407,14 @@ mod tests_parse_from_iter {
 
     macro_rules! assert_iter_impl {
         ($lhs_iter:expr, $rhs_iter:expr, $f:expr) => {
-            assert!($lhs_iter.into_iter().zip($rhs_iter.into_iter()).all($f));
+            assert!($lhs_iter.into_iter().zip($rhs_iter.into_iter()).all($f))
         };
     }
 
     macro_rules! assert_iter_f32 {
         ($lhs_iter:expr, $rhs_iter:expr) => {
             assert_iter_impl!($lhs_iter, $rhs_iter, |(l, r)| (l - r).abs()
-                < std::f32::EPSILON);
+                < std::f32::EPSILON)
         };
     }
 
