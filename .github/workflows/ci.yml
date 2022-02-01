@@ -108,7 +108,7 @@ jobs:
           
       # from rav1e
       - name: set_path_msvc_linker
-        if: matrix.build == 'win-msvc'
+        if: matrix.build == 'win-msvc-stable'
         run: |
           $LinkGlob = "VC\Tools\MSVC\*\bin\Hostx64\x64"
           $env:PATH = "$env:PATH;${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer"
