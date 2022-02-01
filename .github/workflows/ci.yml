@@ -220,4 +220,4 @@ jobs:
       - name: version_of_cargo_msrv
         run: cargo msrv --version # as of writing: 0.14.0 (required for verify subcommand)
       - name: run_cargo_msrv
-        run: cargo msrv verify --ignore-lockfile --output-format json
+        run: cargo msrv --ignore-lockfile --output-format json verify
