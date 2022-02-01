@@ -55,40 +55,35 @@ jobs:
     continue-on-error: true
     strategy:
       matrix:
-        build: [msrv, stable, beta, nightly, macos, win-gnu, win-msvc]
+        build: [ubuntu-stable, ubuntu-beta, ubuntu-nightly, macos-stable, win-gnu-stable, win-msvc-stable]
         include:
-          # pinned rust version :: ubuntu
-          - build: msrv
-            os: ubuntu-18.04
-            rust: 1.49.0
-
           # latest rust stable :: ubuntu
-          - build: stable
+          - build: ubuntu-stable
             os: ubuntu-latest
             rust: stable
 
           # latest rust beta :: ubuntu
-          - build: beta
+          - build: ubuntu-beta
             os: ubuntu-latest
             rust: beta
 
           # latest rust nightly :: ubuntu
-          - build: nightly
+          - build: ubuntu-nightly
             os: ubuntu-latest
             rust: nightly
 
           # latest rust stable :: mac_os
-          - build: macos
+          - build: macos-stable
             os: macOS-latest
             rust: stable
 
           # latest rust stable :: windows + gnu
-          - build: win-gnu
+          - build: win-gnu-stable
             os: windows-latest
             rust: stable-x86_64-gnu
 
           # latest rust stable :: windows + msvc
-          - build: win-msvc
+          - build: win-msvc-stable
             os: windows-latest
             rust: stable
 
@@ -223,6 +218,6 @@ jobs:
       - name: install_cargo_msrv
         run: cargo install cargo-msrv
       - name: version_of_cargo_msrv
-        run: cargo msrv --version # as of writing: 0.7.0 (required for --verify)
+        run: cargo msrv --version # as of writing: 0.14.0 (required for verify subcommand)
       - name: run_cargo_msrv
-        run: cargo msrv --verify --ignore-lockfile --output-format json
+        run: cargo msrv verify --ignore-lockfile --output-format json

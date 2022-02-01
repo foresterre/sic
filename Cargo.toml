@@ -1,5 +1,4 @@
 [package]
-edition = "2018"
 name = "sic"
 version = "0.19.0"
 authors = ["Martijn Gribnau <garm@ilumeo.com>"]
@@ -17,8 +16,8 @@ exclude = [
 keywords = ["image", "converter", "cli", "front-end", "image-cli"]
 categories = ["multimedia::images", "command-line-utilities"]
 
-[package.metadata]
-msrv = "1.49.0"
+edition = "2021"
+rust-version = "1.56"
 
 [workspace]
 members = [
