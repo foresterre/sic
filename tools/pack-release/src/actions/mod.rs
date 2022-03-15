@@ -3,26 +3,36 @@ pub mod update_dep_licenses;
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use xshell::Shell;
 use zip::write::FileOptions;
 
-pub fn cargo_build(toolchain: &str, dep_licenses: impl AsRef<Path>) {
+pub fn cargo_build(shell: &Shell, toolchain: &str, dep_licenses: impl AsRef<Path>) {
     // get current directory, on top of which we'll create an output directory
     let path = std::env::current_dir().expect("Unable to get current directory");
     println!("cwd: {}", &path.display());
 
     // create the output directory
     let output_dir = path.join(toolchain);
-    println!("building '{}' in '{}'", toolchain, &output_dir.display());
-    xshell::mkdir_p(&output_dir).expect("Unable to create output directory");
+    println!(
+        "\nbuilding '{}' in '{}'\n",
+        toolchain,
+        &output_dir.display()
+    );
+    shell
+        .create_dir(&output_dir)
+        .expect("Unable to create output directory");
 
     // build the project to the output directory
-    xshell::cmd!("cargo +{toolchain} build --target-dir {output_dir} --release")
-        .run()
-        .expect("Unable to build");
+    xshell::cmd!(
+        shell,
+        "rustup run {toolchain} cargo build --target-dir {output_dir} --release"
+    )
+    .run()
+    .expect("Unable to build");
 
     // zip output
     let exe = executable_path(&output_dir);
-    let version = sic_version(&exe);
+    let version = sic_version(shell, &exe);
     let zip = format!(
         "{}-{}.zip",
         version.trim(),
@@ -33,7 +43,7 @@ pub fn cargo_build(toolchain: &str, dep_licenses: impl AsRef<Path>) {
 
     // remove output directory
     if option_env!("PACK_RELEASE_KEEP_OUTPUT").is_none() {
-        let _ = std::fs::remove_dir_all(&output_dir);
+        let _ = shell.remove_path(output_dir);
     }
 }
 
@@ -49,8 +59,8 @@ pub const fn executable_file() -> &'static str {
     }
 }
 
-pub fn sic_version(exe: &Path) -> String {
-    xshell::cmd!("{exe} --version")
+pub fn sic_version(shell: &Shell, exe: &Path) -> String {
+    xshell::cmd!(shell, "{exe} --version")
         .read()
         .expect("Unable to get the build sic version")
         .replace(' ', "-")
@@ -84,8 +94,8 @@ pub fn zip_files<P: AsRef<Path>, I: IntoIterator<Item = P>>(files: I, destinatio
     writer.finish().expect("Unable to finish zipping release");
 }
 
-pub fn rustup_toolchains() -> String {
-    xshell::cmd!("rustup toolchain list")
+pub fn rustup_toolchains(shell: &Shell) -> String {
+    xshell::cmd!(shell, "rustup toolchain list")
         .read()
         .expect("Unable to get toolchain list")
 }
@@ -98,9 +108,11 @@ pub fn get_stable_toolchains(toolchain_info: &str) -> Vec<String> {
         .collect::<Vec<String>>()
 }
 
-pub fn generate_shell_completions(folder: &str, zip_path: &str) {
-    xshell::mkdir_p(folder).expect("Unable to create shell_completions folder");
-    xshell::cmd!("cargo run --example gen_completions {folder}")
+pub fn generate_shell_completions(shell: &Shell, folder: &str, zip_path: &str) {
+    shell
+        .create_dir(folder)
+        .expect("Unable to create shell_completions folder");
+    xshell::cmd!(shell, "cargo run --example gen_completions {folder}")
         .run()
         .expect("Unable to generate completions");
 
