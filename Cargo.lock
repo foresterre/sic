@@ -1212,7 +1212,6 @@ dependencies = [
  "sic_image_engine",
  "sic_io",
  "sic_parser",
- "strum",
 ]
 
 [[package]]

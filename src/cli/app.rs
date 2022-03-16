@@ -10,7 +10,6 @@ use sic_io::conversion::RepeatAnimation;
 use sic_io::load::FrameIndex;
 use std::path::Path;
 use std::str::FromStr;
-use strum::VariantNames;
 
 macro_rules! define_arg_consts {
     ($mod:ident, { $($argdef:ident),+ $(,)? } ) => {
@@ -225,7 +224,7 @@ pub fn create_app(
 
         // image-operations(cli-arguments):
         .group(ArgGroup::with_name(GROUP_IMAGE_OPERATIONS)
-            .args(OperationId::VARIANTS)
+            .args(OperationId::variants())
             .conflicts_with(ARG_APPLY_OPERATIONS)
             .multiple(true))
         .arg(Arg::with_name(OperationId::Blur.as_str())
