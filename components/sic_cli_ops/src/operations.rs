@@ -47,6 +47,11 @@ pub enum OperationId {
 }
 
 impl OperationId {
+    pub fn variants() -> &'static [&'static str] {
+        use strum::VariantNames;
+        OperationId::VARIANTS
+    }
+
     /// A string representation for each operation.
     pub fn as_str(self) -> &'static str {
         self.into()
