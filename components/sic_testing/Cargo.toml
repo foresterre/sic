@@ -1,6 +1,6 @@
 [package]
 name = "sic_testing"
-version = "0.19.0"
+version = "0.19.1"
 authors = ["Martijn Gribnau <garm@ilumeo.com>"]
 description = "Component of the sic cli: provides commonly used testing operations for sic crates."
 license = "MIT OR Apache-2.0"
