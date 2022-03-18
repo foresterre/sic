@@ -12,7 +12,7 @@ The changelog below lists notable changes for [sic](https://github.com/foresterr
 
 ## [0.19.1] - 2022-03-17
 
-This is intened to be the last update before we port sic to `image 0.24`.
+This is intended to be the last update before we port sic to `image 0.24`.
 
 ### Changed
 
