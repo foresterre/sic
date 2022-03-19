@@ -1253,6 +1253,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "sic_imageproc"
+version = "0.1.0"
+
+[[package]]
 name = "sic_io"
 version = "0.19.1"
 dependencies = [

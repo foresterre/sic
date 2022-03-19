@@ -25,6 +25,7 @@ members = [
     "components/sic_core",
     "components/sic_image_engine",
     "components/sic_io",
+    "components/sic_imageproc",
     "components/sic_parser",
     "components/sic_testing",
     "tools/pack-release",
