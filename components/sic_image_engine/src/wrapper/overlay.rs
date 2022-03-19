@@ -1,10 +1,10 @@
 use crate::wrapper::image_path::ImageFromPath;
 
 #[derive(Clone, Debug)]
-pub struct OverlayInputs(ImageFromPath, (u32, u32));
+pub struct OverlayInputs(ImageFromPath, (i64, i64));
 
 impl OverlayInputs {
-    pub fn new(image_path: ImageFromPath, pos: (u32, u32)) -> Self {
+    pub fn new(image_path: ImageFromPath, pos: (i64, i64)) -> Self {
         OverlayInputs(image_path, pos)
     }
 
@@ -12,7 +12,7 @@ impl OverlayInputs {
         &self.0
     }
 
-    pub fn position(&self) -> (u32, u32) {
+    pub fn position(&self) -> (i64, i64) {
         self.1
     }
 }

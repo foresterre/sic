@@ -5,12 +5,12 @@ use crate::wrapper::font_options::FontOptions;
 #[derive(Debug, Clone, PartialEq)]
 pub struct DrawTextInner {
     text: String,
-    coord: (u32, u32),
+    coord: (i32, i32),
     font_options: FontOptions,
 }
 
 impl DrawTextInner {
-    pub fn new(text: String, coord: (u32, u32), font_options: FontOptions) -> Self {
+    pub fn new(text: String, coord: (i32, i32), font_options: FontOptions) -> Self {
         DrawTextInner {
             text,
             coord,
@@ -22,7 +22,7 @@ impl DrawTextInner {
         &self.text
     }
 
-    pub fn coords(&self) -> (u32, u32) {
+    pub fn coords(&self) -> (i32, i32) {
         self.coord
     }
 

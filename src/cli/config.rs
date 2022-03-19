@@ -9,7 +9,7 @@ use clap::ArgMatches;
 use globwalk::{FileType, GlobWalker};
 use sic_image_engine::engine::Instr;
 use sic_io::conversion::RepeatAnimation;
-use sic_io::load::FrameIndex;
+use sic_io::import::FrameIndex;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]

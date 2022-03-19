@@ -129,7 +129,6 @@ fn parse_ident(ident: &str) -> NVResult<Ident> {
 enum Value<'a> {
     Byte(u8),
     Float(f32),
-    #[allow(unused)]
     Integer(i32),
     NatNum(u32),
     String(&'a str),
@@ -140,7 +139,7 @@ impl<'a> Value<'a> {
         match (pair.as_rule(), ident) {
             (Rule::fp, Ident::Rgba) => Ok(Value::parse_byte(pair.as_str())?),
             (Rule::fp, Ident::Size) => Ok(Value::parse_float(pair.as_str())?),
-            (Rule::fp, Ident::Coord) => Ok(Value::parse_nat_num(pair.as_str())?),
+            (Rule::fp, Ident::Coord) => Ok(Value::parse_integer(pair.as_str())?),
             (Rule::string_unicode, _) => Ok(Value::parse_string(pair.into_inner().as_str())?),
             _ => Err(NamedValueError::InvalidArgumentType),
         }
@@ -150,7 +149,7 @@ impl<'a> Value<'a> {
         match ident {
             Ident::Rgba => Ok(Value::parse_byte(s)?),
             Ident::Size => Ok(Value::parse_float(s)?),
-            Ident::Coord => Ok(Value::parse_nat_num(s)?),
+            Ident::Coord => Ok(Value::parse_integer(s)?),
             Ident::Font => Ok(Value::parse_string(slice_str_tokens(s)?)?),
         }
     }
@@ -177,7 +176,6 @@ impl<'a> Value<'a> {
         }
     }
 
-    #[allow(unused)]
     pub fn extract_integer(&self) -> NVResult<i32> {
         if let Self::Integer(inner) = self {
             Ok(*inner)
@@ -189,6 +187,7 @@ impl<'a> Value<'a> {
         }
     }
 
+    #[allow(unused)]
     pub fn extract_nat_num(&self) -> NVResult<u32> {
         if let Self::NatNum(inner) = self {
             Ok(*inner)
@@ -224,6 +223,13 @@ impl<'a> Value<'a> {
         })
     }
 
+    fn parse_integer(value: &str) -> NVResult<Self> {
+        value.parse::<i32>().map(Value::Integer).map_err(|_err| {
+            NamedValueError::UnableToParse(value.to_string(), String::from("Integer"))
+        })
+    }
+
+    #[allow(unused)]
     fn parse_nat_num(value: &str) -> NVResult<Self> {
         value.parse::<u32>().map(Value::NatNum).map_err(|_err| {
             NamedValueError::UnableToParse(value.to_string(), String::from("NatNum"))
@@ -269,7 +275,7 @@ pub enum NamedValue {
     Rgba(u8, u8, u8, u8),
     Size(f32),
     Font(PathBuf),
-    Coord((u32, u32)),
+    Coord((i32, i32)),
 }
 
 impl NamedValue {
@@ -315,7 +321,7 @@ impl NamedValue {
         }
     }
 
-    pub fn extract_coord(&self) -> NVResult<(u32, u32)> {
+    pub fn extract_coord(&self) -> NVResult<(i32, i32)> {
         if let Self::Coord(coords) = self {
             Ok(*coords)
         } else {
@@ -360,7 +366,7 @@ impl NamedValue {
 
     fn create_coord(args: &[Value]) -> NVResult<Self> {
         match args {
-            [x, y] => Ok(Self::Coord((x.extract_nat_num()?, y.extract_nat_num()?))),
+            [x, y] => Ok(Self::Coord((x.extract_integer()?, y.extract_integer()?))),
             _ => Err(NamedValueError::UnableToCreateNamedValueWithArgs(
                 Ident::Coord,
             )),

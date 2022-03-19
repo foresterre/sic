@@ -1,19 +1,19 @@
-use std::io::Write;
 use std::path::Path;
 
 use sic_core::{image, SicImage};
 
 use crate::conversion::{AutomaticColorTypeAdjustment, ConversionWriter, RepeatAnimation};
 use crate::errors::SicIoError;
+use crate::WriteSeek;
 
-pub fn export<W: Write>(
+pub fn export<W: WriteSeek>(
     image: &SicImage,
     writer: &mut W,
     format: image::ImageOutputFormat,
     export_settings: ExportSettings,
 ) -> Result<(), SicIoError> {
     let conv = ConversionWriter::new(image);
-    conv.write(writer, format, &export_settings)
+    conv.write_all(writer, format, &export_settings)
 }
 
 #[derive(Debug, Default)]

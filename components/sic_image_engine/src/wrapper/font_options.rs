@@ -1,5 +1,5 @@
-use rusttype::Scale;
 use sic_core::image::Rgba;
+use sic_core::rusttype::Scale;
 use std::path::PathBuf;
 
 type FontColor = Rgba<u8>;
