@@ -1452,7 +1452,7 @@ dependencies = [
 
 [[package]]
 name = "sic_cli_ops"
-version = "0.19.1"
+version = "0.20.0"
 dependencies = [
  "clap",
  "parameterized",
