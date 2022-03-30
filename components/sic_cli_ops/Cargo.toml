@@ -21,7 +21,7 @@ strum_macros = "0.24.0"
 thiserror = "1.0.30"
 
 [dev-dependencies]
-sic_core = { version = "0.19.0", path = "../../components/sic_core" }
+sic_core = { version = "0.20.0", path = "../../components/sic_core" }
 sic_testing = { version = "0.19.0", path = "../../components/sic_testing" }
 parameterized = "0.3.1"
 
