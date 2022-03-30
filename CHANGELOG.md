@@ -9,6 +9,11 @@ The changelog below lists notable changes for [sic](https://github.com/foresterr
 
 ## [Unreleased]
 
+## [0.20.0] - 2022-03-30
+
+### Changed
+
+- Port image to image 0.24
 
 ## [0.19.1] - 2022-03-17
 
@@ -243,7 +248,8 @@ _yanked: `--version` not updated_
 - Decoding support for PNG, JPEG, GIF, BMP, ICO, TIFF and WebP (not all formats are completely supported)
 - Encoding support for JPEG, PNG, GIF, ICO, PPM
 
-[unreleased]: https://github.com/foresterre/sic/compare/v0.19.1...HEAD
+[unreleased]: https://github.com/foresterre/sic/compare/v0.20.0...HEAD
+[0.20.0]: https://github.com/foresterre/sic/compare/v0.19.1...v0.20.0
 [0.19.1]: https://github.com/foresterre/sic/compare/v0.19.0...v0.19.1
 [0.19.0]: https://github.com/foresterre/sic/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/foresterre/sic/compare/v0.17.0...v0.18.0
