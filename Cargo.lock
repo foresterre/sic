@@ -1477,7 +1477,7 @@ dependencies = [
 
 [[package]]
 name = "sic_image_engine"
-version = "0.19.1"
+version = "0.20.0"
 dependencies = [
  "rayon",
  "sic_core",
