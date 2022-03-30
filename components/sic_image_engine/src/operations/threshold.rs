@@ -3,7 +3,7 @@ use crate::operations::ImageOperation;
 use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
 use sic_core::{
     image::{self, DynamicImage, RgbaImage},
-    SicImage,
+    imageproc, SicImage,
 };
 
 pub struct Threshold;

@@ -159,7 +159,7 @@ fn parse_overlay(pair: Pair<'_, Rule>) -> Result<Instr, SicParserError> {
         .next()
         .ok_or_else(|| SicParserError::ExpectedValue("uint".to_string()))?;
 
-    let position: (u32, u32) = ParseInputsFromIter::parse(&[x.as_str(), y.as_str()])?;
+    let position: (i64, i64) = ParseInputsFromIter::parse(&[x.as_str(), y.as_str()])?;
 
     Ok(Instr::Operation(ImgOp::Overlay(OverlayInputs::new(
         image_path, position,
@@ -296,6 +296,7 @@ mod tests {
             parse_image_operations(pairs).unwrap()
         );
     }
+
     #[test]
     #[cfg(feature = "imageproc-ops")]
     fn test_parse_threshold_only() {
@@ -307,6 +308,7 @@ mod tests {
             parse_image_operations(pairs).unwrap()
         );
     }
+
     #[test]
     #[cfg(feature = "imageproc-ops")]
     fn test_parse_threshold_with_flip() {
@@ -557,7 +559,7 @@ mod tests {
             .unwrap_or_else(|_| panic!("Unable to parse sic image operations script."));
 
         assert_eq!(
-            vec![Instr::Operation(ImgOp::Crop((0, 0, 0, std::u32::MAX,)))],
+            vec![Instr::Operation(ImgOp::Crop((0, 0, 0, u32::MAX,)))],
             parse_image_operations(pairs).unwrap()
         );
     }

@@ -1,12 +1,11 @@
 #![deny(clippy::all)]
 #![allow(clippy::upper_case_acronyms)]
 
-// importing
-pub mod load;
-
-// exporting
-pub mod save;
+pub mod export;
+pub mod import;
 
 pub mod conversion;
 pub mod errors;
 pub mod format;
+
+pub trait WriteSeek: std::io::Write + std::io::Seek {}

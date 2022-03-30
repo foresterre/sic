@@ -1,6 +1,7 @@
 use std::path::Path;
 
 use sic_core::image;
+use sic_core::image::codecs::pnm;
 
 use crate::errors::{FormatError, SicIoError};
 
@@ -25,7 +26,7 @@ pub trait EncodingFormatJPEGQuality {
 pub trait EncodingFormatPNMSampleEncoding {
     /// Returns a pnm sample encoding type.
     /// If no such value exists, it will return an error instead.
-    fn pnm_encoding_type(&self) -> Result<image::pnm::SampleEncoding, SicIoError>;
+    fn pnm_encoding_type(&self) -> Result<pnm::SampleEncoding, SicIoError>;
 }
 
 /// This struct ensures no invalid JPEG qualities can be stored.
@@ -92,19 +93,17 @@ impl EncodingFormatByIdentifier for DetermineEncodingFormat {
             "gif" => Ok(image::ImageOutputFormat::Gif),
             "ico" => Ok(image::ImageOutputFormat::Ico),
             "jpeg" | "jpg" => Ok(image::ImageOutputFormat::Jpeg(self.jpeg_quality()?.as_u8())),
-            "pam" => Ok(image::ImageOutputFormat::Pnm(
-                image::pnm::PNMSubtype::ArbitraryMap,
-            )),
-            "pbm" => Ok(image::ImageOutputFormat::Pnm(
-                image::pnm::PNMSubtype::Bitmap(self.pnm_encoding_type()?),
-            )),
-            "pgm" => Ok(image::ImageOutputFormat::Pnm(
-                image::pnm::PNMSubtype::Graymap(self.pnm_encoding_type()?),
-            )),
+            "pam" => Ok(image::ImageOutputFormat::Pnm(pnm::PnmSubtype::ArbitraryMap)),
+            "pbm" => Ok(image::ImageOutputFormat::Pnm(pnm::PnmSubtype::Bitmap(
+                self.pnm_encoding_type()?,
+            ))),
+            "pgm" => Ok(image::ImageOutputFormat::Pnm(pnm::PnmSubtype::Graymap(
+                self.pnm_encoding_type()?,
+            ))),
             "png" => Ok(image::ImageOutputFormat::Png),
-            "ppm" => Ok(image::ImageOutputFormat::Pnm(
-                image::pnm::PNMSubtype::Pixmap(self.pnm_encoding_type()?),
-            )),
+            "ppm" => Ok(image::ImageOutputFormat::Pnm(pnm::PnmSubtype::Pixmap(
+                self.pnm_encoding_type()?,
+            ))),
             "tga" => Ok(image::ImageOutputFormat::Tga),
             _ => Err(SicIoError::UnknownImageIdentifier(identifier.to_string())),
         }
@@ -112,21 +111,21 @@ impl EncodingFormatByIdentifier for DetermineEncodingFormat {
 }
 
 pub struct DetermineEncodingFormat {
-    pub pnm_sample_encoding: Option<image::pnm::SampleEncoding>,
+    pub pnm_sample_encoding: Option<pnm::SampleEncoding>,
     pub jpeg_quality: Option<JPEGQuality>,
 }
 
 impl Default for DetermineEncodingFormat {
     fn default() -> Self {
         Self {
-            pnm_sample_encoding: Some(image::pnm::SampleEncoding::Binary),
+            pnm_sample_encoding: Some(pnm::SampleEncoding::Binary),
             jpeg_quality: Some(Default::default()),
         }
     }
 }
 
 impl EncodingFormatPNMSampleEncoding for DetermineEncodingFormat {
-    fn pnm_encoding_type(&self) -> Result<image::pnm::SampleEncoding, SicIoError> {
+    fn pnm_encoding_type(&self) -> Result<pnm::SampleEncoding, SicIoError> {
         self.pnm_sample_encoding.ok_or(SicIoError::FormatError(
             FormatError::PNMSamplingEncodingNotSet,
         ))
@@ -158,22 +157,16 @@ mod tests {
         image::ImageOutputFormat::Jpeg(80),
         image::ImageOutputFormat::Jpeg(80),
         image::ImageOutputFormat::Png,
-        image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Bitmap(
-            image::pnm::SampleEncoding::Binary,
-        )),
-        image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Graymap(
-            image::pnm::SampleEncoding::Binary,
-        )),
-        image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Pixmap(
-            image::pnm::SampleEncoding::Binary,
-        )),
-        image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::ArbitraryMap),
+        image::ImageOutputFormat::Pnm(pnm::PnmSubtype::Bitmap(pnm::SampleEncoding::Binary)),
+        image::ImageOutputFormat::Pnm(pnm::PnmSubtype::Graymap(pnm::SampleEncoding::Binary)),
+        image::ImageOutputFormat::Pnm(pnm::PnmSubtype::Pixmap(pnm::SampleEncoding::Binary)),
+        image::ImageOutputFormat::Pnm(pnm::PnmSubtype::ArbitraryMap),
         image::ImageOutputFormat::Tga,
     ];
 
     fn setup_default_format_determiner() -> DetermineEncodingFormat {
         DetermineEncodingFormat {
-            pnm_sample_encoding: Some(image::pnm::SampleEncoding::Binary),
+            pnm_sample_encoding: Some(pnm::SampleEncoding::Binary),
             jpeg_quality: Some(JPEGQuality::try_from(80).unwrap()),
         }
     }
@@ -272,14 +265,13 @@ mod tests {
     #[test]
     fn identifier_custom_pnm_sample_encoding_ascii_pbm() {
         let format_determiner = DetermineEncodingFormat {
-            pnm_sample_encoding: Some(image::pnm::SampleEncoding::Ascii),
+            pnm_sample_encoding: Some(pnm::SampleEncoding::Ascii),
             jpeg_quality: None,
         };
 
         let result = format_determiner.by_identifier("pbm").unwrap();
-        let expected = image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Bitmap(
-            image::pnm::SampleEncoding::Ascii,
-        ));
+        let expected =
+            image::ImageOutputFormat::Pnm(pnm::PnmSubtype::Bitmap(pnm::SampleEncoding::Ascii));
 
         assert_eq!(result, expected);
     }
@@ -288,14 +280,13 @@ mod tests {
     #[test]
     fn identifier_custom_pnm_sample_encoding_ascii_pgm() {
         let format_determiner = DetermineEncodingFormat {
-            pnm_sample_encoding: Some(image::pnm::SampleEncoding::Ascii),
+            pnm_sample_encoding: Some(pnm::SampleEncoding::Ascii),
             jpeg_quality: None,
         };
 
         let result = format_determiner.by_identifier("pgm").unwrap();
-        let expected = image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Graymap(
-            image::pnm::SampleEncoding::Ascii,
-        ));
+        let expected =
+            image::ImageOutputFormat::Pnm(pnm::PnmSubtype::Graymap(pnm::SampleEncoding::Ascii));
 
         assert_eq!(result, expected);
     }
@@ -304,14 +295,13 @@ mod tests {
     #[test]
     fn identifier_custom_pnm_sample_encoding_ascii_ppm() {
         let format_determiner = DetermineEncodingFormat {
-            pnm_sample_encoding: Some(image::pnm::SampleEncoding::Ascii),
+            pnm_sample_encoding: Some(pnm::SampleEncoding::Ascii),
             jpeg_quality: None,
         };
 
         let result = format_determiner.by_identifier("ppm").unwrap();
-        let expected = image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Pixmap(
-            image::pnm::SampleEncoding::Ascii,
-        ));
+        let expected =
+            image::ImageOutputFormat::Pnm(pnm::PnmSubtype::Pixmap(pnm::SampleEncoding::Ascii));
 
         assert_eq!(result, expected);
     }

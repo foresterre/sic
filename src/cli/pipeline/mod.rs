@@ -1,5 +1,6 @@
+use std::borrow::BorrowMut;
 use std::fs::File;
-use std::io::{self, Read, Write};
+use std::io::{self, Read, Seek, SeekFrom, Stdout, Write};
 
 use crate::cli::config::{Config, InputOutputMode, InputOutputModeType, PathVariant};
 use crate::cli::license::LicenseTexts;
@@ -13,7 +14,7 @@ use sic_io::conversion::AutomaticColorTypeAdjustment;
 use sic_io::format::{
     DetermineEncodingFormat, EncodingFormatByExtension, EncodingFormatByIdentifier, JPEGQuality,
 };
-use sic_io::{load, save};
+use sic_io::{export, import, WriteSeek};
 
 pub mod fallback;
 
@@ -64,7 +65,7 @@ fn warn_default_std_output_format() {
     );
 }
 
-fn run<R, W, F>(
+fn run<R, W, WS, F>(
     supply_reader: R,
     supply_writer: W,
     format_decider: F,
@@ -72,13 +73,14 @@ fn run<R, W, F>(
 ) -> anyhow::Result<()>
 where
     R: Fn() -> anyhow::Result<Box<dyn Read>>,
-    W: Fn(Option<&str>) -> anyhow::Result<Box<dyn Write>>,
+    W: Fn(Option<&str>) -> anyhow::Result<WS>,
+    WS: WriteSeek,
     F: Fn() -> anyhow::Result<image::ImageOutputFormat>,
 {
     let mut reader = supply_reader()?;
-    let img = load::load_image(
+    let img = import::load_image(
         &mut reader,
-        &load::ImportConfig {
+        &import::ImportConfig {
             selected_frame: config.selected_frame,
         },
     )?;
@@ -98,11 +100,11 @@ where
     let mut export_writer = supply_writer(format)?;
     let encoding_format = format_decider()?;
 
-    save::export(
+    export::export(
         buffer,
         &mut export_writer,
         encoding_format,
-        save::ExportSettings {
+        export::ExportSettings {
             adjust_color_type: if config.disable_automatic_color_type_adjustment {
                 AutomaticColorTypeAdjustment::Disabled
             } else {
@@ -123,15 +125,72 @@ fn create_reader(io_device: &PathVariant) -> anyhow::Result<Box<dyn Read>> {
             "An input image should be given by providing a path using the input argument or \
                  by piping an image to the stdin."
         ),
-        PathVariant::StdStream => Ok(sic_io::load::stdin_reader()?),
-        PathVariant::Path(path) => Ok(sic_io::load::file_reader(path)?),
+        PathVariant::StdStream => Ok(sic_io::import::stdin_reader()?),
+        PathVariant::Path(path) => Ok(sic_io::import::file_reader(path)?),
     }
 }
 
-fn create_writer(
-    io_device: &PathVariant,
-    adjust_ext: Option<&str>,
-) -> anyhow::Result<Box<dyn Write>> {
+#[derive(Debug)]
+struct Output {
+    output_type: OutputType,
+    written_bytes: usize,
+}
+
+impl Output {
+    pub fn new_file(file: File) -> Self {
+        Self {
+            output_type: OutputType::File(file),
+            written_bytes: 0,
+        }
+    }
+
+    pub fn new_stdout(stdout: Stdout) -> Self {
+        Self {
+            output_type: OutputType::Stdout(stdout),
+            written_bytes: 0,
+        }
+    }
+}
+
+#[derive(Debug)]
+enum OutputType {
+    File(File),
+    Stdout(Stdout),
+}
+
+impl WriteSeek for Output {}
+
+impl Write for Output {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        match self.output_type.borrow_mut() {
+            OutputType::File(f) => f.write(buf),
+            OutputType::Stdout(stdout) => {
+                let bytes = stdout.write(buf)?;
+                self.written_bytes += bytes;
+
+                Ok(bytes)
+            }
+        }
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        match self.output_type.borrow_mut() {
+            OutputType::File(f) => f.flush(),
+            OutputType::Stdout(stdout) => stdout.flush(),
+        }
+    }
+}
+
+impl Seek for Output {
+    fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
+        match self.output_type.borrow_mut() {
+            OutputType::File(f) => f.seek(pos),
+            OutputType::Stdout(_) => Ok(self.written_bytes as u64),
+        }
+    }
+}
+
+fn create_writer(io_device: &PathVariant, adjust_ext: Option<&str>) -> anyhow::Result<Output> {
     match io_device {
         PathVariant::Path(out) => {
             let base = out.as_path().parent().ok_or_else(|| {
@@ -144,9 +203,11 @@ fn create_writer(
                 _ => out.to_path_buf(),
             };
 
-            Ok(Box::new(File::create(out)?))
+            let file = File::create(out)?;
+
+            Ok(Output::new_file(file))
         }
-        PathVariant::StdStream => Ok(Box::new(io::stdout())),
+        PathVariant::StdStream => Ok(Output::new_stdout(io::stdout())),
     }
 }
 
@@ -156,9 +217,9 @@ fn create_format_decider(
 ) -> anyhow::Result<image::ImageOutputFormat> {
     let format_resolver = DetermineEncodingFormat {
         pnm_sample_encoding: if config.encoding_settings.pnm_use_ascii_format {
-            Some(image::pnm::SampleEncoding::Ascii)
+            Some(image::codecs::pnm::SampleEncoding::Ascii)
         } else {
-            Some(image::pnm::SampleEncoding::Binary)
+            Some(image::codecs::pnm::SampleEncoding::Binary)
         },
         jpeg_quality: {
             Some(JPEGQuality::try_from(

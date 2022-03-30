@@ -115,7 +115,7 @@ fn decode_png<R: Read>(
     frame: Option<FrameIndex>,
 ) -> ImportResult<SicImage> {
     let decoder =
-        image::png::PngDecoder::new(reader.into_inner()).map_err(SicIoError::ImageError)?;
+        image::codecs::png::PngDecoder::new(reader.into_inner()).map_err(SicIoError::ImageError)?;
 
     if decoder.is_apng() {
         frames(decoder.apng()).and_then(|f| select_frame(f, frame))

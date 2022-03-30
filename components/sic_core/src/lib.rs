@@ -8,6 +8,9 @@
 /// The re-export of image ensures all sic components use the same version.
 pub use image;
 
+#[cfg(feature = "imageproc-ops")]
+pub use {imageproc_patched as imageproc, rusttype};
+
 use crate::errors::SicCoreError;
 
 use image::{DynamicImage, Frames};

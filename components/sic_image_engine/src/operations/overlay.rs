@@ -44,15 +44,15 @@ fn overlay_animated_image(
 fn overlay_animated_with_animated(
     frames: &mut [image::Frame],
     other: &[image::Frame],
-    x: u32,
-    y: u32,
+    x: i64,
+    y: i64,
 ) {
     frames.par_iter_mut().zip(other).for_each(|(lhs, rhs)| {
         imageops::overlay(lhs.buffer_mut(), rhs.buffer(), x, y);
     });
 }
 
-fn overlay_animated_with_static(frames: &mut [image::Frame], other: &DynamicImage, x: u32, y: u32) {
+fn overlay_animated_with_static(frames: &mut [image::Frame], other: &DynamicImage, x: i64, y: i64) {
     frames.par_iter_mut().for_each(|frame| {
         imageops::overlay(frame.buffer_mut(), other, x, y);
     });

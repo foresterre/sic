@@ -229,8 +229,6 @@ mod compatibility {
                 sic_core::image::DynamicImage::ImageLumaA8(buffer) => buffer.to_vec(),
                 sic_core::image::DynamicImage::ImageRgb8(buffer) => buffer.to_vec(),
                 sic_core::image::DynamicImage::ImageRgba8(buffer) => buffer.to_vec(),
-                sic_core::image::DynamicImage::ImageBgr8(buffer) => buffer.to_vec(),
-                sic_core::image::DynamicImage::ImageBgra8(buffer) => buffer.to_vec(),
                 _ => unimplemented!(),
             }
         }
@@ -441,8 +439,8 @@ mod tests {
 
         assert_ne!(left.raw_pixels(), right.raw_pixels());
 
-        // 447 > 217 ->  (u32) |_ 217px/447px*100px _| = 48px
-        assert_eq!((48, 100), left.dimensions());
+        // 447 > 217 ->  (i64) |_ 217px/447px*100px _| = 49px
+        assert_eq!((49, 100), left.dimensions());
 
         output_test_image_for_manual_inspection(
             left,
@@ -1099,7 +1097,7 @@ mod tests {
             let mut engine = ImageEngine::new(img.clone());
             let res = engine.ignite(&[Instr::Operation(ImgOp::Overlay(OverlayInputs::new(
                 ImageFromPath::new(overlay.into()),
-                (bounds.0, bounds.1),
+                (bounds.0 as i64, bounds.1 as i64),
             )))]);
 
             let res_image = res.unwrap();
@@ -1123,7 +1121,7 @@ mod tests {
                 Instr::Operation(ImgOp::Invert),
                 Instr::Operation(ImgOp::Overlay(OverlayInputs::new(
                     ImageFromPath::new(overlay.into()),
-                    (bounds.0 / 2, bounds.1 / 2),
+                    ((bounds.0 / 2) as i64, (bounds.1 / 2) as i64),
                 ))),
             ]);
 
@@ -1285,6 +1283,7 @@ mod tests {
             out_!("test_unsharpen_neg20_1_neg20.png"),
         );
     }
+
     #[cfg(feature = "imageproc-ops")]
     #[test]
     fn test_threshold() {

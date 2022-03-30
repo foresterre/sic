@@ -219,7 +219,7 @@ impl ParseInputsFromIter for String {
         Self: std::marker::Sized,
     {
         let mut iter = iterable.into_iter();
-        const ERR_MSG: &str = "Unable to map a value to (f32, i32). v2";
+        const ERR_MSG: &str = "Unable to map a value to string";
 
         let res: Describable<'a> = iter
             .next()
@@ -227,6 +227,27 @@ impl ParseInputsFromIter for String {
             .into();
 
         return_if_complete!(iter, String::from(res.0))
+    }
+}
+
+impl ParseInputsFromIter for (i64, i64) {
+    type Error = SicParserError;
+
+    fn parse<'a, T>(iterable: T) -> Result<Self, Self::Error>
+    where
+        T: IntoIterator,
+        T::Item: Into<Describable<'a>> + std::fmt::Debug,
+        Self: std::marker::Sized,
+    {
+        let mut iter = iterable.into_iter();
+        const ERR_MSG: &str = "Unable to map a value to (u32, u32). v2";
+
+        let res: (i64, i64) = (
+            parse_next!(iter, i64, ERR_MSG),
+            parse_next!(iter, i64, ERR_MSG),
+        );
+
+        return_if_complete!(iter, res)
     }
 }
 
@@ -259,15 +280,15 @@ impl ParseInputsFromIter for OverlayInputs {
         let mut iter = iterable.into_iter();
         let image_path = parse_to_path_buf(iter.next().map(Into::<Describable>::into))?;
 
-        let position: (u32, u32) = (
+        let position: (i64, i64) = (
             parse_next!(
                 iter,
-                u32,
+                i64,
                 "x-axis position value for overlay should be a natural number"
             ),
             parse_next!(
                 iter,
-                u32,
+                i64,
                 "y-axis position value for overlay should be a natural number"
             ),
         );

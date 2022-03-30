@@ -1,8 +1,10 @@
 use crate::errors::{FormatError, SicIoError};
-use crate::save::ExportSettings;
+use crate::export::ExportSettings;
+use crate::WriteSeek;
 use image::buffer::ConvertBuffer;
 use image::DynamicImage;
 use sic_core::image::codecs::gif::Repeat;
+use sic_core::image::codecs::pnm;
 use sic_core::{image, AnimatedImage, SicImage};
 use std::io::Write;
 
@@ -55,7 +57,7 @@ impl<'a> ConversionWriter<'a> {
         ConversionWriter { image }
     }
 
-    pub fn write<W: Write>(
+    pub fn write_all<W: WriteSeek>(
         &self,
         writer: &mut W,
         output_format: image::ImageOutputFormat,
@@ -72,7 +74,7 @@ impl<'a> ConversionWriter<'a> {
             None => self.image,
         };
 
-        ConversionWriter::save_to(writer, export_buffer, output_format, export_settings)
+        ConversionWriter::export(writer, export_buffer, output_format, export_settings)
     }
 
     /// Some image output format types require color type pre-processing.
@@ -98,7 +100,7 @@ impl<'a> ConversionWriter<'a> {
         }
     }
 
-    fn save_to<W: Write>(
+    fn export<W: WriteSeek>(
         writer: &mut W,
         image: &SicImage,
         format: image::ImageOutputFormat,
@@ -129,18 +131,20 @@ fn adjust_dynamic_image(
         image::ImageOutputFormat::Farbfeld => {
             Some(DynamicImage::ImageRgba16(image.to_rgba8().convert()))
         }
-        image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Bitmap(_)) => Some(image.grayscale()),
-        image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Graymap(_)) => {
-            Some(image.grayscale())
+        image::ImageOutputFormat::Pnm(pnm::PnmSubtype::Bitmap(_)) => {
+            Some(DynamicImage::ImageLuma8(image.to_luma8()))
         }
-        image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Pixmap(_)) => {
+        image::ImageOutputFormat::Pnm(pnm::PnmSubtype::Graymap(_)) => {
+            Some(DynamicImage::ImageLuma8(image.to_luma8()))
+        }
+        image::ImageOutputFormat::Pnm(pnm::PnmSubtype::Pixmap(_)) => {
             Some(image::DynamicImage::ImageRgb8(image.to_rgb8()))
         }
         _ => None,
     }
 }
 
-fn encode_static_image<W: Write>(
+fn encode_static_image<W: WriteSeek>(
     writer: &mut W,
     image: &image::DynamicImage,
     format: image::ImageOutputFormat,
@@ -150,7 +154,7 @@ fn encode_static_image<W: Write>(
         .map_err(SicIoError::ImageError)
 }
 
-fn encode_animated_image<W: Write>(
+fn encode_animated_image<W: WriteSeek>(
     writer: &mut W,
     frames: Vec<image::Frame>, // note: should be owned for the encoder, so can't be a slice
     format: image::ImageOutputFormat,
@@ -190,9 +194,13 @@ mod tests {
     use std::fs::File;
     use std::io::{self, Read};
 
+    use parameterized::parameterized;
+    use sic_core::image::{ImageFormat, ImageOutputFormat};
     use sic_testing::{clean_up_output_path, setup_output_path, setup_test_image};
 
     use super::*;
+
+    impl WriteSeek for File {}
 
     // Individual tests:
 
@@ -210,7 +218,7 @@ mod tests {
         let example_output_format = image::ImageOutputFormat::Png;
         let conversion_processor = ConversionWriter::new(&buffer);
         conversion_processor
-            .write(
+            .write_all(
                 &mut File::create(&output_path)?,
                 example_output_format,
                 &ExportSettings {
@@ -237,7 +245,7 @@ mod tests {
         let example_output_format = image::ImageOutputFormat::Png;
         let conversion_processor = ConversionWriter::new(&buffer);
         conversion_processor
-            .write(
+            .write_all(
                 &mut File::create(&output_path)?,
                 example_output_format,
                 &ExportSettings {
@@ -267,7 +275,7 @@ mod tests {
         let example_output_format = image::ImageOutputFormat::Png;
         let conversion_processor = ConversionWriter::new(&buffer);
         conversion_processor
-            .write(
+            .write_all(
                 &mut File::create(&output_path)?,
                 example_output_format,
                 &ExportSettings {
@@ -296,42 +304,6 @@ mod tests {
     // Below all supported formats are testsed using the inputs listed below.
 
     const INPUT_MULTI: &[&str] = &["blackwhite_2x2.bmp", "palette_4x4.png"];
-    const INPUT_FORMATS: &[&str] = &[
-        "bmp", "farbfeld", "gif", "ico", "jpg", "jpeg", "png", "pbm", "pgm", "ppm", "pam",
-    ];
-    const OUTPUT_FORMATS: &[image::ImageOutputFormat] = &[
-        image::ImageOutputFormat::Bmp,
-        image::ImageOutputFormat::Farbfeld,
-        image::ImageOutputFormat::Gif,
-        image::ImageOutputFormat::Ico,
-        image::ImageOutputFormat::Jpeg(80),
-        image::ImageOutputFormat::Jpeg(80),
-        image::ImageOutputFormat::Png,
-        image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Bitmap(
-            image::pnm::SampleEncoding::Binary,
-        )),
-        image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Graymap(
-            image::pnm::SampleEncoding::Binary,
-        )),
-        image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::Pixmap(
-            image::pnm::SampleEncoding::Binary,
-        )),
-        image::ImageOutputFormat::Pnm(image::pnm::PNMSubtype::ArbitraryMap),
-    ];
-
-    const EXPECTED_VALUES: &[image::ImageFormat] = &[
-        image::ImageFormat::Bmp,
-        image::ImageFormat::Farbfeld,
-        image::ImageFormat::Gif,
-        image::ImageFormat::Ico,
-        image::ImageFormat::Jpeg,
-        image::ImageFormat::Jpeg,
-        image::ImageFormat::Png,
-        image::ImageFormat::Pnm,
-        image::ImageFormat::Pnm,
-        image::ImageFormat::Pnm,
-        image::ImageFormat::Pnm,
-    ];
 
     fn test_conversion_with_header_match(
         input: &str,
@@ -349,7 +321,7 @@ mod tests {
         let mut writer = File::create(&output_path)?;
 
         conversion_processor
-            .write(
+            .write_all(
                 &mut writer,
                 format,
                 &ExportSettings {
@@ -374,19 +346,63 @@ mod tests {
         Ok(())
     }
 
-    #[test]
-    fn test_conversions_with_header_match() -> io::Result<()> {
-        for test_image in INPUT_MULTI.iter() {
-            let zipped = INPUT_FORMATS
-                .iter()
-                .zip(OUTPUT_FORMATS.iter().cloned())
-                .zip(EXPECTED_VALUES.iter());
-
-            for ((ext, to_format), expected_format) in zipped {
-                test_conversion_with_header_match(test_image, ext, to_format, *expected_format)?;
-            }
+    #[parameterized(
+        ext = {
+            "bmp", 
+            "farbfeld", 
+            "gif", 
+            "ico", 
+            "jpg", 
+            "jpeg", 
+            "png", 
+            "pbm", 
+            "pgm", 
+            "ppm", 
+            "pam",
+        },
+        to_format = {
+            image::ImageOutputFormat::Bmp,
+            image::ImageOutputFormat::Farbfeld,
+            image::ImageOutputFormat::Gif,
+            image::ImageOutputFormat::Ico,
+            image::ImageOutputFormat::Jpeg(80),
+            image::ImageOutputFormat::Jpeg(80),
+            image::ImageOutputFormat::Png,
+            image::ImageOutputFormat::Pnm(image::codecs::pnm::PnmSubtype::Bitmap(
+                image::codecs::pnm::SampleEncoding::Binary,
+            )),
+            image::ImageOutputFormat::Pnm(image::codecs::pnm::PnmSubtype::Graymap(
+                image::codecs::pnm::SampleEncoding::Binary,
+            )),
+            image::ImageOutputFormat::Pnm(image::codecs::pnm::PnmSubtype::Pixmap(
+                image::codecs::pnm::SampleEncoding::Binary,
+            )),
+            image::ImageOutputFormat::Pnm(
+                image::codecs::pnm::PnmSubtype::ArbitraryMap
+            ),
+        },
+        expected_format = {
+            image::ImageFormat::Bmp,
+            image::ImageFormat::Farbfeld,
+            image::ImageFormat::Gif,
+            image::ImageFormat::Ico,
+            image::ImageFormat::Jpeg,
+            image::ImageFormat::Jpeg,
+            image::ImageFormat::Png,
+            image::ImageFormat::Pnm,
+            image::ImageFormat::Pnm,
+            image::ImageFormat::Pnm,
+            image::ImageFormat::Pnm,
         }
-
-        Ok(())
+    )]
+    fn test_conversions_with_header_match(
+        ext: &str,
+        to_format: ImageOutputFormat,
+        expected_format: ImageFormat,
+    ) {
+        for test_image in INPUT_MULTI.iter() {
+            test_conversion_with_header_match(test_image, ext, to_format.clone(), expected_format)
+                .unwrap();
+        }
     }
 }
