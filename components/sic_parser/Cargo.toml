@@ -1,6 +1,6 @@
 [package]
 name = "sic_parser"
-version = "0.19.1"
+version = "0.20.0"
 authors = ["Martijn Gribnau <garm@ilumeo.com>"]
 description = "Component of the sic cli: parser for the image operation script used by sic."
 license = "MIT OR Apache-2.0"

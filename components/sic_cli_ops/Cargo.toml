@@ -13,7 +13,7 @@ rust-version = "1.56"
 
 [dependencies]
 sic_image_engine = { version = "0.20.0", path = "../../components/sic_image_engine" }
-sic_parser = { version = "0.19.0", path = "../../components/sic_parser" }
+sic_parser = { version = "0.20.0", path = "../../components/sic_parser" }
 
 clap = "2.34.0"
 strum = "0.24.0"
