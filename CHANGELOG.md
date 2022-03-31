@@ -9,11 +9,15 @@ The changelog below lists notable changes for [sic](https://github.com/foresterr
 
 ## [Unreleased]
 
+[unreleased]: https://github.com/foresterre/sic/compare/v0.20.0...HEAD
+
 ## [0.20.0] - 2022-03-30
 
 ### Changed
 
 - Port image to image 0.24
+
+[0.20.0]: https://github.com/foresterre/sic/compare/v0.19.1...v0.20.0
 
 ## [0.19.1] - 2022-03-17
 
@@ -23,6 +27,8 @@ This is intended to be the last update before we port sic to `image 0.24`.
 
 - Updated dependencies
 
+[0.19.1]: https://github.com/foresterre/sic/compare/v0.19.0...v0.19.1
+
 ## [0.19.0] - 2021-06-05
 
 ### Added
@@ -30,6 +36,8 @@ This is intended to be the last update before we port sic to `image 0.24`.
 - Added horizontal gradient image operation
 - Added vertical gradient image operation
 - Added Otsu thresholding image operation 
+
+[0.19.0]: https://github.com/foresterre/sic/compare/v0.18.0...v0.19.0
 
 ## [0.18.0] - 2021-03-09
 
@@ -40,6 +48,8 @@ This is intended to be the last update before we port sic to `image 0.24`.
 ### Fixed
 
 - Automatic color type adjustment setting was ignored
+
+[0.18.0]: https://github.com/foresterre/sic/compare/v0.17.0...v0.18.0
 
 ## [0.17.0] - 2021-02-20
 
@@ -52,11 +62,15 @@ This is intended to be the last update before we port sic to `image 0.24`.
 - Animated images no longer load the first frame as static image (by default)
 - Frame index selection is now zero-indexed instead of one-indexed
 
+[0.17.0]: https://github.com/foresterre/sic/compare/v0.16.1...v0.17.0
+
 ## [0.16.1] - 2021-02-13
 
 ### Added
 
 - Added AVIF support to documentation
+
+[0.16.1]: https://github.com/foresterre/sic/compare/v0.16.0...v0.16.1
 
 ## [0.16.0] - 2021-02-13
 
@@ -64,12 +78,16 @@ This is intended to be the last update before we port sic to `image 0.24`.
 
 - Decoding support for AVIF
 
+[0.16.0]: https://github.com/foresterre/sic/compare/v0.15.0...v0.16.0
+
 ## [0.15.0] - 2020-12-25
 
 ### Added
 
 - Encoding support for TGA
 - Encoding support for AVIF
+
+[0.15.0]: https://github.com/foresterre/sic/compare/v0.14.0...v0.15.0
 
 ## [0.14.0] - 2020-08-07
 
@@ -92,7 +110,9 @@ This is intended to be the last update before we port sic to `image 0.24`.
 ### Fixed
 
 - Glob input paths starting with "./" or ".\" should now work
-- 
+
+[0.14.0]: https://github.com/foresterre/sic/compare/v0.12.0...v0.14.0
+
 
 ## [0.12.0] - 2020-06-01
 
@@ -116,6 +136,8 @@ This is intended to be the last update before we port sic to `image 0.24`.
 
 - Folders are now skipped in `glob` mode
 
+[0.12.0]: https://github.com/foresterre/sic/compare/v0.11.0...v0.12.0
+
 ## [0.11.0] - 2020-05-06
 
 ### Added
@@ -133,11 +155,15 @@ This is intended to be the last update before we port sic to `image 0.24`.
 
 - INPUT_FILE and OUTPUT_FILE positional arguments (use `--input` and `--output` instead!)
 
+[0.11.0]: https://github.com/foresterre/sic/compare/v0.10.1...v0.11.0
+
 ## [0.10.1]
 
 ### Fixed
 
 - Updated embedded dependency licenses
+
+[0.10.1]: https://github.com/foresterre/sic/compare/v0.10.0...v0.10.1
 
 ## [0.10.0] - 2019-09-28 [yanked]
 
@@ -161,6 +187,8 @@ This is intended to be the last update before we port sic to `image 0.24`.
 
 - The image script blur command took an unsigned integer as argument but it should have been a floating point number
 
+[0.10.0]: https://github.com/foresterre/sic/compare/v0.9.0...v0.10.0
+
 ## [0.9.0] - 2019-06-08
 
 ### Added
@@ -177,11 +205,15 @@ This is intended to be the last update before we port sic to `image 0.24`.
 - ⚠ Renamed option --force-format to --output-format
 - ⚠ Renamed --script to --apply-operations
 
+[0.9.0]: https://github.com/foresterre/sic/compare/v0.8.1...v0.9.0
+
 ## [0.8.1] - 2018-12-11
 
 ### Changed
 
 - Switched from nightly Rust toolchain to stable (internal)
+
+[0.8.1]: https://github.com/foresterre/sic/compare/v0.8.0...v0.8.1
 
 ## [0.8.0] - 2018-11-30 
 
@@ -192,6 +224,8 @@ This is intended to be the last update before we port sic to `image 0.24`.
 - Option to set PNM subtype
 - Option to automatically adjust color type for output format 
 - Updated [image](https://github.com/image-rs/image) to v0.20 (internal)
+
+[0.8.0]: https://github.com/foresterre/sic/compare/v0.7.0...v0.8.0
 
 ## [0.7.0] - 2018-08-21
 
@@ -209,6 +243,7 @@ This is intended to be the last update before we port sic to `image 0.24`.
 - Image script: add `unsharpen` image operation
 - Embedded user manual
 
+[0.7.0]: https://github.com/foresterre/sic/compare/v0.6.0...v0.7.0
 
 ## [0.6.0] - 2018-08-10
 
@@ -216,7 +251,11 @@ This is intended to be the last update before we port sic to `image 0.24`.
 
 - Embedded license in cli
 
+[0.6.0]: https://github.com/foresterre/sic/compare/v0.5.0...v0.6.0
+
 ## [0.5.0] - 2018-08-10 [yanked]
+
+[0.5.0]: https://github.com/foresterre/sic/compare/v0.4.0...v0.5.0
 
 ### Added
 
@@ -234,11 +273,15 @@ _yanked: `--version` not updated_
 
 - Updated [image](https://github.com/image-rs/image) from v0.17 to v0.19 (internal)
 
+[0.4.0]: https://github.com/foresterre/sic/compare/v0.2.0...v0.4.0
+
 ## [0.2.0] - 2018-06-03
 
 ### Added
 
 - Determine output format based on file extension
+
+[0.2.0]: https://github.com/foresterre/sic/compare/v0.1.0...v0.2.0
 
 ## [0.1.0] - 2017-11-12
 
@@ -248,26 +291,4 @@ _yanked: `--version` not updated_
 - Decoding support for PNG, JPEG, GIF, BMP, ICO, TIFF and WebP (not all formats are completely supported)
 - Encoding support for JPEG, PNG, GIF, ICO, PPM
 
-[unreleased]: https://github.com/foresterre/sic/compare/v0.20.0...HEAD
-[0.20.0]: https://github.com/foresterre/sic/compare/v0.19.1...v0.20.0
-[0.19.1]: https://github.com/foresterre/sic/compare/v0.19.0...v0.19.1
-[0.19.0]: https://github.com/foresterre/sic/compare/v0.18.0...v0.19.0
-[0.18.0]: https://github.com/foresterre/sic/compare/v0.17.0...v0.18.0
-[0.17.0]: https://github.com/foresterre/sic/compare/v0.16.1...v0.17.0
-[0.16.1]: https://github.com/foresterre/sic/compare/v0.16.0...v0.16.1
-[0.16.0]: https://github.com/foresterre/sic/compare/v0.15.0...v0.16.0
-[0.15.0]: https://github.com/foresterre/sic/compare/v0.14.0...v0.15.0
-[0.14.0]: https://github.com/foresterre/sic/compare/v0.12.0...v0.14.0
-[0.12.0]: https://github.com/foresterre/sic/compare/v0.11.0...v0.12.0
-[0.11.0]: https://github.com/foresterre/sic/compare/v0.10.1...v0.11.0
-[0.10.1]: https://github.com/foresterre/sic/compare/v0.10.0...v0.10.1
-[0.10.0]: https://github.com/foresterre/sic/compare/v0.9.0...v0.10.0
-[0.9.0]: https://github.com/foresterre/sic/compare/v0.8.1...v0.9.0
-[0.8.1]: https://github.com/foresterre/sic/compare/v0.8.0...v0.8.1
-[0.8.0]: https://github.com/foresterre/sic/compare/v0.7.0...v0.8.0
-[0.7.0]: https://github.com/foresterre/sic/compare/v0.6.0...v0.7.0
-[0.6.0]: https://github.com/foresterre/sic/compare/v0.5.0...v0.6.0
-[0.5.0]: https://github.com/foresterre/sic/compare/v0.4.0...v0.5.0
-[0.4.0]: https://github.com/foresterre/sic/compare/v0.2.0...v0.4.0
-[0.2.0]: https://github.com/foresterre/sic/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/foresterre/sic/releases/tag/v0.1.0
