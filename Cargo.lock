@@ -110,9 +110,9 @@ dependencies = [
 
 [[package]]
 name = "avif-serialize"
-version = "0.7.5"
+version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc018a7297c3b1b31e673baa843df5ff5dac7886067f64232b3c53691fc6d699"
+checksum = "0e78cc9987f72170fbd94fcd62d6275cdeb69b86c0649b62c1a5211c49a369b9"
 dependencies = [
  "arrayvec",
 ]
