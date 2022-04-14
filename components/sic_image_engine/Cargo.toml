@@ -18,7 +18,7 @@ strum = "0.24.0"
 strum_macros = "0.24.0"
 thiserror = "1.0.30"
 
-rayon = "1.5.1"
+rayon = "1.5.2"
 
 [dev-dependencies]
 sic_testing = { version = "0.20.0", path = "../sic_testing" }
