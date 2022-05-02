@@ -40,11 +40,11 @@ sic_io  = { version = "0.20.0", path = "components/sic_io" }
 sic_image_engine = { version = "0.20.0", path = "components/sic_image_engine" }
 sic_parser = { version = "0.20.0", path = "components/sic_parser"}
 
-anyhow = "1.0.56"
+anyhow = "1.0.57"
 atty = "0.2.14"
 clap = "2.34.0"
 globwalk = "0.8.1"
-open = "2.1.1"
+open = "2.1.2"
 
 [dev-dependencies]
 clap = "2.34.0" # for examples/gen_completions.rs
