@@ -16,5 +16,5 @@ sic_core = { version = "0.20.0", path = "../sic_core"}
 thiserror = "1.0.31"
 
 [dev-dependencies]
-parameterized = "0.3.1"
+parameterized = "1.0.0"
 sic_testing = { version = "0.20.0", path = "../sic_testing" }

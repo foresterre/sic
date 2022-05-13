@@ -533,6 +533,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "eabb4a44450da02c90444cf74558da904edde8fb4e9035a9a6a4e15445af0bd7"
 
 [[package]]
+name = "hashbrown"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d7afe4a420e3fe79967a00898cc1f4db7c8a49a9333a29f8a4bd76a253d5cd04"
+
+[[package]]
 name = "heck"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -619,6 +625,16 @@ name = "imgref"
 version = "1.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "41d0c0db6c932f8262e0ed8909f2e7f8c0e9b1cfb4da884267ce09a10be54365"
+
+[[package]]
+name = "indexmap"
+version = "1.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "824845a0bf897a9042383849b02c1bc219c2383772efcd5c6f9766fa4b81aef3"
+dependencies = [
+ "autocfg",
+ "hashbrown",
+]
 
 [[package]]
 name = "inflate"
@@ -724,12 +740,6 @@ dependencies = [
  "arbitrary",
  "cc",
 ]
-
-[[package]]
-name = "linked-hash-map"
-version = "0.5.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7fb9b38af92608140b86b693604b9ffcc5824240a484d1ecd4795bacb2fe88f3"
 
 [[package]]
 name = "lock_api"
@@ -975,20 +985,20 @@ dependencies = [
 
 [[package]]
 name = "parameterized"
-version = "0.3.1"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a016989fe7bd507280a4242bf87aa9edbc87d68469fd6daaaf4c4765bf9e99a5"
+checksum = "33543d17fe882d6d8835b193d2c7f0fdc3317645ca7510aaaf6103848498381c"
 dependencies = [
  "parameterized-macro",
 ]
 
 [[package]]
 name = "parameterized-macro"
-version = "0.3.1"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4c35d1acbab4b049fe1ce0f613038d46430ae92bb28bb441f9709ee192d4acb8"
+checksum = "24792407b50d07456abc531c1bc629a642a005d3b292c97dc23bf5bff1ad9cea"
 dependencies = [
- "linked-hash-map",
+ "indexmap",
  "proc-macro2",
  "quote",
  "syn",

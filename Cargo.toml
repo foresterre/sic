@@ -48,7 +48,7 @@ open = "2.1.2"
 
 [dev-dependencies]
 clap = "2.34.0" # for examples/gen_completions.rs
-parameterized = "0.3.1"
+parameterized = "1.0.0"
 
 [build-dependencies]
 
