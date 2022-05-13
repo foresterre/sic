@@ -16,7 +16,7 @@ image = { version = "0.24.2", features = ["avif"] }
 imageproc-patched = { version = "0.22.0-unofficial.1-foresterre", optional = true }
 rusttype = { version = "0.9.2", optional = true }
 
-thiserror = "1.0.30"
+thiserror = "1.0.31"
 
 [features]
 imageproc-ops = ["imageproc-patched", "rusttype"]
