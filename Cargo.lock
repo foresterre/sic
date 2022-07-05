@@ -601,10 +601,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "imageproc-patched"
-version = "0.22.0-unofficial.1-foresterre"
+name = "imageproc"
+version = "0.23.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be70accd92e538a732e8c5f5d9e5d89801af086563c90049c6bbc4860a943a9c"
+checksum = "b6aee993351d466301a29655d628bfc6f5a35a0d062b6160ca0808f425805fd7"
 dependencies = [
  "approx",
  "conv",
@@ -1468,7 +1468,7 @@ name = "sic_core"
 version = "0.20.0"
 dependencies = [
  "image",
- "imageproc-patched",
+ "imageproc",
  "rusttype",
  "thiserror",
 ]

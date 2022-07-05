@@ -13,10 +13,10 @@ rust-version = "1.56"
 [dependencies]
 image = { version = "0.24.2", features = ["avif"] }
 
-imageproc-patched = { version = "0.22.0-unofficial.1-foresterre", optional = true }
+imageproc = { version = "0.23.0", optional = true }
 rusttype = { version = "0.9.2", optional = true }
 
 thiserror = "1.0.31"
 
 [features]
-imageproc-ops = ["imageproc-patched", "rusttype"]
+imageproc-ops = ["imageproc", "rusttype"]
