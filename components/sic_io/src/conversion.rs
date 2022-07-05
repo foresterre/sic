@@ -178,7 +178,7 @@ fn encode_animated_gif<W: Write>(
     repeat: RepeatAnimation,
 ) -> Result<(), SicIoError> {
     let mut encoder = image::codecs::gif::GifEncoder::new(writer);
-    let _ = encoder.encode_frames(frames)?;
+    encoder.encode_frames(frames)?;
 
     match repeat {
         RepeatAnimation::Finite(amount) => encoder.set_repeat(Repeat::Finite(amount))?,
