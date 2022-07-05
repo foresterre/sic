@@ -9,7 +9,7 @@
 pub use image;
 
 #[cfg(feature = "imageproc-ops")]
-pub use {imageproc_patched as imageproc, rusttype};
+pub use {imageproc, rusttype};
 
 use crate::errors::SicCoreError;
 
