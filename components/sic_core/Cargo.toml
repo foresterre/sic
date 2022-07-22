@@ -11,7 +11,7 @@ edition = "2021"
 rust-version = "1.56"
 
 [dependencies]
-image = { version = "0.24.2", features = ["avif"] }
+image = { version = "0.24.3", features = ["avif"] }
 
 imageproc = { version = "0.23.0", optional = true }
 rusttype = { version = "0.9.2", optional = true }
