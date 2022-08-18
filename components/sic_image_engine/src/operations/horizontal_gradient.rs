@@ -5,7 +5,7 @@ use crate::wrapper::gradient_input::GradientInput;
 use sic_core::image::imageops;
 use sic_core::SicImage;
 
-#[derive(Clone, Debug, Copy, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct HorizontalGradient {
     pub colors: GradientInput,
 }

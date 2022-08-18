@@ -108,12 +108,7 @@ mod tests {
 
         fn interweave(ops: &[&str]) -> Vec<String> {
             ops.iter()
-                .map(|f| {
-                    f.replace(
-                        '▲',
-                        &setup_test_image("aaa.png").to_string_lossy().to_string(),
-                    )
-                })
+                .map(|f| f.replace('▲', &setup_test_image("aaa.png").to_string_lossy()))
                 .collect::<Vec<_>>()
         }
 
@@ -226,7 +221,7 @@ mod tests {
                 "2",
                 "3",
                 "--diff",
-                &setup_test_image("aaa.png").to_string_lossy().to_string(),
+                &setup_test_image("aaa.png").to_string_lossy(),
                 "--filter3x3",
                 "1.0",
                 "1.0",
