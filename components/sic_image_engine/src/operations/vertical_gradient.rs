@@ -6,7 +6,7 @@ use sic_core::SicImage;
 use crate::wrapper::gradient_fn;
 use sic_core::image::imageops;
 
-#[derive(Clone, Debug, Copy, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct VerticalGradient {
     pub colors: GradientInput,
 }

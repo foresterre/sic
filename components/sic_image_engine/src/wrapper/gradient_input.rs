@@ -4,7 +4,7 @@ use sic_core::image::Rgba;
 
 type Color = Rgba<u8>;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct GradientInput {
     colors: (Color, Color),
 }

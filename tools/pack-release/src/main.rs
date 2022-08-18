@@ -34,11 +34,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 type EnvGuard<'shell> = PushEnv<'shell>;
 
 fn inherit_path(shell: &Shell) -> Option<EnvGuard> {
-    if let Some(path) = option_env!("PATH") {
-        Some(shell.push_env("PATH", path))
-    } else {
-        None
-    }
+    option_env!("PATH").map(|envs| shell.push_env("PATH", envs))
 }
 
 // Don't build against Windows GNU toolchain
@@ -53,7 +49,7 @@ fn inherit_path(shell: &Shell) -> Option<EnvGuard> {
 // ❯ nasm --version
 // NASM version 2.15.05 compiled on Aug 28 2020
 // ```
-fn skip_windows_gnu<'toolchain>(
+fn skip_windows_gnu(
     toolchains: impl IntoIterator<Item = String>,
 ) -> impl IntoIterator<Item = String> {
     toolchains
