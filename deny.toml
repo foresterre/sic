@@ -10,6 +10,7 @@ allow = [
     "MIT",
     "Unlicense",
     "Zlib",
+    "Unicode-DFS-2016",
 ]
 
 [[licenses.clarify]]
