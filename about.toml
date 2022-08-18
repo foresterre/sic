@@ -8,6 +8,7 @@ accepted = [
     "MIT",
     "Unlicense",
     "Zlib",
+    "Unicode-DFS-2016",
 ]
 targets = [
     "x86_64-unknown-linux-gnu",
