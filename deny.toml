@@ -32,4 +32,6 @@ ignore = [
     "RUSTSEC-2020-0071",
     # Potential segfault in localtime_r invocations, see 2020-0071
     "RUSTSEC-2020-0159",
+    # unmaintained crate ansi_term
+    "RUSTSEC-2021-0139",
 ]
