@@ -34,4 +34,6 @@ ignore = [
     "RUSTSEC-2020-0159",
     # unmaintained crate ansi_term
     "RUSTSEC-2021-0139",
+    # unmaintained crate rusttype
+    "RUSTSEC-2021-0140",
 ]
