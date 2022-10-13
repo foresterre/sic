@@ -948,9 +948,9 @@ checksum = "2839e79665f131bdb5782e51f2c6c9599c133c6098982a54c794358bf432529c"
 
 [[package]]
 name = "open"
-version = "3.0.2"
+version = "3.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f23a407004a1033f53e93f9b45580d14de23928faad187384f891507c9b0c045"
+checksum = "b4a3100141f1733ea40b53381b0ae3117330735ef22309a190ac57b9576ea716"
 dependencies = [
  "pathdiff",
  "windows-sys",
@@ -1987,9 +1987,9 @@ checksum = "a72a9921af8237fe25097a1ae31c92a05c1d39b2454653ad48f2f407cf7a0dae"
 
 [[package]]
 name = "zip"
-version = "0.6.2"
+version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bf225bcf73bb52cbb496e70475c7bd7a3f769df699c0020f6c7bd9a96dcf0b8d"
+checksum = "537ce7411d25e54e8ae21a7ce0b15840e7bfcff15b51d697ec3266cc76bdf080"
 dependencies = [
  "byteorder",
  "crc32fast",
