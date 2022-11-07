@@ -222,10 +222,30 @@ dependencies = [
  "ansi_term",
  "atty",
  "bitflags",
- "strsim",
  "textwrap",
  "unicode-width",
- "vec_map",
+]
+
+[[package]]
+name = "clap"
+version = "4.0.22"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "91b9970d7505127a162fdaa9b96428d28a479ba78c9ec7550a63a5d9863db682"
+dependencies = [
+ "atty",
+ "bitflags",
+ "clap_lex",
+ "strsim",
+ "termcolor",
+]
+
+[[package]]
+name = "clap_lex"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0d4198f73e42b4936b35b5bb248d81d2b595ecb170da0bac7655c54eedfa8da8"
+dependencies = [
+ "os_str_bytes",
 ]
 
 [[package]]
@@ -1044,6 +1064,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "os_str_bytes"
+version = "6.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3baf96e39c5359d2eb0dd6ccb42c62b91d9678aa68160d261b9e0ccbf9e9dea9"
+
+[[package]]
 name = "owned_ttf_parser"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1302,7 +1328,7 @@ dependencies = [
  "bitstream-io",
  "cc",
  "cfg-if",
- "clap",
+ "clap 2.34.0",
  "console",
  "fern",
  "interpolate_name",
@@ -1522,7 +1548,7 @@ version = "0.20.0"
 dependencies = [
  "anyhow",
  "atty",
- "clap",
+ "clap 4.0.22",
  "globwalk",
  "open",
  "parameterized",
@@ -1537,7 +1563,7 @@ dependencies = [
 name = "sic_cli_ops"
 version = "0.20.0"
 dependencies = [
- "clap",
+ "clap 4.0.22",
  "parameterized",
  "sic_core",
  "sic_image_engine",
@@ -1660,9 +1686,9 @@ dependencies = [
 
 [[package]]
 name = "strsim"
-version = "0.8.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ea5119cdb4c55b55d432abb513a0429384878c15dde60cc77b1c99de1a95a6a"
+checksum = "73473c0e59e6d5812c5dfe2a064a6444949f089e20eec9a2e5506596494e4623"
 
 [[package]]
 name = "strum"
@@ -1875,12 +1901,6 @@ dependencies = [
  "rayon",
  "rust_hawktracer",
 ]
-
-[[package]]
-name = "vec_map"
-version = "0.8.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f1bddf1187be692e79c5ffeab891132dfb0f236ed36a43c7ed39f1165ee20191"
 
 [[package]]
 name = "vergen"

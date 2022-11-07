@@ -15,7 +15,7 @@ rust-version = "1.56"
 sic_image_engine = { version = "0.20.0", path = "../../components/sic_image_engine" }
 sic_parser = { version = "0.20.0", path = "../../components/sic_parser" }
 
-clap = "2.34.0"
+clap = "4.0.22"
 strum = "0.24.1"
 strum_macros = "0.24.3"
 thiserror = "1.0.37"
