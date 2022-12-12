@@ -1,6 +1,6 @@
 [package]
 name = "sic_core"
-version = "0.20.1"
+version = "0.20.2"
 authors = ["Martijn Gribnau <garm@ilumeo.com>"]
 description = "Component of the sic cli: re-exports global dependencies to sub-crates."
 license = "MIT OR Apache-2.0"

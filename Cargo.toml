@@ -1,6 +1,6 @@
 [package]
 name = "sic"
-version = "0.20.0"
+version = "0.20.1"
 authors = ["Martijn Gribnau <garm@ilumeo.com>"]
 description = "Accessible image processing and conversion from the terminal (and a front-end for the 'image' crate)."
 license = "MIT OR Apache-2.0"
