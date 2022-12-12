@@ -9,7 +9,15 @@ The changelog below lists notable changes for [sic](https://github.com/foresterr
 
 ## [Unreleased]
 
-[unreleased]: https://github.com/foresterre/sic/compare/v0.20.0...HEAD
+[unreleased]: https://github.com/foresterre/sic/compare/v0.20.1...HEAD
+
+## [0.20.1] - 2022-12-12
+
+### Changed
+
+- Updated dependencies
+
+[0.20.1]: https://github.com/foresterre/sic/compare/v0.20.0...v0.20.1
 
 ## [0.20.0] - 2022-03-30
 
