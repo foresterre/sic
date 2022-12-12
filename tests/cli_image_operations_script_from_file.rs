@@ -10,7 +10,7 @@ fn script_from_file_ok() {
     let mut process = SicTestCommandBuilder::new()
         .input_from_resources(DEFAULT_IN)
         .output_in_target("cio_script_from_file__ok.png")
-        .with_args(&["--operations-script", script_file])
+        .with_args(["--operations-script", script_file])
         .spawn_child();
 
     let result = process.wait().unwrap();
@@ -24,7 +24,7 @@ fn script_from_file_where_file_not_found() {
     let mut process = SicTestCommandBuilder::new()
         .input_from_resources(DEFAULT_IN)
         .output_in_target("cio_script_from_file__file_not_found.png")
-        .with_args(&["--operations-script", script])
+        .with_args(["--operations-script", script])
         .spawn_child();
 
     let result = process.wait();
@@ -40,7 +40,7 @@ fn script_from_file_conflicting_args() {
     let mut process = SicTestCommandBuilder::new()
         .input_from_resources(DEFAULT_IN)
         .output_in_target("cio_script_from_file__conflicted_args.png")
-        .with_args(&[
+        .with_args([
             "--operations-script",
             script_file,
             "--apply-operations",

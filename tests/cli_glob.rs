@@ -29,7 +29,7 @@ fn modify_format() {
     let mut process = SicTestCommandBuilder::new()
         .glob_input_from_resources("*.png")
         .glob_output_in_target(OUT)
-        .with_args(&["--output-format", "jpg"])
+        .with_args(["--output-format", "jpg"])
         .spawn_child();
 
     let exit_status = process.wait().unwrap();
