@@ -24,21 +24,21 @@ tag-prefix = ""
 
 [workspace]
 members = [
-    "components/sic_cli_ops",
-    "components/sic_core",
-    "components/sic_image_engine",
-    "components/sic_io",
-    "components/sic_parser",
-    "components/sic_testing",
+    "crates/sic_cli_ops",
+    "crates/sic_core",
+    "crates/sic_image_engine",
+    "crates/sic_io",
+    "crates/sic_parser",
+    "crates/sic_testing",
     "tools/pack-release",
 ]
 
 [dependencies]
-sic_cli_ops = { version = "0.20.0", path = "components/sic_cli_ops" }
-sic_core = { version = "0.20.0", path = "components/sic_core" }
-sic_io  = { version = "0.20.0", path = "components/sic_io" }
-sic_image_engine = { version = "0.20.0", path = "components/sic_image_engine" }
-sic_parser = { version = "0.20.0", path = "components/sic_parser"}
+sic_cli_ops = { version = "0.20.0", path = "crates/sic_cli_ops" }
+sic_core = { version = "0.20.0", path = "crates/sic_core" }
+sic_io  = { version = "0.20.0", path = "crates/sic_io" }
+sic_image_engine = { version = "0.20.0", path = "crates/sic_image_engine" }
+sic_parser = { version = "0.20.0", path = "crates/sic_parser" }
 
 anyhow = "1.0.66"
 atty = "0.2.14"
@@ -62,4 +62,3 @@ output-test-images = []
 panic = "abort"
 lto = true
 codegen-units = 1
-
