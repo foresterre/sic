@@ -55,7 +55,7 @@ jobs:
     continue-on-error: true
     strategy:
       matrix:
-        build: [ubuntu-stable, ubuntu-beta, ubuntu-nightly, macos-stable, win-gnu-stable, win-msvc-stable]
+        build: [ubuntu-stable, ubuntu-beta, macos-stable, win-gnu-stable, win-msvc-stable]
         include:
           # latest rust stable :: ubuntu
           - build: ubuntu-stable
@@ -66,11 +66,6 @@ jobs:
           - build: ubuntu-beta
             os: ubuntu-latest
             rust: beta
-
-          # latest rust nightly :: ubuntu
-          - build: ubuntu-nightly
-            os: ubuntu-latest
-            rust: nightly
 
           # latest rust stable :: mac_os
           - build: macos-stable
