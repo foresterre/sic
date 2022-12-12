@@ -2,7 +2,7 @@ use std::process::{Command, Output};
 
 fn run_license_command() -> Output {
     Command::new("cargo")
-        .args(&["run", "--", "--license"])
+        .args(["run", "--", "--license"])
         .output()
         .expect("Running test failed")
 }

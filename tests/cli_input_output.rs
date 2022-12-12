@@ -18,25 +18,25 @@ enum RunWithIOArg {
 impl RunWithIOArg {
     fn both(self, input: &str, output: &str) -> Command {
         let mut command = Command::new("cargo");
-        command.args(&["run", "--", "-i", input, "-o", output]);
+        command.args(["run", "--", "-i", input, "-o", output]);
         command
     }
 
     fn neither(self, input: &str, output: &str) -> Command {
         let mut command = Command::new("cargo");
-        command.args(&["run", "--", input, output]);
+        command.args(["run", "--", input, output]);
         command
     }
 
     fn only_i(self, input: &str, output: &str) -> Command {
         let mut command = Command::new("cargo");
-        command.args(&["run", "--", "-i", input, output]);
+        command.args(["run", "--", "-i", input, output]);
         command
     }
 
     fn only_o(self, input: &str, output: &str) -> Command {
         let mut command = Command::new("cargo");
-        command.args(&["run", "--", "-o", output, input]);
+        command.args(["run", "--", "-o", output, input]);
         command
     }
 

@@ -33,7 +33,7 @@ mod blur {
         let mut process = SicTestCommandBuilder::new()
             .input_from_resources(DEFAULT_IN)
             .output_in_target("img_op_arg.png")
-            .with_args(&["--blur", "1"])
+            .with_args(["--blur", "1"])
             .spawn_child();
 
         let result = process.wait();
@@ -46,7 +46,7 @@ mod blur {
         let mut process = SicTestCommandBuilder::new()
             .input_from_resources(DEFAULT_IN)
             .output_in_target("img_op_arg.png")
-            .with_args(&["--blur", "1.1"])
+            .with_args(["--blur", "1.1"])
             .spawn_child();
 
         let result = process.wait();
@@ -59,7 +59,7 @@ mod blur {
         let mut process = SicTestCommandBuilder::new()
             .input_from_resources(DEFAULT_IN)
             .output_in_target("img_op_arg.png")
-            .with_args(&["--blur", "-1.1"])
+            .with_args(["--blur", "-1.1"])
             .spawn_child();
 
         let result = process.wait();
@@ -78,7 +78,7 @@ mod crop {
         let mut process = SicTestCommandBuilder::new()
             .input_from_resources(DEFAULT_IN)
             .output_in_target("img_op_arg.png")
-            .with_args(&["--crop", "0", "0", "1", "1"])
+            .with_args(["--crop", "0", "0", "1", "1"])
             .spawn_child();
 
         let result = process.wait();

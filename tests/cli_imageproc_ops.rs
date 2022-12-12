@@ -32,7 +32,7 @@ mod tests {
         let mut process = SicTestCommandBuilder::new()
             .input_from_resources("unsplash_763569_cropped.jpg")
             .output_in_target(&out)
-            .with_args(&["--apply-operations", &ops])
+            .with_args(["--apply-operations", &ops])
             .with_feature("imageproc-ops")
             .spawn_child();
 
