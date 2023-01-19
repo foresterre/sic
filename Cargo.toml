@@ -17,7 +17,7 @@ keywords = ["image", "converter", "cli", "front-end", "image-cli"]
 categories = ["multimedia::images", "command-line-utilities"]
 
 edition = "2021"
-rust-version = "1.61"
+rust-version = "1.63"
 
 [package.metadata.release]
 tag-prefix = ""
@@ -40,15 +40,15 @@ sic_io  = { version = "0.20.0", path = "crates/sic_io" }
 sic_image_engine = { version = "0.20.0", path = "crates/sic_image_engine" }
 sic_parser = { version = "0.20.0", path = "crates/sic_parser" }
 
-anyhow = "1.0.66"
+anyhow = "1"
 atty = "0.2.14"
 clap = "2.34.0"
 globwalk = "0.8.1"
-open = "3.0.3"
+open = "3.2.0"
 
 [dev-dependencies]
 clap = "2.34.0" # for examples/gen_completions.rs
-parameterized = "1.0.0"
+parameterized = "1.0.1"
 
 [build-dependencies]
 
