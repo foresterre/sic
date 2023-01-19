@@ -74,6 +74,7 @@ mod convert_to_x {
         "pgm",
         "ppm",
         "pam",
+        "webp",
     }, expected_format = {
         image::ImageFormat::Bmp,
         image::ImageFormat::Farbfeld,
@@ -86,6 +87,7 @@ mod convert_to_x {
         image::ImageFormat::Pnm,
         image::ImageFormat::Pnm,
         image::ImageFormat::Pnm,
+        image::ImageFormat::WebP,
 
     })]
     fn convert_to_x_by_extension(ext: &str, expected_format: image::ImageFormat) {
@@ -144,6 +146,7 @@ mod convert_to_x_by_ff {
         "pgm",
         "ppm",
         "pam",
+        "webp",
     }, expected_format = {
         image::ImageFormat::Bmp,
         image::ImageFormat::Farbfeld,
@@ -156,6 +159,7 @@ mod convert_to_x_by_ff {
         image::ImageFormat::Pnm,
         image::ImageFormat::Pnm,
         image::ImageFormat::Pnm,
+        image::ImageFormat::WebP,
     })]
     fn convert_to_bmp_by_ff(which: &str, expected_format: image::ImageFormat) {
         let input_path = setup_input_path("palette_4x4.png");
