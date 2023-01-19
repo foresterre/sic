@@ -105,6 +105,7 @@ impl EncodingFormatByIdentifier for DetermineEncodingFormat {
                 self.pnm_encoding_type()?,
             ))),
             "tga" => Ok(image::ImageOutputFormat::Tga),
+            "webp" => Ok(image::ImageOutputFormat::WebP),
             _ => Err(SicIoError::UnknownImageIdentifier(identifier.to_string())),
         }
     }

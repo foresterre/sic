@@ -2,7 +2,6 @@ use crate::errors::{FormatError, SicIoError};
 use crate::export::ExportSettings;
 use crate::WriteSeek;
 use image::buffer::ConvertBuffer;
-use image::DynamicImage;
 use sic_core::image::codecs::gif::Repeat;
 use sic_core::image::codecs::pnm;
 use sic_core::{image, AnimatedImage, SicImage};
@@ -119,7 +118,9 @@ impl<'a> ConversionWriter<'a> {
 fn adjust_dynamic_image(
     image: &image::DynamicImage,
     output_format: &image::ImageOutputFormat,
-) -> Option<DynamicImage> {
+) -> Option<image::DynamicImage> {
+    use image::DynamicImage;
+
     // A remaining open question: does a user expect for an image to be able to convert to a format even if the color type is not supported?
     // And even if the user does, should we?
     // I suspect that users expect that color type conversions should happen automatically.
@@ -138,7 +139,7 @@ fn adjust_dynamic_image(
             Some(DynamicImage::ImageLuma8(image.to_luma8()))
         }
         image::ImageOutputFormat::Pnm(pnm::PnmSubtype::Pixmap(_)) => {
-            Some(image::DynamicImage::ImageRgb8(image.to_rgb8()))
+            Some(DynamicImage::ImageRgb8(image.to_rgb8()))
         }
         _ => None,
     }

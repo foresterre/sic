@@ -9,6 +9,10 @@ The changelog below lists notable changes for [sic](https://github.com/foresterr
 
 ## [Unreleased]
 
+### Added
+
+- Added `webp` encoding support
+
 [unreleased]: https://github.com/foresterre/sic/compare/v0.20.1...HEAD
 
 ## [0.20.1] - 2022-12-12
