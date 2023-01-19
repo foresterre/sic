@@ -1,6 +1,5 @@
 status = [
 	"test (ubuntu-stable)",
-	"test (ubuntu-beta)",
 	"test (macos-stable)",
 	"test (win-gnu-stable)",
 	"test (win-msvc-stable)",

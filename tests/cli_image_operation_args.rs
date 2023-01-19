@@ -1,3 +1,5 @@
+#![deny(clippy::all)]
+
 use std::process::Child;
 
 #[macro_use]

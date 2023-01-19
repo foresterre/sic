@@ -246,7 +246,7 @@ mod tests {
         let conversion_processor = ConversionWriter::new(&buffer);
         conversion_processor
             .write_all(
-                &mut File::create(&output_path)?,
+                &mut File::create(output_path)?,
                 example_output_format,
                 &ExportSettings {
                     adjust_color_type: AutomaticColorTypeAdjustment::Enabled,
@@ -276,7 +276,7 @@ mod tests {
         let conversion_processor = ConversionWriter::new(&buffer);
         conversion_processor
             .write_all(
-                &mut File::create(&output_path)?,
+                &mut File::create(output_path)?,
                 example_output_format,
                 &ExportSettings {
                     adjust_color_type: AutomaticColorTypeAdjustment::Enabled,
@@ -318,7 +318,7 @@ mod tests {
             .expect("Can't open test file.")
             .into();
         let conversion_processor = ConversionWriter::new(&buffer);
-        let mut writer = File::create(&output_path)?;
+        let mut writer = File::create(output_path)?;
 
         conversion_processor
             .write_all(

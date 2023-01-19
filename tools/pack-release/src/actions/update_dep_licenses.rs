@@ -47,7 +47,7 @@ pub fn update_dep_licenses(shell: &Shell) -> impl AsRef<Path> {
         .expect("Unable to write ignore file");
 
     shell
-        .write_file(DEP_LICENSES_PATH, &about)
+        .write_file(DEP_LICENSES_PATH, about)
         .expect("Unable to write license texts to license file.");
 
     println!("Completed the update process of the dependency licenses file.");

@@ -1,3 +1,5 @@
+#![deny(clippy::all)]
+
 use std::process::{Command, Output};
 
 fn run_license_command() -> Output {

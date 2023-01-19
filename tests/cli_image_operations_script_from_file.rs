@@ -1,3 +1,5 @@
+#![deny(clippy::all)]
+
 #[macro_use]
 pub mod common;
 

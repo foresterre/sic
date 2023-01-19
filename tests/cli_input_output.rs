@@ -1,3 +1,4 @@
+#![deny(clippy::all)]
 #![allow(clippy::upper_case_acronyms)]
 
 use std::process::{Child, Command};

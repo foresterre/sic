@@ -12,4 +12,4 @@ rust-version = "1.59"
 
 [dependencies]
 zip = { version = "0.6", default-features = false, features = ["deflate"] }
-xshell = "0.2.2"
+xshell = "0.2.3"

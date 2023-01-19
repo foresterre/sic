@@ -39,7 +39,7 @@ pub fn cargo_build(shell: &Shell, toolchain: &str, dep_licenses: impl AsRef<Path
         toolchain.trim().replace("stable-", "")
     );
 
-    zip_files(&[exe.as_path(), dep_licenses.as_ref()], Path::new(&zip));
+    zip_files([exe.as_path(), dep_licenses.as_ref()], Path::new(&zip));
 
     // remove output directory
     if option_env!("PACK_RELEASE_KEEP_OUTPUT").is_none() {
@@ -67,7 +67,7 @@ pub fn sic_version(shell: &Shell, exe: &Path) -> String {
 }
 
 pub fn zip_files<P: AsRef<Path>, I: IntoIterator<Item = P>>(files: I, destination: &Path) {
-    let zip_file = File::create(&destination).expect("Unable to create zip");
+    let zip_file = File::create(destination).expect("Unable to create zip");
     let mut writer = zip::ZipWriter::new(zip_file);
 
     let options = FileOptions::default()
@@ -134,7 +134,7 @@ fn zip_folder<P: AsRef<Path>>(path: P, destination: P) {
 
     for entry in std::fs::read_dir(path).expect("Unable to read directory") {
         let entry = entry.expect("Unable to access directory entry");
-        let buffer = std::fs::read(&entry.path()).expect("Unable to read directory entry");
+        let buffer = std::fs::read(entry.path()).expect("Unable to read directory entry");
 
         writer
             .start_file(&entry.file_name().force_to_string(), file_options)
