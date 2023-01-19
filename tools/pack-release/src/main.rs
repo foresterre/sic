@@ -1,3 +1,4 @@
+#![deny(clippy::all)]
 #![allow(clippy::unnecessary_wraps)]
 
 use crate::actions::{
