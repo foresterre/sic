@@ -9,7 +9,15 @@ The changelog below lists notable changes for [sic](https://github.com/foresterr
 
 ## [Unreleased]
 
-[unreleased]: https://github.com/foresterre/sic/compare/v0.21.0...HEAD
+[unreleased]: https://github.com/foresterre/sic/compare/v0.21.1...HEAD
+
+## [0.21.1] - 2023-01-21
+
+### Fixed
+
+* Fixed an issue where it was not possible to read an input file via stdin
+
+[0.21.1]: https://github.com/foresterre/sic/compare/v0.21.0...v0.21.1
 
 ## [0.21.0] - 2023-01-19
 
