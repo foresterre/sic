@@ -12,9 +12,9 @@ sic_image_engine = { version = "0.19.0", path = "../../components/sic_image_engi
 sic_parser = { version = "0.19.0", path = "../../components/sic_parser" }
 
 clap = "2.34.0"
-strum = "0.23.0"
-strum_macros = "0.23.1"
-thiserror = "1.0.30"
+strum = "0.24.1"
+strum_macros = "0.24.3"
+thiserror = "1"
 
 [dev-dependencies]
 sic_core = { version = "0.19.0", path = "../../components/sic_core" }

@@ -38,12 +38,12 @@ sic_io  = { version = "0.19.0", path = "components/sic_io" }
 sic_image_engine = { version = "0.19.0", path = "components/sic_image_engine" }
 sic_parser = { version = "0.19.0", path = "components/sic_parser"}
 
-anyhow = "1.0.52"
+anyhow = "1.0.68"
 atty = "0.2.14"
 clap = "2.34.0"
 globwalk = "0.8.1"
-open = "2.0.2"
-strum = "0.23.0"
+open = "2.1.3"
+strum = "0.24.1"
 
 [dev-dependencies]
 clap = "2.34.0" # for examples/gen_completions.rs
@@ -61,4 +61,3 @@ output-test-images = []
 panic = "abort"
 lto = true
 codegen-units = 1
-
