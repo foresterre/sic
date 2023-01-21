@@ -27,6 +27,7 @@ impl PathVariant {
     }
 }
 
+#[derive(Debug)]
 pub enum InputOutputMode {
     Single {
         input: PathVariant,
@@ -40,7 +41,7 @@ pub enum InputOutputMode {
 
 impl InputOutputMode {
     pub fn try_from_matches(matches: &ArgMatches) -> anyhow::Result<Self> {
-        let mode = InputOutputModeType::from_arg_matches(matches)?;
+        let mode = InputOutputModeType::from_arg_matches(matches);
 
         match mode {
             InputOutputModeType::Simple => Ok(InputOutputMode::Single {
@@ -140,19 +141,12 @@ pub enum InputOutputModeType {
 }
 
 impl InputOutputModeType {
-    pub fn from_arg_matches(matches: &ArgMatches) -> anyhow::Result<InputOutputModeType> {
-        Ok(
-            match (
-                matches.is_present(ARG_INPUT),
-                matches.is_present(ARG_INPUT_GLOB),
-            ) {
-                (true, false) => InputOutputModeType::Simple,
-                (false, true) => InputOutputModeType::Batch,
-                _ => {
-                    bail!("Unable select input/output mode: mode should either be simple xor glob")
-                }
-            },
-        )
+    pub fn from_arg_matches(matches: &ArgMatches) -> InputOutputModeType {
+        if matches.is_present(ARG_INPUT_GLOB) {
+            InputOutputModeType::Batch
+        } else {
+            InputOutputModeType::Simple
+        }
     }
 }
 

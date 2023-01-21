@@ -399,7 +399,7 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> anyhow::Result<Config<'a
         return Ok(builder.build());
     }
 
-    builder = builder.mode(InputOutputModeType::from_arg_matches(matches)?);
+    builder = builder.mode(InputOutputModeType::from_arg_matches(matches));
 
     // config(in)/select-frame:
     if let Some(value) = matches.value_of(ARG_SELECT_FRAME) {
