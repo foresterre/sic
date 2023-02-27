@@ -944,9 +944,9 @@ dependencies = [
 
 [[package]]
 name = "maybe-rayon"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "57c0bd354d2614d2feeb08dd2afdb744a91ad3c886e2a04dac63e12fb32eb7f7"
+checksum = "8ea1f30cedd69f0a2954655f7188c6a834246d2bcf1e315e2ac40c4b24dc9519"
 dependencies = [
  "cfg-if",
  "rayon",
