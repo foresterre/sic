@@ -1253,9 +1253,9 @@ dependencies = [
 
 [[package]]
 name = "pest_meta"
-version = "2.5.5"
+version = "2.5.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e6f60b2ba541577e2a0c307c8f39d1439108120eb7903adeb6497fa880c59616"
+checksum = "5e3b284b1f13a20dc5ebc90aff59a51b8d7137c221131b52a7260c08cbc1cc80"
 dependencies = [
  "once_cell",
  "pest",
