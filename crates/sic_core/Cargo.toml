@@ -16,7 +16,7 @@ rusttype = { version = "0.9.3", optional = true }
 thiserror = "1"
 
 [dependencies.image]
-version = "0.24.5"
+version = "0.24.6"
 features = [
     "avif", # requires (exe: nasm >= 2.14)
     "webp-encoder", # requires (native_dependency: libwebp)
