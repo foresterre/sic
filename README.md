@@ -80,7 +80,7 @@ If you want to explicitly set the image output format, you may do so by providin
 Otherwise, sic will attempt to infer the format from the output file extension.
 
 `--help` can be used to view a complete list of supported image output formats. Included are:
-* `AVIF`, `BMP`, `Farbfeld`, `GIF`, `ICO`, `JPEG`, `PNG`, `PNM` (`PAM`, `PBM`, `PGM` and `PPM`), `TGA` and `WebP`.
+* `AVIF`, `BMP`, `OpenExr`, `Farbfeld`, `GIF`, `ICO`, `JPEG`, `PNG`, `PNM` (`PAM`, `PBM`, `PGM` and `PPM`), `QOI` `TGA`, `TIFF` and `WebP`.
 
 
 
