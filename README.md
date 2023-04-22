@@ -1,4 +1,7 @@
+<img align="right" src="https://user-images.githubusercontent.com/5955761/233755455-6d79f963-c783-4d58-9359-758dc267faf2.jpg">
+
 # sic image cli
+
 
 [![ci](https://github.com/foresterre/sic/workflows/github_actions_ci/badge.svg)](https://github.com/foresterre/sic/actions?query=workflow%3Agithub_actions_ci)
 [![Crates.io version shield](https://img.shields.io/crates/v/sic.svg)](https://crates.io/crates/sic)
