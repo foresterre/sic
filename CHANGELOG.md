@@ -15,11 +15,15 @@ The changelog below lists notable changes for [sic](https://github.com/foresterr
 
 - Encoding and decoding support for QOI
 
+### Notable dependency updates
+
+- Updated [image](https://github.com/image-rs/image) to 0.24.6
+
 ## [0.21.1] - 2023-01-21
 
 ### Fixed
 
-* Fixed an issue where it was not possible to read an input file via stdin
+- Fixed an issue where it was not possible to read an input file via stdin
 
 [0.21.1]: https://github.com/foresterre/sic/compare/v0.21.0...v0.21.1
 
