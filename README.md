@@ -1,4 +1,4 @@
-<img align="right" src="https://user-images.githubusercontent.com/5955761/233755455-6d79f963-c783-4d58-9359-758dc267faf2.jpg">
+<img alt="The sic project logo" align="right" src="resources/logo/sic_100.jpg">
 
 # sic image cli
 
