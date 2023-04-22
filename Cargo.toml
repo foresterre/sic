@@ -30,7 +30,6 @@ members = [
     "crates/sic_io",
     "crates/sic_parser",
     "crates/sic_testing",
-    "tools/pack-release",
 ]
 
 [dependencies]
