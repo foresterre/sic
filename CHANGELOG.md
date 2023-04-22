@@ -9,7 +9,9 @@ The changelog below lists notable changes for [sic](https://github.com/foresterr
 
 ## [Unreleased]
 
-[unreleased]: https://github.com/foresterre/sic/compare/v0.21.1...HEAD
+[unreleased]: https://github.com/foresterre/sic/compare/v0.22.0...HEAD
+
+## [0.22.0] - 2023-04-22
 
 ### Added
 
@@ -20,6 +22,8 @@ The changelog below lists notable changes for [sic](https://github.com/foresterr
 ### Notable dependency updates
 
 - Updated [image](https://github.com/image-rs/image) to 0.24.6
+
+[0.22.0]: https://github.com/foresterre/sic/compare/v0.21.1...v0.22.0
 
 ## [0.21.1] - 2023-01-21
 
