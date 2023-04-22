@@ -106,6 +106,7 @@ impl EncodingFormatByIdentifier for DetermineEncodingFormat {
             ))),
             "qoi" => Ok(image::ImageOutputFormat::Qoi),
             "tga" => Ok(image::ImageOutputFormat::Tga),
+            "tiff" | "tif" => Ok(image::ImageOutputFormat::Tiff),
             "webp" => Ok(image::ImageOutputFormat::WebP),
             _ => Err(SicIoError::UnknownImageIdentifier(identifier.to_string())),
         }
@@ -147,7 +148,7 @@ mod tests {
 
     const INPUT_FORMATS: &[&str] = &[
         "avif", "bmp", "farbfeld", "gif", "ico", "jpg", "jpeg", "png", "pbm", "pgm", "ppm", "pam",
-        "qoi", "tga",
+        "qoi", "tga", "tiff", "tif",
     ];
 
     const EXPECTED_VALUES: &[image::ImageOutputFormat] = &[
@@ -165,6 +166,8 @@ mod tests {
         image::ImageOutputFormat::Pnm(pnm::PnmSubtype::ArbitraryMap),
         image::ImageOutputFormat::Qoi,
         image::ImageOutputFormat::Tga,
+        image::ImageOutputFormat::Tiff,
+        image::ImageOutputFormat::Tiff,
     ];
 
     fn setup_default_format_determiner() -> DetermineEncodingFormat {

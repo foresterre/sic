@@ -14,6 +14,7 @@ The changelog below lists notable changes for [sic](https://github.com/foresterr
 ### Added
 
 - Encoding and decoding support for QOI
+- Support encoding TIFF without `--image-output-format-fallback` flag enabled
 
 ### Notable dependency updates
 
