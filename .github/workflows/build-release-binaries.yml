@@ -1,0 +1,118 @@
+name: "ci-build-release-binaries"
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build_binaries:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            archive_ext: tgz
+
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            archive_ext: tgz
+
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            archive_ext: zip
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: checkout_tagged_commit
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.release.target_commitish }}
+
+      - name: set_output
+        id: set_output
+        shell: bash
+        run: |
+          echo "archive=sic-${{ matrix.target }}-${{ github.event.release.tag_name }}.${{ matrix.archive_ext }}" >> $GITHUB_OUTPUT
+          echo "subfolder=sic-${{ matrix.target }}-${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+
+      - name: show_outputs
+        shell: bash
+        run: |
+          echo "Archive: '${{ steps.set_output.outputs.archive }}'"
+          echo "Subfolder: '${{ steps.set_output.outputs.subfolder }}'"
+
+      - name: create_pkg_subfolder
+        shell: bash
+        run: mkdir ${{ steps.set_output.outputs.subfolder }}
+
+      - name: copy_files_to_pkg_subfolder
+        shell: bash
+        run: |
+          cp LICENSE-APACHE ${{ steps.set_output.outputs.subfolder }}
+          cp LICENSE-MIT ${{ steps.set_output.outputs.subfolder }}
+          cp README.md ${{ steps.set_output.outputs.subfolder }}
+
+      - name: install_rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: install_nasm
+        if:  matrix.target != 'x86_64-pc-windows-msvc'
+        uses: ilammy/setup-nasm@v1
+
+      - name: install_nasm_msvc
+        if: matrix.target == 'x86_64-pc-windows-msvc'
+        run: |
+          $NASM_VERSION="2.15.05"
+          $LINK = "https://www.nasm.us/pub/nasm/releasebuilds/$NASM_VERSION/win64"
+          $NASM_FILE = "nasm-$NASM_VERSION-win64"
+          curl --ssl-no-revoke -LO "$LINK/$NASM_FILE.zip"
+          7z e -y "$NASM_FILE.zip" -o"C:\nasm"
+          echo "C:\nasm"  | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          $LinkGlob = "VC\Tools\MSVC\*\bin\Hostx64\x64"
+          $env:PATH = "$env:PATH;${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer"
+          $LinkPath = vswhere -latest -products * -find "$LinkGlob" | Select-Object -Last 1
+          echo "$LinkPath" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: build_${{ matrix.target }}_release_binary
+        shell: bash
+        run: cargo build --target=${{ matrix.target }} --release
+
+      - name: install_cargo_about
+        shell: bash
+        run: cargo install cargo-about
+
+      - name: generate_dep_licenses_file
+        shell: bash
+        run: cargo about generate --output-file "${{ steps.set_output.outputs.subfolder }}/third-party-licenses.html" about.hbs
+
+      - name: pack_archive_macos
+        if: matrix.os == 'macos-latest'
+        shell: bash
+        run: |
+          cp  ./target/${{ matrix.target }}/release/sic ${{ steps.set_output.outputs.subfolder }}
+          gtar --create --gzip --file=${{ steps.set_output.outputs.archive }} ${{ steps.set_output.outputs.subfolder }}
+
+      - name: pack_archive_linux
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          cp target/${{ matrix.target }}/release/sic ${{ steps.set_output.outputs.subfolder }}
+          tar --create --gzip --file=${{ steps.set_output.outputs.archive }} ${{ steps.set_output.outputs.subfolder }}
+
+      - name: pack_archive_windows
+        if: matrix.os == 'windows-latest'
+        shell: bash
+        run: |
+          cp target/${{ matrix.target }}/release/sic.exe ./${{ steps.set_output.outputs.subfolder }}
+          7z a -tzip ${{ steps.set_output.outputs.archive }} ${{ steps.set_output.outputs.subfolder }}
+
+      - name: upload_artifact
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./${{ steps.set_output.outputs.archive }}
+          asset_name: ${{ steps.set_output.outputs.archive }}
+          asset_content_type: application/gzip
