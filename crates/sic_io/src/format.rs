@@ -89,6 +89,7 @@ impl EncodingFormatByIdentifier for DetermineEncodingFormat {
         match identifier.to_ascii_lowercase().as_str() {
             "avif" => Ok(image::ImageOutputFormat::Avif),
             "bmp" => Ok(image::ImageOutputFormat::Bmp),
+            "exr" => Ok(image::ImageOutputFormat::OpenExr),
             "farbfeld" => Ok(image::ImageOutputFormat::Farbfeld),
             "gif" => Ok(image::ImageOutputFormat::Gif),
             "ico" => Ok(image::ImageOutputFormat::Ico),
@@ -147,13 +148,14 @@ mod tests {
     use super::*;
 
     const INPUT_FORMATS: &[&str] = &[
-        "avif", "bmp", "farbfeld", "gif", "ico", "jpg", "jpeg", "png", "pbm", "pgm", "ppm", "pam",
-        "qoi", "tga", "tiff", "tif",
+        "avif", "bmp", "exr", "farbfeld", "gif", "ico", "jpg", "jpeg", "png", "pbm", "pgm", "ppm",
+        "pam", "qoi", "tga", "tiff", "tif",
     ];
 
     const EXPECTED_VALUES: &[image::ImageOutputFormat] = &[
         image::ImageOutputFormat::Avif,
         image::ImageOutputFormat::Bmp,
+        image::ImageOutputFormat::OpenExr,
         image::ImageOutputFormat::Farbfeld,
         image::ImageOutputFormat::Gif,
         image::ImageOutputFormat::Ico,

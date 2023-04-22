@@ -4,12 +4,10 @@ Formats
 -------
 
 sic can decode the following image formats:
-* AVIF, BMP, GIF, DDS, Farbfeld, ICO, JPEG, PNG, PAM, PBM, PGM, PPM, TGA, TIFF and WebP
+* AVIF, BMP, GIF, DDS, Farbfeld, ICO, JPEG, OpenExr, PNG, PAM, PBM, PGM, PPM, TGA, TIFF and WebP
 
 sic can encode images into the following formats:
-* AVIF, BMP, GIF, Farbfeld, ICO, JPEG, PNG, PAM, PBM, PGM, PPM
-
-Animated images are currently not supported, however a specific image frame may be selected if the image is a GIF or APNG.
+* AVIF, BMP, Farbfeld, GIF, ICO, JPEG, OpenExr, PNG, PNM (PAM, PBM, PGM and PPM), QOI TGA, TIFF and WebP.
 
 Batch processing
 ----------------
