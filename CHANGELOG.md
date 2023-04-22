@@ -11,6 +11,10 @@ The changelog below lists notable changes for [sic](https://github.com/foresterr
 
 [unreleased]: https://github.com/foresterre/sic/compare/v0.21.1...HEAD
 
+### Added
+
+- Encoding and decoding support for QOI
+
 ## [0.21.1] - 2023-01-21
 
 ### Fixed

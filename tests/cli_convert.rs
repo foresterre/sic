@@ -74,6 +74,7 @@ mod convert_to_x {
         "pgm",
         "ppm",
         "pam",
+        "qoi",
         "webp",
     }, expected_format = {
         image::ImageFormat::Bmp,
@@ -87,6 +88,7 @@ mod convert_to_x {
         image::ImageFormat::Pnm,
         image::ImageFormat::Pnm,
         image::ImageFormat::Pnm,
+        image::ImageFormat::Qoi,
         image::ImageFormat::WebP,
 
     })]
@@ -146,6 +148,7 @@ mod convert_to_x_by_ff {
         "pgm",
         "ppm",
         "pam",
+        "qoi",
         "webp",
     }, expected_format = {
         image::ImageFormat::Bmp,
@@ -159,6 +162,7 @@ mod convert_to_x_by_ff {
         image::ImageFormat::Pnm,
         image::ImageFormat::Pnm,
         image::ImageFormat::Pnm,
+        image::ImageFormat::Qoi,
         image::ImageFormat::WebP,
     })]
     fn convert_to_bmp_by_ff(which: &str, expected_format: image::ImageFormat) {
