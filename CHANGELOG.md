@@ -9,13 +9,15 @@ The changelog below lists notable changes for [sic](https://github.com/foresterr
 
 ## [Unreleased]
 
-[unreleased]: https://github.com/foresterre/sic/compare/v0.22.1...HEAD
+[unreleased]: https://github.com/foresterre/sic/compare/v0.22.2...HEAD
 
 ## [0.22.2] - 2023-04-28
 
 ### Added
 
 - Context was added to errors returned during the image pipeline: the input (file or stdin) will now be reported 
+
+[0.22.2]: https://github.com/foresterre/sic/compare/v0.22.1...v0.22.2
 
 ## [0.22.1] - 2023-04-23
 
