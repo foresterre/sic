@@ -10,20 +10,72 @@ use globwalk::{FileType, GlobWalker};
 use sic_image_engine::engine::Instr;
 use sic_io::conversion::RepeatAnimation;
 use sic_io::import::FrameIndex;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone)]
-pub enum PathVariant {
-    StdStream,
+pub enum InputMode {
+    One(OneInput),
+    Batch(BatchInput),
+}
+
+#[derive(Debug, Clone)]
+pub enum OneInput {
+    Stdin,
     Path(PathBuf),
 }
 
-impl PathVariant {
-    pub fn is_std_stream(&self) -> bool {
-        match self {
-            PathVariant::StdStream => true,
-            PathVariant::Path(_) => false,
+#[derive(Debug, Clone)]
+pub enum BatchInput {
+    Path { inputs: CommonDir },
+}
+
+#[derive(Debug, Clone)]
+pub enum OutputMode {
+    One(OneOutput),
+    Batch(BatchOutput),
+}
+
+impl OutputMode {
+    pub fn supports_batch_output(input: &InputMode) -> bool {
+        match input {
+            InputMode::One(_) => false,
+            InputMode::Batch(_) => true,
         }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum OneOutput {
+    Base64,
+    Path(PathBuf),
+    Stdout,
+}
+
+#[derive(Debug, Clone)]
+pub enum BatchOutput {
+    // Batch output files into a folder
+    Folder(Folder),
+    // It's up to the user to figure out the output type (e.g. by file header, or all are the same)
+    // NewlineSeparatedStdoutByteBuffer,
+    //
+    NewlineSeparatedBase64,
+}
+
+pub struct Folder {
+    path: PathBuf,
+}
+
+impl Folder {
+    pub fn try_new(path: &Path) -> anyhow::Result<Self> {
+        path.is_dir()
+            .then(|| Self {
+                path: path.to_path_buf(),
+            })
+            .with_context(|| format!("Path '{}' was expected to be a folder", path.display()))
+    }
+
+    pub fn path(&self) -> &Path {
+        self.path.as_path()
     }
 }
 
