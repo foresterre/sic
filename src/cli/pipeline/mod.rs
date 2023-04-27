@@ -34,6 +34,7 @@ pub fn run_with_devices<'c>(
                 || create_format_decider(&output, config),
                 config,
             )
+            .with_context(|| format!("With: {}", input.describe_input()))
         }
         InputOutputMode::Batch {
             inputs,
@@ -50,7 +51,8 @@ pub fn run_with_devices<'c>(
                     |ext: Option<&str>| create_writer(output, ext),
                     || create_format_decider(output, config),
                     config,
-                )?
+                )
+                .with_context(|| format!("With input: {}", input.describe_input()))?
             }
 
             Ok(())
@@ -125,8 +127,8 @@ fn create_reader(io_device: &PathVariant) -> anyhow::Result<Box<dyn Read>> {
             "An input image should be given by providing a path using the input argument or \
                  by piping an image to the stdin."
         ),
-        PathVariant::StdStream => Ok(sic_io::import::stdin_reader()?),
-        PathVariant::Path(path) => Ok(sic_io::import::file_reader(path)?),
+        PathVariant::StdStream => Ok(import::stdin_reader()?),
+        PathVariant::Path(path) => Ok(import::file_reader(path)?),
     }
 }
 
