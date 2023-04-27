@@ -10,6 +10,7 @@ use globwalk::{FileType, GlobWalker};
 use sic_image_engine::engine::Instr;
 use sic_io::conversion::RepeatAnimation;
 use sic_io::import::FrameIndex;
+use std::fmt;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
@@ -23,6 +24,13 @@ impl PathVariant {
         match self {
             PathVariant::StdStream => true,
             PathVariant::Path(_) => false,
+        }
+    }
+
+    pub fn describe_input(&self) -> impl fmt::Display + '_ {
+        match self {
+            PathVariant::StdStream => "<stdin>".to_string(),
+            PathVariant::Path(path) => format!("{}", path.display()),
         }
     }
 }
