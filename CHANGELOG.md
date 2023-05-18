@@ -1,7 +1,7 @@
 # Changelog
 
 sic is a CLI tool to (batch) process images and an [image-rs](https://github.com/image-rs/image) front-end.
-It can be used to convert between image formats and manipulate images using image operations. 
+It can be used to convert between image formats and manipulate images using image operations.
 It aims to include all primary [image](https://github.com/image-rs/image) functionality, and eventually also
 support the most prominent [imageproc](https://github.com/image-rs/imageproc) manipulation routines.
 
@@ -9,13 +9,21 @@ The changelog below lists notable changes for [sic](https://github.com/foresterr
 
 ## [Unreleased]
 
-[unreleased]: https://github.com/foresterre/sic/compare/v0.22.2...HEAD
+[unreleased]: https://github.com/foresterre/sic/compare/v0.22.3...HEAD
+
+## [0.22.3] - 2023-05-18
+
+### Notable dependency updates
+
+- Updated [rav1e](https://github.com/xiph/rav1e) (locked) to 0.6.6
+
+[0.22.3]: https://github.com/foresterre/sic/compare/v0.22.2...v0.22.3
 
 ## [0.22.2] - 2023-04-28
 
 ### Added
 
-- Context was added to errors returned during the image pipeline: the input (file or stdin) will now be reported 
+- Context was added to errors returned during the image pipeline: the input (file or stdin) will now be reported
 
 [0.22.2]: https://github.com/foresterre/sic/compare/v0.22.1...v0.22.2
 
@@ -89,7 +97,7 @@ This is intended to be the last update before we port sic to `image 0.24`.
 
 - Added horizontal gradient image operation
 - Added vertical gradient image operation
-- Added Otsu thresholding image operation 
+- Added Otsu thresholding image operation
 
 [0.19.0]: https://github.com/foresterre/sic/compare/v0.18.0...v0.19.0
 
@@ -269,14 +277,14 @@ This is intended to be the last update before we port sic to `image 0.24`.
 
 [0.8.1]: https://github.com/foresterre/sic/compare/v0.8.0...v0.8.1
 
-## [0.8.0] - 2018-11-30 
+## [0.8.0] - 2018-11-30
 
 ### Added
 
 - Option to set JPEG quality parameter
 - Option to set PNM encoding type
 - Option to set PNM subtype
-- Option to automatically adjust color type for output format 
+- Option to automatically adjust color type for output format
 - Updated [image](https://github.com/image-rs/image) to v0.20 (internal)
 
 [0.8.0]: https://github.com/foresterre/sic/compare/v0.7.0...v0.8.0
