@@ -339,10 +339,9 @@ mod tests {
 
             let image = load_image(&mut file_reader(load_path).unwrap(), &config);
 
-            if expected_color.is_some() {
-                assert_eq!(image.unwrap().get_pixel(0, 0).0, expected_color.unwrap());
-            } else {
-                assert!(image.is_err())
+            match expected_color {
+                Some(expected) => assert_eq!(image.unwrap().get_pixel(0, 0).0, expected),
+                None => assert!(image.is_err()),
             }
         }
     }
