@@ -32,7 +32,7 @@ pub enum SicImage {
 
 // Should not be used outside of tests, as it doesn't support animated images
 #[doc(hidden)]
-impl AsRef<image::DynamicImage> for SicImage {
+impl AsRef<DynamicImage> for SicImage {
     fn as_ref(&self) -> &DynamicImage {
         match self {
             Self::Animated(_) => unimplemented!(),
