@@ -16,15 +16,14 @@ impl AnimatedImage {
     }
 
     /// Returns the selected frame from the animated image as static image
-    pub fn try_into_static_image(mut self, index: usize) -> Result<DynamicImage, SicCoreError> {
-        let len = self.frames.len();
-        if index < len {
-            Ok(DynamicImage::ImageRgba8(
-                self.frames.remove(index).into_buffer(),
-            ))
-        } else {
-            Err(SicCoreError::InvalidFrameIndex { index, len })
-        }
+    pub fn try_into_static_image(self, index: usize) -> Result<DynamicImage, SicCoreError> {
+        let frames = self.frames.len();
+
+        self.frames
+            .into_iter()
+            .nth(index)
+            .map(|frame| DynamicImage::ImageRgba8(frame.into_buffer()))
+            .ok_or_else(|| SicCoreError::InvalidFrameIndex { index, len: frames })
     }
 
     /// Returns a slice of image Frames
