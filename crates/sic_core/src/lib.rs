@@ -25,7 +25,7 @@ pub mod errors;
 #[derive(Clone, Debug)]
 pub enum SicImage {
     Animated(AnimatedImage),
-    Static(image::DynamicImage),
+    Static(DynamicImage),
 }
 
 // Should not be used outside of tests, as it doesn't support animated images
@@ -39,13 +39,13 @@ impl AsRef<image::DynamicImage> for SicImage {
     }
 }
 
-impl From<image::DynamicImage> for SicImage {
+impl From<DynamicImage> for SicImage {
     fn from(item: DynamicImage) -> Self {
         Self::Static(item)
     }
 }
 
-impl TryFrom<SicImage> for image::DynamicImage {
+impl TryFrom<SicImage> for DynamicImage {
     type Error = SicCoreError;
 
     fn try_from(value: SicImage) -> Result<Self, Self::Error> {
@@ -98,7 +98,7 @@ impl AnimatedImage {
     }
 }
 
-impl<'frames> TryFrom<image::Frames<'frames>> for AnimatedImage {
+impl<'frames> TryFrom<Frames<'frames>> for AnimatedImage {
     type Error = SicCoreError;
 
     fn try_from(item: Frames<'frames>) -> Result<Self, Self::Error> {
