@@ -23,7 +23,7 @@ impl AnimatedImage {
             .into_iter()
             .nth(index)
             .map(|frame| DynamicImage::ImageRgba8(frame.into_buffer()))
-            .ok_or_else(|| SicCoreError::InvalidFrameIndex { index, len: frames })
+            .ok_or(SicCoreError::InvalidFrameIndex { index, len: frames })
     }
 
     /// Returns a slice of image Frames
