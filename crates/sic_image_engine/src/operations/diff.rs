@@ -52,7 +52,6 @@ fn diff_animated_with_animated(frames: &mut [image::Frame], other: &[image::Fram
 }
 
 fn diff_animated_with_static(frames: &mut [image::Frame], other: &DynamicImage) {
-    dbg!("chrispls");
     frames.par_iter_mut().for_each(|frame| {
         *frame.buffer_mut() =
             produce_image_diff(&DynamicImage::ImageRgba8(frame.buffer().clone()), other);

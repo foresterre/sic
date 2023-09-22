@@ -1,5 +1,5 @@
-use sic_core::errors::SicCoreError;
 use sic_core::image::ImageError;
+use sic_core::SicCoreError;
 use std::path::PathBuf;
 use thiserror::Error;
 

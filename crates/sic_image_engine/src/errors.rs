@@ -1,4 +1,4 @@
-use sic_core::errors::SicCoreError;
+use sic_core::SicCoreError;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
