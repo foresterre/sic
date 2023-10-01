@@ -39,17 +39,28 @@ sic_io  = { version = "0.22.0", path = "crates/sic_io" }
 sic_image_engine = { version = "0.22.0", path = "crates/sic_image_engine" }
 sic_parser = { version = "0.22.0", path = "crates/sic_parser" }
 
+# error handling
 anyhow = "1"
+
+# terminal is a tty
 atty = "0.2.14"
+
+# cli
 clap = "2.34.0"
-globwalk = "0.8.1"
+
+# open license file
 open = "5.0.0"
 
-[dev-dependencies]
-clap = "2.34.0" # for examples/gen_completions.rs
-parameterized = "1.0.1"
+# globs (+ paths)
+wax = "0.6.0"
+dunce = "1"
 
-[build-dependencies]
+[dev-dependencies]
+# for examples/gen_completions.rs
+clap = "2.34.0"
+
+# parameterized tests
+parameterized = "1.0.1"
 
 [features]
 default = ["imageproc-ops"]

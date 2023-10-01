@@ -23,7 +23,7 @@ pub fn run_with_devices<'c>(
     config: &'c Config<'c>,
 ) -> anyhow::Result<()> {
     match in_and_output {
-        InputOutputMode::Single { input, output } => {
+        InputOutputMode::SingleFile { input, output } => {
             if output.is_std_stream() {
                 warn_default_std_output_format();
             }

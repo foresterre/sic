@@ -102,7 +102,7 @@ impl SicTestCommandBuilder {
 
         command
             .stdout(Stdio::null())
-            .stderr(Stdio::null())
+            .stderr(Stdio::inherit())
             .spawn()
             .map_err(|err| {
                 eprintln!(

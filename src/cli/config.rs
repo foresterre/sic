@@ -1,17 +1,15 @@
 use crate::cli::app::arg_names::{
-    ARG_GLOB_NO_SKIP_UNSUPPORTED_EXTENSIONS, ARG_IMAGE_CRATE_FALLBACK, ARG_INPUT, ARG_INPUT_GLOB,
-    ARG_OUTPUT, ARG_OUTPUT_GLOB,
+    ARG_GLOB_NO_SKIP_UNSUPPORTED_EXTENSIONS, ARG_INPUT, ARG_INPUT_GLOB, ARG_OUTPUT, ARG_OUTPUT_GLOB,
 };
 use crate::cli::common_dir::CommonDir;
-use crate::cli::glob_base_dir::glob_builder_base;
-use anyhow::{bail, Context};
+use crate::cli::glob::GlobResolver;
+use anyhow::{bail, Context, Error};
 use clap::ArgMatches;
-use globwalk::{FileType, GlobWalker};
 use sic_image_engine::engine::Instr;
 use sic_io::conversion::RepeatAnimation;
 use sic_io::import::FrameIndex;
-use std::fmt;
 use std::path::PathBuf;
+use std::{env, fmt};
 
 #[derive(Debug, Clone)]
 pub enum PathVariant {
@@ -37,7 +35,7 @@ impl PathVariant {
 
 #[derive(Debug)]
 pub enum InputOutputMode {
-    Single {
+    SingleFile {
         input: PathVariant,
         output: PathVariant,
     },
@@ -52,99 +50,48 @@ impl InputOutputMode {
         let mode = InputOutputModeType::from_arg_matches(matches);
 
         match mode {
-            InputOutputModeType::Simple => Ok(InputOutputMode::Single {
-                input: match matches.value_of(ARG_INPUT) {
-                    Some(p) => PathVariant::Path(p.into()),
-                    None => PathVariant::StdStream,
-                },
-                output: match matches.value_of(ARG_OUTPUT) {
-                    Some(p) => PathVariant::Path(p.into()),
-                    None => PathVariant::StdStream,
-                },
-            }),
-            InputOutputModeType::Batch => {
-                let inputs = matches
-                    .value_of(ARG_INPUT_GLOB)
-                    .with_context(|| "Glob mode requires an input pattern")?;
-                let output = matches
-                    .value_of(ARG_OUTPUT_GLOB)
-                    .with_context(|| "Glob mode requires an output folder")?;
-
-                Ok(InputOutputMode::Batch {
-                    inputs: {
-                        let inputs = Self::create_glob_walker(inputs)?;
-
-                        let paths = Self::lookup_paths(
-                            inputs,
-                            !matches.is_present(ARG_GLOB_NO_SKIP_UNSUPPORTED_EXTENSIONS),
-                            matches.is_present(ARG_IMAGE_CRATE_FALLBACK),
-                        )?;
-
-                        CommonDir::try_new(paths)?
-                    },
-                    output_root_folder: { output.into() },
-                })
-            }
+            InputOutputModeType::SingleFile => Self::single_file(matches),
+            InputOutputModeType::Batch => Self::batch(matches),
         }
     }
 
-    fn create_glob_walker<PAT: AsRef<str>>(pattern: PAT) -> anyhow::Result<GlobWalker> {
-        glob_builder_base(pattern.as_ref(), &[])?
-            .follow_links(true)
-            .file_type(FileType::FILE)
-            .build()
-            .with_context(|| "Unable to parse the given glob pattern")
-    }
-
-    fn lookup_paths(
-        inputs: impl Iterator<Item = Result<globwalk::DirEntry, globwalk::WalkError>>,
-        filter_unsupported: bool,
-        image_crate_fallback_enabled: bool,
-    ) -> anyhow::Result<Vec<PathBuf>> {
-        let paths: Vec<PathBuf> = inputs
-            .map(|entry| {
-                entry
-                    .map_err(|err| {
-                        anyhow::anyhow!(
-                            "Error while trying to find glob matches on the fs ({})",
-                            err
-                        )
-                    })
-                    .map(|f| f.into_path())
-            })
-            .collect::<anyhow::Result<Vec<PathBuf>>>()?;
-
-        Ok(if filter_unsupported {
-            filter_unsupported_paths(paths, image_crate_fallback_enabled)
-        } else {
-            paths
+    fn single_file(matches: &ArgMatches) -> Result<InputOutputMode, Error> {
+        Ok(InputOutputMode::SingleFile {
+            input: match matches.value_of(ARG_INPUT) {
+                Some(p) => PathVariant::Path(p.into()),
+                None => PathVariant::StdStream,
+            },
+            output: match matches.value_of(ARG_OUTPUT) {
+                Some(p) => PathVariant::Path(p.into()),
+                None => PathVariant::StdStream,
+            },
         })
     }
-}
 
-// remove paths with extensions we don't recognise
-fn filter_unsupported_paths(paths: Vec<PathBuf>, fallback_enabled: bool) -> Vec<PathBuf> {
-    use crate::cli::pipeline::fallback::guess_output_by_path;
-    use crate::combinators::FallbackIf;
-    use sic_io::format::DetermineEncodingFormat;
-    use sic_io::format::EncodingFormatByExtension;
+    fn batch(matches: &ArgMatches) -> Result<InputOutputMode, Error> {
+        let glob_input_expression = matches
+            .value_of(ARG_INPUT_GLOB)
+            .with_context(|| "Glob mode requires an input pattern")?;
+        let output = matches
+            .value_of(ARG_OUTPUT_GLOB)
+            .with_context(|| "Glob mode requires an output folder")?;
 
-    let checker = DetermineEncodingFormat::default();
+        let skip_unsupported = !matches.is_present(ARG_GLOB_NO_SKIP_UNSUPPORTED_EXTENSIONS);
 
-    paths
-        .into_iter()
-        .filter(|path| {
-            checker
-                .by_extension(path)
-                .fallback_if(fallback_enabled, guess_output_by_path, path)
-                .is_ok()
+        let paths = GlobResolver::default()
+            .with_skip_unsupported(skip_unsupported)
+            .resolve_glob(glob_input_expression)?;
+
+        Ok(InputOutputMode::Batch {
+            inputs: { CommonDir::try_new(paths)? },
+            output_root_folder: { output.into() },
         })
-        .collect()
+    }
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum InputOutputModeType {
-    Simple,
+    SingleFile,
     Batch,
 }
 
@@ -153,7 +100,7 @@ impl InputOutputModeType {
         if matches.is_present(ARG_INPUT_GLOB) {
             InputOutputModeType::Batch
         } else {
-            InputOutputModeType::Simple
+            InputOutputModeType::SingleFile
         }
     }
 }
@@ -192,7 +139,7 @@ impl Default for Config<'_> {
             /// If using default, requires the `CARGO_PKG_NAME` to be set.
             tool_name: env!("CARGO_PKG_NAME"),
 
-            mode: InputOutputModeType::Simple,
+            mode: InputOutputModeType::SingleFile,
 
             /// Defaults to no displayed license text.
             show_license_text_of: None,
@@ -383,71 +330,5 @@ mod tests {
         let config = builder.build();
 
         assert!(!config.image_operations_program.is_empty());
-    }
-
-    #[test]
-    fn skip_unsupported_paths() {
-        fn to_path_bufs<'s>(paths: impl IntoIterator<Item = &'s &'s str>) -> Vec<PathBuf> {
-            paths
-                .into_iter()
-                .map(|s| FromStr::from_str(s).expect("test should have valid input"))
-                .collect::<Vec<_>>()
-        }
-
-        let paths = &[
-            "/scope/0.png",
-            "/scope/1.jpg",
-            "/scope/2.jpeg",
-            "/scope/2.unsupported",
-            "/scope/2",
-        ];
-
-        let path_bufs = to_path_bufs(paths);
-        let expected_path_bufs = to_path_bufs(&[paths[0], paths[1], paths[2]]);
-        let filtered = filter_unsupported_paths(path_bufs, false);
-
-        assert_eq!(filtered, expected_path_bufs);
-    }
-
-    mod glob_skip_unsupported {
-        use super::*;
-        use parameterized::parameterized;
-
-        parameterized::ide!();
-
-        #[parameterized(paths_in = {
-            &["/test/0.png", "/test/1.jpg", "/test/2.jpeg", "/test/2.unsupported", "/test/2"],
-            &[],
-            &["a.farbfeld", "a.ff"],
-            &["a.farbfeld", "a.ff"],
-        }, paths_expected = {
-            &["/test/0.png", "/test/1.jpg", "/test/2.jpeg"],
-            &[],
-            &["a.farbfeld", "a.ff"],
-            &["a.farbfeld"],
-        }, fallback_on_imagecrate = {
-            false,
-            false,
-            true,
-            false,
-        })]
-        fn are_unsupported_paths_getting_filtered(
-            paths_in: &[&str],
-            paths_expected: &[&str],
-            fallback_on_imagecrate: bool,
-        ) {
-            fn to_path_bufs<'s>(paths: impl IntoIterator<Item = &'s &'s str>) -> Vec<PathBuf> {
-                paths
-                    .into_iter()
-                    .map(|s| FromStr::from_str(s).expect("test should have valid input"))
-                    .collect::<Vec<_>>()
-            }
-
-            let path_bufs = to_path_bufs(paths_in);
-            let expected_path_bufs = to_path_bufs(paths_expected);
-            let filtered = filter_unsupported_paths(path_bufs, fallback_on_imagecrate);
-
-            assert_eq!(filtered, expected_path_bufs);
-        }
     }
 }
