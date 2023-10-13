@@ -23,7 +23,7 @@ thiserror = "1"
 [dev-dependencies]
 sic_core = { version = "0.22.0", path = "../sic_core" }
 sic_testing = { version = "0.22.0", path = "../sic_testing" }
-parameterized = "1.0.1"
+parameterized = "1.1.0"
 
 [features]
 imageproc-ops = []
