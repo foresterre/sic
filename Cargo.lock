@@ -954,9 +954,9 @@ dependencies = [
 
 [[package]]
 name = "parameterized-macro"
-version = "1.0.1"
+version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1def6e0adb9bf9daf2d352cba8407b5eaa204f77e02de149ad690e816d7fac14"
+checksum = "89ffb3b6d5b7b60a8e39e74d9459163cdc7ead5a0b155e4606bff4a421576395"
 dependencies = [
  "indexmap 1.9.3",
  "proc-macro2",
