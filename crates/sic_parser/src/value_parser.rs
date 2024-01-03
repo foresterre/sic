@@ -1,7 +1,6 @@
 use crate::errors::SicParserError;
 use sic_image_engine::wrapper::image_path::ImageFromPath;
 use sic_image_engine::wrapper::{filter_type::FilterTypeWrap, gradient_input::GradientInput};
-use std::convert::TryFrom;
 use std::path::PathBuf;
 
 #[cfg(feature = "imageproc-ops")]
@@ -327,15 +326,10 @@ impl ParseInputsFromIter for FilterTypeWrap {
 
 fn parse_to_path_buf(value: Option<Describable>) -> Result<PathBuf, SicParserError> {
     let err_msg_no_such_element = || "A path was expected but none was found.".to_string();
-    let err_msg_invalid_path =
-        || "Unable to construct a valid path for the current platform.".to_string();
 
     value
         .ok_or_else(|| SicParserError::ValueParsingError(err_msg_no_such_element()))
-        .and_then(|v: Describable| {
-            PathBuf::try_from(v.0)
-                .map_err(|_| SicParserError::ValueParsingError(err_msg_invalid_path()))
-        })
+        .map(|v: Describable| PathBuf::from(v.0))
 }
 
 #[cfg(feature = "imageproc-ops")]

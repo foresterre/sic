@@ -19,13 +19,13 @@ fn main() {
     // Check if cargo-about is available in our PATH.
     let license_tool_might_be_installed = if cfg!(windows) {
         Command::new("where.exe")
-            .args(&[PROGRAM])
+            .args([PROGRAM])
             .output()
             .expect("`where.exe` unavailable.")
             .stdout
     } else {
         Command::new("which")
-            .args(&[PROGRAM])
+            .args([PROGRAM])
             .output()
             .expect("`which` unavailable.")
             .stdout
@@ -42,7 +42,7 @@ fn main() {
 
     if !path.exists() {
         let installation_code = Command::new("cargo")
-            .args(&["install", PROGRAM])
+            .args(["install", PROGRAM])
             .status()
             .expect("Unable to get status of cargo-about install.");
 
@@ -61,7 +61,7 @@ fn main() {
     // Next, we will use it to generate the licenses from our dependencies.
     // These will be saved under <crate>/target/DEP_LICENSES.
     let output = Command::new("cargo")
-        .args(&["about", "generate", "about.hbs"])
+        .args(["about", "generate", "about.hbs"])
         .output().expect(
         "Unable to read `cargo about` output; `cargo-about` and `cargo` should be in your path!",
     );
@@ -75,7 +75,7 @@ fn main() {
 
     let dep_licenses_in_bytes = output.stdout;
 
-    std::fs::write(DEP_LICENSES_PATH, &dep_licenses_in_bytes)
+    std::fs::write(DEP_LICENSES_PATH, dep_licenses_in_bytes)
         .expect("Unable to write license texts to license file.");
 
     println!("Completed the update process of the dependency licenses file.");

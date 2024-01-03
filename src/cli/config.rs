@@ -189,39 +189,39 @@ pub struct Config<'a> {
 impl Default for Config<'_> {
     fn default() -> Self {
         Config {
-            /// If using default, requires the `CARGO_PKG_NAME` to be set.
+            // If using default, requires the `CARGO_PKG_NAME` to be set.
             tool_name: env!("CARGO_PKG_NAME"),
 
             mode: InputOutputModeType::Simple,
 
-            /// Defaults to no displayed license text.
+            // Defaults to no displayed license text.
             show_license_text_of: None,
 
-            /// By default no frame is selected
+            // By default no frame is selected
             selected_frame: None,
 
-            /// Defaults to using automatic color type adjustment where appropriate.
+            // Defaults to using automatic color type adjustment where appropriate.
             disable_automatic_color_type_adjustment: false,
 
-            /// Defaults to not forcing a specific image output format.
+            // Defaults to not forcing a specific image output format.
             forced_output_format: None,
 
-            /// Default format encoding settings.
+            // Default format encoding settings.
             encoding_settings: FormatEncodingSettings {
-                /// Default JPEG quality is set to 80.
+                // Default JPEG quality is set to 80.
                 jpeg_quality: 80,
 
-                /// Default encoding type of PNM files (excluding PAM) is set to binary.
+                // Default encoding type of PNM files (excluding PAM) is set to binary.
                 pnm_use_ascii_format: false,
 
-                /// Defaults to infinite repeat
+                // Defaults to infinite repeat
                 gif_repeat: RepeatAnimation::default(),
 
-                /// Do not fallback to image crate output recognition by default
+                // Do not fallback to image crate output recognition by default
                 image_output_format_fallback: false,
             },
 
-            /// Defaults to no provided image operations script.
+            // Defaults to no provided image operations script.
             image_operations_program: Vec::new(),
         }
     }
