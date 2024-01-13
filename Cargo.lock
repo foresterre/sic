@@ -1027,6 +1027,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "profiling"
+version = "1.0.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d135ede8821cf6376eb7a64148901e1690b788c11ae94dc297ae917dbc91dc0e"
+dependencies = [
+ "profiling-procmacros",
+]
+
+[[package]]
+name = "profiling-procmacros"
+version = "1.0.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4b322d7d65c1ab449be3c890fcbd0db6e1092d0dd05d79dba2dd28032cebeb05"
+dependencies = [
+ "quote",
+ "syn 2.0.48",
+]
+
+[[package]]
 name = "qoi"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1706,15 +1725,15 @@ dependencies = [
 
 [[package]]
 name = "v_frame"
-version = "0.3.6"
+version = "0.3.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "85db69f33d00031c1b07f7292e56317d5aa9475bdbd3d27ef18f3633438a697e"
+checksum = "c372e4e6fad129795fb86fda6021b258948560b39883b80ed00510a7d19846b0"
 dependencies = [
  "cfg-if",
  "noop_proc_macro",
  "num-derive 0.4.0",
  "num-traits",
- "rust_hawktracer",
+ "profiling",
 ]
 
 [[package]]
