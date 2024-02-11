@@ -9,6 +9,10 @@ updates:
   - foresterre
   labels:
   - C-dependency-update
+  groups:
+    strum:
+      patterns:
+      - "strum*"
   allow:
   - dependency-type: direct
   - dependency-type: indirect
