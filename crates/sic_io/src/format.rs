@@ -1,435 +1,535 @@
+use std::fmt;
+use std::fmt::Formatter;
+use std::io::{Seek, Write};
 use std::path::Path;
 
 use sic_core::image;
-use sic_core::image::codecs::pnm;
 
-use crate::errors::{FormatError, SicIoError};
+use crate::errors::SicIoError;
+use crate::format::gif::RepeatAnimation;
+use crate::format::jpeg::JpegQuality;
 
-pub trait EncodingFormatByExtension {
+pub mod gif;
+pub mod jpeg;
+
+pub trait IntoImageEncoder<W: Write + Seek> {
     /// Determine the encoding format based on the extension of a file path.
-    fn by_extension<P: AsRef<Path>>(&self, path: P)
-        -> Result<image::ImageOutputFormat, SicIoError>;
-}
+    fn from_extension(
+        writer: W,
+        path: &Path,
+        settings: &EncoderSettings,
+    ) -> Result<DynamicEncoder<W>, SicIoError>;
 
-pub trait EncodingFormatByIdentifier {
-    /// Determine the encoding format based on the method of exporting.
     /// Determine the encoding format based on a recognized given identifier.
-    fn by_identifier(&self, identifier: &str) -> Result<image::ImageOutputFormat, SicIoError>;
+    fn from_identifier(
+        writer: W,
+        identifier: impl AsRef<str>,
+        settings: &EncoderSettings,
+    ) -> Result<DynamicEncoder<W>, SicIoError>;
 }
 
-pub trait EncodingFormatJPEGQuality {
-    /// Returns a validated jpeg quality value.
-    /// If no such value exists, it will return an error instead.
-    fn jpeg_quality(&self) -> Result<JPEGQuality, SicIoError>;
+pub struct EncoderSettings {
+    pub pnm_sample_encoding: image::codecs::pnm::SampleEncoding,
+    pub jpeg_quality: JpegQuality,
+    pub repeat_animation: RepeatAnimation,
 }
 
-pub trait EncodingFormatPNMSampleEncoding {
-    /// Returns a pnm sample encoding type.
-    /// If no such value exists, it will return an error instead.
-    fn pnm_encoding_type(&self) -> Result<pnm::SampleEncoding, SicIoError>;
-}
-
-/// This struct ensures no invalid JPEG qualities can be stored.
-/// Using this struct instead of `u8` directly should ensure no panics occur because of invalid
-/// quality values.
-#[derive(Debug, Clone, Copy, Ord, PartialOrd, Eq, PartialEq)]
-pub struct JPEGQuality {
-    quality: u8,
-}
-
-impl Default for JPEGQuality {
-    /// The default JPEG quality is `80`.
+impl Default for EncoderSettings {
     fn default() -> Self {
-        Self { quality: 80 }
-    }
-}
-
-impl JPEGQuality {
-    /// Returns an Ok result if the quality requested is between 1 and 100 (inclusive).
-    pub fn try_from(quality: u8) -> Result<Self, SicIoError> {
-        if (1u8..=100u8).contains(&quality) {
-            Ok(JPEGQuality { quality })
-        } else {
-            Err(SicIoError::FormatError(
-                FormatError::JPEGQualityLevelNotInRange,
-            ))
+        Self {
+            pnm_sample_encoding: image::codecs::pnm::SampleEncoding::Binary,
+            jpeg_quality: JpegQuality::default(),
+            repeat_animation: RepeatAnimation::default(),
         }
     }
+}
 
-    /// Return the valid quality value.
-    pub fn as_u8(self) -> u8 {
-        self.quality
+#[allow(private_interfaces)]
+pub enum DynamicEncoder<W: Write + Seek> {
+    Avif(image::codecs::avif::AvifEncoder<W>),
+    Bmp(BmpEncoder<W>),
+    Exr(image::codecs::openexr::OpenExrEncoder<W>),
+    Farbfeld(image::codecs::farbfeld::FarbfeldEncoder<W>),
+    Gif(image::codecs::gif::GifEncoder<W>),
+    Ico(image::codecs::ico::IcoEncoder<W>),
+    Jpeg(JpegEncoder<W>),
+    Pnm(image::codecs::pnm::PnmEncoder<W>),
+    Png(image::codecs::png::PngEncoder<W>),
+    Qoi(image::codecs::qoi::QoiEncoder<W>),
+    Tga(image::codecs::tga::TgaEncoder<W>),
+    Tiff(image::codecs::tiff::TiffEncoder<W>),
+    Webp(image::codecs::webp::WebPEncoder<W>),
+}
+
+impl<W: Write + Seek> fmt::Debug for DynamicEncoder<W> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        use DynamicEncoder::*;
+
+        match self {
+            Avif(_) => f.write_str("DynamicEncoder(Avif)"),
+            Bmp(_) => f.write_str("DynamicEncoder(Bmp)"),
+            Exr(_) => f.write_str("DynamicEncoder(Exr)"),
+            Farbfeld(_) => f.write_str("DynamicEncoder(Farbfeld)"),
+            Gif(_) => f.write_str("DynamicEncoder(Gif)"),
+            Ico(_) => f.write_str("DynamicEncoder(Ico)"),
+            Jpeg(_) => f.write_str("DynamicEncoder(Jpeg)"),
+            Pnm(_) => f.write_str("DynamicEncoder(Pnm)"),
+            Png(_) => f.write_str("DynamicEncoder(Png)"),
+            Qoi(_) => f.write_str("DynamicEncoder(Qoi)"),
+            Tga(_) => f.write_str("DynamicEncoder(Tga)"),
+            Tiff(_) => f.write_str("DynamicEncoder(Tiff)"),
+            Webp(_) => f.write_str("DynamicEncoder(Webp)"),
+        }
     }
 }
 
-impl EncodingFormatByExtension for DetermineEncodingFormat {
+impl<W: Write + Seek> DynamicEncoder<W> {
+    /// Create a BMP encoder.
+    pub fn bmp(writer: W) -> Result<DynamicEncoder<W>, SicIoError> {
+        Ok(Self::Bmp(BmpEncoder::new(writer)))
+    }
+}
+
+impl<W: Write + Seek> IntoImageEncoder<W> for DynamicEncoder<W> {
     /// Determines the encoding format based on the extension of the given path.
     /// If the path has no extension, it will return an error.
     /// The extension if existing is matched against the identifiers, which currently
     /// are the extensions used.
-    fn by_extension<P: AsRef<Path>>(
-        &self,
-        path: P,
-    ) -> Result<image::ImageOutputFormat, SicIoError> {
-        let extension = path.as_ref().extension().and_then(|v| v.to_str());
+    fn from_extension(
+        writer: W,
+        path: &Path,
+        settings: &EncoderSettings,
+    ) -> Result<DynamicEncoder<W>, SicIoError> {
+        let extension = path.extension().and_then(|v| v.to_str());
 
         match extension {
-            Some(some) => self.by_identifier(some),
-            None => Err(SicIoError::UnableToDetermineImageFormatFromFileExtension(
-                path.as_ref().to_path_buf(),
+            Some(ext) => {
+                <DynamicEncoder<W> as IntoImageEncoder<W>>::from_identifier(writer, ext, settings)
+            }
+            None => Err(SicIoError::UnknownImageFormatFromFileExtension(
+                path.to_path_buf(),
+            )),
+        }
+    }
+
+    /// Determines an image output format based on a given `&str` identifier.
+    /// Identifiers are based on common output file extensions.
+    fn from_identifier(
+        writer: W,
+        identifier: impl AsRef<str>,
+        settings: &EncoderSettings,
+    ) -> Result<DynamicEncoder<W>, SicIoError> {
+        use DynamicEncoder::*;
+
+        let id = identifier.as_ref();
+
+        Ok(match id.to_ascii_lowercase().as_str() {
+            "avif" => Avif(image::codecs::avif::AvifEncoder::new(writer)),
+            "bmp" => Bmp(BmpEncoder::new(writer)),
+            "exr" => Exr(image::codecs::openexr::OpenExrEncoder::new(writer)),
+            "ff" | "farbfeld" => Farbfeld(image::codecs::farbfeld::FarbfeldEncoder::new(writer)),
+            "gif" => {
+                let mut encoder = image::codecs::gif::GifEncoder::new(writer);
+                encoder
+                    .set_repeat(settings.repeat_animation.into())
+                    .map_err(SicIoError::ImageError)?;
+                Gif(encoder)
+            }
+            "ico" => Ico(image::codecs::ico::IcoEncoder::new(writer)),
+            "jpeg" | "jpg" => Jpeg(JpegEncoder::new(writer, settings.jpeg_quality)),
+            "pam" => Pnm(image::codecs::pnm::PnmEncoder::new(writer)
+                .with_subtype(image::codecs::pnm::PnmSubtype::ArbitraryMap)),
+            "pbm" => Pnm(image::codecs::pnm::PnmEncoder::new(writer).with_subtype(
+                image::codecs::pnm::PnmSubtype::Bitmap(settings.pnm_sample_encoding),
+            )),
+            "pgm" => Pnm(image::codecs::pnm::PnmEncoder::new(writer).with_subtype(
+                image::codecs::pnm::PnmSubtype::Graymap(settings.pnm_sample_encoding),
+            )),
+            "png" => Png(image::codecs::png::PngEncoder::new(writer)),
+            "ppm" => Pnm(image::codecs::pnm::PnmEncoder::new(writer).with_subtype(
+                image::codecs::pnm::PnmSubtype::Pixmap(settings.pnm_sample_encoding),
+            )),
+            "qoi" => Qoi(image::codecs::qoi::QoiEncoder::new(writer)),
+            "tga" => Tga(image::codecs::tga::TgaEncoder::new(writer)),
+            "tiff" | "tif" => Tiff(image::codecs::tiff::TiffEncoder::new(writer)),
+            "webp" => Webp(image::codecs::webp::WebPEncoder::new_lossless(writer)),
+            _ => return Err(SicIoError::UnknownImageFormat(id.to_string())),
+        })
+    }
+}
+
+impl<W: Write + Seek> image::ImageEncoder for DynamicEncoder<W> {
+    fn write_image(
+        self,
+        buf: &[u8],
+        width: u32,
+        height: u32,
+        color_type: image::ExtendedColorType,
+    ) -> image::ImageResult<()> {
+        match self {
+            Self::Avif(enc) => enc.write_image(buf, width, height, color_type),
+            Self::Bmp(enc) => enc.write_image(buf, width, height, color_type),
+            Self::Exr(enc) => enc.write_image(buf, width, height, color_type),
+            Self::Farbfeld(enc) => enc.write_image(buf, width, height, color_type),
+            Self::Gif(mut enc) => {
+                // The `ColorTypePreprocessor` will, if enabled, convert the image to `RgbaImage`
+                // if necessary.
+                // This is unfortunate though, we're making a copy for sauce.
+                let image_buffer = image::RgbaImage::from_raw(width, height, buf.to_vec())
+                    .ok_or_else(|| {
+                        image::ImageError::Encoding(image::error::EncodingError::new(
+                            image::error::ImageFormatHint::Exact(image::ImageFormat::Gif),
+                            "sic: Unable to construct frame from raw buffer".to_string(),
+                        ))
+                    })?;
+
+                enc.encode_frame(image::Frame::new(image_buffer))
+            }
+            Self::Ico(enc) => enc.write_image(buf, width, height, color_type),
+            Self::Jpeg(enc) => enc.write_image(buf, width, height, color_type),
+            Self::Pnm(enc) => enc.write_image(buf, width, height, color_type),
+            Self::Png(enc) => enc.write_image(buf, width, height, color_type),
+            Self::Qoi(enc) => enc.write_image(buf, width, height, color_type),
+            Self::Tga(enc) => enc.write_image(buf, width, height, color_type),
+            Self::Tiff(enc) => enc.write_image(buf, width, height, color_type),
+            Self::Webp(enc) => enc.write_image(buf, width, height, color_type),
+        }
+    }
+}
+
+impl<W: Write + Seek> DynamicEncoder<W> {
+    pub fn format(&self) -> image::ImageFormat {
+        match self {
+            Self::Avif(_) => image::ImageFormat::Avif,
+            Self::Bmp(_) => image::ImageFormat::Bmp,
+            Self::Exr(_) => image::ImageFormat::Jpeg,
+            Self::Farbfeld(_) => image::ImageFormat::Farbfeld,
+            Self::Gif(_) => image::ImageFormat::Gif,
+            Self::Ico(_) => image::ImageFormat::Ico,
+            Self::Jpeg(_) => image::ImageFormat::Jpeg,
+            Self::Pnm(_) => image::ImageFormat::Pnm,
+            Self::Png(_) => image::ImageFormat::Pnm,
+            Self::Qoi(_) => image::ImageFormat::Qoi,
+            Self::Tga(_) => image::ImageFormat::Tga,
+            Self::Tiff(_) => image::ImageFormat::Tiff,
+            Self::Webp(_) => image::ImageFormat::WebP,
+        }
+    }
+}
+
+/// Wrapper for [`BmpEncoder`], which takes the writer by value, instead of by mutable reference.
+/// All other encoders in `image` take the writer by value. Our [`DynamicEncoder`] wraps all formats
+/// and also requires the writer to be given by value. This wrapper creates a new [`BmpEncoder`]
+/// when writing the image, so it doesn't have to hold on to a mutable reference to its internal
+/// writer.
+///
+/// [`BmpEncoder`]: image::codecs::bmp::BmpEncoder
+struct BmpEncoder<W> {
+    writer: W,
+}
+
+impl<W: Write + Seek> BmpEncoder<W> {
+    pub fn new(writer: W) -> Self {
+        Self { writer }
+    }
+}
+
+impl<W: Write + Seek> image::ImageEncoder for BmpEncoder<W> {
+    fn write_image(
+        mut self,
+        buf: &[u8],
+        width: u32,
+        height: u32,
+        color_type: image::ExtendedColorType,
+    ) -> image::ImageResult<()> {
+        image::codecs::bmp::BmpEncoder::new(&mut self.writer)
+            .write_image(buf, width, height, color_type)
+    }
+}
+
+/// Box wrapper for [`JpegEncoder`], which is at least 4187 bytes large, exploding the size of the
+/// [`DynamicEncoder`].
+struct JpegEncoder<W> {
+    writer: Box<image::codecs::jpeg::JpegEncoder<W>>,
+}
+
+impl<W: Write> JpegEncoder<W> {
+    pub fn new(writer: W, quality: JpegQuality) -> Self {
+        Self {
+            writer: Box::new(image::codecs::jpeg::JpegEncoder::new_with_quality(
+                writer,
+                quality.as_u8(),
             )),
         }
     }
 }
 
-impl EncodingFormatByIdentifier for DetermineEncodingFormat {
-    /// Determines an image output format based on a given `&str` identifier.
-    /// Identifiers are based on common output file extensions.
-    fn by_identifier(&self, identifier: &str) -> Result<image::ImageOutputFormat, SicIoError> {
-        match identifier.to_ascii_lowercase().as_str() {
-            "avif" => Ok(image::ImageOutputFormat::Avif),
-            "bmp" => Ok(image::ImageOutputFormat::Bmp),
-            "exr" => Ok(image::ImageOutputFormat::OpenExr),
-            "farbfeld" => Ok(image::ImageOutputFormat::Farbfeld),
-            "gif" => Ok(image::ImageOutputFormat::Gif),
-            "ico" => Ok(image::ImageOutputFormat::Ico),
-            "jpeg" | "jpg" => Ok(image::ImageOutputFormat::Jpeg(self.jpeg_quality()?.as_u8())),
-            "pam" => Ok(image::ImageOutputFormat::Pnm(pnm::PnmSubtype::ArbitraryMap)),
-            "pbm" => Ok(image::ImageOutputFormat::Pnm(pnm::PnmSubtype::Bitmap(
-                self.pnm_encoding_type()?,
-            ))),
-            "pgm" => Ok(image::ImageOutputFormat::Pnm(pnm::PnmSubtype::Graymap(
-                self.pnm_encoding_type()?,
-            ))),
-            "png" => Ok(image::ImageOutputFormat::Png),
-            "ppm" => Ok(image::ImageOutputFormat::Pnm(pnm::PnmSubtype::Pixmap(
-                self.pnm_encoding_type()?,
-            ))),
-            "qoi" => Ok(image::ImageOutputFormat::Qoi),
-            "tga" => Ok(image::ImageOutputFormat::Tga),
-            "tiff" | "tif" => Ok(image::ImageOutputFormat::Tiff),
-            "webp" => Ok(image::ImageOutputFormat::WebP),
-            _ => Err(SicIoError::UnknownImageIdentifier(identifier.to_string())),
-        }
-    }
-}
-
-pub struct DetermineEncodingFormat {
-    pub pnm_sample_encoding: Option<pnm::SampleEncoding>,
-    pub jpeg_quality: Option<JPEGQuality>,
-}
-
-impl Default for DetermineEncodingFormat {
-    fn default() -> Self {
-        Self {
-            pnm_sample_encoding: Some(pnm::SampleEncoding::Binary),
-            jpeg_quality: Some(Default::default()),
-        }
-    }
-}
-
-impl EncodingFormatPNMSampleEncoding for DetermineEncodingFormat {
-    fn pnm_encoding_type(&self) -> Result<pnm::SampleEncoding, SicIoError> {
-        self.pnm_sample_encoding.ok_or(SicIoError::FormatError(
-            FormatError::PNMSamplingEncodingNotSet,
-        ))
-    }
-}
-
-impl EncodingFormatJPEGQuality for DetermineEncodingFormat {
-    fn jpeg_quality(&self) -> Result<JPEGQuality, SicIoError> {
-        self.jpeg_quality
-            .ok_or(SicIoError::FormatError(FormatError::JPEGQualityLevelNotSet))
+impl<W: Write + Seek> image::ImageEncoder for JpegEncoder<W> {
+    fn write_image(
+        self,
+        buf: &[u8],
+        width: u32,
+        height: u32,
+        color_type: image::ExtendedColorType,
+    ) -> image::ImageResult<()> {
+        self.writer.write_image(buf, width, height, color_type)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use parameterized::parameterized;
+    use std::io::SeekFrom;
 
-    const INPUT_FORMATS: &[&str] = &[
-        "avif", "bmp", "exr", "farbfeld", "gif", "ico", "jpg", "jpeg", "png", "pbm", "pgm", "ppm",
-        "pam", "qoi", "tga", "tiff", "tif",
-    ];
+    #[derive(Debug)]
+    struct DummyMem;
 
-    const EXPECTED_VALUES: &[image::ImageOutputFormat] = &[
-        image::ImageOutputFormat::Avif,
-        image::ImageOutputFormat::Bmp,
-        image::ImageOutputFormat::OpenExr,
-        image::ImageOutputFormat::Farbfeld,
-        image::ImageOutputFormat::Gif,
-        image::ImageOutputFormat::Ico,
-        image::ImageOutputFormat::Jpeg(80),
-        image::ImageOutputFormat::Jpeg(80),
-        image::ImageOutputFormat::Png,
-        image::ImageOutputFormat::Pnm(pnm::PnmSubtype::Bitmap(pnm::SampleEncoding::Binary)),
-        image::ImageOutputFormat::Pnm(pnm::PnmSubtype::Graymap(pnm::SampleEncoding::Binary)),
-        image::ImageOutputFormat::Pnm(pnm::PnmSubtype::Pixmap(pnm::SampleEncoding::Binary)),
-        image::ImageOutputFormat::Pnm(pnm::PnmSubtype::ArbitraryMap),
-        image::ImageOutputFormat::Qoi,
-        image::ImageOutputFormat::Tga,
-        image::ImageOutputFormat::Tiff,
-        image::ImageOutputFormat::Tiff,
-    ];
-
-    fn setup_default_format_determiner() -> DetermineEncodingFormat {
-        DetermineEncodingFormat {
-            pnm_sample_encoding: Some(pnm::SampleEncoding::Binary),
-            jpeg_quality: Some(JPEGQuality::try_from(80).unwrap()),
+    impl Seek for DummyMem {
+        fn seek(&mut self, _pos: SeekFrom) -> std::io::Result<u64> {
+            Ok(0)
         }
     }
 
-    //
-    fn test_with_extensions(ext: &str, expected: &image::ImageOutputFormat) {
-        let path = format!("w_ext.{}", ext);
+    impl Write for DummyMem {
+        fn write(&mut self, _buf: &[u8]) -> std::io::Result<usize> {
+            Ok(0)
+        }
 
-        let format_determiner = setup_default_format_determiner();
-        let result = format_determiner.by_extension(path.as_str());
-
-        assert_eq!(result.unwrap(), *expected);
-    }
-
-    #[test]
-    fn extension_with_defaults() {
-        let zipped = INPUT_FORMATS.iter().zip(EXPECTED_VALUES.iter());
-
-        for (ext, exp) in zipped {
-            test_with_extensions(ext, exp);
+        fn flush(&mut self) -> std::io::Result<()> {
+            Ok(())
         }
     }
 
-    //
+    #[parameterized(
+        ext = {
+            "avif",
+            "bmp",
+            "exr",
+            "farbfeld",
+            "gif",
+            "ico",
+            "jpg",
+            "jpeg",
+            "png",
+            "pbm",
+            "pgm",
+            "ppm",
+            "pam",
+            "qoi",
+            "tga",
+            "tiff",
+            "tif"
+        },
+        expected = {
+            image::ImageFormat::Avif,
+            image::ImageFormat::Bmp,
+            image::ImageFormat::OpenExr,
+            image::ImageFormat::Farbfeld,
+            image::ImageFormat::Gif,
+            image::ImageFormat::Ico,
+            image::ImageFormat::Jpeg,
+            image::ImageFormat::Jpeg,
+            image::ImageFormat::Png,
+            image::ImageFormat::Pnm,
+            image::ImageFormat::Pnm,
+            image::ImageFormat::Pnm,
+            image::ImageFormat::Pnm,
+            image::ImageFormat::Qoi,
+            image::ImageFormat::Tga,
+            image::ImageFormat::Tiff,
+            image::ImageFormat::Tiff,
+        }
+    )]
+    fn test_with_extensions(ext: &str, expected: image::ImageFormat) {
+        let path = format!("image.{}", ext);
+        let path = Path::new(&path);
+
+        let settings = EncoderSettings::default();
+        let mut mem = DummyMem;
+        let dynamic_encoder = DynamicEncoder::from_extension(&mut mem, path, &settings);
+
+        assert_eq!(dynamic_encoder.unwrap().format(), expected);
+    }
+
+    #[parameterized(
+        identifier = {
+            "avif",
+            "bmp",
+            "exr",
+            "farbfeld",
+            "gif",
+            "ico",
+            "jpg",
+            "jpeg",
+            "png",
+            "pbm",
+            "pgm",
+            "ppm",
+            "pam",
+            "qoi",
+            "tga",
+            "tiff",
+            "tif"
+        },
+        expected = {
+            image::ImageFormat::Avif,
+            image::ImageFormat::Bmp,
+            image::ImageFormat::OpenExr,
+            image::ImageFormat::Farbfeld,
+            image::ImageFormat::Gif,
+            image::ImageFormat::Ico,
+            image::ImageFormat::Jpeg,
+            image::ImageFormat::Jpeg,
+            image::ImageFormat::Png,
+            image::ImageFormat::Pnm,
+            image::ImageFormat::Pnm,
+            image::ImageFormat::Pnm,
+            image::ImageFormat::Pnm,
+            image::ImageFormat::Qoi,
+            image::ImageFormat::Tga,
+            image::ImageFormat::Tiff,
+            image::ImageFormat::Tiff,
+        }
+    )]
+    fn test_with_identifier(identifier: &str, expected: image::ImageFormat) {
+        let settings = EncoderSettings::default();
+        let mut mem = DummyMem;
+        let dynamic_encoder = DynamicEncoder::from_identifier(&mut mem, identifier, &settings);
+
+        assert_eq!(dynamic_encoder.unwrap().format(), expected);
+    }
+
+    #[parameterized(
+        identifier = {
+            "AVIF",
+            "BMP",
+            "EXR",
+            "FARBFELD",
+            "GIF",
+            "ICO",
+            "JPG",
+            "JPEG",
+            "PNG",
+            "PBM",
+            "PGM",
+            "PPM",
+            "PAM",
+            "QOI",
+            "TGA",
+            "TIFF",
+            "TIF"
+        },
+        expected = {
+            image::ImageFormat::Avif,
+            image::ImageFormat::Bmp,
+            image::ImageFormat::OpenExr,
+            image::ImageFormat::Farbfeld,
+            image::ImageFormat::Gif,
+            image::ImageFormat::Ico,
+            image::ImageFormat::Jpeg,
+            image::ImageFormat::Jpeg,
+            image::ImageFormat::Png,
+            image::ImageFormat::Pnm,
+            image::ImageFormat::Pnm,
+            image::ImageFormat::Pnm,
+            image::ImageFormat::Pnm,
+            image::ImageFormat::Qoi,
+            image::ImageFormat::Tga,
+            image::ImageFormat::Tiff,
+            image::ImageFormat::Tiff,
+        }
+    )]
+    fn test_with_identifier_uppercase(identifier: &str, expected: image::ImageFormat) {
+        let settings = EncoderSettings::default();
+        let mut mem = DummyMem;
+        let dynamic_encoder = DynamicEncoder::from_identifier(&mut mem, identifier, &settings);
+
+        assert_eq!(dynamic_encoder.unwrap().format(), expected);
+    }
+
     #[test]
-    #[should_panic]
     fn extension_unknown_extension() {
-        let path = "w_ext.h";
-        let format_determiner = setup_default_format_determiner();
-        let result = format_determiner.by_extension(path);
+        let path = Path::new("w_ext.h");
+        let settings = EncoderSettings::default();
+        let mut mem = DummyMem;
+        let dynamic_encoder = DynamicEncoder::from_extension(&mut mem, path, &settings);
 
-        result.unwrap();
+        assert_eq!(
+            dynamic_encoder.unwrap_err(),
+            SicIoError::UnknownImageFormatFromFileExtension(Path::new("w_ext.h").to_path_buf())
+        );
     }
 
-    //
     #[test]
-    #[should_panic]
     fn extension_no_extension() {
-        let path = "png";
-        let format_determiner = setup_default_format_determiner();
-        let result = format_determiner.by_extension(path);
+        let path = Path::new("png");
+        let settings = EncoderSettings::default();
+        let mut mem = DummyMem;
+        let dynamic_encoder = DynamicEncoder::from_extension(&mut mem, path, &settings);
 
-        result.unwrap();
+        assert_eq!(
+            dynamic_encoder.unwrap_err(),
+            SicIoError::UnknownImageFormatFromFileExtension(Path::new("png").to_path_buf())
+        );
     }
 
-    //
     #[test]
-    #[should_panic]
     fn extension_invalid_extension() {
-        let path = ".png";
-        let format_determiner = setup_default_format_determiner();
-        let result = format_determiner.by_extension(path);
+        let path = Path::new(".png");
+        let settings = EncoderSettings::default();
+        let mut mem = DummyMem;
+        let dynamic_encoder = DynamicEncoder::from_extension(&mut mem, path, &settings);
 
-        result.unwrap();
-    }
-
-    //
-    fn test_with_identifier(identifier: &str, expected: &image::ImageOutputFormat) {
-        let format_determiner = setup_default_format_determiner();
-        let result = format_determiner.by_identifier(identifier);
-
-        assert_eq!(result.unwrap(), *expected);
+        assert_eq!(
+            dynamic_encoder.unwrap_err(),
+            SicIoError::UnknownImageFormatFromFileExtension(Path::new(".png").to_path_buf())
+        );
     }
 
     #[test]
-    fn identifier_with_defaults() {
-        let zipped = INPUT_FORMATS.iter().zip(EXPECTED_VALUES.iter());
-
-        for (id, exp) in zipped {
-            test_with_identifier(id, exp);
-        }
-    }
-    #[test]
-    fn uppercase_formats() {
-        let uppercase_formats = INPUT_FORMATS
-            .iter()
-            .map(|v| v.to_ascii_uppercase())
-            .zip(EXPECTED_VALUES.iter());
-
-        for (id, exp) in uppercase_formats {
-            test_with_identifier(id.as_str(), exp);
-        }
-    }
-
-    //
-    #[test]
-    #[should_panic]
     fn identifier_unknown_identifier() {
-        let format_determiner = setup_default_format_determiner();
-        let result = format_determiner.by_identifier("");
+        let path = Path::new("");
+        let settings = EncoderSettings::default();
+        let mut mem = DummyMem;
+        let dynamic_encoder = DynamicEncoder::from_extension(&mut mem, path, &settings);
 
-        result.unwrap();
+        assert_eq!(
+            dynamic_encoder.unwrap_err(),
+            SicIoError::UnknownImageFormatFromFileExtension(Path::new("").to_path_buf())
+        );
     }
 
     // non default: pnm ascii + "pbm"
     #[test]
+    #[allow(clippy::field_reassign_with_default)]
     fn identifier_custom_pnm_sample_encoding_ascii_pbm() {
-        let format_determiner = DetermineEncodingFormat {
-            pnm_sample_encoding: Some(pnm::SampleEncoding::Ascii),
-            jpeg_quality: None,
-        };
+        let mut settings = EncoderSettings::default();
+        settings.pnm_sample_encoding = image::codecs::pnm::SampleEncoding::Ascii;
 
-        let result = format_determiner.by_identifier("pbm").unwrap();
-        let expected =
-            image::ImageOutputFormat::Pnm(pnm::PnmSubtype::Bitmap(pnm::SampleEncoding::Ascii));
+        let mut mem = DummyMem;
+        let dynamic_encoder = DynamicEncoder::from_identifier(&mut mem, "pbm", &settings).unwrap();
 
-        assert_eq!(result, expected);
+        assert_eq!(dynamic_encoder.format(), image::ImageFormat::Pnm);
     }
 
     // non default: pnm ascii + "pgm"
-    #[test]
-    fn identifier_custom_pnm_sample_encoding_ascii_pgm() {
-        let format_determiner = DetermineEncodingFormat {
-            pnm_sample_encoding: Some(pnm::SampleEncoding::Ascii),
-            jpeg_quality: None,
-        };
+    #[parameterized(
+        identifier = {
+            "pbm",
+            "pgm",
+            "ppm",
+        }
+    )]
+    #[allow(clippy::field_reassign_with_default)]
+    fn identifier_custom_pnm_sample_encoding_ascii_pgm(identifier: &str) {
+        let mut settings = EncoderSettings::default();
+        settings.pnm_sample_encoding = image::codecs::pnm::SampleEncoding::Ascii;
 
-        let result = format_determiner.by_identifier("pgm").unwrap();
-        let expected =
-            image::ImageOutputFormat::Pnm(pnm::PnmSubtype::Graymap(pnm::SampleEncoding::Ascii));
+        let mut mem = DummyMem;
+        let dynamic_encoder =
+            DynamicEncoder::from_identifier(&mut mem, identifier, &settings).unwrap();
 
-        assert_eq!(result, expected);
-    }
-
-    // non default: pnm ascii + "ppm"
-    #[test]
-    fn identifier_custom_pnm_sample_encoding_ascii_ppm() {
-        let format_determiner = DetermineEncodingFormat {
-            pnm_sample_encoding: Some(pnm::SampleEncoding::Ascii),
-            jpeg_quality: None,
-        };
-
-        let result = format_determiner.by_identifier("ppm").unwrap();
-        let expected =
-            image::ImageOutputFormat::Pnm(pnm::PnmSubtype::Pixmap(pnm::SampleEncoding::Ascii));
-
-        assert_eq!(result, expected);
-    }
-
-    // non default: jpeg custom, quality lower bound
-    #[test]
-    fn identifier_custom_jpeg_quality_in_range_lower() {
-        let format_determiner = DetermineEncodingFormat {
-            pnm_sample_encoding: None,
-            jpeg_quality: Some(JPEGQuality::try_from(1).unwrap()),
-        };
-
-        let result = format_determiner.by_identifier("jpg").unwrap();
-        let expected = image::ImageOutputFormat::Jpeg(1);
-
-        assert_eq!(result, expected);
-    }
-
-    // non default: jpeg custom, quality upper bound
-    #[test]
-    fn identifier_custom_jpeg_quality_in_range_upper() {
-        let format_determiner = DetermineEncodingFormat {
-            pnm_sample_encoding: None,
-            jpeg_quality: Some(JPEGQuality::try_from(100).unwrap()),
-        };
-
-        let result = format_determiner.by_identifier("jpg").unwrap();
-        let expected = image::ImageOutputFormat::Jpeg(100);
-
-        assert_eq!(result, expected);
-    }
-
-    // if we were to test 'identifier_custom_jpeg_quality_OUT_range_[lower/upper]'
-    //                                                    ^^^
-    // our DetermineEncodingFormat would fail on creation by JPEGQuality::try_from which fails
-    // on outbound ranges
-
-    //
-    #[test]
-    fn jpeg_quality_in_range_lower() {
-        let result = JPEGQuality::try_from(1).unwrap();
-        let expected = JPEGQuality { quality: 1 };
-
-        assert_eq!(result, expected);
-    }
-
-    //
-    #[test]
-    fn jpeg_quality_in_range_upper() {
-        let result = JPEGQuality::try_from(100).unwrap();
-        let expected = JPEGQuality { quality: 100 };
-
-        assert_eq!(result, expected);
-    }
-
-    //
-    #[test]
-    #[should_panic]
-    fn jpeg_quality_out_range_lower() {
-        let result = JPEGQuality::try_from(0).unwrap();
-        let expected = JPEGQuality { quality: 0 };
-
-        assert_eq!(result, expected);
-    }
-
-    //
-    #[test]
-    #[should_panic]
-    fn jpeg_quality_out_range_upper() {
-        let result = JPEGQuality::try_from(101).unwrap();
-        let expected = JPEGQuality { quality: 101 };
-
-        assert_eq!(result, expected);
-    }
-
-    // DetermineEncodingFormat has None, while Some required: pbm
-    #[test]
-    #[should_panic]
-    fn identifier_requires_pnm_sample_encoding_to_be_set_pbm() {
-        let format_determiner = DetermineEncodingFormat {
-            pnm_sample_encoding: None,
-            jpeg_quality: None,
-        };
-
-        format_determiner.by_identifier("pbm").unwrap();
-    }
-
-    // DetermineEncodingFormat has None, while Some required: pbm
-    #[test]
-    #[should_panic]
-    fn identifier_requires_pnm_sample_encoding_to_be_set_pgm() {
-        let format_determiner = DetermineEncodingFormat {
-            pnm_sample_encoding: None,
-            jpeg_quality: None,
-        };
-
-        format_determiner.by_identifier("pgm").unwrap();
-    }
-
-    // DetermineEncodingFormat has None, while Some required: ppm
-    #[test]
-    #[should_panic]
-    fn identifier_requires_pnm_sample_encoding_to_be_set_ppm() {
-        let format_determiner = DetermineEncodingFormat {
-            pnm_sample_encoding: None,
-            jpeg_quality: None,
-        };
-
-        format_determiner.by_identifier("ppm").unwrap();
-    }
-
-    // DetermineEncodingFormat has None, while Some required: jpg
-    #[test]
-    #[should_panic]
-    fn identifier_requires_pnm_sample_encoding_to_be_set_jpg() {
-        let format_determiner = DetermineEncodingFormat {
-            pnm_sample_encoding: None,
-            jpeg_quality: None,
-        };
-
-        format_determiner.by_identifier("jpg").unwrap();
+        assert_eq!(dynamic_encoder.format(), image::ImageFormat::Pnm);
     }
 }

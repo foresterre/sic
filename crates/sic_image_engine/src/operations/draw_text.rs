@@ -3,7 +3,7 @@ use crate::operations::ImageOperation;
 use crate::wrapper::draw_text_inner::DrawTextInner;
 use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
 use sic_core::image::DynamicImage;
-use sic_core::{image, imageproc, rusttype, SicImage};
+use sic_core::{ab_glyph, image, imageproc, SicImage};
 
 pub struct DrawText<'dt> {
     text: &'dt DrawTextInner,
@@ -33,10 +33,11 @@ fn draw_text_animated_image(
     let font_options = inner.font_options();
     let font_file =
         std::fs::read(&font_options.font_path).map_err(SicImageEngineError::FontFileLoadError)?;
-    let font = rusttype::Font::try_from_bytes(&font_file).ok_or(SicImageEngineError::FontError)?;
+    let font =
+        ab_glyph::FontVec::try_from_vec(font_file).map_err(SicImageEngineError::FontError)?;
 
     frames.par_iter_mut().for_each(|frame| {
-        *frame.buffer_mut() = imageproc::drawing::draw_text(
+        imageproc::drawing::draw_text_mut(
             frame.buffer_mut(),
             font_options.color,
             coords.0,
@@ -59,7 +60,8 @@ fn draw_text_static_image(
     let font_options = inner.font_options();
     let font_file =
         std::fs::read(&font_options.font_path).map_err(SicImageEngineError::FontFileLoadError)?;
-    let font = rusttype::Font::try_from_bytes(&font_file).ok_or(SicImageEngineError::FontError)?;
+    let font =
+        ab_glyph::FontVec::try_from_vec(font_file).map_err(SicImageEngineError::FontError)?;
 
     *image = DynamicImage::ImageRgba8(imageproc::drawing::draw_text(
         image,

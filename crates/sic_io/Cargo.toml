@@ -11,10 +11,10 @@ edition = "2021"
 rust-version = "1.61"
 
 [dependencies]
-sic_core = { version = "0.22.0", path = "../sic_core"}
+sic_core = { version = "0.22.0", path = "../sic_core" }
 
 thiserror = "1"
 
 [dev-dependencies]
-parameterized = "1.1.0"
+parameterized = "2.0.0"
 sic_testing = { version = "0.22.0", path = "../sic_testing" }

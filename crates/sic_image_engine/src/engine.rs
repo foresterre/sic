@@ -87,7 +87,7 @@ impl ImageEngine {
         }
     }
 
-    pub fn ignite(&mut self, instructions: &[Instr]) -> Result<&SicImage, SicImageEngineError> {
+    pub fn ignite(mut self, instructions: &[Instr]) -> Result<SicImage, SicImageEngineError> {
         for instruction in instructions {
             match self.process_instruction(instruction) {
                 Ok(_) => continue,
@@ -95,7 +95,7 @@ impl ImageEngine {
             }
         }
 
-        Ok(&self.image)
+        Ok(*self.image)
     }
 
     fn process_instruction(&mut self, instruction: &Instr) -> Result<(), SicImageEngineError> {
@@ -339,7 +339,7 @@ mod tests {
         let left = sic_testing::open_test_image(sic_testing::in_!(LEFT));
         const RIGHT: &str = "3x2_wbaaba.png";
 
-        let mut engine = ImageEngine::new(left);
+        let engine = ImageEngine::new(left);
         let out = engine.ignite(&[Instr::Operation(ImgOp::Diff(ImageFromPath::new(
             PathBuf::from(in_!(RIGHT)),
         )))]);
@@ -359,7 +359,7 @@ mod tests {
         assert_eq!(out.get_pixel(1, 2), DIFF_PX_DIFF);
         assert_eq!(out.get_pixel(2, 2), DIFF_PX_NO_OVERLAP);
 
-        output_test_image_for_manual_inspection(out, out_!("test_diff_3x3.png"));
+        output_test_image_for_manual_inspection(&out, out_!("test_diff_3x3.png"));
     }
 
     mod sizes {
@@ -401,7 +401,7 @@ mod tests {
         ) {
             let left_img = sic_testing::open_test_image(sic_testing::in_!(left));
 
-            let mut engine = ImageEngine::new(left_img);
+            let engine = ImageEngine::new(left_img);
             let out = engine.ignite(&[Instr::Operation(ImgOp::Diff(ImageFromPath::new(
                 PathBuf::from(in_!(right)),
             )))]);
@@ -412,7 +412,7 @@ mod tests {
             assert_eq!(out.height(), expected_height);
 
             let name = format!("test_diff_{},{}.png", left, right);
-            output_test_image_for_manual_inspection(out, out_!(&name));
+            output_test_image_for_manual_inspection(&out, out_!(&name));
         }
     }
 
@@ -421,8 +421,8 @@ mod tests {
         // W 217 H 447
         let img = setup_default_test_image();
 
-        let mut engine = ImageEngine::new(img);
-        let mut engine2 = engine.clone();
+        let engine = ImageEngine::new(img);
+        let engine2 = engine.clone();
         let cmp_left = engine.ignite(&[
             Instr::EnvAdd(EnvItem::PreserveAspectRatio(true)),
             Instr::Operation(ImgOp::Resize((100, 100))),
@@ -443,12 +443,12 @@ mod tests {
         assert_eq!((49, 100), left.dimensions());
 
         output_test_image_for_manual_inspection(
-            left,
+            &left,
             out_!("test_resize_preserve_aspect_ratio_left_preserve.png"),
         );
 
         output_test_image_for_manual_inspection(
-            right,
+            &right,
             out_!("test_resize_preserve_aspect_ratio_right_default.png"),
         );
     }
@@ -458,8 +458,8 @@ mod tests {
         // W 217 H 447
         let img = setup_default_test_image();
 
-        let mut engine = ImageEngine::new(img);
-        let mut engine2 = engine.clone();
+        let engine = ImageEngine::new(img);
+        let engine2 = engine.clone();
         let cmp_left = engine.ignite(&[
             Instr::EnvAdd(EnvItem::PreserveAspectRatio(false)),
             Instr::Operation(ImgOp::Resize((100, 100))),
@@ -479,12 +479,12 @@ mod tests {
         assert_eq!((100, 100), left.dimensions());
 
         output_test_image_for_manual_inspection(
-            left,
+            &left,
             out_!("test_resize_preserve_aspect_ratio_left_preserve_f.png"),
         );
 
         output_test_image_for_manual_inspection(
-            right,
+            &right,
             out_!("test_resize_preserve_aspect_ratio_right_default_f.png"),
         );
     }
@@ -493,8 +493,8 @@ mod tests {
     fn resize_with_sampling_filter_nearest() {
         let img = setup_default_test_image();
 
-        let mut engine = ImageEngine::new(img);
-        let mut engine2 = engine.clone();
+        let engine = ImageEngine::new(img);
+        let engine2 = engine.clone();
         let cmp_left = engine.ignite(&[
             Instr::EnvAdd(EnvItem::CustomSamplingFilter(FilterTypeWrap::new(
                 FilterType::Nearest,
@@ -514,12 +514,12 @@ mod tests {
         assert_ne!(left.raw_pixels(), right.raw_pixels());
 
         output_test_image_for_manual_inspection(
-            left,
+            &left,
             out_!("test_resize_sampling_filter_left_nearest.png"),
         );
 
         output_test_image_for_manual_inspection(
-            right,
+            &right,
             out_!("test_resize_sampling_filter_right_default_gaussian.png"),
         );
     }
@@ -528,8 +528,8 @@ mod tests {
     fn register_unregister_sampling_filter() {
         let img = setup_default_test_image();
 
-        let mut engine = ImageEngine::new(img);
-        let mut engine2 = engine.clone();
+        let engine = ImageEngine::new(img);
+        let engine2 = engine.clone();
 
         let cmp_left = engine.ignite(&[
             Instr::EnvAdd(EnvItem::CustomSamplingFilter(FilterTypeWrap::new(
@@ -551,12 +551,12 @@ mod tests {
         assert_eq!(left.raw_pixels(), right.raw_pixels());
 
         output_test_image_for_manual_inspection(
-            left,
+            &left,
             out_!("test_register_unregister_sampling_filter_left.png"),
         );
 
         output_test_image_for_manual_inspection(
-            right,
+            &right,
             out_!("test_register_unregister_sampling_filter_right.png"),
         );
     }
@@ -572,12 +572,12 @@ mod tests {
             Rgba([255, 50, 50, 50]),
         )));
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
         assert!(done.is_ok());
 
         output_test_image_for_manual_inspection(
-            done.unwrap(),
+            &done.unwrap(),
             out_!("horizontal-gradient-test.png"),
         );
     }
@@ -593,11 +593,14 @@ mod tests {
             Rgba([255, 50, 50, 50]),
         )));
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
         assert!(done.is_ok());
 
-        output_test_image_for_manual_inspection(done.unwrap(), out_!("vertical-gradient-test.png"));
+        output_test_image_for_manual_inspection(
+            &done.unwrap(),
+            out_!("vertical-gradient-test.png"),
+        );
     }
 
     #[test]
@@ -605,12 +608,12 @@ mod tests {
         let img = setup_default_test_image();
         let operation = ImgOp::Blur(10.0);
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_ok());
 
-        output_test_image_for_manual_inspection(done.unwrap(), out_!("test_blur.png"));
+        output_test_image_for_manual_inspection(&done.unwrap(), out_!("test_blur.png"));
     }
 
     #[test]
@@ -620,7 +623,7 @@ mod tests {
 
         let operation = ImgOp::Brighten(25);
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_ok());
@@ -629,7 +632,7 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(result_img, out_!("test_brighten_pos_25.png"));
+        output_test_image_for_manual_inspection(&result_img, out_!("test_brighten_pos_25.png"));
     }
 
     #[test]
@@ -638,7 +641,7 @@ mod tests {
         let cmp = setup_default_test_image();
         let operation = ImgOp::Brighten(0);
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_ok());
@@ -647,7 +650,7 @@ mod tests {
 
         assert_eq!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(result_img, out_!("test_brighten_zero.png"));
+        output_test_image_for_manual_inspection(&result_img, out_!("test_brighten_zero.png"));
     }
 
     #[test]
@@ -657,7 +660,7 @@ mod tests {
 
         let operation = ImgOp::Brighten(-25);
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_ok());
@@ -666,7 +669,7 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(result_img, out_!("test_brighten_neg_25.png"));
+        output_test_image_for_manual_inspection(&result_img, out_!("test_brighten_neg_25.png"));
     }
 
     #[test]
@@ -676,7 +679,7 @@ mod tests {
 
         let operation = ImgOp::Contrast(150.9);
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_ok());
@@ -685,7 +688,7 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(result_img, out_!("test_contrast_pos_15_9.png"));
+        output_test_image_for_manual_inspection(&result_img, out_!("test_contrast_pos_15_9.png"));
     }
 
     #[test]
@@ -695,7 +698,7 @@ mod tests {
 
         let operation = ImgOp::Contrast(-150.9);
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_ok());
@@ -704,7 +707,7 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(result_img, out_!("test_contrast_pos_15_9.png"));
+        output_test_image_for_manual_inspection(&result_img, out_!("test_contrast_pos_15_9.png"));
     }
 
     #[test]
@@ -714,7 +717,7 @@ mod tests {
 
         let operation = ImgOp::Crop((0, 0, 2, 2));
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_ok());
@@ -723,7 +726,7 @@ mod tests {
 
         assert_eq!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(result_img, out_!("test_crop_no_change.bmp"));
+        output_test_image_for_manual_inspection(&result_img, out_!("test_crop_no_change.bmp"));
     }
 
     #[test]
@@ -733,7 +736,7 @@ mod tests {
 
         let operation = ImgOp::Crop((0, 0, 1, 1));
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_ok());
@@ -748,7 +751,10 @@ mod tests {
 
         assert_eq!(Rgba([0, 0, 0, 255]), result_img.get_pixel(0, 0));
 
-        output_test_image_for_manual_inspection(result_img, out_!("test_crop_ok_to_one_pixel.bmp"));
+        output_test_image_for_manual_inspection(
+            &result_img,
+            out_!("test_crop_ok_to_one_pixel.bmp"),
+        );
     }
 
     #[test]
@@ -758,7 +764,7 @@ mod tests {
 
         let operation = ImgOp::Crop((0, 0, 2, 1));
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_ok());
@@ -775,7 +781,7 @@ mod tests {
         assert_eq!(Rgba([255, 255, 255, 255]), result_img.get_pixel(1, 0));
 
         output_test_image_for_manual_inspection(
-            result_img,
+            &result_img,
             out_!("test_crop_ok_to_half_horizontal.bmp"),
         );
     }
@@ -787,7 +793,7 @@ mod tests {
         // not rx >= lx
         let operation = ImgOp::Crop((1, 0, 0, 0));
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_err());
@@ -800,7 +806,7 @@ mod tests {
         // not rx >= lx
         let operation = ImgOp::Crop((0, 1, 0, 0));
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_err());
@@ -812,7 +818,7 @@ mod tests {
 
         let operation = ImgOp::Crop((3, 0, 1, 1));
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_err());
@@ -824,7 +830,7 @@ mod tests {
 
         let operation = ImgOp::Crop((0, 3, 1, 1));
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_err());
@@ -836,7 +842,7 @@ mod tests {
 
         let operation = ImgOp::Crop((0, 0, 3, 1));
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_err());
@@ -848,7 +854,7 @@ mod tests {
 
         let operation = ImgOp::Crop((0, 0, 1, 3));
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_err());
@@ -861,7 +867,7 @@ mod tests {
 
         let operation = ImgOp::Filter3x3([1.0, 0.5, 0.0, 1.0, 0.5, 0.0, 1.0, 0.5, 0.0]);
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_ok());
@@ -870,7 +876,7 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(result_img, out_!("test_filter3x3.png"))
+        output_test_image_for_manual_inspection(&result_img, out_!("test_filter3x3.png"))
     }
 
     #[test]
@@ -879,7 +885,7 @@ mod tests {
         let operation = ImgOp::FlipHorizontal;
 
         let (xa, ya) = img.dimensions();
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_ok());
@@ -890,7 +896,7 @@ mod tests {
         assert_eq!(xa, xb);
         assert_eq!(ya, yb);
 
-        output_test_image_for_manual_inspection(img_result, out_!("test_fliph.png"));
+        output_test_image_for_manual_inspection(&img_result, out_!("test_fliph.png"));
     }
 
     #[test]
@@ -899,7 +905,7 @@ mod tests {
         let operation = ImgOp::FlipVertical;
 
         let (xa, ya) = img.dimensions();
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_ok());
@@ -910,7 +916,7 @@ mod tests {
         assert_eq!(xa, xb);
         assert_eq!(ya, yb);
 
-        output_test_image_for_manual_inspection(img_result, out_!("test_flipv.png"));
+        output_test_image_for_manual_inspection(&img_result, out_!("test_flipv.png"));
     }
 
     #[test]
@@ -920,7 +926,7 @@ mod tests {
         let img = open_test_image(in_!("rainbow_8x6.bmp"));
         let operation = ImgOp::Grayscale;
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_ok());
@@ -942,7 +948,7 @@ mod tests {
             }
         }
 
-        output_test_image_for_manual_inspection(img_result, out_!("test_gray_scale.png"));
+        output_test_image_for_manual_inspection(&img_result, out_!("test_gray_scale.png"));
     }
 
     #[test]
@@ -952,7 +958,7 @@ mod tests {
 
         let operation = ImgOp::HueRotate(-100);
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_ok());
@@ -961,7 +967,7 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(result_img, out_!("test_hue_rot_neg_100.png"));
+        output_test_image_for_manual_inspection(&result_img, out_!("test_hue_rot_neg_100.png"));
     }
 
     #[test]
@@ -971,7 +977,7 @@ mod tests {
 
         let operation = ImgOp::HueRotate(100);
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_ok());
@@ -980,7 +986,7 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(result_img, out_!("test_hue_rot_pos_100.png"));
+        output_test_image_for_manual_inspection(&result_img, out_!("test_hue_rot_pos_100.png"));
     }
 
     #[test]
@@ -990,7 +996,7 @@ mod tests {
 
         let operation = ImgOp::HueRotate(0);
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_ok());
@@ -999,7 +1005,7 @@ mod tests {
 
         assert_eq!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(result_img, out_!("test_hue_rot_0.png"));
+        output_test_image_for_manual_inspection(&result_img, out_!("test_hue_rot_0.png"));
     }
 
     #[test]
@@ -1009,7 +1015,7 @@ mod tests {
 
         let operation = ImgOp::HueRotate(360);
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_ok());
@@ -1021,7 +1027,7 @@ mod tests {
         let expected = SicImage::from(cmp.as_ref().huerotate(360));
         assert_eq!(expected.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(result_img, out_!("test_hue_rot_pos_360.png"));
+        output_test_image_for_manual_inspection(&result_img, out_!("test_hue_rot_pos_360.png"));
     }
 
     #[test]
@@ -1031,7 +1037,7 @@ mod tests {
 
         let operation = ImgOp::HueRotate(460);
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_ok());
@@ -1041,7 +1047,7 @@ mod tests {
         let expected = SicImage::from(cmp.as_ref().huerotate(100));
         assert_ne!(expected.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(result_img, out_!("test_hue_rot_pos_460.png"));
+        output_test_image_for_manual_inspection(&result_img, out_!("test_hue_rot_pos_460.png"));
     }
 
     #[test]
@@ -1051,7 +1057,7 @@ mod tests {
 
         let operation = ImgOp::Invert;
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_ok());
@@ -1060,7 +1066,7 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(result_img, out_!("test_invert.png"));
+        output_test_image_for_manual_inspection(&result_img, out_!("test_invert.png"));
     }
 
     mod overlay {
@@ -1072,7 +1078,7 @@ mod tests {
             let img = setup_default_test_image();
             let overlay = sic_testing::in_!("unsplash_763569_cropped.jpg");
 
-            let mut engine = ImageEngine::new(img.clone());
+            let engine = ImageEngine::new(img.clone());
             let res = engine.ignite(&[Instr::Operation(ImgOp::Overlay(OverlayInputs::new(
                 ImageFromPath::new(overlay.into()),
                 (0, 0),
@@ -1082,7 +1088,7 @@ mod tests {
             assert_eq!(img.raw_pixels(), res_image.raw_pixels());
 
             output_test_image_for_manual_inspection(
-                res_image,
+                &res_image,
                 out_!("test_overlay_self_origin.png"),
             );
         }
@@ -1094,7 +1100,7 @@ mod tests {
 
             let overlay = sic_testing::in_!("unsplash_763569_cropped.jpg");
 
-            let mut engine = ImageEngine::new(img.clone());
+            let engine = ImageEngine::new(img.clone());
             let res = engine.ignite(&[Instr::Operation(ImgOp::Overlay(OverlayInputs::new(
                 ImageFromPath::new(overlay.into()),
                 (bounds.0 as i64, bounds.1 as i64),
@@ -1104,7 +1110,7 @@ mod tests {
             assert_eq!(img.raw_pixels(), res_image.raw_pixels());
 
             output_test_image_for_manual_inspection(
-                res_image,
+                &res_image,
                 out_!("test_overlay_self_bounds.png"),
             );
         }
@@ -1116,7 +1122,7 @@ mod tests {
 
             let overlay = sic_testing::in_!("unsplash_763569_cropped.jpg");
 
-            let mut engine = ImageEngine::new(img.clone());
+            let engine = ImageEngine::new(img.clone());
             let res = engine.ignite(&[
                 Instr::Operation(ImgOp::Invert),
                 Instr::Operation(ImgOp::Overlay(OverlayInputs::new(
@@ -1129,7 +1135,7 @@ mod tests {
             assert_ne!(img.raw_pixels(), res_image.raw_pixels());
 
             output_test_image_for_manual_inspection(
-                res_image,
+                &res_image,
                 out_!("test_overlay_self_se_quarter.png"),
             );
         }
@@ -1146,7 +1152,7 @@ mod tests {
         assert_eq!(xa, 217);
         assert_eq!(ya, 447);
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_ok());
@@ -1157,7 +1163,7 @@ mod tests {
         assert_eq!(xb, 100);
         assert_eq!(yb, 200);
 
-        output_test_image_for_manual_inspection(img_result, out_!("test_scale_100x200.png"));
+        output_test_image_for_manual_inspection(&img_result, out_!("test_scale_100x200.png"));
     }
 
     #[test]
@@ -1171,7 +1177,7 @@ mod tests {
         assert_eq!(xa, 217);
         assert_eq!(ya, 447);
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_ok());
@@ -1182,7 +1188,7 @@ mod tests {
         assert_eq!(xb, 250);
         assert_eq!(yb, 500);
 
-        output_test_image_for_manual_inspection(img_result, out_!("test_scale_250x500.png"));
+        output_test_image_for_manual_inspection(&img_result, out_!("test_scale_250x500.png"));
     }
 
     #[test]
@@ -1191,7 +1197,7 @@ mod tests {
         let operation = ImgOp::Rotate90;
 
         let (xa, ya) = img.dimensions();
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_ok());
@@ -1202,7 +1208,7 @@ mod tests {
         assert_eq!(xa, yb);
         assert_eq!(xb, ya);
 
-        output_test_image_for_manual_inspection(img_result, out_!("test_rotate90.png"));
+        output_test_image_for_manual_inspection(&img_result, out_!("test_rotate90.png"));
     }
 
     #[test]
@@ -1211,7 +1217,7 @@ mod tests {
         let operation = ImgOp::Rotate180;
 
         let (xa, ya) = img.dimensions();
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_ok());
@@ -1222,7 +1228,7 @@ mod tests {
         assert_eq!(xa, xb);
         assert_eq!(ya, yb);
 
-        output_test_image_for_manual_inspection(img_result, out_!("test_rotate180.png"));
+        output_test_image_for_manual_inspection(&img_result, out_!("test_rotate180.png"));
     }
 
     #[test]
@@ -1231,7 +1237,7 @@ mod tests {
         let operation = ImgOp::Rotate270;
 
         let (xa, ya) = img.dimensions();
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
 
         assert!(done.is_ok());
@@ -1242,7 +1248,7 @@ mod tests {
         assert_eq!(xa, yb);
         assert_eq!(xb, ya);
 
-        output_test_image_for_manual_inspection(img_result, out_!("test_rotate270.png"));
+        output_test_image_for_manual_inspection(&img_result, out_!("test_rotate270.png"));
     }
 
     #[test]
@@ -1252,7 +1258,7 @@ mod tests {
 
         let operation = ImgOp::Unsharpen((20.1, 20));
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
         assert!(done.is_ok());
 
@@ -1260,7 +1266,7 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(result_img, out_!("test_unsharpen_20_1_20.png"));
+        output_test_image_for_manual_inspection(&result_img, out_!("test_unsharpen_20_1_20.png"));
     }
 
     #[test]
@@ -1270,7 +1276,7 @@ mod tests {
 
         let operation = ImgOp::Unsharpen((-20.1, -20));
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
         assert!(done.is_ok());
 
@@ -1279,7 +1285,7 @@ mod tests {
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
         output_test_image_for_manual_inspection(
-            result_img,
+            &result_img,
             out_!("test_unsharpen_neg20_1_neg20.png"),
         );
     }
@@ -1292,7 +1298,7 @@ mod tests {
 
         let operation = ImgOp::Threshold;
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&[Instr::Operation(operation)]);
         assert!(done.is_ok());
 
@@ -1300,7 +1306,7 @@ mod tests {
 
         assert_ne!(cmp.raw_pixels(), result_img.raw_pixels());
 
-        output_test_image_for_manual_inspection(result_img, out_!("test_threshold.png"));
+        output_test_image_for_manual_inspection(&result_img, out_!("test_threshold.png"));
     }
 
     #[test]
@@ -1319,7 +1325,7 @@ mod tests {
         assert_eq!(ya, 447);
         assert_eq!(xa, 217);
 
-        let mut operator = ImageEngine::new(img);
+        let operator = ImageEngine::new(img);
         let done = operator.ignite(&operations);
 
         assert!(done.is_ok());
@@ -1331,7 +1337,7 @@ mod tests {
         assert_eq!(xb, 100);
         assert_eq!(yb, 80);
 
-        output_test_image_for_manual_inspection(done_image, out_!("test_multi.png"));
+        output_test_image_for_manual_inspection(&done_image, out_!("test_multi.png"));
     }
 
     #[cfg(feature = "imageproc-ops")]
@@ -1359,14 +1365,14 @@ mod tests {
                 ),
             ));
 
-            let mut operator = ImageEngine::new(img);
+            let operator = ImageEngine::new(img);
             let done = operator.ignite(&[Instr::Operation(operation)]);
             assert!(done.is_ok());
 
             let result_img = done.unwrap();
 
             output_test_image_for_manual_inspection(
-                result_img,
+                &result_img,
                 out_!("test_imageproc_ops_draw_text.png"),
             );
         }

@@ -1,15 +1,15 @@
 use crate::cli::app::arg_names::{
-    ARG_GLOB_NO_SKIP_UNSUPPORTED_EXTENSIONS, ARG_IMAGE_CRATE_FALLBACK, ARG_INPUT, ARG_INPUT_GLOB,
-    ARG_OUTPUT, ARG_OUTPUT_GLOB,
+    ARG_GLOB_NO_SKIP_UNSUPPORTED_EXTENSIONS, ARG_INPUT, ARG_INPUT_GLOB, ARG_OUTPUT, ARG_OUTPUT_GLOB,
 };
 use crate::cli::common_dir::CommonDir;
 use crate::cli::glob_base_dir::glob_builder_base;
 use anyhow::{bail, Context};
 use clap::ArgMatches;
 use globwalk::{FileType, GlobWalker};
+use sic_core::image;
 use sic_image_engine::engine::Instr;
-use sic_io::conversion::RepeatAnimation;
-use sic_io::import::FrameIndex;
+use sic_io::decode::FrameIndex;
+use sic_io::format::gif::RepeatAnimation;
 use std::fmt;
 use std::path::PathBuf;
 
@@ -77,7 +77,6 @@ impl InputOutputMode {
                         let paths = Self::lookup_paths(
                             inputs,
                             !matches.is_present(ARG_GLOB_NO_SKIP_UNSUPPORTED_EXTENSIONS),
-                            matches.is_present(ARG_IMAGE_CRATE_FALLBACK),
                         )?;
 
                         CommonDir::try_new(paths)?
@@ -99,7 +98,6 @@ impl InputOutputMode {
     fn lookup_paths(
         inputs: impl Iterator<Item = Result<globwalk::DirEntry, globwalk::WalkError>>,
         filter_unsupported: bool,
-        image_crate_fallback_enabled: bool,
     ) -> anyhow::Result<Vec<PathBuf>> {
         let paths: Vec<PathBuf> = inputs
             .map(|entry| {
@@ -115,7 +113,7 @@ impl InputOutputMode {
             .collect::<anyhow::Result<Vec<PathBuf>>>()?;
 
         Ok(if filter_unsupported {
-            filter_unsupported_paths(paths, image_crate_fallback_enabled)
+            filter_unsupported_paths(paths)
         } else {
             paths
         })
@@ -123,21 +121,18 @@ impl InputOutputMode {
 }
 
 // remove paths with extensions we don't recognise
-fn filter_unsupported_paths(paths: Vec<PathBuf>, fallback_enabled: bool) -> Vec<PathBuf> {
-    use crate::cli::pipeline::fallback::guess_output_by_path;
-    use crate::combinators::FallbackIf;
-    use sic_io::format::DetermineEncodingFormat;
-    use sic_io::format::EncodingFormatByExtension;
-
-    let checker = DetermineEncodingFormat::default();
+fn filter_unsupported_paths(paths: Vec<PathBuf>) -> Vec<PathBuf> {
+    // NB: We currently support all image formats which are also suported by `image`.
+    //     If that changes, we should also update this.
 
     paths
         .into_iter()
         .filter(|path| {
-            checker
-                .by_extension(path)
-                .fallback_if(fallback_enabled, guess_output_by_path, path)
-                .is_ok()
+            if let Ok(p) = image::ImageFormat::from_path(path) {
+                p.writing_enabled()
+            } else {
+                false
+            }
         })
         .collect()
 }
@@ -216,9 +211,6 @@ impl Default for Config<'_> {
 
                 // Defaults to infinite repeat
                 gif_repeat: RepeatAnimation::default(),
-
-                // Do not fallback to image crate output recognition by default
-                image_output_format_fallback: false,
             },
 
             // Defaults to no provided image operations script.
@@ -290,14 +282,6 @@ impl<'a> ConfigBuilder<'a> {
         self
     }
 
-    pub fn image_output_format_decider_fallback(
-        mut self,
-        enable_fallback: bool,
-    ) -> ConfigBuilder<'a> {
-        self.settings.encoding_settings.image_output_format_fallback = enable_fallback;
-        self
-    }
-
     // image-operations
     pub fn image_operations_program(mut self, program: Vec<Instr>) -> ConfigBuilder<'a> {
         self.settings.image_operations_program = program;
@@ -320,9 +304,6 @@ pub struct FormatEncodingSettings {
     pub jpeg_quality: u8,
     pub pnm_use_ascii_format: bool,
     pub gif_repeat: RepeatAnimation,
-
-    // Whether to fallback on the image crate to determine the output format if sic doesn't support it yet
-    pub image_output_format_fallback: bool,
 }
 
 /// Strictly speaking not necessary here since the responsible owners will validate the quality as well.
@@ -404,7 +385,7 @@ mod tests {
 
         let path_bufs = to_path_bufs(paths);
         let expected_path_bufs = to_path_bufs(&[paths[0], paths[1], paths[2]]);
-        let filtered = filter_unsupported_paths(path_bufs, false);
+        let filtered = filter_unsupported_paths(path_bufs);
 
         assert_eq!(filtered, expected_path_bufs);
     }
@@ -425,17 +406,8 @@ mod tests {
             &[],
             &["a.farbfeld", "a.ff"],
             &["a.farbfeld"],
-        }, fallback_on_imagecrate = {
-            false,
-            false,
-            true,
-            false,
         })]
-        fn are_unsupported_paths_getting_filtered(
-            paths_in: &[&str],
-            paths_expected: &[&str],
-            fallback_on_imagecrate: bool,
-        ) {
+        fn are_unsupported_paths_getting_filtered(paths_in: &[&str], paths_expected: &[&str]) {
             fn to_path_bufs<'s>(paths: impl IntoIterator<Item = &'s &'s str>) -> Vec<PathBuf> {
                 paths
                     .into_iter()
@@ -445,7 +417,7 @@ mod tests {
 
             let path_bufs = to_path_bufs(paths_in);
             let expected_path_bufs = to_path_bufs(paths_expected);
-            let filtered = filter_unsupported_paths(path_bufs, fallback_on_imagecrate);
+            let filtered = filter_unsupported_paths(path_bufs);
 
             assert_eq!(filtered, expected_path_bufs);
         }

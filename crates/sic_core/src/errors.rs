@@ -2,7 +2,7 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum SicCoreError {
-    #[error("{0}")]
+    #[error(transparent)]
     ImageError(image::error::ImageError),
 
     #[error("Invalid frame index: index (is {index}) should be < len (is {len}) ")]

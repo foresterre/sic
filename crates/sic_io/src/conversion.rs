@@ -1,207 +1,19 @@
 use crate::errors::{FormatError, SicIoError};
-use crate::export::ExportSettings;
-use crate::WriteSeek;
+use crate::preprocessor::Preprocess;
 use image::buffer::ConvertBuffer;
 use sic_core::image::codecs::gif::Repeat;
-use sic_core::image::codecs::pnm;
 use sic_core::{image, AnimatedImage, SicImage};
-use std::io::Write;
-
-#[derive(Clone, Copy, Debug)]
-pub enum AutomaticColorTypeAdjustment {
-    // Usually the default
-    Enabled,
-    Disabled,
-}
-
-impl Default for AutomaticColorTypeAdjustment {
-    fn default() -> Self {
-        AutomaticColorTypeAdjustment::Enabled
-    }
-}
-
-#[derive(Clone, Copy, Debug)]
-pub enum RepeatAnimation {
-    Finite(u16),
-    Infinite,
-    Never,
-}
-
-impl RepeatAnimation {
-    pub fn try_from_str(input: &str) -> Result<Self, SicIoError> {
-        match input {
-            "infinite" => Ok(Self::Infinite),
-            "never" => Ok(Self::Never),
-            elsy => elsy
-                .parse::<u16>()
-                .map(Self::Finite)
-                .map_err(|_| SicIoError::FormatError(FormatError::GIFRepeatInvalidValue)),
-        }
-    }
-}
-
-impl Default for RepeatAnimation {
-    fn default() -> Self {
-        Self::Infinite
-    }
-}
-
-/// Use the ConversionWriter to convert and write image buffers to an output.
-pub struct ConversionWriter<'a> {
-    image: &'a SicImage,
-}
-
-impl<'a> ConversionWriter<'a> {
-    pub fn new(image: &SicImage) -> ConversionWriter {
-        ConversionWriter { image }
-    }
-
-    pub fn write_all<W: WriteSeek>(
-        &self,
-        writer: &mut W,
-        output_format: image::ImageOutputFormat,
-        export_settings: &ExportSettings,
-    ) -> Result<(), SicIoError> {
-        let color_processing = &ConversionWriter::pre_process_color_type(
-            self.image,
-            &output_format,
-            export_settings.adjust_color_type,
-        );
-
-        let export_buffer = match color_processing {
-            Some(replacement) => replacement,
-            None => self.image,
-        };
-
-        ConversionWriter::export(writer, export_buffer, output_format, export_settings)
-    }
-
-    /// Some image output format types require color type pre-processing.
-    /// This is the case if the output image format does not support the color type held by the image buffer prior to the final conversion.
-    ///
-    /// If pre-processing of the color type took place, Some(<new image>) will be returned.
-    /// If no pre-processing of the color type is required will return None.
-    /// Frames of animated images are not adjusted.
-    fn pre_process_color_type(
-        image: &SicImage,
-        output_format: &image::ImageOutputFormat,
-        color_type_adjustment: AutomaticColorTypeAdjustment,
-    ) -> Option<SicImage> {
-        if let AutomaticColorTypeAdjustment::Disabled = color_type_adjustment {
-            return None;
-        }
-
-        match image {
-            SicImage::Animated(_) => None,
-            SicImage::Static(image) => {
-                adjust_dynamic_image(image, output_format).map(SicImage::from)
-            }
-        }
-    }
-
-    fn export<W: WriteSeek>(
-        writer: &mut W,
-        image: &SicImage,
-        format: image::ImageOutputFormat,
-        export_settings: &ExportSettings,
-    ) -> Result<(), SicIoError> {
-        match image {
-            SicImage::Animated(image) => {
-                encode_animated_image(writer, image.collect_frames(), format, export_settings)
-            }
-            SicImage::Static(image) => encode_static_image(writer, image, format),
-        }
-    }
-}
-
-/// Adjusts the type of image buffer, unless it's determined to be unnecessary
-fn adjust_dynamic_image(
-    image: &image::DynamicImage,
-    output_format: &image::ImageOutputFormat,
-) -> Option<image::DynamicImage> {
-    use image::DynamicImage;
-
-    // A remaining open question: does a user expect for an image to be able to convert to a format even if the color type is not supported?
-    // And even if the user does, should we?
-    // I suspect that users expect that color type conversions should happen automatically.
-    //
-    // Testing also showed that even bmp with full black full white pixels do not convert correctly as of now. Why exactly is unclear;
-    // Perhaps the color type of the bmp formatted test image?
-
-    match output_format {
-        image::ImageOutputFormat::Farbfeld => {
-            Some(DynamicImage::ImageRgba16(image.to_rgba8().convert()))
-        }
-        image::ImageOutputFormat::Pnm(pnm::PnmSubtype::Bitmap(_)) => {
-            Some(DynamicImage::ImageLuma8(image.to_luma8()))
-        }
-        image::ImageOutputFormat::Pnm(pnm::PnmSubtype::Graymap(_)) => {
-            Some(DynamicImage::ImageLuma8(image.to_luma8()))
-        }
-        image::ImageOutputFormat::Pnm(pnm::PnmSubtype::Pixmap(_)) => {
-            Some(DynamicImage::ImageRgb8(image.to_rgb8()))
-        }
-        _ => None,
-    }
-}
-
-fn encode_static_image<W: WriteSeek>(
-    writer: &mut W,
-    image: &image::DynamicImage,
-    format: image::ImageOutputFormat,
-) -> Result<(), SicIoError> {
-    image
-        .write_to(writer, format)
-        .map_err(SicIoError::ImageError)
-}
-
-fn encode_animated_image<W: WriteSeek>(
-    writer: &mut W,
-    frames: Vec<image::Frame>, // note: should be owned for the encoder, so can't be a slice
-    format: image::ImageOutputFormat,
-    export_settings: &ExportSettings,
-) -> Result<(), SicIoError> {
-    match format {
-        image::ImageOutputFormat::Gif => {
-            encode_animated_gif(writer, frames, export_settings.gif_repeat)
-        }
-        _ => {
-            eprintln!("WARN: The animated image buffer could not be encoded to the {:?} format; encoding only the first frame", format);
-            let image = AnimatedImage::from_frames(frames).try_into_static_image(0)?;
-            encode_static_image(writer, &image, format)
-        }
-    }
-}
-
-fn encode_animated_gif<W: Write>(
-    writer: &mut W,
-    frames: Vec<image::Frame>,
-    repeat: RepeatAnimation,
-) -> Result<(), SicIoError> {
-    let mut encoder = image::codecs::gif::GifEncoder::new(writer);
-    encoder.encode_frames(frames)?;
-
-    match repeat {
-        RepeatAnimation::Finite(amount) => encoder.set_repeat(Repeat::Finite(amount))?,
-        RepeatAnimation::Infinite => encoder.set_repeat(Repeat::Infinite)?,
-        _ => {}
-    }
-
-    Ok(())
-}
-
+use std::io::{Seek, Write};
 #[cfg(test)]
 mod tests {
     use std::fs::File;
     use std::io::{self, Read};
 
     use parameterized::parameterized;
-    use sic_core::image::{ImageFormat, ImageOutputFormat};
+    use sic_core::image::ImageFormat;
     use sic_testing::{clean_up_output_path, setup_output_path, setup_test_image};
 
     use super::*;
-
-    impl WriteSeek for File {}
 
     // Individual tests:
 
@@ -216,7 +28,7 @@ mod tests {
         let buffer = image::open(setup_test_image(INPUT))
             .expect("Can't open test file.")
             .into();
-        let example_output_format = image::ImageOutputFormat::Png;
+        let example_output_format = image::ImageFormat::Png;
         let conversion_processor = ConversionWriter::new(&buffer);
         conversion_processor
             .write_all(
@@ -243,7 +55,7 @@ mod tests {
         let buffer = image::open(setup_test_image(INPUT))
             .expect("Can't open test file.")
             .into();
-        let example_output_format = image::ImageOutputFormat::Png;
+        let example_output_format = image::ImageFormat::Png;
         let conversion_processor = ConversionWriter::new(&buffer);
         conversion_processor
             .write_all(
@@ -273,7 +85,7 @@ mod tests {
         let buffer = image::open(setup_test_image(INPUT))
             .expect("Can't open test file.")
             .into();
-        let example_output_format = image::ImageOutputFormat::Png;
+        let example_output_format = image::ImageFormat::Png;
         let conversion_processor = ConversionWriter::new(&buffer);
         conversion_processor
             .write_all(
@@ -309,7 +121,7 @@ mod tests {
     fn test_conversion_with_header_match(
         input: &str,
         enc_format: &str,
-        format: image::ImageOutputFormat,
+        format: image::ImageFormat,
         expected_format: image::ImageFormat,
     ) -> io::Result<()> {
         let our_output = &format!("header_match_conversion.{}", enc_format); // this is required because tests are run in parallel, and the creation, or deletion can collide.
@@ -349,36 +161,36 @@ mod tests {
 
     #[parameterized(
         ext = {
-            "bmp", 
-            "farbfeld", 
-            "gif", 
-            "ico", 
-            "jpg", 
-            "jpeg", 
-            "png", 
-            "pbm", 
-            "pgm", 
-            "ppm", 
+            "bmp",
+            "farbfeld",
+            "gif",
+            "ico",
+            "jpg",
+            "jpeg",
+            "png",
+            "pbm",
+            "pgm",
+            "ppm",
             "pam",
         },
         to_format = {
-            image::ImageOutputFormat::Bmp,
-            image::ImageOutputFormat::Farbfeld,
-            image::ImageOutputFormat::Gif,
-            image::ImageOutputFormat::Ico,
-            image::ImageOutputFormat::Jpeg(80),
-            image::ImageOutputFormat::Jpeg(80),
-            image::ImageOutputFormat::Png,
-            image::ImageOutputFormat::Pnm(image::codecs::pnm::PnmSubtype::Bitmap(
+            image::ImageFormat::Bmp,
+            image::ImageFormat::Farbfeld,
+            image::ImageFormat::Gif,
+            image::ImageFormat::Ico,
+            image::ImageFormat::Jpeg(80),
+            image::ImageFormat::Jpeg(80),
+            image::ImageFormat::Png,
+            image::ImageFormat::Pnm(image::codecs::pnm::PnmSubtype::Bitmap(
                 image::codecs::pnm::SampleEncoding::Binary,
             )),
-            image::ImageOutputFormat::Pnm(image::codecs::pnm::PnmSubtype::Graymap(
+            image::ImageFormat::Pnm(image::codecs::pnm::PnmSubtype::Graymap(
                 image::codecs::pnm::SampleEncoding::Binary,
             )),
-            image::ImageOutputFormat::Pnm(image::codecs::pnm::PnmSubtype::Pixmap(
+            image::ImageFormat::Pnm(image::codecs::pnm::PnmSubtype::Pixmap(
                 image::codecs::pnm::SampleEncoding::Binary,
             )),
-            image::ImageOutputFormat::Pnm(
+            image::ImageFormat::Pnm(
                 image::codecs::pnm::PnmSubtype::ArbitraryMap
             ),
         },
@@ -398,7 +210,7 @@ mod tests {
     )]
     fn test_conversions_with_header_match(
         ext: &str,
-        to_format: ImageOutputFormat,
+        to_format: ImageFormat,
         expected_format: ImageFormat,
     ) {
         for test_image in INPUT_MULTI.iter() {

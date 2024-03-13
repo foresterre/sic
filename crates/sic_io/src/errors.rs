@@ -1,3 +1,4 @@
+use crate::format;
 use sic_core::image::ImageError;
 use sic_core::SicCoreError;
 use std::path::PathBuf;
@@ -5,16 +6,16 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum SicIoError {
-    #[error("{0}")]
+    #[error(transparent)]
     SicCoreError(#[from] SicCoreError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     ImageError(#[from] ImageError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Io(std::io::Error),
 
-    #[error("{0}")]
+    #[error(transparent)]
     FormatError(FormatError),
 
     #[error(
@@ -32,27 +33,28 @@ pub enum SicIoError {
     #[error(
         "No supported image output format was found. The following identifier was provided: {0}."
     )]
-    UnknownImageIdentifier(String),
+    UnknownImageFormat(String),
 
     #[error(
         "Unable to determine the image format from the file extension. The following path was given: {0}."
     )]
-    UnableToDetermineImageFormatFromFileExtension(PathBuf),
+    UnknownImageFormatFromFileExtension(PathBuf),
+}
+
+#[cfg(test)]
+impl PartialEq for SicIoError {
+    fn eq(&self, other: &Self) -> bool {
+        format!("{:?}", self) == format!("{:?}", other)
+    }
 }
 
 #[derive(Debug, Error)]
 pub enum FormatError {
-    #[error("Unable to determine JPEG quality.")]
-    JPEGQualityLevelNotSet,
-
-    #[error("JPEG Quality should range between 1 and 100 (inclusive).")]
-    JPEGQualityLevelNotInRange,
+    #[error(transparent)]
+    JPEGQuality(format::jpeg::JpegQualityError),
 
     #[error(
         "The GIF repeat value has to be either a positive integer < 65536, 'infinite' or 'never'"
     )]
     GIFRepeatInvalidValue,
-
-    #[error("Using PNM requires the sample encoding to be set.")]
-    PNMSamplingEncodingNotSet,
 }
