@@ -5,18 +5,14 @@ use std::io::{self, Read, Seek, SeekFrom, Stdout, Write};
 use crate::cli::config::{Config, InputOutputMode, InputOutputModeType, PathVariant};
 use crate::cli::license::LicenseTexts;
 use crate::cli::license::PrintTextFor;
-use crate::cli::pipeline::fallback::{guess_output_by_identifier, guess_output_by_path};
-use crate::combinators::FallbackIf;
 use anyhow::{anyhow, bail, Context};
 use sic_core::image;
 use sic_image_engine::engine::ImageEngine;
-use sic_io::conversion::AutomaticColorTypeAdjustment;
-use sic_io::format::{
-    DetermineEncodingFormat, EncodingFormatByExtension, EncodingFormatByIdentifier, JPEGQuality,
-};
-use sic_io::{export, import, WriteSeek};
-
-pub mod fallback;
+use sic_io::decode;
+use sic_io::decode::SicImageDecoder;
+use sic_io::encode::SicImageEncoder;
+use sic_io::format::jpeg::JpegQuality;
+use sic_io::format::{DynamicEncoder, EncoderSettings, IntoImageEncoder};
 
 pub fn run_with_devices<'c>(
     in_and_output: InputOutputMode,
@@ -31,8 +27,8 @@ pub fn run_with_devices<'c>(
             run(
                 || create_reader(&input),
                 |ext: Option<&str>| create_writer(&output, ext),
-                || create_format_decider(&output, config),
                 config,
+                &output,
             )
             .with_context(|| format!("With: {}", input.describe_input()))
         }
@@ -49,8 +45,8 @@ pub fn run_with_devices<'c>(
                 run(
                     || create_reader(input),
                     |ext: Option<&str>| create_writer(output, ext),
-                    || create_format_decider(output, config),
                     config,
+                    output,
                 )
                 .with_context(|| format!("With input: {}", input.describe_input()))?
             }
@@ -67,27 +63,24 @@ fn warn_default_std_output_format() {
     );
 }
 
-fn run<R, W, WS, F>(
+// TODO: simplify inputs of this function
+fn run<R, W, WS>(
     supply_reader: R,
     supply_writer: W,
-    format_decider: F,
     config: &Config,
+    output_path_variant: &PathVariant,
 ) -> anyhow::Result<()>
 where
     R: Fn() -> anyhow::Result<Box<dyn Read>>,
     W: Fn(Option<&str>) -> anyhow::Result<WS>,
-    WS: WriteSeek,
-    F: Fn() -> anyhow::Result<image::ImageOutputFormat>,
+    WS: Write + Seek,
 {
     let mut reader = supply_reader()?;
-    let img = import::load_image(
-        &mut reader,
-        &import::ImportConfig {
-            selected_frame: config.selected_frame,
-        },
-    )?;
 
-    let mut image_engine = ImageEngine::new(img);
+    let decoder = SicImageDecoder::new(config.selected_frame);
+    let img = decoder.decode(&mut reader)?;
+
+    let image_engine = ImageEngine::new(img);
     let buffer = image_engine
         .ignite(&config.image_operations_program)
         .with_context(|| "Unable to apply image operations.")?;
@@ -99,37 +92,63 @@ where
     } else {
         None
     };
-    let mut export_writer = supply_writer(format)?;
-    let encoding_format = format_decider()?;
 
-    export::export(
-        buffer,
-        &mut export_writer,
-        encoding_format,
-        export::ExportSettings {
-            adjust_color_type: if config.disable_automatic_color_type_adjustment {
-                AutomaticColorTypeAdjustment::Disabled
-            } else {
-                AutomaticColorTypeAdjustment::Enabled
-            },
-            gif_repeat: config.encoding_settings.gif_repeat,
-        },
-    )
-    .with_context(|| "Unable to save image.")
+    let adjust_color_type = !config.disable_automatic_color_type_adjustment;
+    let encoder = SicImageEncoder::new(
+        adjust_color_type.into(),
+        config.encoding_settings.gif_repeat,
+    );
+
+    let writer = supply_writer(format)?;
+    let dynamic_encoder = create_dynamic_encoder(writer, config, output_path_variant)?;
+
+    encoder
+        .encode(buffer, dynamic_encoder)
+        .with_context(|| "Unable to write image")
 }
 
 /// Create a reader which will be used to load the image.
 /// The reader can be a file or the stdin.
 /// If no file path is provided, the stdin will be assumed.
-fn create_reader(io_device: &PathVariant) -> anyhow::Result<Box<dyn Read>> {
-    match io_device {
+fn create_reader(path_variant: &PathVariant) -> anyhow::Result<Box<dyn Read>> {
+    match path_variant {
         PathVariant::StdStream if atty::is(atty::Stream::Stdin) => bail!(
             "An input image should be given by providing a path using the input argument or \
                  by piping an image to the stdin."
         ),
-        PathVariant::StdStream => Ok(import::stdin_reader()?),
-        PathVariant::Path(path) => Ok(import::file_reader(path)?),
+        PathVariant::StdStream => Ok(decode::stdin_reader()?),
+        PathVariant::Path(path) => Ok(decode::file_reader(path)?),
     }
+}
+
+fn create_dynamic_encoder<W: Write + Seek>(
+    writer: W,
+    config: &Config,
+    path_variant: &PathVariant,
+) -> anyhow::Result<DynamicEncoder<W>> {
+    let settings = EncoderSettings {
+        pnm_sample_encoding: if config.encoding_settings.pnm_use_ascii_format {
+            image::codecs::pnm::SampleEncoding::Ascii
+        } else {
+            image::codecs::pnm::SampleEncoding::Binary
+        },
+        jpeg_quality: { JpegQuality::try_from(config.encoding_settings.jpeg_quality)? },
+        repeat_animation: config.encoding_settings.gif_repeat,
+    };
+
+    Ok(match &config.forced_output_format {
+        Some(format) => DynamicEncoder::from_identifier(writer, format, &settings)?,
+        None => match path_variant {
+            PathVariant::Path(out) => DynamicEncoder::from_extension(writer, out, &settings)?,
+            PathVariant::StdStream => DynamicEncoder::bmp(writer)?,
+        },
+    })
+}
+
+#[derive(Debug)]
+enum OutputType {
+    File(File),
+    Stdout(Stdout),
 }
 
 #[derive(Debug)]
@@ -153,14 +172,6 @@ impl Output {
         }
     }
 }
-
-#[derive(Debug)]
-enum OutputType {
-    File(File),
-    Stdout(Stdout),
-}
-
-impl WriteSeek for Output {}
 
 impl Write for Output {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
@@ -192,8 +203,8 @@ impl Seek for Output {
     }
 }
 
-fn create_writer(io_device: &PathVariant, adjust_ext: Option<&str>) -> anyhow::Result<Output> {
-    match io_device {
+fn create_writer(path_variant: &PathVariant, adjust_ext: Option<&str>) -> anyhow::Result<Output> {
+    match path_variant {
         PathVariant::Path(out) => {
             let base = out.as_path().parent().ok_or_else(|| {
                 anyhow::anyhow!("Unable to create output directory for output path")
@@ -211,42 +222,6 @@ fn create_writer(io_device: &PathVariant, adjust_ext: Option<&str>) -> anyhow::R
         }
         PathVariant::StdStream => Ok(Output::new_stdout(io::stdout())),
     }
-}
-
-fn create_format_decider(
-    io_device: &PathVariant,
-    config: &Config,
-) -> anyhow::Result<image::ImageOutputFormat> {
-    let format_resolver = DetermineEncodingFormat {
-        pnm_sample_encoding: if config.encoding_settings.pnm_use_ascii_format {
-            Some(image::codecs::pnm::SampleEncoding::Ascii)
-        } else {
-            Some(image::codecs::pnm::SampleEncoding::Binary)
-        },
-        jpeg_quality: {
-            Some(JPEGQuality::try_from(
-                config.encoding_settings.jpeg_quality,
-            )?)
-        },
-    };
-
-    let format = match &config.forced_output_format {
-        Some(format) => format_resolver.by_identifier(format).fallback_if(
-            config.encoding_settings.image_output_format_fallback,
-            guess_output_by_identifier,
-            format,
-        )?,
-        None => match io_device {
-            PathVariant::Path(out) => format_resolver.by_extension(out).fallback_if(
-                config.encoding_settings.image_output_format_fallback,
-                guess_output_by_path,
-                out,
-            )?,
-            PathVariant::StdStream => image::ImageOutputFormat::Bmp,
-        },
-    };
-
-    Ok(format)
 }
 
 pub fn run_display_licenses(config: &Config, texts: &LicenseTexts) -> anyhow::Result<()> {
