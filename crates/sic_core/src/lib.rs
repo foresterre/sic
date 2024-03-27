@@ -9,7 +9,7 @@
 pub use image;
 
 #[cfg(feature = "imageproc-ops")]
-pub use {imageproc, rusttype};
+pub use {ab_glyph, imageproc};
 
 use image::DynamicImage;
 use std::convert::TryFrom;

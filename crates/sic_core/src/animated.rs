@@ -11,8 +11,10 @@ pub struct AnimatedImage {
 
 impl AnimatedImage {
     /// Consume a collection of frames to produce an `AnimatedImage`
-    pub fn from_frames(frames: Vec<image::Frame>) -> Self {
-        Self { frames }
+    pub fn from_frames(frames: impl IntoIterator<Item = image::Frame>) -> Self {
+        Self {
+            frames: frames.into_iter().collect(),
+        }
     }
 
     /// Returns the selected frame from the animated image as static image

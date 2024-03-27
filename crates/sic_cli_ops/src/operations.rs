@@ -12,7 +12,7 @@ use std::str::FromStr;
 
 /// The enumeration of all supported operations.
 #[derive(
-    Debug, Copy, Clone, Hash, Eq, PartialEq, IntoStaticStr, EnumIter, EnumString, EnumVariantNames,
+    Debug, Copy, Clone, Hash, Eq, PartialEq, IntoStaticStr, EnumIter, EnumString, VariantNames,
 )]
 #[strum(serialize_all = "kebab_case")]
 pub enum OperationId {

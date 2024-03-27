@@ -1,5 +1,5 @@
+use sic_core::ab_glyph;
 use sic_core::image::Rgba;
-use sic_core::rusttype::Scale;
 use std::path::PathBuf;
 
 type FontColor = Rgba<u8>;
@@ -13,7 +13,7 @@ pub enum FontScale {
 pub struct FontOptions {
     pub font_path: PathBuf,
     pub color: FontColor,
-    pub scale: Scale,
+    pub scale: ab_glyph::PxScale,
 }
 
 impl FontOptions {
@@ -22,8 +22,8 @@ impl FontOptions {
             font_path,
             color,
             scale: match scale {
-                FontScale::Uniform(value) => Scale::uniform(value),
-                FontScale::Scaling(horizontal, vertical) => Scale {
+                FontScale::Uniform(value) => ab_glyph::PxScale::from(value),
+                FontScale::Scaling(horizontal, vertical) => ab_glyph::PxScale {
                     x: horizontal,
                     y: vertical,
                 },

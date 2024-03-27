@@ -6,8 +6,8 @@ use arg_names::*;
 use clap::{App, AppSettings, Arg, ArgGroup, ArgMatches};
 use sic_cli_ops::create_image_ops;
 use sic_cli_ops::operations::OperationId;
-use sic_io::conversion::RepeatAnimation;
-use sic_io::import::FrameIndex;
+use sic_io::decode::FrameIndex;
+use sic_io::format::gif::RepeatAnimation;
 use std::path::Path;
 use std::str::FromStr;
 
@@ -43,7 +43,6 @@ define_arg_consts!(arg_names, {
     ARG_FORCED_OUTPUT_FORMAT,
     ARG_JPEG_ENCODING_QUALITY,
     ARG_PNM_ENCODING_ASCII,
-    ARG_IMAGE_CRATE_FALLBACK,
     ARG_GIF_REPEAT,
 
     // provide image operations using image script
@@ -199,11 +198,6 @@ pub fn create_app(
             .value_name("REPETITIONS")
             .takes_value(true)
         )
-
-        .arg(Arg::with_name(ARG_IMAGE_CRATE_FALLBACK)
-            .long("enable-output-format-decider-fallback")
-            .help("[experimental] When this flag is set, sic will attempt to fallback to an alternative output format decider (image crate version), \
-            *if* sic's own decider can't find a suitable format. Setting this flag may introduce unwanted behaviour; use with caution."))
 
         // image-operations(script):
         .arg(Arg::with_name(ARG_APPLY_OPERATIONS)
@@ -436,10 +430,6 @@ pub fn build_app_config<'a>(matches: &'a ArgMatches) -> anyhow::Result<Config<'a
         let repeat = RepeatAnimation::try_from_str(value)?;
         builder = builder.gif_repeat(repeat);
     }
-
-    // config(out)/ARG_IMAGE_CRATE_FALLBACK:
-    builder =
-        builder.image_output_format_decider_fallback(matches.is_present(ARG_IMAGE_CRATE_FALLBACK));
 
     // image-operations:
     //
