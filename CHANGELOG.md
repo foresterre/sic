@@ -16,6 +16,10 @@ changes.
 
 - Removed experimental flag `--enable-output-format-decider-fallback`
 
+## Disabled
+
+- Disabled AVIF decoder for now due to cross-platform compilation issues (libdav1d).
+
 ## [0.22.4] - 2023-09-17
 
 ### Notable dependency updates
