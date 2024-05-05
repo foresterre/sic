@@ -43,9 +43,10 @@ impl Preprocess for ColorTypePreprocessor {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default)]
 pub enum ColorTypeAdjustment {
     // Usually the default
+    #[default]
     Enabled,
     Disabled,
 }
@@ -57,12 +58,6 @@ impl From<bool> for ColorTypeAdjustment {
         } else {
             ColorTypeAdjustment::Disabled
         }
-    }
-}
-
-impl Default for ColorTypeAdjustment {
-    fn default() -> Self {
-        ColorTypeAdjustment::Enabled
     }
 }
 
