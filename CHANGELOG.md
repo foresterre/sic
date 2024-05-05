@@ -12,11 +12,15 @@ changes.
 
 [unreleased]: https://github.com/foresterre/sic/compare/v0.22.4...HEAD
 
+### Changed
+
+- Jpeg encoder now converts color type to Rgb8, unless disabled
+
 ### Removed
 
 - Removed experimental flag `--enable-output-format-decider-fallback`
 
-## Disabled
+### Disabled
 
 - Disabled AVIF decoder for now due to cross-platform compilation issues (libdav1d).
 

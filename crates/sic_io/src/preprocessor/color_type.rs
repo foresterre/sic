@@ -1,6 +1,5 @@
 use crate::errors::SicIoError;
 use crate::preprocessor::Preprocess;
-use sic_core::image::buffer::ConvertBuffer;
 use sic_core::image::DynamicImage;
 use sic_core::{image, SicImage};
 
@@ -20,23 +19,20 @@ impl Preprocess for ColorTypePreprocessor {
     fn preprocess(self, image: SicImage) -> Result<SicImage, SicIoError> {
         match image {
             SicImage::Static(image) if self.format == image::ImageFormat::Farbfeld => {
-                // A remaining open question: does a user expect for an image to be able to convert to a format even if the color type is not supported?
-                // And even if the user does, should we?
-                // I suspect that users expect that color type conversions should happen automatically.
-                //
-                // Testing also showed that even bmp with full black full white pixels do not convert correctly as of now. Why exactly is unclear;
-                // Perhaps the color type of the bmp formatted test image?
-                let out = DynamicImage::ImageRgba16(image.to_rgba8().convert());
-                Ok(SicImage::Static(out))
+                Ok(to_rgba16(image))
+            }
+            // Jpeg encoder only supports L8 or Rgb8. We currently only work with ColorType (by
+            // virtue of using DynamicImage), not ExtendedColorType. L8 is part of the extended
+            // color type.
+            // https://github.com/image-rs/image/blob/d71046727387b627e63effe7c56790bd355ec5ba/src/codecs/jpeg/encoder.rs#L454
+            SicImage::Static(image) if self.format == image::ImageFormat::Jpeg => {
+                Ok(to_rgb8(image))
             }
             // We must pre-process when the image format is Gif, since image::Frame only supports
             // RgbaImage = ImageBuffer<Rgba<u8>, Vec<u8>>, and our `DynamicEncoder` is unaware of the
             // underlying format
-            SicImage::Static(image)
-                if self.format == image::ImageFormat::Gif
-                    && image.color() != image::ColorType::Rgba8 =>
-            {
-                Ok(SicImage::Static(DynamicImage::ImageRgba8(image.to_rgba8())))
+            SicImage::Static(image) if self.format == image::ImageFormat::Gif => {
+                Ok(to_rgba8(image))
             }
             elsy => Ok(elsy),
         }
@@ -64,5 +60,29 @@ impl From<bool> for ColorTypeAdjustment {
 impl ColorTypeAdjustment {
     pub fn is_enabled(&self) -> bool {
         matches!(self, Self::Enabled)
+    }
+}
+
+fn to_rgb8(image: DynamicImage) -> SicImage {
+    if let ok @ DynamicImage::ImageRgb8(_) = image {
+        SicImage::Static(ok)
+    } else {
+        SicImage::Static(DynamicImage::ImageRgb8(image.to_rgb8()))
+    }
+}
+
+fn to_rgba8(image: DynamicImage) -> SicImage {
+    if let ok @ DynamicImage::ImageRgb8(_) = image {
+        SicImage::Static(ok)
+    } else {
+        SicImage::Static(DynamicImage::ImageRgba8(image.to_rgba8()))
+    }
+}
+
+fn to_rgba16(image: DynamicImage) -> SicImage {
+    if let ok @ DynamicImage::ImageRgba16(_) = image {
+        SicImage::Static(ok)
+    } else {
+        SicImage::Static(DynamicImage::ImageRgba16(image.to_rgba16()))
     }
 }
