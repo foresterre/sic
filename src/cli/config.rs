@@ -400,12 +400,12 @@ mod tests {
             &["/test/0.png", "/test/1.jpg", "/test/2.jpeg", "/test/2.unsupported", "/test/2"],
             &[],
             &["a.farbfeld", "a.ff"],
-            &["a.farbfeld", "a.ff"],
+            &["a.ff"],
         }, paths_expected = {
             &["/test/0.png", "/test/1.jpg", "/test/2.jpeg"],
             &[],
-            &["a.farbfeld", "a.ff"],
-            &["a.farbfeld"],
+            &["a.ff"],
+            &["a.ff"],
         })]
         fn are_unsupported_paths_getting_filtered(paths_in: &[&str], paths_expected: &[&str]) {
             fn to_path_bufs<'s>(paths: impl IntoIterator<Item = &'s &'s str>) -> Vec<PathBuf> {
