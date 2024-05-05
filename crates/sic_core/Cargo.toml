@@ -16,9 +16,9 @@ ab_glyph = { version = "0.2.23", optional = true }
 thiserror = "1"
 
 [dependencies.image]
-version = "0.25.0"
+version = "0.25.1"
 features = [
-    "avif-native", # requires (exe: nasm >= 2.14)
+    # "avif-native", # requires (exe: nasm >= 2.14)
     "rayon",
 ]
 
