@@ -63,40 +63,23 @@ mod convert_to_x {
 
     ide!();
 
-    #[parameterized(ext = {
-        "bmp",
-        "farbfeld",
-        "gif",
-        "jpg",
-        "jpeg",
-        "ico",
-        "png",
-        "pbm",
-        "pgm",
-        "ppm",
-        "pam",
-        "qoi",
-        "tif",
-        "tiff",
-        "webp",
-    }, expected_format = {
-        image::ImageFormat::Bmp,
-        image::ImageFormat::Farbfeld,
-        image::ImageFormat::Gif,
-        image::ImageFormat::Jpeg,
-        image::ImageFormat::Jpeg,
-        image::ImageFormat::Ico,
-        image::ImageFormat::Png,
-        image::ImageFormat::Pnm,
-        image::ImageFormat::Pnm,
-        image::ImageFormat::Pnm,
-        image::ImageFormat::Pnm,
-        image::ImageFormat::Qoi,
-        image::ImageFormat::Tiff,
-        image::ImageFormat::Tiff,
-        image::ImageFormat::WebP,
-
-    })]
+    #[yare::parameterized(
+        bmp = { "bmp", image::ImageFormat::Bmp },
+        farbfeld = { "ff", image::ImageFormat::Farbfeld },
+        gif = { "gif", image::ImageFormat::Gif },
+        jpg = { "jpg", image::ImageFormat::Jpeg },
+        jpeg = {"jpeg", image::ImageFormat::Jpeg },
+        ico = { "i co", image::ImageFormat::Ico },
+        png = { "png", image::ImageFormat::Png },
+        pbm = { "pbm", image::ImageFormat::Pnm },
+        pgm = { "pgm", image::ImageFormat::Pnm },
+        ppm = { "ppm", image::ImageFormat::Pnm },
+        pam = { "pam", image::ImageFormat::Pnm },
+        qoi = { "qoi", image::ImageFormat::Qoi },
+        tif = { "tif", image::ImageFormat::Tiff },
+        tiff = { "tiff", image::ImageFormat::Tiff },
+        webp = { "webp", image::ImageFormat::WebP },
+    )]
     fn convert_to_x_by_extension(ext: &str, expected_format: image::ImageFormat) {
         let input_path = setup_input_path("palette_4x4.png");
         let output_path = setup_output_path(&["cli_convert_to_x_by_extension", ext].join("."));
