@@ -1,4 +1,4 @@
-use crate::format;
+use crate::encode_settings;
 use sic_core::image::ImageError;
 use sic_core::{image, SicCoreError};
 use std::path::PathBuf;
@@ -47,7 +47,7 @@ impl PartialEq for SicIoError {
 #[derive(Debug, Error)]
 pub enum FormatError {
     #[error(transparent)]
-    JPEGQuality(format::jpeg::JpegQualityError),
+    JPEGQuality(encode_settings::jpeg::JpegQualityError),
 
     #[error(
         "The GIF repeat value has to be either a positive integer < 65536, 'infinite' or 'never'"

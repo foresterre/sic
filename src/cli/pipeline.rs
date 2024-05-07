@@ -10,9 +10,10 @@ use sic_core::image;
 use sic_image_engine::engine::ImageEngine;
 use sic_io::decode;
 use sic_io::decode::SicImageDecoder;
+use sic_io::encode::dynamic::{DynamicEncoder, IntoImageEncoder};
 use sic_io::encode::SicImageEncoder;
-use sic_io::format::jpeg::JpegQuality;
-use sic_io::format::{DynamicEncoder, EncoderSettings, IntoImageEncoder};
+use sic_io::encode_settings::jpeg::JpegQuality;
+use sic_io::encode_settings::EncodeSettings;
 use sic_io::preprocessor::Preprocessors;
 
 pub fn run_with_devices<'c>(
@@ -98,7 +99,9 @@ where
 
     // Create a writer and the encoder
     let writer = supply_writer(format)?;
-    let dynamic_encoder = create_dynamic_encoder(writer, config, output_path_variant)?;
+    let encode_settings = create_encode_settings(config)?;
+    let dynamic_encoder =
+        create_dynamic_encoder(writer, config, &encode_settings, output_path_variant)?;
 
     // Add preprocessors
     //
@@ -108,7 +111,7 @@ where
     preprocessors.pick_frame_preprocessor(dynamic_encoder.image_format());
 
     if !config.disable_automatic_color_type_adjustment {
-        preprocessors.color_type_preprocessor(dynamic_encoder.image_format());
+        preprocessors.color_type_preprocessor(dynamic_encoder.image_output_format());
     }
 
     // Encode
@@ -133,12 +136,8 @@ fn create_reader(path_variant: &PathVariant) -> anyhow::Result<Box<dyn Read>> {
     }
 }
 
-fn create_dynamic_encoder<W: Write + Seek>(
-    writer: W,
-    config: &Config,
-    path_variant: &PathVariant,
-) -> anyhow::Result<DynamicEncoder<W>> {
-    let settings = EncoderSettings {
+fn create_encode_settings(config: &Config) -> anyhow::Result<EncodeSettings> {
+    Ok(EncodeSettings {
         pnm_sample_encoding: if config.encoding_settings.pnm_use_ascii_format {
             image::codecs::pnm::SampleEncoding::Ascii
         } else {
@@ -146,12 +145,19 @@ fn create_dynamic_encoder<W: Write + Seek>(
         },
         jpeg_quality: { JpegQuality::try_from(config.encoding_settings.jpeg_quality)? },
         repeat_animation: config.encoding_settings.gif_repeat,
-    };
+    })
+}
 
+fn create_dynamic_encoder<W: Write + Seek>(
+    writer: W,
+    config: &Config,
+    encode_settings: &EncodeSettings,
+    path_variant: &PathVariant,
+) -> anyhow::Result<DynamicEncoder<W>> {
     Ok(match &config.forced_output_format {
-        Some(format) => DynamicEncoder::from_identifier(writer, format, &settings)?,
+        Some(format) => DynamicEncoder::from_identifier(writer, format, encode_settings)?,
         None => match path_variant {
-            PathVariant::Path(out) => DynamicEncoder::from_extension(writer, out, &settings)?,
+            PathVariant::Path(out) => DynamicEncoder::from_extension(writer, out, encode_settings)?,
             PathVariant::StdStream => DynamicEncoder::bmp(writer)?,
         },
     })

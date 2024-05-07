@@ -9,7 +9,7 @@ use globwalk::{FileType, GlobWalker};
 use sic_core::image;
 use sic_image_engine::engine::Instr;
 use sic_io::decode::FrameIndex;
-use sic_io::format::gif::RepeatAnimation;
+use sic_io::encode_settings::gif::RepeatAnimation;
 use std::fmt;
 use std::path::PathBuf;
 

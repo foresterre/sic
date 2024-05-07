@@ -1,3 +1,4 @@
+use crate::encode::dynamic::DynamicImageFormat;
 use crate::errors::SicIoError;
 use crate::preprocessor::color_type::ColorTypePreprocessor;
 use crate::preprocessor::pick_frame::PickFramePreprocessor;
@@ -18,9 +19,9 @@ pub struct Preprocessors {
 }
 
 impl Preprocessors {
-    pub fn color_type_preprocessor(&mut self, image_format: image::ImageFormat) -> &mut Self {
+    pub fn color_type_preprocessor(&mut self, format: DynamicImageFormat) -> &mut Self {
         self.preprocessors
-            .push(Box::new(ColorTypePreprocessor::new(image_format)));
+            .push(Box::new(ColorTypePreprocessor::new(format)));
 
         self
     }

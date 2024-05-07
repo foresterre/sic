@@ -7,7 +7,7 @@ use clap::{App, AppSettings, Arg, ArgGroup, ArgMatches};
 use sic_cli_ops::create_image_ops;
 use sic_cli_ops::operations::OperationId;
 use sic_io::decode::FrameIndex;
-use sic_io::format::gif::RepeatAnimation;
+use sic_io::encode_settings::gif::RepeatAnimation;
 use std::path::Path;
 use std::str::FromStr;
 

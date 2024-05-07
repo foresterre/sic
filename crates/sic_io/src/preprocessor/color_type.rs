@@ -1,14 +1,16 @@
+use crate::encode::dynamic::DynamicImageFormat;
 use crate::errors::SicIoError;
 use crate::preprocessor::Preprocess;
+use sic_core::image::codecs::pnm::PnmSubtype;
 use sic_core::image::DynamicImage;
-use sic_core::{image, SicImage};
+use sic_core::SicImage;
 
 pub struct ColorTypePreprocessor {
-    format: image::ImageFormat,
+    format: DynamicImageFormat,
 }
 
 impl ColorTypePreprocessor {
-    pub fn new(format: image::ImageFormat) -> Self {
+    pub fn new(format: DynamicImageFormat) -> Self {
         Self { format }
     }
 }
@@ -18,23 +20,31 @@ impl Preprocess for ColorTypePreprocessor {
 
     fn preprocess(&self, image: SicImage) -> Result<SicImage, SicIoError> {
         match image {
-            SicImage::Static(image) if self.format == image::ImageFormat::Farbfeld => {
-                Ok(to_rgba16(image))
-            }
-            // Jpeg encoder only supports L8 or Rgb8. We currently only work with ColorType (by
-            // virtue of using DynamicImage), not ExtendedColorType. L8 is part of the extended
-            // color type.
+            // JPEG
+            // - Jpeg encoder only supports L8 or Rgb8.
             // https://github.com/image-rs/image/blob/d71046727387b627e63effe7c56790bd355ec5ba/src/codecs/jpeg/encoder.rs#L454
-            SicImage::Static(image) if self.format == image::ImageFormat::Jpeg => {
-                Ok(to_rgb8(image))
-            }
-            // We must pre-process when the image format is Gif, since image::Frame only supports
-            // RgbaImage = ImageBuffer<Rgba<u8>, Vec<u8>>, and our `DynamicEncoder` is unaware of the
-            // underlying format
-            SicImage::Static(image) if self.format == image::ImageFormat::Gif => {
-                Ok(to_rgba8(image))
-            }
-            elsy => Ok(elsy),
+            //
+            // GIF
+            // - Gif image::Frame only accepts RgbaImage
+            //
+            // PNM
+            // - PNM Bitmap encoder supports: L8 or L1
+            // - PNM Graymap encoder supports: L8
+            // - PNM Pixmap encoder supports: Rgb8
+            // https://github.com/image-rs/image/blob/d71046727387b627e63effe7c56790bd355ec5ba/src/codecs/pnm/encoder.rs
+            SicImage::Static(image) => match self.format {
+                DynamicImageFormat::Farbfeld => Ok(to_rgba16(image)),
+                DynamicImageFormat::Jpeg => Ok(to_rgb8(image)),
+                DynamicImageFormat::Gif => Ok(to_rgba8(image)),
+                DynamicImageFormat::Pnm { subtype } => match subtype {
+                    PnmSubtype::Bitmap(_) => Ok(to_l8(image)),
+                    PnmSubtype::Graymap(_) => Ok(to_l8(image)),
+                    PnmSubtype::Pixmap(_) => Ok(to_rgb8(image)),
+                    _ => Ok(SicImage::Static(image)),
+                },
+                _ => Ok(SicImage::Static(image)),
+            },
+            SicImage::Animated(image) => Ok(SicImage::Animated(image)),
         }
     }
 }
@@ -60,6 +70,14 @@ impl From<bool> for ColorTypeAdjustment {
 impl ColorTypeAdjustment {
     pub fn is_enabled(&self) -> bool {
         matches!(self, Self::Enabled)
+    }
+}
+
+fn to_l8(image: DynamicImage) -> SicImage {
+    if let ok @ DynamicImage::ImageLuma8(_) = image {
+        SicImage::Static(ok)
+    } else {
+        SicImage::Static(DynamicImage::ImageLuma8(image.to_luma8()))
     }
 }
 

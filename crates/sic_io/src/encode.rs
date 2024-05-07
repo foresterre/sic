@@ -1,12 +1,16 @@
 use std::io::{Seek, Write};
 use std::path::Path;
 
+use crate::encode::dynamic::DynamicEncoder;
 use sic_core::image::ImageEncoder;
 use sic_core::{image, AnimatedImage, SicImage};
 
-use crate::errors::{EncodingError, SicIoError};
-use crate::format::DynamicEncoder;
+use crate::errors::SicIoError;
 use crate::preprocessor::Preprocessors;
+
+pub mod bmp;
+pub mod dynamic;
+pub mod jpeg;
 
 pub struct SicImageEncoder {
     preprocessors: Preprocessors,
@@ -58,14 +62,7 @@ fn encode_animated_image<W: Write + Seek>(
 ) -> Result<(), SicIoError> {
     let frames = image.collect_frames();
 
-    match encoder {
-        DynamicEncoder::Gif(mut enc) => enc.encode_frames(frames).map_err(SicIoError::ImageError),
-        // Use SingleFramePreprocessor to avoid this error, by picking a single frame
-        // from the animated image instead.
-        enc => Err(SicIoError::Encoding(
-            EncodingError::AnimatedImageUnsupported(enc.image_format()),
-        )),
-    }
+    encoder.write_image_frames(frames)
 }
 
 pub struct EmptyPath;
