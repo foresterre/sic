@@ -16,7 +16,7 @@ impl ColorTypePreprocessor {
 impl Preprocess for ColorTypePreprocessor {
     type Err = SicIoError;
 
-    fn preprocess(self, image: SicImage) -> Result<SicImage, SicIoError> {
+    fn preprocess(&self, image: SicImage) -> Result<SicImage, SicIoError> {
         match image {
             SicImage::Static(image) if self.format == image::ImageFormat::Farbfeld => {
                 Ok(to_rgba16(image))

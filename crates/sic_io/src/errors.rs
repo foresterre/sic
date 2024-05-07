@@ -1,6 +1,6 @@
 use crate::format;
 use sic_core::image::ImageError;
-use sic_core::SicCoreError;
+use sic_core::{image, SicCoreError};
 use std::path::PathBuf;
 use thiserror::Error;
 
@@ -14,6 +14,9 @@ pub enum SicIoError {
 
     #[error(transparent)]
     Io(std::io::Error),
+
+    #[error(transparent)]
+    Encoding(#[from] EncodingError),
 
     #[error(transparent)]
     FormatError(FormatError),
@@ -30,15 +33,8 @@ pub enum SicIoError {
     #[error("An animated image was expected, but a static image was given")]
     NotAnAnimatedImage,
 
-    #[error(
-        "No supported image output format was found. The following identifier was provided: {0}."
-    )]
-    UnknownImageFormat(String),
-
-    #[error(
-        "Unable to determine the image format from the file extension. The following path was given: {0}."
-    )]
-    UnknownImageFormatFromFileExtension(PathBuf),
+    #[error(transparent)]
+    UnknownImageFormat(UnknownImageFormatError),
 }
 
 #[cfg(test)]
@@ -57,4 +53,19 @@ pub enum FormatError {
         "The GIF repeat value has to be either a positive integer < 65536, 'infinite' or 'never'"
     )]
     GIFRepeatInvalidValue,
+}
+
+#[derive(Debug, Error)]
+pub enum UnknownImageFormatError {
+    #[error("No supported image format found for the file extension of path '{0}'")]
+    FileExtension(PathBuf),
+
+    #[error("No supported image format found for the identifier '{0}'")]
+    Identifier(String),
+}
+
+#[derive(Debug, Error)]
+pub enum EncodingError {
+    #[error("Unable to encode animated image using '{0:?}' image format")]
+    AnimatedImageUnsupported(image::ImageFormat),
 }

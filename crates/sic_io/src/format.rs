@@ -5,7 +5,7 @@ use std::path::Path;
 
 use sic_core::image;
 
-use crate::errors::SicIoError;
+use crate::errors::{SicIoError, UnknownImageFormatError};
 use crate::format::gif::RepeatAnimation;
 use crate::format::jpeg::JpegQuality;
 
@@ -44,6 +44,7 @@ impl Default for EncoderSettings {
     }
 }
 
+// TODO(foresterre): Make an Encoder trait and implement it for SicImage/DynamicImage/AnimatedImage
 #[allow(private_interfaces)]
 pub enum DynamicEncoder<W: Write + Seek> {
     Avif(image::codecs::avif::AvifEncoder<W>),
@@ -105,9 +106,17 @@ impl<W: Write + Seek> IntoImageEncoder<W> for DynamicEncoder<W> {
         match extension {
             Some(ext) => {
                 <DynamicEncoder<W> as IntoImageEncoder<W>>::from_identifier(writer, ext, settings)
+                    .map_err(|err| match err {
+                        SicIoError::UnknownImageFormat(UnknownImageFormatError::Identifier(_)) => {
+                            SicIoError::UnknownImageFormat(UnknownImageFormatError::FileExtension(
+                                path.to_path_buf(),
+                            ))
+                        }
+                        e => e,
+                    })
             }
-            None => Err(SicIoError::UnknownImageFormatFromFileExtension(
-                path.to_path_buf(),
+            None => Err(SicIoError::UnknownImageFormat(
+                UnknownImageFormatError::FileExtension(path.to_path_buf()),
             )),
         }
     }
@@ -153,7 +162,11 @@ impl<W: Write + Seek> IntoImageEncoder<W> for DynamicEncoder<W> {
             "tga" => Tga(image::codecs::tga::TgaEncoder::new(writer)),
             "tiff" | "tif" => Tiff(image::codecs::tiff::TiffEncoder::new(writer)),
             "webp" => Webp(image::codecs::webp::WebPEncoder::new_lossless(writer)),
-            _ => return Err(SicIoError::UnknownImageFormat(id.to_string())),
+            _ => {
+                return Err(SicIoError::UnknownImageFormat(
+                    UnknownImageFormatError::Identifier(id.to_string()),
+                ))
+            }
         })
     }
 }
@@ -198,17 +211,17 @@ impl<W: Write + Seek> image::ImageEncoder for DynamicEncoder<W> {
 }
 
 impl<W: Write + Seek> DynamicEncoder<W> {
-    pub fn format(&self) -> image::ImageFormat {
+    pub fn image_format(&self) -> image::ImageFormat {
         match self {
             Self::Avif(_) => image::ImageFormat::Avif,
             Self::Bmp(_) => image::ImageFormat::Bmp,
-            Self::Exr(_) => image::ImageFormat::Jpeg,
+            Self::Exr(_) => image::ImageFormat::OpenExr,
             Self::Farbfeld(_) => image::ImageFormat::Farbfeld,
             Self::Gif(_) => image::ImageFormat::Gif,
             Self::Ico(_) => image::ImageFormat::Ico,
             Self::Jpeg(_) => image::ImageFormat::Jpeg,
             Self::Pnm(_) => image::ImageFormat::Pnm,
-            Self::Png(_) => image::ImageFormat::Pnm,
+            Self::Png(_) => image::ImageFormat::Png,
             Self::Qoi(_) => image::ImageFormat::Qoi,
             Self::Tga(_) => image::ImageFormat::Tga,
             Self::Tiff(_) => image::ImageFormat::Tiff,
@@ -349,7 +362,7 @@ mod tests {
         let mut mem = DummyMem;
         let dynamic_encoder = DynamicEncoder::from_extension(&mut mem, path, &settings);
 
-        assert_eq!(dynamic_encoder.unwrap().format(), expected);
+        assert_eq!(dynamic_encoder.unwrap().image_format(), expected);
     }
 
     #[parameterized(
@@ -397,7 +410,7 @@ mod tests {
         let mut mem = DummyMem;
         let dynamic_encoder = DynamicEncoder::from_identifier(&mut mem, identifier, &settings);
 
-        assert_eq!(dynamic_encoder.unwrap().format(), expected);
+        assert_eq!(dynamic_encoder.unwrap().image_format(), expected);
     }
 
     #[parameterized(
@@ -445,7 +458,7 @@ mod tests {
         let mut mem = DummyMem;
         let dynamic_encoder = DynamicEncoder::from_identifier(&mut mem, identifier, &settings);
 
-        assert_eq!(dynamic_encoder.unwrap().format(), expected);
+        assert_eq!(dynamic_encoder.unwrap().image_format(), expected);
     }
 
     #[test]
@@ -457,7 +470,9 @@ mod tests {
 
         assert_eq!(
             dynamic_encoder.unwrap_err(),
-            SicIoError::UnknownImageFormatFromFileExtension(Path::new("w_ext.h").to_path_buf())
+            SicIoError::UnknownImageFormat(UnknownImageFormatError::FileExtension(
+                Path::new("w_ext.h").to_path_buf()
+            ))
         );
     }
 
@@ -470,7 +485,9 @@ mod tests {
 
         assert_eq!(
             dynamic_encoder.unwrap_err(),
-            SicIoError::UnknownImageFormatFromFileExtension(Path::new("png").to_path_buf())
+            SicIoError::UnknownImageFormat(UnknownImageFormatError::FileExtension(
+                Path::new("png").to_path_buf()
+            ))
         );
     }
 
@@ -483,7 +500,9 @@ mod tests {
 
         assert_eq!(
             dynamic_encoder.unwrap_err(),
-            SicIoError::UnknownImageFormatFromFileExtension(Path::new(".png").to_path_buf())
+            SicIoError::UnknownImageFormat(UnknownImageFormatError::FileExtension(
+                Path::new(".png").to_path_buf()
+            ))
         );
     }
 
@@ -496,7 +515,9 @@ mod tests {
 
         assert_eq!(
             dynamic_encoder.unwrap_err(),
-            SicIoError::UnknownImageFormatFromFileExtension(Path::new("").to_path_buf())
+            SicIoError::UnknownImageFormat(UnknownImageFormatError::FileExtension(
+                Path::new("").to_path_buf()
+            ))
         );
     }
 
@@ -510,7 +531,7 @@ mod tests {
         let mut mem = DummyMem;
         let dynamic_encoder = DynamicEncoder::from_identifier(&mut mem, "pbm", &settings).unwrap();
 
-        assert_eq!(dynamic_encoder.format(), image::ImageFormat::Pnm);
+        assert_eq!(dynamic_encoder.image_format(), image::ImageFormat::Pnm);
     }
 
     // non default: pnm ascii + "pgm"
@@ -530,6 +551,6 @@ mod tests {
         let dynamic_encoder =
             DynamicEncoder::from_identifier(&mut mem, identifier, &settings).unwrap();
 
-        assert_eq!(dynamic_encoder.format(), image::ImageFormat::Pnm);
+        assert_eq!(dynamic_encoder.image_format(), image::ImageFormat::Pnm);
     }
 }

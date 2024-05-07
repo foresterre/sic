@@ -4,23 +4,17 @@ use std::path::Path;
 use sic_core::image::ImageEncoder;
 use sic_core::{image, AnimatedImage, SicImage};
 
-use crate::errors::SicIoError;
-use crate::format::gif::RepeatAnimation;
+use crate::errors::{EncodingError, SicIoError};
 use crate::format::DynamicEncoder;
-use crate::preprocessor::color_type::{ColorTypeAdjustment, ColorTypePreprocessor};
-use crate::preprocessor::Preprocess;
+use crate::preprocessor::Preprocessors;
 
 pub struct SicImageEncoder {
-    pub adjust_color_type: ColorTypeAdjustment,
-    pub gif_repeat: RepeatAnimation,
+    preprocessors: Preprocessors,
 }
 
 impl SicImageEncoder {
-    pub fn new(adjust_color_type: ColorTypeAdjustment, gif_repeat: RepeatAnimation) -> Self {
-        Self {
-            adjust_color_type,
-            gif_repeat,
-        }
+    pub fn new(preprocessors: Preprocessors) -> Self {
+        Self { preprocessors }
     }
 
     pub fn encode<W: Write + Seek>(
@@ -28,12 +22,12 @@ impl SicImageEncoder {
         image: SicImage,
         dynamic_encoder: DynamicEncoder<W>,
     ) -> Result<(), SicIoError> {
-        if self.adjust_color_type.is_enabled() {
-            let image = ColorTypePreprocessor::new(dynamic_encoder.format()).preprocess(image)?;
-            encode(dynamic_encoder, &image)
-        } else {
-            encode(dynamic_encoder, &image)
-        }
+        let preprocessed_image = self
+            .preprocessors
+            .iter()
+            .try_fold(image, |image, preprocessor| preprocessor.preprocess(image))?;
+
+        encode(dynamic_encoder, &preprocessed_image)
     }
 }
 
@@ -63,15 +57,14 @@ fn encode_animated_image<W: Write + Seek>(
     image: &AnimatedImage,
 ) -> Result<(), SicIoError> {
     let frames = image.collect_frames();
-    let fmt = encoder.format();
 
     match encoder {
         DynamicEncoder::Gif(mut enc) => enc.encode_frames(frames).map_err(SicIoError::ImageError),
-        enc => {
-            eprintln!("WARN: Unable to encode animated image buffer with format '{:?}': encoding first frame only", fmt);
-            let image = AnimatedImage::from_frames(frames).try_into_static_image(0)?;
-            encode_static_image(enc, &image)
-        }
+        // Use SingleFramePreprocessor to avoid this error, by picking a single frame
+        // from the animated image instead.
+        enc => Err(SicIoError::Encoding(
+            EncodingError::AnimatedImageUnsupported(enc.image_format()),
+        )),
     }
 }
 

@@ -13,6 +13,7 @@ use sic_io::decode::SicImageDecoder;
 use sic_io::encode::SicImageEncoder;
 use sic_io::format::jpeg::JpegQuality;
 use sic_io::format::{DynamicEncoder, EncoderSettings, IntoImageEncoder};
+use sic_io::preprocessor::Preprocessors;
 
 pub fn run_with_devices<'c>(
     in_and_output: InputOutputMode,
@@ -77,9 +78,11 @@ where
 {
     let mut reader = supply_reader()?;
 
+    // Decode
     let decoder = SicImageDecoder::new(config.selected_frame);
     let img = decoder.decode(&mut reader)?;
 
+    // Apply image operations
     let image_engine = ImageEngine::new(img);
     let buffer = image_engine
         .ignite(&config.image_operations_program)
@@ -93,14 +96,23 @@ where
         None
     };
 
-    let adjust_color_type = !config.disable_automatic_color_type_adjustment;
-    let encoder = SicImageEncoder::new(
-        adjust_color_type.into(),
-        config.encoding_settings.gif_repeat,
-    );
-
+    // Create a writer and the encoder
     let writer = supply_writer(format)?;
     let dynamic_encoder = create_dynamic_encoder(writer, config, output_path_variant)?;
+
+    // Add preprocessors
+    //
+    // NB: order in which preprocessors are added matters!
+    let mut preprocessors = Preprocessors::default();
+
+    preprocessors.single_frame_preprocessor(dynamic_encoder.image_format());
+
+    if !config.disable_automatic_color_type_adjustment {
+        preprocessors.color_type_preprocessor(dynamic_encoder.image_format());
+    }
+
+    // Encode
+    let encoder = SicImageEncoder::new(preprocessors);
 
     encoder
         .encode(buffer, dynamic_encoder)
