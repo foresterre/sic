@@ -1,4 +1,4 @@
-use sic_core::{ab_glyph, SicCoreError};
+use sic_core::SicCoreError;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -23,7 +23,7 @@ pub enum SicImageEngineError {
 
     #[cfg(feature = "imageproc-ops")]
     #[error("Unable to load font: '{0}'")]
-    FontError(ab_glyph::InvalidFont),
+    FontError(sic_core::ab_glyph::InvalidFont),
 
     #[cfg(feature = "imageproc-ops")]
     #[error("Unable to open font file from path: '{0}'")]
