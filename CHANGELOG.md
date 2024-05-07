@@ -14,15 +14,24 @@ changes.
 
 ### Changed
 
-- Jpeg encoder now converts color type to Rgb8, unless disabled
+- Farbfeld encoder now converts color type to Rgba16, unless disabled by user.
+- JPEG encoder now converts color type to Rgb8 for static images, unless disabled by user.
+- GIG encoder now converts color type to Rgba8 for static images, unless disabled by user
+- PBM encoder now converts color type to L8 for static images, unless disabled by user.
+- PGM encoder now converts color type to L8 for static images, unless disabled by user.
+- PPM encoder now converts color type to Rgb8 for static images, unless disabled by user.
 
 ### Removed
 
 - Removed experimental flag `--enable-output-format-decider-fallback`
 
+### Notable dependency updates
+
+- Updated [image](https://github.com/image-rs/image) to 0.25.1
+
 ### Disabled
 
-- Disabled AVIF decoder for now due to cross-platform compilation issues (libdav1d).
+- Disabled AVIF decoder for now due to cross-platform compilation issues (dav1d-rs).
 
 ## [0.22.4] - 2023-09-17
 
