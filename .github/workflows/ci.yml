@@ -55,7 +55,7 @@ jobs:
     continue-on-error: true
     strategy:
       matrix:
-        build: [ubuntu-stable, macos-stable, win-gnu-stable, win-msvc-stable]
+        build: [ ubuntu-stable, macos-stable, win-gnu-stable, win-msvc-stable ]
         include:
           # latest rust stable :: ubuntu
           - build: ubuntu-stable
@@ -82,12 +82,12 @@ jobs:
         uses: actions/checkout@v2
 
       - name: install_nasm
-        if:  matrix.build != 'win-msvc'
+        if: matrix.build != 'win-msvc'
         uses: ilammy/setup-nasm@v1
       
       # from rav1e
       - name: install_nasm_msvc
-        if: matrix.build == 'win-msvc'
+        if: matrix.build == 'win-msvc-stable'
         run: |
           $NASM_VERSION="2.15.05"
           $LINK = "https://www.nasm.us/pub/nasm/releasebuilds/$NASM_VERSION/win64"
@@ -95,7 +95,7 @@ jobs:
           curl --ssl-no-revoke -LO "$LINK/$NASM_FILE.zip"
           7z e -y "$NASM_FILE.zip" -o"C:\nasm"
           echo "C:\nasm"  | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          
+
       # from rav1e
       - name: set_path_msvc_linker
         if: matrix.build == 'win-msvc-stable'

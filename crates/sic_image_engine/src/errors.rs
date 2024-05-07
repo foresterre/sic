@@ -22,8 +22,8 @@ pub enum SicImageEngineError {
     UnknownFilterType(String),
 
     #[cfg(feature = "imageproc-ops")]
-    #[error("Unable to load font: invalid format")]
-    FontError,
+    #[error("Unable to load font: '{0}'")]
+    FontError(sic_core::ab_glyph::InvalidFont),
 
     #[cfg(feature = "imageproc-ops")]
     #[error("Unable to open font file from path: '{0}'")]

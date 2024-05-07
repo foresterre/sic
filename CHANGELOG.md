@@ -5,11 +5,24 @@ It can be used to convert between image formats and manipulate images using imag
 It aims to include all primary [image](https://github.com/image-rs/image) functionality, and eventually also
 support the most prominent [imageproc](https://github.com/image-rs/imageproc) manipulation routines.
 
-The changelog below lists notable changes for [sic](https://github.com/foresterre/sic). It doesn't list most internal changes.
+The changelog below lists notable changes for [sic](https://github.com/foresterre/sic). It doesn't list most internal
+changes.
 
 ## [Unreleased]
 
 [unreleased]: https://github.com/foresterre/sic/compare/v0.22.4...HEAD
+
+### Changed
+
+- Jpeg encoder now converts color type to Rgb8, unless disabled
+
+### Removed
+
+- Removed experimental flag `--enable-output-format-decider-fallback`
+
+### Disabled
+
+- Disabled AVIF decoder for now due to cross-platform compilation issues (libdav1d).
 
 ## [0.22.4] - 2023-09-17
 
@@ -125,7 +138,8 @@ This is intended to be the last update before we port sic to `image 0.24`.
 
 ### Added
 
-- Added animated images support: it is now possible to load and save all frames, and apply operations on all frames, of animated images
+- Added animated images support: it is now possible to load and save all frames, and apply operations on all frames, of
+  animated images
 
 ### Changed
 
@@ -165,12 +179,13 @@ This is intended to be the last update before we port sic to `image 0.24`.
 
 - Image script: add `overlay` operation which can be used to draw one image over another
 - `--select-frame` now supports images encoded as APNG
-- `--no-skip-unsupported-extensions` CLI flag to enumerate all files when using glob based input; not just files with supported extensions
-
+- `--no-skip-unsupported-extensions` CLI flag to enumerate all files when using glob based input; not just files with
+  supported extensions
 
 ### Changed
 
-- When using glob paths, `--glob-input` and `--glob-output` should now be used instead of `--input` and `--output` combined with `--mode glob`
+- When using glob paths, `--glob-input` and `--glob-output` should now be used instead of `--input` and `--output`
+  combined with `--mode glob`
 - Glob based input now skips unsupported files by default (disable with `--no-skip-unsupported-extensions`)
 
 ### Removed
@@ -182,7 +197,6 @@ This is intended to be the last update before we port sic to `image 0.24`.
 - Glob input paths starting with "./" or ".\" should now work
 
 [0.14.0]: https://github.com/foresterre/sic/compare/v0.12.0...v0.14.0
-
 
 ## [0.12.0] - 2020-06-01
 
@@ -200,7 +214,6 @@ This is intended to be the last update before we port sic to `image 0.24`.
 - Renamed image script modifier `sampling_filter` to `sampling-filter`
 - Changed CLI flag  `--set-preserve-aspect-ratio` to `--preserve-aspect-ratio`
 - Changed CLI flag  ` --set-resize-sampling-filter` to `--sampling-filter`
-
 
 ### Fixed
 

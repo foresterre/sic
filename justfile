@@ -1,7 +1,7 @@
 # determine the current Minimum Supported Rust Version for sic
 msrv:
     cargo install cargo-msrv
-    cargo msrv --output-format json -- cargo check --all --all-features
+    cargo msrv --output-format json -- cargo check --all-features
 
 # format all workspace packages
 fmt:

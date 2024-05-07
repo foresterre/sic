@@ -11,16 +11,16 @@ edition = "2021"
 rust-version = "1.61"
 
 [dependencies]
-imageproc = { version = "0.23.0", optional = true }
-rusttype = { version = "0.9.3", optional = true }
+imageproc = { version = "0.24.0", optional = true }
+ab_glyph = { version = "0.2.23", optional = true }
 thiserror = "1"
 
 [dependencies.image]
-version = "0.24.9"
+version = "0.25.1"
 features = [
-    "avif", # requires (exe: nasm >= 2.14)
-    "webp-encoder", # requires (native_dependency: libwebp)
+    # "avif-native", # requires (exe: nasm >= 2.14)
+    "rayon",
 ]
 
 [features]
-imageproc-ops = ["imageproc", "rusttype"]
+imageproc-ops = ["imageproc", "ab_glyph"]

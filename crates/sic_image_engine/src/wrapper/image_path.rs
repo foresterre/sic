@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use sic_io::import::{file_reader, load_image, ImportConfig};
+use sic_io::decode::{file_reader, SicImageDecoder};
 
 use crate::errors::SicImageEngineError;
 use sic_core::SicImage;
@@ -17,7 +17,7 @@ impl ImageFromPath {
 
     pub fn open_image(&self) -> Result<SicImage, SicImageEngineError> {
         file_reader(self.path.as_path())
-            .and_then(|mut file| load_image(&mut file, &ImportConfig::default()))
+            .and_then(|mut file| SicImageDecoder::default().decode(&mut file))
             .map_err(|_err| SicImageEngineError::LoadImageFromPath)
     }
 }
