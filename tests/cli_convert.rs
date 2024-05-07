@@ -71,9 +71,9 @@ mod convert_to_x {
         jpeg = {"jpeg", image::ImageFormat::Jpeg },
         ico = { "ico", image::ImageFormat::Ico },
         png = { "png", image::ImageFormat::Png },
-        // pbm = { "pbm", image::ImageFormat::Pnm },
-        // pgm = { "pgm", image::ImageFormat::Pnm },
-        // ppm = { "ppm", image::ImageFormat::Pnm },
+        pbm = { "pbm", image::ImageFormat::Pnm },
+        pgm = { "pgm", image::ImageFormat::Pnm },
+        ppm = { "ppm", image::ImageFormat::Pnm },
         pam = { "pam", image::ImageFormat::Pnm },
         qoi = { "qoi", image::ImageFormat::Qoi },
         tif = { "tif", image::ImageFormat::Tiff },
@@ -132,9 +132,9 @@ mod convert_to_x_by_ff {
         jpeg = {"jpeg", image::ImageFormat::Jpeg },
         ico = { "ico", image::ImageFormat::Ico },
         png = { "png", image::ImageFormat::Png },
-        // pbm = { "pbm", image::ImageFormat::Pnm },
-        // pgm = { "pgm", image::ImageFormat::Pnm },
-        // ppm = { "ppm", image::ImageFormat::Pnm },
+        pbm = { "pbm", image::ImageFormat::Pnm },
+        pgm = { "pgm", image::ImageFormat::Pnm },
+        ppm = { "ppm", image::ImageFormat::Pnm },
         pam = { "pam", image::ImageFormat::Pnm },
         qoi = { "qoi", image::ImageFormat::Qoi },
         tif = { "tif", image::ImageFormat::Tiff },
@@ -238,18 +238,18 @@ mod pnm_ascii_and_binary {
     }
 
     #[yare::parameterized(
-        // pbm = { "pbm" },
-        // pgm = { "pgm" },
-        // ppm = { "ppm" },
+        pbm = { "pbm" },
+        pgm = { "pgm" },
+        ppm = { "ppm" },
     )]
     fn pnm_encode_ascii(which: &str) {
         pnm_encode_test_case(which, true)
     }
 
     #[yare::parameterized(
-        // pbm = { "pbm" },
-        // pgm = { "pgm" },
-        // ppm = { "ppm" },
+        pbm = { "pbm" },
+        pgm = { "pgm" },
+        ppm = { "ppm" },
     )]
     fn pnm_encode_binary(which: &str) {
         pnm_encode_test_case(which, false)

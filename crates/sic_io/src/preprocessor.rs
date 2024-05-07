@@ -1,6 +1,6 @@
 use crate::errors::SicIoError;
 use crate::preprocessor::color_type::ColorTypePreprocessor;
-use crate::preprocessor::pick_frame::SingleFramePreprocessor;
+use crate::preprocessor::pick_frame::PickFramePreprocessor;
 use sic_core::{image, SicImage};
 
 pub mod color_type;
@@ -25,9 +25,9 @@ impl Preprocessors {
         self
     }
 
-    pub fn single_frame_preprocessor(&mut self, image_format: image::ImageFormat) -> &mut Self {
+    pub fn pick_frame_preprocessor(&mut self, image_format: image::ImageFormat) -> &mut Self {
         self.preprocessors
-            .push(Box::new(SingleFramePreprocessor::new(image_format)));
+            .push(Box::new(PickFramePreprocessor::new(image_format)));
 
         self
     }

@@ -2,17 +2,17 @@ use crate::errors::SicIoError;
 use crate::preprocessor::Preprocess;
 use sic_core::{image, SicImage};
 
-pub struct SingleFramePreprocessor {
+pub struct PickFramePreprocessor {
     image_format: image::ImageFormat,
 }
 
-impl SingleFramePreprocessor {
+impl PickFramePreprocessor {
     pub fn new(image_format: image::ImageFormat) -> Self {
         Self { image_format }
     }
 }
 
-impl Preprocess for SingleFramePreprocessor {
+impl Preprocess for PickFramePreprocessor {
     type Err = SicIoError;
 
     fn preprocess(&self, image: SicImage) -> Result<SicImage, Self::Err> {

@@ -105,7 +105,7 @@ where
     // NB: order in which preprocessors are added matters!
     let mut preprocessors = Preprocessors::default();
 
-    preprocessors.single_frame_preprocessor(dynamic_encoder.image_format());
+    preprocessors.pick_frame_preprocessor(dynamic_encoder.image_format());
 
     if !config.disable_automatic_color_type_adjustment {
         preprocessors.color_type_preprocessor(dynamic_encoder.image_format());
