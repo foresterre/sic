@@ -12,4 +12,4 @@ rust-version = "1.61"
 
 [dependencies]
 sic_core = { version = "0.22.0", path = "../sic_core" }
-parameterized  = "1.1.0"
+parameterized  = "2.0.0"
