@@ -24,16 +24,3 @@ pre-commit:
     just lint
     just test
     just deny
-
-# package a release for the current platform
-pack-release:
-    cargo run -p pack-release
-
-publish-workspace new_version:
-    cargo install cargo-publish-workspace
-    cargo publish-workspace --new-version {{new_version}}
-
-# publish the workspace with a new workspace version, and package the result for the current platform
-publish new_version:
-    just publish-workspace {{new_version}}
-    just pack-release
