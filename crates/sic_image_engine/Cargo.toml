@@ -25,4 +25,5 @@ sic_testing = { version = "0.22.0", path = "../sic_testing" }
 
 [features]
 imageproc-ops = ["sic_core/imageproc-ops"]
+
 output-test-images = []
