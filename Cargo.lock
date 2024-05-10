@@ -1385,7 +1385,6 @@ name = "sic"
 version = "0.22.4"
 dependencies = [
  "anyhow",
- "atty",
  "clap",
  "globwalk",
  "open",

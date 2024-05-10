@@ -40,7 +40,6 @@ sic_image_engine = { version = "0.22.0", path = "crates/sic_image_engine" }
 sic_parser = { version = "0.22.0", path = "crates/sic_parser" }
 
 anyhow = "1"
-atty = "0.2.14"
 clap = "2.34.0"
 globwalk = "0.8.1"
 open = "5.1.2"
