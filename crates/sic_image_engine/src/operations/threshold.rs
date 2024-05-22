@@ -28,14 +28,22 @@ impl ImageOperation for Threshold {
 fn threshold_image(img: &mut DynamicImage) -> DynamicImage {
     let gray_image = img.to_luma8();
     let best_threshold = imageproc::contrast::otsu_level(&gray_image);
-    let out = imageproc::contrast::threshold(&gray_image, best_threshold);
+    let out = imageproc::contrast::threshold(
+        &gray_image,
+        best_threshold,
+        imageproc::contrast::ThresholdType::Truncate,
+    );
     DynamicImage::ImageLuma8(out)
 }
 
 fn threshold_frame(img: &RgbaImage) -> RgbaImage {
     let gray_image = DynamicImage::ImageRgba8(img.clone()).into_luma8();
     let best_threshold = imageproc::contrast::otsu_level(&gray_image);
-    let out = imageproc::contrast::threshold(&gray_image, best_threshold);
+    let out = imageproc::contrast::threshold(
+        &gray_image,
+        best_threshold,
+        imageproc::contrast::ThresholdType::Truncate,
+    );
     DynamicImage::ImageLuma8(out).into_rgba8()
 }
 
