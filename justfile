@@ -6,11 +6,14 @@ mod msrv    '.justfiles/msrv.just'
 mod test    '.justfiles/test.just'
 mod dav1d   '.justfiles/dav1d.just'
 
+
+
 before-push:
-    # do
+    # do fmt
     just --unstable fmt
     # run checks
     just --unstable fmt check
+    just --unstable dav1d
     just --unstable clippy
     just --unstable test
     just --unstable msrv
