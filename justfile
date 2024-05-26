@@ -6,7 +6,10 @@ mod msrv    '.justfiles/msrv.just'
 mod test    '.justfiles/test.just'
 mod dav1d   '.justfiles/dav1d.just'
 
-
+[windows]
+default:
+    @echo 'On Windows, run just using:'
+    @echo 'just --unstable --shell pwsh.exe --shell-arg -c'
 
 before-push:
     # do fmt
