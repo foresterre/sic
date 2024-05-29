@@ -10,6 +10,11 @@ mod dav1d   '.justfiles/dav1d.just'
 default:
     @echo 'On Windows, run just using:'
     @echo 'just --unstable --shell pwsh.exe --shell-arg -c'
+    @just --choose --unstable
+
+[unix]
+default:
+    @just --choose --unstable
 
 before-push:
     # do fmt
