@@ -18,4 +18,5 @@ thiserror = "1"
 
 [features]
 nasm = ["image/nasm"]
+avif-decoder = ["image/avif-native"]
 imageproc-ops = ["imageproc", "ab_glyph"]

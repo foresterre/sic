@@ -9,9 +9,13 @@ allow = [
     "BSD-3-Clause",
     "CC0-1.0",
     "MIT",
+    "MIT-0",
     "Unlicense",
     "Zlib",
     "Unicode-DFS-2016",
+]
+exceptions = [
+    { crate = "mp4parse", allow = ["MPL-2.0"] },
 ]
 
 [[licenses.clarify]]
@@ -30,11 +34,7 @@ ignore = [
     # Potential segfault in the time crate
     # NB: has been fixed in time >=0.2.23, however waiting on chrono crate to update
     # chrono PR: https://github.com/chronotope/chrono/pull/578
-    "RUSTSEC-2020-0071",
-    # Potential segfault in localtime_r invocations, see 2020-0071
-    "RUSTSEC-2020-0159",
+
     # unmaintained crate ansi_term
     "RUSTSEC-2021-0139",
-    # unmaintained crate rusttype
-    "RUSTSEC-2021-0140",
 ]
