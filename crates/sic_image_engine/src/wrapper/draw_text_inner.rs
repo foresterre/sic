@@ -1,5 +1,3 @@
-#![cfg(feature = "imageproc-ops")]
-
 use crate::wrapper::font_options::FontOptions;
 
 #[derive(Debug, Clone, PartialEq)]

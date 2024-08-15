@@ -54,20 +54,20 @@ pub(crate) fn resize_dimensions(
     };
     let intermediate = std::cmp::max(1, intermediate);
     if use_width {
-        if intermediate <= u64::from(::std::u32::MAX) {
+        if intermediate <= u64::from(u32::MAX) {
             (nwidth, intermediate as u32)
         } else {
             (
-                (u64::from(nwidth) * u64::from(::std::u32::MAX) / intermediate) as u32,
-                ::std::u32::MAX,
+                (u64::from(nwidth) * u64::from(u32::MAX) / intermediate) as u32,
+                u32::MAX,
             )
         }
-    } else if intermediate <= u64::from(::std::u32::MAX) {
+    } else if intermediate <= u64::from(u32::MAX) {
         (intermediate as u32, nheight)
     } else {
         (
-            ::std::u32::MAX,
-            (u64::from(nheight) * u64::from(::std::u32::MAX) / intermediate) as u32,
+            u32::MAX,
+            (u64::from(nheight) * u64::from(u32::MAX) / intermediate) as u32,
         )
     }
 }

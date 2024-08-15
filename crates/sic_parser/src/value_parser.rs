@@ -428,8 +428,7 @@ mod tests_parse_from_iter {
 
     macro_rules! assert_iter_f32 {
         ($lhs_iter:expr, $rhs_iter:expr) => {
-            assert_iter_impl!($lhs_iter, $rhs_iter, |(l, r)| (l - r).abs()
-                < std::f32::EPSILON)
+            assert_iter_impl!($lhs_iter, $rhs_iter, |(l, r)| (l - r).abs() < f32::EPSILON)
         };
     }
 
@@ -474,7 +473,7 @@ mod tests_parse_from_iter {
             let some: [f32; 9] = ParseInputsFromIter::parse(&[
                 "1", "2", "3", "4", "5.5", "-6.0", "7", "8", "-9.9999",
             ])
-            .unwrap();
+                .unwrap();
             const EXPECTED: [f32; 9] = [
                 1f32, 2f32, 3f32, 4f32, 5.5f32, -6.0f32, 7f32, 8f32, -9.9999f32,
             ];
