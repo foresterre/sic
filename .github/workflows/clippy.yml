@@ -1,0 +1,25 @@
+name: clippy
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  merge_group:
+jobs:
+  clippy:
+    name: clippy
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout_repo
+        uses: actions/checkout@v4
+
+      - name: install_rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: install_nasm
+        uses: ilammy/setup-nasm@v1
+
+      - name: clippy
+        run: cargo clippy --all-targets --all-features --workspace
