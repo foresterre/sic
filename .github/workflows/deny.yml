@@ -1,0 +1,30 @@
+name: cargo_deny
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  merge_group:
+jobs:
+  cargo_deny:
+    name: cargo_deny
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        checks:
+          - advisories
+          - bans licenses sources
+
+    continue-on-error: ${{ matrix.checks == 'advisories' }}
+    steps:
+      - name: checkout_repo
+        uses: actions/checkout@v4
+
+      - name: install_rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - uses: EmbarkStudios/cargo-deny-action@v1
+        with:
+          log-level: error

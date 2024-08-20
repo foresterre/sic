@@ -1,0 +1,69 @@
+name: msrv
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  merge_group:
+  schedule:
+    - cron: '00 06 * * *'
+jobs:
+  msrv_stable:
+    name: msrv_stable
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: checkout_repo
+        uses: actions/checkout@v4
+
+      - name: install_rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: install_cargo_msrv
+        run: cargo install cargo-msrv # 0.15.x
+
+      - name: version_of_cargo_msrv
+        run: cargo msrv --version
+
+      - name: install_nasm
+        uses: ilammy/setup-nasm@v1
+
+      - name: run_cargo_msrv_verify
+        run: cargo msrv --output-format json verify -- cargo check
+
+      - name: run_cargo_msrv_on_verify_failure
+        if: ${{ failure() }}
+        run: cargo msrv --output-format json -- cargo check
+
+  # The same as the 'msrv' job, except it takes the latest release, including beta releases
+  # We don't use --all-features here!
+  msrv_beta:
+    name: msrv_beta
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: checkout_repo
+        uses: actions/checkout@v4
+
+      - name: install_rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-binstall
+
+      - name: install_cargo_msrv_bin
+        run: cargo binstall --version 0.16.0-beta.25 --no-confirm cargo-msrv # 0.16.x (beta)
+
+      - name: version_of_cargo_msrv
+        run: cargo msrv --version
+
+      - name: install_nasm
+        uses: ilammy/setup-nasm@v1
+
+      - name: run_cargo_msrv_verify
+        run: cargo msrv verify --output-format json
+
+      - name: run_cargo_msrv_on_verify_failure
+        if: ${{ failure() }}
+        run: cargo msrv find --output-format json
