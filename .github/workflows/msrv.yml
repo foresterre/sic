@@ -5,6 +5,8 @@ on:
     branches:
       - main
   merge_group:
+  schedule:
+    - cron: '00 06 * * *'
 jobs:
   msrv_stable:
     name: msrv_stable
