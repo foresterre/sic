@@ -1,0 +1,22 @@
+name: rustfmt
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  merge_group:
+jobs:
+  rustfmt:
+    name: rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout_repo
+        uses: actions/checkout@v4
+
+      - name: install_rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+
+      - name: fmt
+        run: cargo fmt --all -- --check
