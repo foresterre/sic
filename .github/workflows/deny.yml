@@ -25,6 +25,6 @@ jobs:
         with:
           components: clippy
 
-      - uses: EmbarkStudios/cargo-deny-action@v1
+      - uses: EmbarkStudios/cargo-deny-action@v2
         with:
           log-level: error

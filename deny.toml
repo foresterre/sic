@@ -1,6 +1,12 @@
+[advisories]
+ignore = [
+    # unmaintained crate ansi_term
+    "RUSTSEC-2021-0139",
+    # unmaintained crate rusttype
+    "RUSTSEC-2021-0145",
+]
+
 [licenses]
-unlicensed = "deny"
-copyleft = "deny"
 confidence-threshold = 0.925
 allow = [
     "Apache-2.0",
@@ -19,22 +25,4 @@ name = "exr"
 expression = "BSD-3-Clause"
 license-files = [
     { path = "LICENSE.md", hash = 0xf0600744 },
-]
-
-[advisories]
-vulnerability = "deny"
-unmaintained = "deny"
-notice = "deny"
-
-ignore = [
-    # Potential segfault in the time crate
-    # NB: has been fixed in time >=0.2.23, however waiting on chrono crate to update
-    # chrono PR: https://github.com/chronotope/chrono/pull/578
-    "RUSTSEC-2020-0071",
-    # Potential segfault in localtime_r invocations, see 2020-0071
-    "RUSTSEC-2020-0159",
-    # unmaintained crate ansi_term
-    "RUSTSEC-2021-0139",
-    # unmaintained crate rusttype
-    "RUSTSEC-2021-0140",
 ]
