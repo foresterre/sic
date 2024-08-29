@@ -27,7 +27,7 @@ changes.
 
 ### Notable dependency updates
 
-- Updated [image](https://github.com/image-rs/image) to 0.25.1
+- Updated [image](https://github.com/image-rs/image) to 0.25.2
 
 ### Disabled
 
