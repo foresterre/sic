@@ -104,12 +104,11 @@ impl SicTestCommandBuilder {
             .stdout(Stdio::null())
             .stderr(Stdio::null())
             .spawn()
-            .map_err(|err| {
+            .inspect_err(|_| {
                 eprintln!(
                     "Spawn child error for SicTestCommandBuilder:\nCommand: {:?}",
                     command
                 );
-                err
             })
             .expect("Unable to spawn child process for SicTestCommandBuilder instance")
     }

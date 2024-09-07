@@ -26,11 +26,7 @@ pub type TResult<T> = Result<T, SicCliOpsError>;
 pub fn create_image_ops<I: IntoIterator<Item = String>>(iter: I) -> TResult<Vec<Instr>> {
     let mut iter = iter.into_iter();
 
-    let size = if let Some(size) = iter.size_hint().1 {
-        size
-    } else {
-        128
-    };
+    let size = iter.size_hint().1.unwrap_or(128);
 
     let mut ast: Vec<Instr> = Vec::with_capacity(size);
 
