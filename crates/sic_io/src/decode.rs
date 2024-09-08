@@ -21,7 +21,7 @@ impl SicImageDecoder {
     /// Load an image using a reader.
     /// All images are currently loaded from memory.
     pub fn decode<R: Read>(&self, reader: &mut R) -> Result<SicImage, SicIoError> {
-        let reader = image::io::Reader::new(Cursor::new(read_image_to_buffer(reader)?))
+        let reader = image::ImageReader::new(Cursor::new(read_image_to_buffer(reader)?))
             .with_guessed_format()
             .map_err(SicIoError::Io)?;
 
@@ -110,7 +110,7 @@ impl FrameIndex {
 }
 
 fn decode_gif<R: BufRead + Seek>(
-    reader: image::io::Reader<R>,
+    reader: image::ImageReader<R>,
     frame_index: Option<FrameIndex>,
 ) -> Result<SicImage, SicIoError> {
     let decoder =
@@ -120,7 +120,7 @@ fn decode_gif<R: BufRead + Seek>(
 }
 
 fn decode_png<R: BufRead + Seek>(
-    reader: image::io::Reader<R>,
+    reader: image::ImageReader<R>,
     frame: Option<FrameIndex>,
 ) -> Result<SicImage, SicIoError> {
     let decoder =
