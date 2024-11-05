@@ -4,6 +4,8 @@ ignore = [
     "RUSTSEC-2021-0139",
     # unmaintained crate rusttype
     "RUSTSEC-2021-0145",
+    # unmaintained atty
+    "RUSTSEC-2024-0375",
 ]
 
 [licenses]
@@ -18,6 +20,9 @@ allow = [
     "Unlicense",
     "Zlib",
     "Unicode-DFS-2016",
+]
+exceptions = [
+    { crate = "mp4parse", allow = ["MPL-2.0"] },
 ]
 
 [[licenses.clarify]]

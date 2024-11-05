@@ -1,39 +1,17 @@
-# determine the current Minimum Supported Rust Version for sic
-msrv:
-    cargo install cargo-msrv
-    cargo msrv --output-format json -- cargo check --all-features
+# NB: mod requires Just >= 1.19 and just --unstable
+mod clippy  '.justfiles/clippy.just'
+mod deny    '.justfiles/deny.just'
+mod fmt     '.justfiles/fmt.just'
+mod msrv    '.justfiles/msrv.just'
+mod test    '.justfiles/test.just'
+mod dav1d   '.justfiles/dav1d.just'
 
-# format all workspace packages
-fmt:
-    cargo fmt --all
-
-# run linter on all workspace packages
-lint:
-    cargo clippy --all-targets --all-features -- -D warnings
-
-# run tests in workspace
-test:
-    cargo test --all-features --all
-
-deny:
-	cargo deny --all-features check
-
-# general check to run prior to committing source code
-pre-commit:
-    just fmt
-    just lint
-    just test
-    just deny
-
-# package a release for the current platform
-pack-release:
-    cargo run -p pack-release
-
-publish-workspace new_version:
-    cargo install cargo-publish-workspace
-    cargo publish-workspace --new-version {{new_version}}
-
-# publish the workspace with a new workspace version, and package the result for the current platform
-publish new_version:
-    just publish-workspace {{new_version}}
-    just pack-release
+before-push:
+    # do
+    just --unstable fmt
+    # run checks
+    just --unstable fmt check
+    just --unstable clippy
+    just --unstable test
+    just --unstable msrv
+    just --unstable deny
