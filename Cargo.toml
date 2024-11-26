@@ -43,7 +43,7 @@ anyhow = "1"
 atty = "0.2.14"
 clap = "2.34.0"
 globwalk = "0.8.1"
-open = "5.3.0"
+open = "5.3.1"
 
 [dev-dependencies]
 clap = "2.34.0" # for examples/gen_completions.rs
