@@ -259,7 +259,7 @@ struct AnnotatedArgs<'a> {
     arguments: Vec<Value<'a>>,
 }
 
-impl<'a> AnnotatedArgs<'a> {
+impl AnnotatedArgs<'_> {
     fn ident(&self) -> Ident {
         self.ident
     }

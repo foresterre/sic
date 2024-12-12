@@ -13,7 +13,7 @@ impl<'kernel> Filter3x3<'kernel> {
     }
 }
 
-impl<'kernel> ImageOperation for Filter3x3<'kernel> {
+impl ImageOperation for Filter3x3<'_> {
     fn apply_operation(&self, image: &mut SicImage) -> Result<(), SicImageEngineError> {
         match image {
             SicImage::Static(image) => *image = image.filter3x3(self.kernel),
