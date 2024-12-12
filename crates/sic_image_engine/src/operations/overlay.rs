@@ -16,7 +16,7 @@ impl<'overlay> Overlay<'overlay> {
     }
 }
 
-impl<'overlay> ImageOperation for Overlay<'overlay> {
+impl ImageOperation for Overlay<'_> {
     fn apply_operation(&self, image: &mut SicImage) -> Result<(), SicImageEngineError> {
         match image {
             SicImage::Static(image) => overlay_static(image, self.inputs),
