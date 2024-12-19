@@ -17,7 +17,7 @@ impl<'image> Diff<'image> {
     }
 }
 
-impl<'image> ImageOperation for Diff<'image> {
+impl ImageOperation for Diff<'_> {
     fn apply_operation(&self, image: &mut SicImage) -> Result<(), SicImageEngineError> {
         match image {
             SicImage::Static(image) => diff_impl(image, self.path),
